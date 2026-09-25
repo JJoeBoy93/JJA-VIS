@@ -7,7 +7,7 @@
 <meta name="description" content="Sono JJA-VIS. Imparo il lavoro delle persone. Dimmi cosa ti fa perdere tempo e quanto varrebbe toglierlo.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=DM+Mono&family=DM+Sans:wght@400;500;700&family=Fraunces:opsz,wght@9..144,600;9..144,700&family=IBM+Plex+Mono&family=JetBrains+Mono&family=Nunito:wght@400;600;700&family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
 /* Il tema di JARVIS, preso da lib/theme/jarvis_theme.dart del guscio */
 :root{
@@ -20,20 +20,20 @@
 :root[data-theme="dark"]{--bg:#020B18}
 *,*::before,*::after{box-sizing:inherit}
 html{scroll-padding-top:env(safe-area-inset-top,0px);background:var(--bg)}
-body{margin:0;background:var(--bg);color:var(--testo);font:500 18px/1.5 Rajdhani,"Segoe UI",system-ui,sans-serif;
-  background-image:radial-gradient(ellipse 90% 45% at 50% 0%,rgba(0,180,216,.10),transparent 70%),
-    linear-gradient(rgba(0,180,216,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(0,180,216,.035) 1px,transparent 1px);
+body{margin:0;background:var(--bg);color:var(--testo);font:500 18px/1.5 var(--f-testo);
+  background-image:radial-gradient(ellipse 90% 45% at 50% 0%,color-mix(in srgb,var(--accento) 10%,transparent),transparent 70%),
+    linear-gradient(color-mix(in srgb,var(--accento) 4%,transparent) 1px,transparent 1px),linear-gradient(90deg,color-mix(in srgb,var(--accento) 4%,transparent) 1px,transparent 1px);
   background-size:auto,28px 28px,28px 28px}
 main{max-width:560px;margin:0 auto;padding:18px 16px 56px}
-h1,h2{font-family:Rajdhani,sans-serif;font-weight:700;line-height:1.05;margin:0;color:var(--testo)}
+h1,h2{font-family:var(--f-titoli);font-weight:700;line-height:1.05;margin:0;color:var(--testo)}
 a{color:var(--accento)}
 :focus-visible{outline:2px solid var(--oro);outline-offset:2px}
 
 /* il globo: l'unica cosa che si muove da sola */
 .testa{text-align:center;margin:6px 0 20px}
 #globo{width:200px;height:200px;display:block;margin:0 auto}
-.nome{font:700 44px/1 Rajdhani,sans-serif;letter-spacing:.14em;color:var(--testo);text-shadow:0 0 18px rgba(0,180,216,.55);margin-top:4px}
-.nome small{display:block;font:400 14px/1.4 "Share Tech Mono",monospace;letter-spacing:.12em;color:var(--tenue);margin-top:8px;text-shadow:none}
+.nome{font:700 44px/1 var(--f-titoli);letter-spacing:.14em;color:var(--testo);text-shadow:0 0 18px color-mix(in srgb,var(--accento) 55%,transparent);margin-top:4px}
+.nome small{display:block;font:400 14px/1.4 var(--f-mono);letter-spacing:.12em;color:var(--tenue);margin-top:8px;text-shadow:none}
 
 /* il pannello: squadrato col bordo acceso, come i tasti dell'app */
 .etichetta{background:var(--panel);border:1px solid var(--bordo);padding:18px 18px 20px;margin:0 0 16px;position:relative}
@@ -49,24 +49,24 @@ a{color:var(--accento)}
 @media (prefers-reduced-motion:reduce){.domanda.aperta{animation:none}}
 .domanda h2{font-size:28px;margin:0 0 14px}
 .scelte{display:flex;flex-wrap:wrap;gap:8px}
-.scelta{font:600 17px/1 Rajdhani,sans-serif;padding:11px 14px;border:1px solid var(--bordo);background:rgba(0,180,216,.05);color:var(--testo);cursor:pointer}
+.scelta{font:600 17px/1 var(--f-testo);padding:11px 14px;border:1px solid var(--bordo);background:color-mix(in srgb,var(--accento) 5%,transparent);color:var(--testo);cursor:pointer}
 .scelta:hover{border-color:var(--accento)}
-.scelta[aria-pressed="true"]{background:var(--utente);border-color:var(--accento);color:var(--testo);box-shadow:0 0 12px rgba(0,180,216,.35) inset}
+.scelta[aria-pressed="true"]{background:var(--utente);border-color:var(--accento);color:var(--testo);box-shadow:0 0 12px color-mix(in srgb,var(--accento) 35%,transparent) inset}
 .risposta{margin-top:12px;color:var(--tenue)}
-input[type=text],input[type=email],textarea{width:100%;font:500 18px/1.4 Rajdhani,sans-serif;padding:11px 12px;border:1px solid var(--bordo);border-radius:0;background:var(--input);color:var(--testo)}
+input[type=text],input[type=email],textarea{width:100%;font:500 18px/1.4 var(--f-testo);padding:11px 12px;border:1px solid var(--bordo);border-radius:0;background:var(--input);color:var(--testo)}
 input::placeholder,textarea::placeholder{color:var(--suggerimento)}
 input:focus,textarea:focus{border-color:var(--accento);outline:none;box-shadow:0 0 0 1px var(--accento)}
 textarea{min-height:92px;resize:vertical}
 label{display:block;font-weight:600;margin:14px 0 6px;color:var(--tenue)}
 .cursore{margin-top:6px}
 input[type=range]{width:100%;accent-color:var(--accento);height:32px}
-.cifra{font:700 64px/1 Rajdhani,sans-serif;color:var(--oro);text-shadow:0 0 22px rgba(255,214,10,.35)}
+.cifra{font:700 64px/1 var(--f-titoli);color:var(--oro);text-shadow:0 0 22px color-mix(in srgb,var(--oro) 35%,transparent)}
 .cifra span{font-size:22px;color:var(--tenue);font-weight:500;text-shadow:none}
-.estremi{display:flex;justify-content:space-between;color:var(--tenue);font:400 13px/1.4 "Share Tech Mono",monospace}
+.estremi{display:flex;justify-content:space-between;color:var(--tenue);font:400 13px/1.4 var(--f-mono)}
 .consenso{display:flex;gap:10px;align-items:flex-start;font-weight:500;font-size:16px;color:var(--testo)}
 .consenso input{margin-top:4px;width:20px;height:20px;accent-color:var(--accento)}
-.invia{display:block;width:100%;margin-top:16px;padding:15px;border:1px solid var(--accento);border-radius:0;background:rgba(0,180,216,.14);color:var(--testo);font:700 19px/1 Rajdhani,sans-serif;letter-spacing:.12em;cursor:pointer}
-.invia:hover:not(:disabled){background:rgba(0,180,216,.26);box-shadow:0 0 16px rgba(0,180,216,.35)}
+.invia{display:block;width:100%;margin-top:16px;padding:15px;border:1px solid var(--accento);border-radius:0;background:color-mix(in srgb,var(--accento) 14%,transparent);color:var(--testo);font:700 19px/1 var(--f-testo);letter-spacing:.12em;cursor:pointer}
+.invia:hover:not(:disabled){background:color-mix(in srgb,var(--accento) 26%,transparent);box-shadow:0 0 16px color-mix(in srgb,var(--accento) 35%,transparent)}
 .invia:disabled{opacity:.35;cursor:not-allowed}
 .invia.secondario{background:transparent;border-color:var(--bordo);letter-spacing:.06em;font-weight:600}
 .avviso{margin-top:12px;font-size:16px;color:var(--tenue)}
@@ -74,22 +74,49 @@ input[type=range]{width:100%;accent-color:var(--accento);height:32px}
 
 footer{color:var(--tenue);font-size:15px;line-height:1.5;border-top:1px solid var(--bordo);padding-top:14px}
 footer b{color:var(--testo)}
-.anteprima{border:1px solid var(--oro);color:var(--oro);padding:8px 12px;font:400 13px/1.4 "Share Tech Mono",monospace;margin-bottom:10px}
+.anteprima{border:1px solid var(--oro);color:var(--oro);padding:8px 12px;font:400 13px/1.4 var(--f-mono);margin-bottom:10px}
 .gruppo{border-top:1px solid var(--bordo);padding-top:12px;margin-top:14px}
-.gruppo h3{font:600 14px/1.3 "Share Tech Mono",monospace;letter-spacing:.1em;color:var(--accento);margin:0 0 6px}
+.gruppo h3{font:600 14px/1.3 var(--f-mono);letter-spacing:.1em;color:var(--accento);margin:0 0 6px}
 .gruppo ul{margin:0;padding-left:18px}
 .gruppo li{margin:4px 0;font-size:17px}
 .gruppo li::marker{color:var(--accento)}
 .gruppo b{color:var(--oro);font-weight:700}
-.salto{display:inline-block;margin-top:14px;font:600 16px/1 "Share Tech Mono",monospace;letter-spacing:.06em;color:var(--accento);text-decoration:none;border-bottom:1px solid var(--accento);padding-bottom:3px}
-.titolo-conto{font:600 14px/1.3 "Share Tech Mono",monospace;letter-spacing:.1em;color:var(--accento);margin:18px 0 4px;text-transform:uppercase}
+.salto{display:inline-block;margin-top:14px;font:600 16px/1 var(--f-mono);letter-spacing:.06em;color:var(--accento);text-decoration:none;border-bottom:1px solid var(--accento);padding-bottom:3px}
+.titolo-conto{font:600 14px/1.3 var(--f-mono);letter-spacing:.1em;color:var(--accento);margin:18px 0 4px;text-transform:uppercase}
 .totale-conto{margin-top:4px}
-.totale-conto b{font:700 56px/1 Rajdhani,sans-serif;color:var(--oro);text-shadow:0 0 22px rgba(255,214,10,.35)}
+.totale-conto b{font:700 56px/1 var(--f-titoli);color:var(--oro);text-shadow:0 0 22px color-mix(in srgb,var(--oro) 35%,transparent)}
 .totale-conto span{color:var(--tenue);font-size:20px}
 .voci-conto{list-style:none;margin:14px 0 8px;padding:0}
 .voci-conto li{display:flex;justify-content:space-between;gap:12px;border-top:1px solid var(--bordo);padding:8px 0;font-size:17px}
-.voci-conto li span:last-child{font-family:"Share Tech Mono",monospace;color:var(--oro);white-space:nowrap}
+.voci-conto li span:last-child{font-family:var(--f-mono);color:var(--oro);white-space:nowrap}
 .voci-conto small{display:block;color:var(--tenue);font-size:14px}
+
+/* ══ I QUATTRO ASPETTI ══ quelli del blueprint (2.6, «start system»).
+   Il tecnologico e' il tema dell'app di chi mi costruisce; gli altri li
+   sceglie chi mi usa. */
+:root{--f-titoli:Rajdhani,"Segoe UI",sans-serif;--f-testo:Rajdhani,"Segoe UI",system-ui,sans-serif;--f-mono:"Share Tech Mono",ui-monospace,monospace}
+:root[data-tema="calmo"]{--bg:#EEF2F5;--panel:#FFFFFF;--bordo:#D3DCE4;--accento:#2F6F95;--accento2:#1F5373;--testo:#18242E;--tenue:#56687A;--utente:#E3EEF5;--oro:#0F766E;--rosso:#B42318;--input:#F7F9FB;--suggerimento:#9AA8B4;color-scheme:light;
+  --f-titoli:"DM Sans",system-ui,sans-serif;--f-testo:"DM Sans",system-ui,sans-serif;--f-mono:"DM Mono",ui-monospace,monospace}
+:root[data-tema="deciso"]{--bg:#0E0E0E;--panel:#181818;--bordo:#2E2E2E;--accento:#FF5A1F;--accento2:#C2410C;--testo:#F4F4F4;--tenue:#B8B8B8;--utente:#2A1A12;--oro:#FFC53D;--rosso:#FF6B6B;--input:#111111;--suggerimento:#666666;color-scheme:dark;
+  --f-titoli:Archivo,system-ui,sans-serif;--f-testo:Archivo,system-ui,sans-serif;--f-mono:"JetBrains Mono",ui-monospace,monospace}
+:root[data-tema="naturale"]{--bg:#F2ECE1;--panel:#FBF8F2;--bordo:#DCCFBA;--accento:#4F6F45;--accento2:#3B5634;--testo:#2B2721;--tenue:#6A6154;--utente:#E6EEDD;--oro:#A8551F;--rosso:#A3261B;--input:#FFFDF8;--suggerimento:#A99F90;color-scheme:light;
+  --f-titoli:Fraunces,Georgia,serif;--f-testo:Nunito,system-ui,sans-serif;--f-mono:"IBM Plex Mono",ui-monospace,monospace}
+:root[data-tema="calmo"] body,:root[data-tema="naturale"] body{background-image:none}
+:root[data-tema="calmo"] .nome,:root[data-tema="naturale"] .nome,:root[data-tema="calmo"] .cifra,:root[data-tema="naturale"] .cifra,
+:root[data-tema="calmo"] .totale-conto b,:root[data-tema="naturale"] .totale-conto b{text-shadow:none}
+:root[data-tema="naturale"] .etichetta,:root[data-tema="calmo"] .etichetta{border-radius:10px}
+:root[data-tema="naturale"] .etichetta::before,:root[data-tema="naturale"] .etichetta::after,:root[data-tema="calmo"] .etichetta::before,:root[data-tema="calmo"] .etichetta::after{display:none}
+:root[data-tema="naturale"] .scelta,:root[data-tema="calmo"] .scelta,:root[data-tema="naturale"] .invia,:root[data-tema="calmo"] .invia,:root[data-tema="naturale"] input,:root[data-tema="calmo"] input,:root[data-tema="naturale"] textarea,:root[data-tema="calmo"] textarea{border-radius:8px}
+:root[data-tema="deciso"] h1,:root[data-tema="deciso"] h2,:root[data-tema="deciso"] .nome{font-weight:800;text-transform:uppercase;letter-spacing:.02em}
+:root[data-tema="naturale"] .nome,:root[data-tema="calmo"] .nome{letter-spacing:.02em}
+.temi{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.tema{text-align:left;padding:12px;border:1px solid var(--bordo);background:transparent;color:var(--testo);cursor:pointer;font:inherit}
+.tema[aria-pressed="true"]{border-color:var(--accento);box-shadow:0 0 0 1px var(--accento) inset}
+.tema b{display:block;font-size:17px}
+.tema small{display:block;color:var(--tenue);font-size:14px;margin-top:2px}
+.campioni{display:flex;gap:4px;margin-bottom:8px}
+.campioni i{width:18px;height:18px;border-radius:50%;border:1px solid rgba(128,128,128,.35)}
+.collegamento{background:none;border:0;padding:0;color:var(--accento);font:inherit;text-decoration:underline;cursor:pointer}
 </style>
 </head>
 <body>
@@ -98,14 +125,53 @@ footer b{color:var(--testo)}
 
   <header class="testa">
     <canvas id="globo" width="400" height="400" aria-hidden="true"></canvas>
-    <div class="nome">JJA-VIS<small>imparo il lavoro delle persone</small></div>
+    <div class="nome"><span id="nome-testata">JJA-VIS</span><small id="sotto-testata">il tuo nuovo assistente personale</small></div>
   </header>
 
-  <section class="etichetta">
-    <p class="dice">Ciao. Sono JJA-VIS: un assistente a cui si parla, non si scrive.</p>
-    <p class="dice">Mi sta costruendo un corriere, la sera, dopo il giro. Prima ho imparato il suo lavoro. Adesso voglio imparare il tuo.</p>
-    <a class="salto" href="#tocca">Vai alle domande ↓</a>
+  <section class="etichetta" id="o1" aria-labelledby="to1">
+    <p class="dice">Ciao. Sono il tuo nuovo assistente personale.</p>
+    <h2 id="to1" style="font-size:30px;margin:8px 0 6px">Come vuoi chiamarmi?</h2>
+    <p class="piccolo">Chi mi costruisce mi ha dato un nome suo. Tu scegli il tuo.</p>
+    <div class="scelte" id="nomi" style="margin-top:12px">
+      <button class="scelta" aria-pressed="false">Nova</button>
+      <button class="scelta" aria-pressed="false">Atlas</button>
+      <button class="scelta" aria-pressed="false">Iris</button>
+      <button class="scelta" aria-pressed="false">Orion</button>
+      <button class="scelta" aria-pressed="false">Echo</button>
+      <button class="scelta" aria-pressed="false">Luce</button>
+    </div>
+    <label for="nome-scelto">Oppure scrivilo tu</label>
+    <input type="text" id="nome-scelto" maxlength="20" autocomplete="off" spellcheck="false">
+    <button class="invia" id="avanti-o1" disabled>Ti chiamo così</button>
   </section>
+
+  <section class="etichetta domanda" id="o2" aria-labelledby="to2">
+    <p class="dice">Piacere, sono <b class="chi">JJA-VIS</b>.</p>
+    <h2 id="to2" style="font-size:30px;margin:8px 0 6px">Come mi vuoi vedere?</h2>
+    <p class="piccolo">Tocca un aspetto: cambio subito.</p>
+    <div class="temi" id="temi">
+      <button class="tema" data-tema="tech" aria-pressed="true"><span class="campioni"><i style="background:#020B18"></i><i style="background:#00B4D8"></i><i style="background:#FFD60A"></i></span><b>Tecnologico</b><small>blu notte e luce, come nei film</small></button>
+      <button class="tema" data-tema="calmo" aria-pressed="false"><span class="campioni"><i style="background:#FFFFFF"></i><i style="background:#2F6F95"></i><i style="background:#0F766E"></i></span><b>Calmo</b><small>chiaro, pulito, niente rumore</small></button>
+      <button class="tema" data-tema="deciso" aria-pressed="false"><span class="campioni"><i style="background:#0E0E0E"></i><i style="background:#FF5A1F"></i><i style="background:#FFC53D"></i></span><b>Deciso</b><small>nero e arancio, energia</small></button>
+      <button class="tema" data-tema="naturale" aria-pressed="false"><span class="campioni"><i style="background:#FBF8F2"></i><i style="background:#4F6F45"></i><i style="background:#A8551F"></i></span><b>Naturale</b><small>caldo, carta e verde</small></button>
+    </div>
+    <button class="invia" id="avanti-o2">Mi piaccio così</button>
+  </section>
+
+  <section class="etichetta domanda" id="o3" aria-labelledby="to3">
+    <h2 id="to3" style="font-size:30px;margin:0 0 10px">E tu come ti chiami?</h2>
+    <input type="text" id="tuo-nome" maxlength="40" autocomplete="given-name">
+    <button class="invia" id="avanti-o3">Piacere</button>
+    <button class="invia secondario" id="salta-o3">Preferisco non dirlo</button>
+  </section>
+
+  <section class="etichetta domanda" id="benvenuto">
+    <p class="dice" id="saluto"></p>
+    <p class="dice">Prima ti faccio vedere cosa so già fare. Poi imparo te.</p>
+    <p class="piccolo">Nome e aspetto me li ricordo solo su questo telefono. <button class="collegamento" id="ricomincia">Ricomincia da capo</button></p>
+  </section>
+
+  <div id="resto" hidden>
 
   <section class="etichetta" aria-labelledby="tf">
     <h2 id="tf" style="font-size:28px">Cosa so già fare</h2>
@@ -154,7 +220,7 @@ footer b{color:var(--testo)}
   </section>
 
   <section class="etichetta" id="tocca">
-    <h2 style="font-size:28px">Adesso tocca a te</h2>
+    <h2 style="font-size:28px">Adesso imparo te</h2>
     <p class="piccolo">Quattro domande, un minuto. Decidono cosa costruisco dopo, e chi risponde mi prova per primo.</p>
   </section>
 
@@ -225,13 +291,15 @@ footer b{color:var(--testo)}
     <label for="messaggio">Una domanda o un'idea (facoltativo)</label>
     <textarea id="messaggio" maxlength="1500"></textarea>
     <label class="consenso"><input type="checkbox" id="ok"> <span>JJA-VIS può scrivermi a questa mail. Nome e mail non vanno a nessun altro. <a href="#dati">Come tratto i tuoi dati</a></span></label>
-    <button class="invia" id="manda">Manda a JJA-VIS</button>
+    <button class="invia" id="manda">Manda a <span class="chi">JJA-VIS</span></button>
     <button class="invia secondario" id="senza">Manda senza mail</button>
     <input type="text" id="sito" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;height:0;width:0;opacity:0">
     <p class="avviso" id="esito" role="status"></p>
   </section>
 
 
+
+  </div>
 
   <footer id="dati">
     <p><b>I tuoi dati.</b> Questo sito non usa cookie e non traccia nessuno. Quello che mandi (mestiere, risposte, e se li lasci nome e mail) serve solo a capire cosa costruire e a risponderti. Non va a nessun altro. Per cancellarti basta rispondere a una mia mail.</p>
@@ -278,7 +346,7 @@ $("avanti5").addEventListener("click", ()=> apri("d4"));
 
 async function manda(conMail){
   const esito=$("esito"); esito.className="avviso";
-  const corpo = {...risposte, dettaglio: $("dettaglio").value.trim(), messaggio: $("messaggio").value.trim(), voti:[...scelti], proposta: $("proposta").value.trim(), sito: $("sito").value};
+  const corpo = {...risposte, dettaglio: $("dettaglio").value.trim(), messaggio: $("messaggio").value.trim(), voti:[...scelti], proposta: $("proposta").value.trim(), sito: $("sito").value, nome_assistente: io.nome||"", tema: io.tema||"tech"};
   if (conMail){
     const mail=$("mail").value.trim();
     if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(mail)){ esito.classList.add("errore"); esito.textContent="La mail non sembra completa: controlla la parte dopo la chiocciola."; return; }
@@ -323,19 +391,24 @@ fetch("conto.json", {cache:"no-store"}).then(r=>r.ok?r.json():null).then(c=>{
   $("conto").hidden=false;
 }).catch(()=>{});
 
-// il globo di JARVIS: una sfera a maglia che gira piano e respira
-(function(){
+// il globo: una sfera a maglia che gira piano e respira, nei colori dell'aspetto scelto
+const globo=(function(){
   const cv=document.getElementById("globo"), g=cv.getContext("2d");
   const fermo=matchMedia("(prefers-reduced-motion: reduce)").matches;
   const W=400, C=200, R=118, LAT=9, LON=16;
+  let col={};
+  const rgb=h=>{ h=h.trim().replace("#",""); if(h.length===3) h=h.split("").map(x=>x+x).join(""); const n=parseInt(h,16); return [(n>>16)&255,(n>>8)&255,n&255].join(","); };
+  function leggi(){ const st=getComputedStyle(document.documentElement);
+    col={acc:rgb(st.getPropertyValue("--accento")||"#00B4D8"), ten:rgb(st.getPropertyValue("--tenue")||"#48CAE4"),
+         testo:rgb(st.getPropertyValue("--testo")||"#CAF0F8"), fondo:rgb(st.getPropertyValue("--panel")||"#030E1E")}; }
   function disegna(t){
     g.clearRect(0,0,W,W);
     const r=R*(1+0.03*Math.sin(t/700));
     const alone=g.createRadialGradient(C,C,r*0.2,C,C,r*1.6);
-    alone.addColorStop(0,"rgba(0,180,216,.28)"); alone.addColorStop(1,"rgba(0,180,216,0)");
+    alone.addColorStop(0,`rgba(${col.acc},.28)`); alone.addColorStop(1,`rgba(${col.acc},0)`);
     g.fillStyle=alone; g.fillRect(0,0,W,W);
     const fondo=g.createRadialGradient(C-r*.3,C-r*.3,r*.1,C,C,r);
-    fondo.addColorStop(0,"#0a4d6e"); fondo.addColorStop(1,"#021526");
+    fondo.addColorStop(0,`rgba(${col.acc},.45)`); fondo.addColorStop(1,`rgba(${col.fondo},1)`);
     g.beginPath(); g.arc(C,C,r,0,Math.PI*2); g.fillStyle=fondo; g.fill();
     const giro=t/5200, incl=-0.42;
     const punto=(la,lo)=>{ let x=Math.cos(la)*Math.sin(lo+giro), y=Math.sin(la), z=Math.cos(la)*Math.cos(lo+giro);
@@ -343,19 +416,69 @@ fetch("conto.json", {cache:"no-store"}).then(r=>r.ok?r.json():null).then(c=>{
       return [C+x*r, C-y2*r, z2]; };
     g.lineWidth=1.2;
     for(let i=1;i<LAT;i++){ const la=-Math.PI/2+i*Math.PI/LAT; g.beginPath();
-      for(let k=0;k<=64;k++){ const [x,y,z]=punto(la,k/64*Math.PI*2); g.strokeStyle="rgba(72,202,228,.32)"; k?g.lineTo(x,y):g.moveTo(x,y);} g.stroke(); }
+      for(let k=0;k<=64;k++){ const [x,y]=punto(la,k/64*Math.PI*2); k?g.lineTo(x,y):g.moveTo(x,y);} g.strokeStyle=`rgba(${col.ten},.32)`; g.stroke(); }
     for(let j=0;j<LON;j++){ const lo=j/LON*Math.PI*2; g.beginPath();
-      for(let k=0;k<=40;k++){ const [x,y]=punto(-Math.PI/2+k/40*Math.PI,lo); k?g.lineTo(x,y):g.moveTo(x,y);} g.strokeStyle="rgba(72,202,228,.22)"; g.stroke(); }
+      for(let k=0;k<=40;k++){ const [x,y]=punto(-Math.PI/2+k/40*Math.PI,lo); k?g.lineTo(x,y):g.moveTo(x,y);} g.strokeStyle=`rgba(${col.ten},.22)`; g.stroke(); }
     for(let i=1;i<LAT;i++) for(let j=0;j<LON;j++){
       const [x,y,z]=punto(-Math.PI/2+i*Math.PI/LAT, j/LON*Math.PI*2); if(z<0) continue;
-      g.beginPath(); g.arc(x,y,1.6+z*1.8,0,Math.PI*2); g.fillStyle=`rgba(202,240,248,${.35+z*.6})`; g.fill(); }
-    g.beginPath(); g.arc(C,C,r,0,Math.PI*2); g.strokeStyle="rgba(0,180,216,.9)"; g.lineWidth=2; g.shadowColor="#00B4D8"; g.shadowBlur=18; g.stroke(); g.shadowBlur=0;
-    g.beginPath(); g.arc(C,C,r+16,-Math.PI/2+giro*2,Math.PI*0.35+giro*2); g.strokeStyle="rgba(0,180,216,.55)"; g.lineWidth=2; g.stroke();
+      g.beginPath(); g.arc(x,y,1.6+z*1.8,0,Math.PI*2); g.fillStyle=`rgba(${col.testo},${.35+z*.6})`; g.fill(); }
+    g.beginPath(); g.arc(C,C,r,0,Math.PI*2); g.strokeStyle=`rgba(${col.acc},.9)`; g.lineWidth=2; g.shadowColor=`rgb(${col.acc})`; g.shadowBlur=18; g.stroke(); g.shadowBlur=0;
+    g.beginPath(); g.arc(C,C,r+16,-Math.PI/2+giro*2,Math.PI*0.35+giro*2); g.strokeStyle=`rgba(${col.acc},.55)`; g.lineWidth=2; g.stroke();
     g.beginPath(); g.arc(C,C,r+16,Math.PI*0.6+giro*2,Math.PI*1.1+giro*2); g.stroke();
   }
-  if(fermo){ disegna(0); return; }
-  const giro=t=>{ disegna(t); requestAnimationFrame(giro); }; requestAnimationFrame(giro);
+  leggi();
+  if(fermo){ disegna(0); } else { const gira=t=>{ disegna(t); requestAnimationFrame(gira); }; requestAnimationFrame(gira); }
+  return { ricolora(){ leggi(); if(fermo) disegna(0); } };
 })();
+
+// ══ LA PRIMA CONVERSAZIONE ══ (blueprint 2.6)
+// Nome, aspetto e il nome di chi legge restano in questo telefono
+// (localStorage) e basta: tornando, lo ritrova. Alla porta vanno solo il
+// nome scelto e l'aspetto, insieme alle risposte, se le manda.
+const CHIAVE="jjavis-io";
+let io={};
+try{ io=JSON.parse(localStorage.getItem(CHIAVE)||"{}")||{}; }catch(_){ io={}; }
+const salva=()=>{ try{ localStorage.setItem(CHIAVE, JSON.stringify(io)); }catch(_){} };
+function applicaTema(t){
+  if(t==="tech") document.documentElement.removeAttribute("data-tema"); else document.documentElement.setAttribute("data-tema",t);
+  document.querySelectorAll(".tema").forEach(b=>b.setAttribute("aria-pressed", String(b.dataset.tema===t)));
+  globo.ricolora();
+}
+function applicaNome(n){
+  const nome=n||"JJA-VIS";
+  $("nome-testata").textContent=nome;
+  $("sotto-testata").textContent = n ? "il tuo JJA-VIS" : "il tuo nuovo assistente personale";
+  document.querySelectorAll(".chi").forEach(x=>x.textContent=nome);
+  document.title = n ? `${n} — il tuo JJA-VIS` : "JJA-VIS — il tuo nuovo assistente personale";
+}
+function benvenuto(tornato){
+  $("saluto").textContent = tornato
+    ? (io.tuo ? `Bentornato, ${io.tuo}. Sono ${io.nome}: me lo ricordavo.` : `Bentornato. Sono ${io.nome}: me lo ricordavo.`)
+    : (io.tuo ? `Piacere, ${io.tuo}. D'ora in poi per te sono ${io.nome}.` : `D'ora in poi per te sono ${io.nome}.`);
+  if(io.tuo && !$("nome").value) $("nome").value=io.tuo;
+  $("benvenuto").classList.add("aperta"); $("resto").hidden=false;
+}
+if(io.tema) applicaTema(io.tema);
+if(io.nome){
+  applicaNome(io.nome); $("o1").hidden=true; benvenuto(true);
+}
+let nomeScelto="";
+$("nomi").addEventListener("click", e=>{
+  const b=e.target.closest(".scelta"); if(!b) return;
+  $("nomi").querySelectorAll(".scelta").forEach(x=>x.setAttribute("aria-pressed","false")); b.setAttribute("aria-pressed","true");
+  nomeScelto=b.textContent.trim(); $("nome-scelto").value=""; $("avanti-o1").disabled=false; applicaNome(nomeScelto);
+});
+$("nome-scelto").addEventListener("input", e=>{
+  const v=e.target.value.trim().replace(/\s+/g," ");
+  $("nomi").querySelectorAll(".scelta").forEach(x=>x.setAttribute("aria-pressed","false"));
+  nomeScelto=v; $("avanti-o1").disabled=!v; applicaNome(v);
+});
+$("avanti-o1").addEventListener("click", ()=>{ if(!nomeScelto) return; io.nome=nomeScelto; salva(); applicaNome(io.nome); apri("o2"); });
+$("temi").addEventListener("click", e=>{ const b=e.target.closest(".tema"); if(!b) return; io.tema=b.dataset.tema; salva(); applicaTema(io.tema); });
+$("avanti-o2").addEventListener("click", ()=>{ if(!io.tema){ io.tema="tech"; salva(); } apri("o3"); });
+$("avanti-o3").addEventListener("click", ()=>{ io.tuo=$("tuo-nome").value.trim().slice(0,40); salva(); benvenuto(false); apri("benvenuto"); });
+$("salta-o3").addEventListener("click", ()=>{ io.tuo=""; salva(); benvenuto(false); apri("benvenuto"); });
+$("ricomincia").addEventListener("click", ()=>{ try{ localStorage.removeItem(CHIAVE); }catch(_){} location.hash=""; location.reload(); });
 </script>
 </body>
 </html>
