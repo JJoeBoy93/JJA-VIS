@@ -119,6 +119,13 @@ footer b{color:var(--testo)}
 .video-elenco{display:flex;flex-direction:column;gap:16px;margin-top:14px}
 .video-elenco figure{margin:0}
 .video-elenco video{width:100%;max-height:70vh;background:#000;border:1px solid var(--bordo);display:block}
+.riquadro-video{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;width:100%;aspect-ratio:16/9;background:color-mix(in srgb,var(--accento) 10%,var(--bg));border:1px solid var(--bordo);color:var(--testo);cursor:pointer;font:inherit;padding:16px;text-align:center}
+.riquadro-video.verticale{aspect-ratio:9/16;max-height:70vh;margin:0 auto}
+.riquadro-video .play{font-size:44px;line-height:1;color:var(--accento)}
+.riquadro-video .testo{font-size:19px;font-weight:600}
+.riquadro-video small{color:var(--tenue);font-size:13px}
+.lettore{width:100%;aspect-ratio:16/9;border:0;display:block;background:#000}
+.lettore.verticale{aspect-ratio:9/16;max-height:80vh;min-height:560px}
 .video-elenco figcaption{margin-top:6px;font-size:16px;color:var(--tenue)}
 :root[data-tema="calmo"] .video-elenco video,:root[data-tema="naturale"] .video-elenco video{border-radius:12px}
 .nascosto{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
@@ -339,7 +346,7 @@ footer b{color:var(--testo)}
 
   <footer id="dati">
     <p><b>I tuoi dati.</b> Questo sito non usa cookie e non traccia nessuno. Quello che mandi (mestiere, risposte, e se li lasci nome e mail) serve solo a capire cosa costruire e a risponderti. Non va a nessun altro. Per cancellarti basta rispondere a una mia mail.</p>
-    <p>Titolare: Jacopo Joe Ardito. Le risposte sono conservate in un archivio privato su GitHub (servizio di Microsoft, server negli Stati Uniti), leggibile solo dal titolare. Niente indirizzo IP, niente posizione: solo quello che scrivi, più un codice a caso nato nel tuo telefono che collega le risposte che mandi in giorni diversi. Il tuo nome, se me lo dici all'inizio, resta nel telefono; se mi parli nella chat, lo uso per risponderti. Quello che scrivi nella chat arriva a chi mi costruisce e resta nell'archivio. Se decide di risponderti con l'aiuto di un'intelligenza artificiale (Anthropic, OpenAI o Google), quella vede solo il tuo messaggio e il tuo mestiere, mai il tuo nome né la tua mail; la risposta la approva sempre una persona. Le risposte per mail partono tramite Brevo (servizio di invio, Unione Europea); la bozza la scrive un'intelligenza artificiale di Anthropic che vede solo il tuo messaggio, e prima di partire la legge e la approva una persona.</p>
+    <p>Titolare: Jacopo Joe Ardito. Le risposte sono conservate in un archivio privato su GitHub (servizio di Microsoft, server negli Stati Uniti), leggibile solo dal titolare. Niente indirizzo IP, niente posizione: solo quello che scrivi, più un codice a caso nato nel tuo telefono che collega le risposte che mandi in giorni diversi. Il tuo nome, se me lo dici all'inizio, resta nel telefono; se mi parli nella chat, lo uso per risponderti. Quello che scrivi nella chat arriva a chi mi costruisce e resta nell'archivio. Se decide di risponderti con l'aiuto di un'intelligenza artificiale (Anthropic, OpenAI o Google), quella vede solo il tuo messaggio e il tuo mestiere, mai il tuo nome né la tua mail; la risposta la approva sempre una persona. I video presi da Instagram, YouTube o TikTok si caricano solo se li tocchi: da quel momento valgono le regole e i cookie di quella piattaforma. Le risposte per mail partono tramite Brevo (servizio di invio, Unione Europea); la bozza la scrive un'intelligenza artificiale di Anthropic che vede solo il tuo messaggio, e prima di partire la legge e la approva una persona.</p>
     <p>La storia va avanti su Instagram: <a href="https://www.instagram.com/jjoe_boy93">@jjoe_boy93</a></p>
   </footer>
 </main>
@@ -502,10 +509,37 @@ async function controllaRisposte(){
 }
 $("manda-chat").addEventListener("click", ()=>{ const t=$("scrivi").value; $("scrivi").value=""; parla(t,"chat"); });
 
-// ══ I VIDEO ══ la cartella video/ del repository della pagina: ogni .mp4 che
-// JJ ci carica compare qui, col nome del file come didascalia. Niente
-// piattaforme esterne: niente cookie, come promette la pagina. Se la cartella
-// non c'e' o e' vuota, la sezione resta nascosta.
+// ══ I VIDEO ══ due fonti. (1) I link dei social che JJ manda al bot di
+// JJA-VIS (/video <link> <titolo>): la porta li da' a GET /video. Il lettore
+// della piattaforma si carica SOLO se la persona tocca il riquadro — prima,
+// niente cookie di nessuno, come promette la pagina. (2) I file caricati
+// nella cartella video/ del repository, serviti dalla pagina stessa.
+const INCORPORA={
+  instagram: c=>`https://www.instagram.com/p/${c}/embed/`,
+  youtube:   c=>`https://www.youtube-nocookie.com/embed/${c}?playsinline=1`,
+  tiktok:    c=>`https://www.tiktok.com/embed/v2/${c}`,
+};
+const NOMI_PIATTAFORMA={instagram:"Instagram", youtube:"YouTube", tiktok:"TikTok"};
+function riquadroSocial(v){
+  const fig=document.createElement("figure");
+  const b=document.createElement("button"); b.className="riquadro-video"+(v.verticale?" verticale":"");
+  b.innerHTML='<span class="play">▶</span><span class="testo"></span><small></small>';
+  b.querySelector(".testo").textContent=v.titolo||"Guarda il video";
+  b.querySelector("small").textContent=`Si carica da ${NOMI_PIATTAFORMA[v.piattaforma]||v.piattaforma}: toccando accetti i suoi cookie.`;
+  b.addEventListener("click", ()=>{
+    const f=document.createElement("iframe"); f.src=INCORPORA[v.piattaforma](encodeURIComponent(v.codice));
+    f.className="lettore"+(v.verticale?" verticale":""); f.allow="autoplay; encrypted-media; picture-in-picture; fullscreen"; f.allowFullscreen=true;
+    f.loading="lazy"; f.title=v.titolo||"video"; b.replaceWith(f);
+  });
+  const cap=document.createElement("figcaption"); const a=document.createElement("a"); a.href=v.url; a.target="_blank"; a.rel="noopener";
+  a.textContent=`Guardalo su ${NOMI_PIATTAFORMA[v.piattaforma]||v.piattaforma} ↗`; cap.appendChild(a);
+  fig.append(b,cap); return fig;
+}
+function mostraVideo(){ $("video").hidden=false; }
+if(INVIO) fetch(INVIO.replace("/risposta","/video")).then(r=>r.ok?r.json():{video:[]}).then(d=>{
+  const vid=(d.video||[]).filter(v=>INCORPORA[v.piattaforma]); if(!vid.length) return;
+  const casa=$("video-elenco"); vid.forEach(v=>casa.appendChild(riquadroSocial(v))); mostraVideo();
+}).catch(()=>{});
 fetch("https://api.github.com/repos/JJoeBoy93/JJA-VIS/contents/video").then(r=>r.ok?r.json():[]).then(el=>{
   const vid=(Array.isArray(el)?el:[]).filter(f=>/\.(mp4|webm|mov)$/i.test(f.name)).sort((a,b)=>a.name.localeCompare(b.name));
   if(!vid.length) return;
@@ -517,7 +551,7 @@ fetch("https://api.github.com/repos/JJoeBoy93/JJA-VIS/contents/video").then(r=>r
     cap.textContent=f.name.replace(/\.[^.]+$/,"").replace(/^\d+[\s._-]*/,"").replace(/[_-]+/g," ");
     fig.append(v,cap); casa.appendChild(fig);
   });
-  $("video").hidden=false;
+  mostraVideo();
 }).catch(()=>{});
 
 // ══ IL CONTO ══ da conto.json, accanto alla pagina. Se manca o non e' pronto
