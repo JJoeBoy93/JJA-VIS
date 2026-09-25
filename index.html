@@ -139,8 +139,8 @@ footer b{color:var(--testo)}
       <button class="scelta" aria-pressed="false">Echo</button>
       <button class="scelta" aria-pressed="false">Luce</button>
     </div>
-    <label for="nome-scelto">Oppure scrivilo tu</label>
-    <input type="text" id="nome-scelto" maxlength="20" autocomplete="off" spellcheck="false">
+    <label for="sigla">Oppure scrivilo tu</label>
+    <input type="text" id="sigla" name="sigla-assistente" maxlength="20" autocomplete="off" autocapitalize="words" spellcheck="false" data-lpignore="true" data-1p-ignore data-form-type="other">
     <button class="invia" id="avanti-o1" disabled>Ti chiamo così</button>
   </section>
 
@@ -523,14 +523,21 @@ let nomeScelto="";
 $("nomi").addEventListener("click", e=>{
   const b=e.target.closest(".scelta"); if(!b) return;
   $("nomi").querySelectorAll(".scelta").forEach(x=>x.setAttribute("aria-pressed","false")); b.setAttribute("aria-pressed","true");
-  nomeScelto=b.textContent.trim(); $("nome-scelto").value=""; $("avanti-o1").disabled=false; applicaNome(nomeScelto);
+  if(io.nome) return;
+  nomeScelto=b.textContent.trim(); $("sigla").value=""; $("avanti-o1").disabled=false; applicaNome(nomeScelto);
 });
-$("nome-scelto").addEventListener("input", e=>{
+// ══ IL NOME SCELTO NON SI TOCCA PIU' ══ 25 settembre: JJ scrive «Jessica»
+// in «E tu come ti chiami?» e l'assistente diventa Jessica. Il riempimento
+// automatico del telefono vedeva «nome» nell'id di questo campo e ci
+// scriveva dentro lo stesso nome; il campo cambiava la testata. Adesso il
+// campo non si chiama piu' «nome», e dopo «Ti chiamo così» non ascolta piu'.
+$("sigla").addEventListener("input", e=>{
+  if(io.nome) return;
   const v=e.target.value.trim().replace(/\s+/g," ");
   $("nomi").querySelectorAll(".scelta").forEach(x=>x.setAttribute("aria-pressed","false"));
   nomeScelto=v; $("avanti-o1").disabled=!v; applicaNome(v);
 });
-$("avanti-o1").addEventListener("click", ()=>{ if(!nomeScelto) return; io.nome=nomeScelto; salva(); applicaNome(io.nome); apri("o2"); });
+$("avanti-o1").addEventListener("click", ()=>{ if(!nomeScelto) return; io.nome=nomeScelto; salva(); applicaNome(io.nome); $("o1").hidden=true; apri("o2"); });
 $("temi").addEventListener("click", e=>{ const b=e.target.closest(".tema"); if(!b) return; io.tema=b.dataset.tema; salva(); applicaTema(io.tema); });
 $("avanti-o2").addEventListener("click", ()=>{ if(!io.tema){ io.tema="tech"; salva(); } apri("o3"); });
 $("avanti-o3").addEventListener("click", ()=>{ io.tuo=$("tuo-nome").value.trim().slice(0,40); salva(); benvenuto(false); apri("benvenuto"); });
