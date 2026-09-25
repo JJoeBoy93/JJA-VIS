@@ -95,20 +95,18 @@ footer b{color:var(--testo)}
    Il tecnologico e' il tema dell'app di chi mi costruisce; gli altri li
    sceglie chi mi usa. */
 :root{--f-titoli:Rajdhani,"Segoe UI",sans-serif;--f-testo:Rajdhani,"Segoe UI",system-ui,sans-serif;--f-mono:"Share Tech Mono",ui-monospace,monospace}
-:root[data-tema="calmo"]{--bg:#EEF2F5;--panel:#FFFFFF;--bordo:#D3DCE4;--accento:#2F6F95;--accento2:#1F5373;--testo:#18242E;--tenue:#56687A;--utente:#E3EEF5;--oro:#0F766E;--rosso:#B42318;--input:#F7F9FB;--suggerimento:#9AA8B4;color-scheme:light;
+:root[data-tema="calmo"]{--bg:#0B0B1A;--panel:#12122A;--bordo:#2A2A55;--accento:#8B8CF8;--accento2:#6366F1;--testo:#E6E6FF;--tenue:#A5A6E0;--utente:#1C1C45;--oro:#F0ABFC;--rosso:#FB7185;--input:#0D0D22;--suggerimento:#4B4B80;color-scheme:dark;
   --f-titoli:"DM Sans",system-ui,sans-serif;--f-testo:"DM Sans",system-ui,sans-serif;--f-mono:"DM Mono",ui-monospace,monospace}
 :root[data-tema="deciso"]{--bg:#0E0E0E;--panel:#181818;--bordo:#2E2E2E;--accento:#FF5A1F;--accento2:#C2410C;--testo:#F4F4F4;--tenue:#B8B8B8;--utente:#2A1A12;--oro:#FFC53D;--rosso:#FF6B6B;--input:#111111;--suggerimento:#666666;color-scheme:dark;
   --f-titoli:Archivo,system-ui,sans-serif;--f-testo:Archivo,system-ui,sans-serif;--f-mono:"JetBrains Mono",ui-monospace,monospace}
-:root[data-tema="naturale"]{--bg:#F2ECE1;--panel:#FBF8F2;--bordo:#DCCFBA;--accento:#4F6F45;--accento2:#3B5634;--testo:#2B2721;--tenue:#6A6154;--utente:#E6EEDD;--oro:#A8551F;--rosso:#A3261B;--input:#FFFDF8;--suggerimento:#A99F90;color-scheme:light;
+:root[data-tema="naturale"]{--bg:#08130E;--panel:#0E1C16;--bordo:#21402F;--accento:#34D399;--accento2:#059669;--testo:#E7F5EC;--tenue:#9CC9AE;--utente:#123526;--oro:#FBBF24;--rosso:#F87171;--input:#0A1712;--suggerimento:#3F6B55;color-scheme:dark;
   --f-titoli:Fraunces,Georgia,serif;--f-testo:Nunito,system-ui,sans-serif;--f-mono:"IBM Plex Mono",ui-monospace,monospace}
-:root[data-tema="calmo"] body,:root[data-tema="naturale"] body{background-image:none}
-:root[data-tema="calmo"] .nome,:root[data-tema="naturale"] .nome,:root[data-tema="calmo"] .cifra,:root[data-tema="naturale"] .cifra,
-:root[data-tema="calmo"] .totale-conto b,:root[data-tema="naturale"] .totale-conto b{text-shadow:none}
-:root[data-tema="naturale"] .etichetta,:root[data-tema="calmo"] .etichetta{border-radius:10px}
+/* calmo e naturale: angoli morbidi, niente spigoli accesi */
+:root[data-tema="naturale"] .etichetta,:root[data-tema="calmo"] .etichetta{border-radius:14px}
 :root[data-tema="naturale"] .etichetta::before,:root[data-tema="naturale"] .etichetta::after,:root[data-tema="calmo"] .etichetta::before,:root[data-tema="calmo"] .etichetta::after{display:none}
-:root[data-tema="naturale"] .scelta,:root[data-tema="calmo"] .scelta,:root[data-tema="naturale"] .invia,:root[data-tema="calmo"] .invia,:root[data-tema="naturale"] input,:root[data-tema="calmo"] input,:root[data-tema="naturale"] textarea,:root[data-tema="calmo"] textarea{border-radius:8px}
+:root[data-tema="naturale"] .scelta,:root[data-tema="calmo"] .scelta,:root[data-tema="naturale"] .invia,:root[data-tema="calmo"] .invia,:root[data-tema="naturale"] input,:root[data-tema="calmo"] input,:root[data-tema="naturale"] textarea,:root[data-tema="calmo"] textarea,:root[data-tema="naturale"] .tema,:root[data-tema="calmo"] .tema{border-radius:10px}
 :root[data-tema="deciso"] h1,:root[data-tema="deciso"] h2,:root[data-tema="deciso"] .nome{font-weight:800;text-transform:uppercase;letter-spacing:.02em}
-:root[data-tema="naturale"] .nome,:root[data-tema="calmo"] .nome{letter-spacing:.02em}
+:root[data-tema="naturale"] .nome,:root[data-tema="calmo"] .nome{letter-spacing:.04em}
 .temi{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
 .tema{text-align:left;padding:12px;border:1px solid var(--bordo);background:transparent;color:var(--testo);cursor:pointer;font:inherit}
 .tema[aria-pressed="true"]{border-color:var(--accento);box-shadow:0 0 0 1px var(--accento) inset}
@@ -117,6 +115,7 @@ footer b{color:var(--testo)}
 .campioni{display:flex;gap:4px;margin-bottom:8px}
 .campioni i{width:18px;height:18px;border-radius:50%;border:1px solid rgba(128,128,128,.35)}
 .collegamento{background:none;border:0;padding:0;color:var(--accento);font:inherit;text-decoration:underline;cursor:pointer}
+[hidden]{display:none!important}
 </style>
 </head>
 <body>
@@ -151,9 +150,9 @@ footer b{color:var(--testo)}
     <p class="piccolo">Tocca un aspetto: cambio subito.</p>
     <div class="temi" id="temi">
       <button class="tema" data-tema="tech" aria-pressed="true"><span class="campioni"><i style="background:#020B18"></i><i style="background:#00B4D8"></i><i style="background:#FFD60A"></i></span><b>Tecnologico</b><small>blu notte e luce, come nei film</small></button>
-      <button class="tema" data-tema="calmo" aria-pressed="false"><span class="campioni"><i style="background:#FFFFFF"></i><i style="background:#2F6F95"></i><i style="background:#0F766E"></i></span><b>Calmo</b><small>chiaro, pulito, niente rumore</small></button>
+      <button class="tema" data-tema="calmo" aria-pressed="false"><span class="campioni"><i style="background:#0B0B1A"></i><i style="background:#8B8CF8"></i><i style="background:#F0ABFC"></i></span><b>Calmo</b><small>indaco e lilla, luce morbida</small></button>
       <button class="tema" data-tema="deciso" aria-pressed="false"><span class="campioni"><i style="background:#0E0E0E"></i><i style="background:#FF5A1F"></i><i style="background:#FFC53D"></i></span><b>Deciso</b><small>nero e arancio, energia</small></button>
-      <button class="tema" data-tema="naturale" aria-pressed="false"><span class="campioni"><i style="background:#FBF8F2"></i><i style="background:#4F6F45"></i><i style="background:#A8551F"></i></span><b>Naturale</b><small>caldo, carta e verde</small></button>
+      <button class="tema" data-tema="naturale" aria-pressed="false"><span class="campioni"><i style="background:#08130E"></i><i style="background:#34D399"></i><i style="background:#FBBF24"></i></span><b>Naturale</b><small>verde bosco e oro</small></button>
     </div>
     <button class="invia" id="avanti-o2">Mi piaccio così</button>
   </section>
@@ -167,8 +166,14 @@ footer b{color:var(--testo)}
 
   <section class="etichetta domanda" id="benvenuto">
     <p class="dice" id="saluto"></p>
-    <p class="dice">Prima ti faccio vedere cosa so già fare. Poi imparo te.</p>
-    <p class="piccolo">Nome e aspetto me li ricordo solo su questo telefono. <button class="collegamento" id="ricomincia">Ricomincia da capo</button></p>
+    <p class="dice" id="saluto2"></p>
+    <div id="conosci" hidden>
+      <h2 id="conosci-domanda" style="font-size:26px;margin:12px 0 12px"></h2>
+      <div class="scelte" id="conosci-scelte"></div>
+      <p class="risposta" id="conosci-grazie" hidden></p>
+    </div>
+    <a class="salto" id="continua" href="#tocca" hidden>Continuiamo ↓</a>
+    <p class="piccolo" style="margin-top:16px">Mi ricordo di te solo su questo telefono. <button class="collegamento" id="ricomincia">Ricomincia da capo</button></p>
   </section>
 
   <div id="resto" hidden>
@@ -303,7 +308,7 @@ footer b{color:var(--testo)}
 
   <footer id="dati">
     <p><b>I tuoi dati.</b> Questo sito non usa cookie e non traccia nessuno. Quello che mandi (mestiere, risposte, e se li lasci nome e mail) serve solo a capire cosa costruire e a risponderti. Non va a nessun altro. Per cancellarti basta rispondere a una mia mail.</p>
-    <p>Titolare: Jacopo Joe Ardito. Le risposte sono conservate in un archivio privato su GitHub (servizio di Microsoft, server negli Stati Uniti), leggibile solo dal titolare. Niente indirizzo IP, niente posizione: solo quello che scrivi. Le risposte per mail partono tramite Brevo (servizio di invio, Unione Europea); la bozza la scrive un'intelligenza artificiale di Anthropic che vede solo il tuo messaggio, e prima di partire la legge e la approva una persona.</p>
+    <p>Titolare: Jacopo Joe Ardito. Le risposte sono conservate in un archivio privato su GitHub (servizio di Microsoft, server negli Stati Uniti), leggibile solo dal titolare. Niente indirizzo IP, niente posizione: solo quello che scrivi, più un codice a caso nato nel tuo telefono che collega le risposte che mandi in giorni diversi. Il tuo nome, se me lo dici all'inizio, resta nel telefono. Le risposte per mail partono tramite Brevo (servizio di invio, Unione Europea); la bozza la scrive un'intelligenza artificiale di Anthropic che vede solo il tuo messaggio, e prima di partire la legge e la approva una persona.</p>
     <p>La storia va avanti su Instagram: <a href="https://www.instagram.com/jjoe_boy93">@jjoe_boy93</a></p>
   </footer>
 </main>
@@ -324,6 +329,7 @@ document.querySelectorAll(".scelte").forEach(g=>{
     g.querySelectorAll(".scelta").forEach(x=>x.setAttribute("aria-pressed","false"));
     b.setAttribute("aria-pressed","true");
     risposte[g.dataset.campo] = b.textContent.trim();
+    if(g.dataset.campo==="mestiere"||g.dataset.campo==="tempo"){ io[g.dataset.campo]=risposte[g.dataset.campo]; salva(); }
     if (g.dataset.campo === "mestiere"){
       const r=$("r1"); r.hidden=false;
       r.textContent = b.textContent.trim()==="Altro" ? "Bene: allora me lo racconti nella prossima." : "Bene. Adesso la parte che mi interessa davvero.";
@@ -346,7 +352,7 @@ $("avanti5").addEventListener("click", ()=> apri("d4"));
 
 async function manda(conMail){
   const esito=$("esito"); esito.className="avviso";
-  const corpo = {...risposte, dettaglio: $("dettaglio").value.trim(), messaggio: $("messaggio").value.trim(), voti:[...scelti], proposta: $("proposta").value.trim(), sito: $("sito").value, nome_assistente: io.nome||"", tema: io.tema||"tech"};
+  const corpo = {...risposte, dettaglio: $("dettaglio").value.trim(), messaggio: $("messaggio").value.trim(), voti:[...scelti], proposta: $("proposta").value.trim(), sito: $("sito").value, nome_assistente: io.nome||"", tema: io.tema||"tech", chi: io.id||""};
   if (conMail){
     const mail=$("mail").value.trim();
     if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(mail)){ esito.classList.add("errore"); esito.textContent="La mail non sembra completa: controlla la parte dopo la chiocciola."; return; }
@@ -359,6 +365,8 @@ async function manda(conMail){
     const r = await fetch(INVIO,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(corpo)});
     if(!r.ok){ let perche=""; try{ perche=(await r.json()).errore||""; }catch(_){} throw new Error("HTTP "+r.status+(perche?": "+perche:"")); }
     esito.textContent = conMail ? "Ricevuto. Ti rispondo per mail, non in giornata." : "Ricevuto. Grazie: il tuo numero entra nel conto.";
+    io.inviato=true; io.mestiere=risposte.mestiere||io.mestiere||""; io.tempo=risposte.tempo||io.tempo||"";
+    if(conMail){ io.mail=corpo.mail; if(corpo.nome) io.tuo=io.tuo||corpo.nome; } salva();
   }catch(err){
     $("manda").disabled=$("senza").disabled=false;
     esito.classList.add("errore"); esito.textContent="Non è arrivato (" + err.message + "). Riprova fra un minuto.";
@@ -451,13 +459,62 @@ function applicaNome(n){
   document.querySelectorAll(".chi").forEach(x=>x.textContent=nome);
   document.title = n ? `${n} — il tuo JJA-VIS` : "JJA-VIS — il tuo nuovo assistente personale";
 }
+// ══ CHI TORNA ══ JJ, 25 settembre: «non deve dirmi me lo ricordavo: se dice
+// il nome lo vedo già. Il resto deve adattarsi come se sa chi sono, farmi
+// altre domande per conoscermi». Ogni ritorno: il nome, quello che sa gia'
+// detto in una riga, e UNA domanda nuova — mai la stessa due volte.
+const LAVORO={"Corriere o autista":"guidi per lavoro","Negozio o commercio":"lavori nel commercio","Artigiano o tecnico":"fai un mestiere tecnico",
+  "Sanità":"lavori nella sanità","Ufficio":"lavori in ufficio","Studio":"studi","Altro":"fai un lavoro tutto tuo"};
+const CONOSCERTI=[
+  {k:"inizio", d:"A che ora comincia la tua giornata?", s:["Prima delle 6","Tra le 6 e le 8","Dopo le 8","Cambia ogni giorno"]},
+  {k:"telefono", d:"Mentre lavori, il telefono dov'è?", s:["In mano","In tasca","Sul cruscotto","Sul bancone o sulla scrivania","Lontano"]},
+  {k:"parlare", d:"Come vuoi che ti parli?", s:["Breve e diretto","Con calma, spiegando","Scherzando un po'"]},
+  {k:"voce", d:"Mi useresti di più a voce o scrivendo?", s:["A voce","Scrivendo","Metà e metà"]},
+  {k:"giorni", d:"Quanti giorni a settimana lavori?", s:["5 o meno","6","7","Dipende"]},
+  {k:"soldi", d:"Dove ti farebbe più comodo risparmiare soldi?", s:["Carburante e spostamenti","Tempo pagato a ore","Errori e dimenticanze","Clienti persi"]},
+  {k:"sera", d:"La sera, dopo il lavoro, cosa ti piacerebbe avere già fatto?", s:["I conti del giorno","La giornata di domani pronta","Le risposte ai clienti","Niente: voglio staccare"]},
+];
+function prossimaDomanda(){ io.conosciute=io.conosciute||{}; return CONOSCERTI.find(q=>!(q.k in io.conosciute)); }
+function mostraDomanda(){
+  const q=prossimaDomanda(); const box=$("conosci");
+  if(!q){ box.hidden=true; $("saluto2").textContent+= " Per oggi niente domande: di te so già parecchio."; return; }
+  $("conosci-domanda").textContent=q.d; const sc=$("conosci-scelte"); sc.innerHTML="";
+  q.s.forEach(t=>{ const b=document.createElement("button"); b.className="scelta"; b.setAttribute("aria-pressed","false"); b.textContent=t; sc.appendChild(b); });
+  $("conosci-grazie").hidden=true; box.hidden=false;
+  sc.onclick=e=>{ const b=e.target.closest(".scelta"); if(!b) return;
+    sc.querySelectorAll(".scelta").forEach(x=>{ x.setAttribute("aria-pressed", String(x===b)); x.disabled=true; });
+    io.conosciute[q.k]=b.textContent; salva();
+    const g=$("conosci-grazie"); g.hidden=false; g.textContent="Segnato. La prossima volta te ne chiedo un'altra.";
+    if(INVIO) fetch(INVIO.replace("/risposta","/conoscenza"),{method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({chi:io.id, chiave:q.k, domanda:q.d, risposta:b.textContent, nome_assistente:io.nome||"", tema:io.tema||"tech"})}).catch(()=>{});
+  };
+}
+function mostraSondaggio(mostra){
+  ["tocca","d1","d2","d3","d5"].forEach(id=>{ const el=$(id); if(el) el.hidden=!mostra; });
+  if(!mostra){ $("d4").classList.add("aperta"); $("t4").textContent="Vuoi scrivermi ancora?"; }
+}
 function benvenuto(tornato){
-  $("saluto").textContent = tornato
-    ? (io.tuo ? `Bentornato, ${io.tuo}. Sono ${io.nome}: me lo ricordavo.` : `Bentornato. Sono ${io.nome}: me lo ricordavo.`)
-    : (io.tuo ? `Piacere, ${io.tuo}. D'ora in poi per te sono ${io.nome}.` : `D'ora in poi per te sono ${io.nome}.`);
+  const tu=io.tuo?`, ${io.tuo}`:"";
   if(io.tuo && !$("nome").value) $("nome").value=io.tuo;
+  if(io.mail && !$("mail").value) $("mail").value=io.mail;
+  $("continua").hidden=true; $("conosci").hidden=true; $("saluto2").textContent="";
+  if(!tornato){
+    $("saluto").textContent = io.tuo ? `Piacere${tu}. Da adesso sono ${io.nome}, solo per te.` : `Da adesso sono ${io.nome}, solo per te.`;
+    $("saluto2").textContent="Prima ti faccio vedere cosa so già fare. Poi imparo te.";
+    mostraSondaggio(true);
+  } else if(!io.inviato){
+    $("saluto").textContent=`Ciao${tu}.`;
+    $("saluto2").textContent = io.mestiere ? "Eravamo a metà: riprendiamo da dove ci eravamo fermati." : "L'altra volta non mi hai ancora detto che lavoro fai. Riprendiamo da lì.";
+    $("continua").hidden=false; mostraSondaggio(true);
+  } else {
+    $("saluto").textContent=`Ciao${tu}.`;
+    const l=LAVORO[io.mestiere]; const t=io.tempo?io.tempo.toLowerCase():"";
+    $("saluto2").textContent = l ? `So che ${l}${t?`, e che il tempo te lo mangia soprattutto questo: ${t}`:""}. Oggi voglio sapere una cosa in più.` : "Oggi voglio sapere una cosa in più.";
+    mostraSondaggio(false); mostraDomanda();
+  }
   $("benvenuto").classList.add("aperta"); $("resto").hidden=false;
 }
+if(!io.id){ io.id=[...crypto.getRandomValues(new Uint8Array(8))].map(x=>x.toString(16).padStart(2,"0")).join(""); salva(); }
 if(io.tema) applicaTema(io.tema);
 if(io.nome){
   applicaNome(io.nome); $("o1").hidden=true; benvenuto(true);
