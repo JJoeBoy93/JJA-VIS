@@ -122,6 +122,7 @@ footer b{color:var(--testo)}
 .bolla.io{align-self:flex-start;background:color-mix(in srgb,var(--accento) 8%,var(--panel))}
 .bolla.tu{align-self:flex-end;background:var(--utente);border-color:var(--accento)}
 .bolla.pensa{opacity:.7;font-style:italic}
+.bolla .attesa{display:block;font-size:13px;color:var(--tenue);margin-top:4px;font-style:italic}
 .bolla.errore{border-color:var(--rosso);color:var(--rosso)}
 :root[data-tema="calmo"] .bolla,:root[data-tema="naturale"] .bolla{border-radius:14px}
 </style>
@@ -315,18 +316,19 @@ footer b{color:var(--testo)}
 
   <section class="etichetta" id="parla" aria-labelledby="tp">
     <h2 id="tp" style="font-size:28px">Parla con <span class="chi">JJA-VIS</span></h2>
-    <p class="piccolo">Chiedimi quello che vuoi, sul tuo lavoro o su di me: ti rispondo subito, qui. Chi mi costruisce legge le nostre chiacchiere per insegnarmi meglio.</p>
+    <p class="piccolo">Chiedimi quello che vuoi, sul tuo lavoro o su di me. Non rispondo in automatico: ogni risposta la scelgo con chi mi costruisce, e la trovi qui quando torni — o per mail, se me l'hai lasciata.</p>
     <div id="chat" class="chat" aria-live="polite"></div>
     <label for="scrivi" class="nascosto">Scrivimi</label>
     <textarea id="scrivi" maxlength="800" placeholder="Per esempio: in cosa potresti aiutarmi nel mio lavoro?"></textarea>
     <button class="invia" id="manda-chat">Manda</button>
+    <p class="avviso" id="esito-chat" role="status"></p>
   </section>
 
   </div>
 
   <footer id="dati">
     <p><b>I tuoi dati.</b> Questo sito non usa cookie e non traccia nessuno. Quello che mandi (mestiere, risposte, e se li lasci nome e mail) serve solo a capire cosa costruire e a risponderti. Non va a nessun altro. Per cancellarti basta rispondere a una mia mail.</p>
-    <p>Titolare: Jacopo Joe Ardito. Le risposte sono conservate in un archivio privato su GitHub (servizio di Microsoft, server negli Stati Uniti), leggibile solo dal titolare. Niente indirizzo IP, niente posizione: solo quello che scrivi, più un codice a caso nato nel tuo telefono che collega le risposte che mandi in giorni diversi. Il tuo nome, se me lo dici all'inizio, resta nel telefono; se mi parli nella chat, lo uso per risponderti. Quello che scrivi nella chat lo legge un'intelligenza artificiale di Anthropic per risponderti subito, e resta nell'archivio perché chi mi costruisce possa leggerlo. Le risposte per mail partono tramite Brevo (servizio di invio, Unione Europea); la bozza la scrive un'intelligenza artificiale di Anthropic che vede solo il tuo messaggio, e prima di partire la legge e la approva una persona.</p>
+    <p>Titolare: Jacopo Joe Ardito. Le risposte sono conservate in un archivio privato su GitHub (servizio di Microsoft, server negli Stati Uniti), leggibile solo dal titolare. Niente indirizzo IP, niente posizione: solo quello che scrivi, più un codice a caso nato nel tuo telefono che collega le risposte che mandi in giorni diversi. Il tuo nome, se me lo dici all'inizio, resta nel telefono; se mi parli nella chat, lo uso per risponderti. Quello che scrivi nella chat arriva a chi mi costruisce e resta nell'archivio. Se decide di risponderti con l'aiuto di un'intelligenza artificiale di Anthropic, quella vede solo il tuo messaggio e quello che mi hai detto qui; la risposta la approva sempre una persona. Le risposte per mail partono tramite Brevo (servizio di invio, Unione Europea); la bozza la scrive un'intelligenza artificiale di Anthropic che vede solo il tuo messaggio, e prima di partire la legge e la approva una persona.</p>
     <p>La storia va avanti su Instagram: <a href="https://www.instagram.com/jjoe_boy93">@jjoe_boy93</a></p>
   </footer>
 </main>
@@ -341,7 +343,10 @@ if (!INVIO) $("anteprima").hidden = false;
 
 function apri(id){ const d=$(id); if(!d.classList.contains("aperta")){ d.classList.add("aperta"); d.scrollIntoView({behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block:"start"}); } }
 
-document.querySelectorAll(".scelte").forEach(g=>{
+// solo le domande del sondaggio (quelle con data-campo): i nomi, i voti e le
+// domande del ritorno hanno i loro gestori. Prima questo li prendeva tutti:
+// scegliere un nome accendeva «Vai avanti», e i voti restavano uno solo.
+document.querySelectorAll(".scelte[data-campo]").forEach(g=>{
   g.addEventListener("click", e=>{
     const b = e.target.closest(".scelta"); if(!b) return;
     g.querySelectorAll(".scelta").forEach(x=>x.setAttribute("aria-pressed","false"));
@@ -386,7 +391,7 @@ async function manda(conMail){
     io.inviato=true; io.mestiere=risposte.mestiere||io.mestiere||""; io.tempo=risposte.tempo||io.tempo||"";
     if(conMail){ io.mail=corpo.mail; if(corpo.nome) io.tuo=io.tuo||corpo.nome; } salva();
     const libero=[corpo.proposta, corpo.dettaglio].filter(Boolean).join("\n");
-    if(libero){ esito.textContent += " E a quello che mi hai scritto ti rispondo subito, qui sotto."; $("parla").scrollIntoView({behavior:"smooth",block:"start"}); parla(libero,"sondaggio"); }
+    if(libero){ parla(libero,"sondaggio").then(ok=>{ if(ok){ esito.textContent += " A quello che mi hai scritto ti rispondo nella chat qui sotto, appena posso."; } }); }
   }catch(err){
     $("manda").disabled=$("senza").disabled=false;
     esito.classList.add("errore"); esito.textContent="Non è arrivato (" + err.message + "). Riprova fra un minuto.";
@@ -395,28 +400,48 @@ async function manda(conMail){
 $("manda").addEventListener("click", ()=>manda(true));
 $("senza").addEventListener("click", ()=>manda(false));
 
-// ══ PARLAMI ══ risponde subito, sulla pagina (porta /parla). La storia
-// resta nel telefono (ultimi 12 messaggi) e alla porta vanno gli ultimi 6.
-function bolla(chi, testo, classe){ const b=document.createElement("div"); b.className="bolla "+chi+(classe?" "+classe:""); b.textContent=testo; $("chat").appendChild(b); $("chat").scrollTop=$("chat").scrollHeight; return b; }
-function ridisegnaChat(){ $("chat").innerHTML=""; (io.chat||[]).forEach(m=>bolla(m.ruolo, m.testo)); }
+// ══ PARLAMI ══ la chat NON risponde in diretta (JJ: «pago se do io l'ok
+// perche' la domanda vale»). Il messaggio va alla porta (/parla), arriva a
+// chi mi costruisce, e la risposta approvata torna qui: la pagina la chiede
+// alla porta (/risposte) all'apertura e ogni 30 secondi per 10 minuti.
+function bolla(chi, testo, attesa){ const b=document.createElement("div"); b.className="bolla "+chi; b.textContent=testo;
+  if(attesa){ const x=document.createElement("small"); x.className="attesa"; x.textContent="ti rispondo appena posso"; b.appendChild(x); }
+  $("chat").appendChild(b); $("chat").scrollTop=$("chat").scrollHeight; return b; }
+function ridisegnaChat(){ $("chat").innerHTML=""; (io.chat||[]).forEach(m=>bolla(m.ruolo, m.testo, m.ruolo==="tu" && m.attesa)); }
 let parlando=false;
 async function parla(testo, daDove){
-  testo=(testo||"").trim(); if(!testo||parlando) return;
-  if(!INVIO){ bolla("io","Anteprima: qui ti risponderei.","errore"); return; }
+  testo=(testo||"").trim(); if(!testo||parlando) return false;
+  const e=$("esito-chat"); e.className="avviso"; e.textContent="";
+  if(!INVIO){ e.textContent="Anteprima: qui il messaggio partirebbe."; return false; }
   parlando=true; $("manda-chat").disabled=true;
-  io.chat=io.chat||[]; const storia=io.chat.slice(-6);
-  bolla("tu", testo); io.chat.push({ruolo:"tu", testo}); salva();
-  const attesa=bolla("io","…","pensa");
   try{
     const r=await fetch(INVIO.replace("/risposta","/parla"),{method:"POST",headers:{"Content-Type":"application/json"},
       body:JSON.stringify({chi:io.id, nome_assistente:io.nome||"", tema:io.tema||"tech", tuo:io.tuo||"", da_dove:daDove||"chat",
-        profilo:{mestiere:io.mestiere||"", tempo:io.tempo||"", conosciute:io.conosciute||{}}, storia, testo})});
+        profilo:{mestiere:io.mestiere||"", tempo:io.tempo||"", conosciute:io.conosciute||{}}, testo})});
     const d=await r.json().catch(()=>({}));
-    attesa.remove();
-    if(!r.ok||!d.risposta){ bolla("io", d.errore||("Non ci sono riuscito ("+r.status+"). Riprova tra poco."), "errore"); }
-    else { bolla("io", d.risposta); io.chat.push({ruolo:"io", testo:d.risposta}); io.chat=io.chat.slice(-12); salva(); }
-  }catch(err){ attesa.remove(); bolla("io","Non ti sento: controlla la connessione e riprova.","errore"); }
-  parlando=false; $("manda-chat").disabled=false;
+    if(!r.ok||!d.id) throw new Error(d.errore||("errore "+r.status));
+    io.chat=io.chat||[]; io.chat.push({ruolo:"tu", testo, id:d.id, attesa:true}); io.chat=io.chat.slice(-20); salva(); ridisegnaChat();
+    e.textContent="Arrivato. Ti rispondo qui, appena posso.";
+    return true;
+  }catch(err){ e.classList.add("errore"); e.textContent="Non è partito: "+err.message+". Riprova tra poco."; return false; }
+  finally{ parlando=false; $("manda-chat").disabled=false; }
+}
+async function controllaRisposte(){
+  if(!INVIO||!io.id) return 0;
+  try{
+    const r=await fetch(INVIO.replace("/risposta","/risposte")+"?chi="+io.id); if(!r.ok) return 0;
+    const d=await r.json(); let nuove=0; io.chat=io.chat||[];
+    (d.risposte||[]).forEach(x=>{
+      if(io.chat.some(m=>m.ruolo==="io"&&m.id===x.id)) return;
+      const i=io.chat.findIndex(m=>m.ruolo==="tu"&&m.id===x.id);
+      const risp={ruolo:"io", testo:x.risposta, id:x.id};
+      if(i>=0){ io.chat[i].attesa=false; io.chat.splice(i+1,0,risp); }
+      else io.chat.push({ruolo:"tu", testo:x.domanda, id:x.id, attesa:false}, risp);
+      nuove++;
+    });
+    if(nuove){ io.chat=io.chat.slice(-20); salva(); ridisegnaChat(); }
+    return nuove;
+  }catch(_){ return 0; }
 }
 $("manda-chat").addEventListener("click", ()=>{ const t=$("scrivi").value; $("scrivi").value=""; parla(t,"chat"); });
 
@@ -590,6 +615,10 @@ $("salta-o3").addEventListener("click", ()=>{ io.tuo=""; salva(); benvenuto(fals
 // la chat si ridisegna qui, dopo che «io» e' stato letto dal telefono:
 // prima, «io» non esiste ancora e lo script si fermerebbe.
 ridisegnaChat();
+controllaRisposte().then(n=>{ if(n && $("benvenuto").classList.contains("aperta")){
+  $("saluto2").textContent += n>1 ? ` Ti ho risposto a ${n} messaggi: li trovi nella chat qui sotto.` : " Ti ho risposto: lo trovi nella chat qui sotto."; } });
+(function(){ let giri=0; const t=setInterval(()=>{ if(++giri>20){ clearInterval(t); return; }
+  if(!document.hidden && (io.chat||[]).some(m=>m.attesa)) controllaRisposte(); },30000); })();
 $("ricomincia").addEventListener("click", ()=>{ try{ localStorage.removeItem(CHIAVE); }catch(_){} location.hash=""; location.reload(); });
 </script>
 </body>
