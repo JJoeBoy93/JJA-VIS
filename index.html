@@ -82,7 +82,8 @@ footer b{color:var(--testo)}
 .gruppo li::marker{color:var(--accento)}
 .gruppo b{color:var(--oro);font-weight:700}
 .salto{display:inline-block;margin-top:14px;font:600 16px/1 "Share Tech Mono",monospace;letter-spacing:.06em;color:var(--accento);text-decoration:none;border-bottom:1px solid var(--accento);padding-bottom:3px}
-.totale-conto{margin-top:10px}
+.titolo-conto{font:600 14px/1.3 "Share Tech Mono",monospace;letter-spacing:.1em;color:var(--accento);margin:18px 0 4px;text-transform:uppercase}
+.totale-conto{margin-top:4px}
 .totale-conto b{font:700 56px/1 Rajdhani,sans-serif;color:var(--oro);text-shadow:0 0 22px rgba(255,214,10,.35)}
 .totale-conto span{color:var(--tenue);font-size:20px}
 .voci-conto{list-style:none;margin:14px 0 8px;padding:0}
@@ -146,9 +147,8 @@ footer b{color:var(--testo)}
 
   <section class="etichetta" id="conto" aria-labelledby="tc" hidden>
     <h2 id="tc" style="font-size:28px">Quanto costo</h2>
-    <p class="piccolo">Quello che si spende davvero per tenermi acceso, voce per voce.</p>
-    <div class="totale-conto"><b id="conto-totale">—</b> <span id="conto-mese"></span></div>
-    <ul class="voci-conto" id="conto-voci"></ul>
+    <p class="piccolo">Quello che si spende davvero, voce per voce. Due conti diversi: tenermi acceso, e costruirmi.</p>
+    <div id="conto-gruppi"></div>
     <p class="piccolo" id="conto-quando"></p>
     <p class="piccolo" style="margin-top:12px">Il costo si legge insieme a quello che faccio risparmiare: tempo e soldi. Li sto misurando sul furgone, e compaiono qui quando sono misurati, non prima.</p>
   </section>
@@ -302,14 +302,23 @@ $("senza").addEventListener("click", ()=>manda(false));
 // ══ IL CONTO ══ da conto.json, accanto alla pagina. Se manca o non e' pronto
 // la sezione resta nascosta: meglio niente che un numero inventato.
 fetch("conto.json", {cache:"no-store"}).then(r=>r.ok?r.json():null).then(c=>{
-  if(!c || !c.pronto || !Array.isArray(c.voci)) return;
+  if(!c || !c.pronto || !Array.isArray(c.gruppi)) return;
   const eur=n=>n.toLocaleString("it-IT",{minimumFractionDigits:2,maximumFractionDigits:2})+" €";
-  const tot=c.voci.reduce((t,v)=>t+(+v.euro||0),0);
-  $("conto-totale").textContent=eur(tot); $("conto-mese").textContent=c.mese?("· "+c.mese):"";
-  const ul=$("conto-voci");
-  c.voci.forEach(v=>{ const li=document.createElement("li"); const a=document.createElement("span"); a.textContent=v.nome;
-    if(v.nota){ const n=document.createElement("small"); n.textContent=v.nota; a.appendChild(n); }
-    const b=document.createElement("span"); b.textContent=eur(+v.euro||0); li.append(a,b); ul.appendChild(li); });
+  const casa=$("conto-gruppi");
+  c.gruppi.forEach(g=>{
+    const note=(g.voci||[]).filter(v=>v.euro===null||v.euro===undefined);
+    const tot=(g.voci||[]).reduce((t,v)=>t+(typeof v.euro==="number"?v.euro:0),0);
+    const h=document.createElement("h3"); h.className="titolo-conto"; h.textContent=g.titolo; casa.appendChild(h);
+    const d=document.createElement("div"); d.className="totale-conto";
+    const b=document.createElement("b"); b.textContent=eur(tot); const u=document.createElement("span"); u.textContent=" "+(g.unita||"");
+    d.append(b,u); casa.appendChild(d);
+    if(note.length){ const x=document.createElement("p"); x.className="piccolo"; x.style.margin="2px 0 0"; x.textContent="+ "+note.map(v=>v.breve||v.nome).join(", ")+": in misura"; casa.appendChild(x); }
+    const ul=document.createElement("ul"); ul.className="voci-conto";
+    (g.voci||[]).forEach(v=>{ const li=document.createElement("li"); const a=document.createElement("span"); a.textContent=v.nome;
+      if(v.nota){ const n=document.createElement("small"); n.textContent=v.nota; a.appendChild(n); }
+      const e=document.createElement("span"); e.textContent= typeof v.euro==="number" ? eur(v.euro) : "in misura"; li.append(a,e); ul.appendChild(li); });
+    casa.appendChild(ul);
+  });
   $("conto-quando").textContent = c.aggiornato ? "Aggiornato il "+c.aggiornato+"." : "";
   $("conto").hidden=false;
 }).catch(()=>{});

@@ -1,0 +1,55 @@
+{
+  "pronto": true,
+  "aggiornato": "25 settembre 2026",
+  "gruppi": [
+    {
+      "titolo": "Tenermi acceso",
+      "unita": "al mese",
+      "voci": [
+        {
+          "nome": "Cervello veloce (Groq)",
+          "euro": 0,
+          "nota": "piano gratuito"
+        },
+        {
+          "nome": "Server (Hugging Face, Cloudflare, GitHub)",
+          "euro": 0,
+          "nota": "piani gratuiti"
+        },
+        {
+          "nome": "Mail (Brevo)",
+          "euro": 0,
+          "nota": "gratis fino a 300 mail al giorno"
+        },
+        {
+          "nome": "Ragionamento (Claude, a consumo)",
+          "euro": null,
+          "nota": "centesimi al giorno: il numero vero dopo il primo mese",
+          "breve": "Claude a consumo"
+        }
+      ]
+    },
+    {
+      "titolo": "Costruirmi",
+      "unita": "al mese",
+      "voci": [
+        {
+          "nome": "Claude Pro",
+          "euro": 22,
+          "nota": "l'abbonamento con cui mi scrive il codice"
+        },
+        {
+          "nome": "Telefono e internet (Vodafone)",
+          "euro": 50,
+          "nota": "100 € ogni due mesi — è anche il telefono di tutti i giorni"
+        },
+        {
+          "nome": "Crediti API Anthropic",
+          "euro": null,
+          "nota": "20 € caricati una volta: si consumano a centesimi",
+          "breve": "i crediti API"
+        }
+      ]
+    }
+  ]
+}
