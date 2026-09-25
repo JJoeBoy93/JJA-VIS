@@ -116,6 +116,14 @@ footer b{color:var(--testo)}
 .campioni i{width:18px;height:18px;border-radius:50%;border:1px solid rgba(128,128,128,.35)}
 .collegamento{background:none;border:0;padding:0;color:var(--accento);font:inherit;text-decoration:underline;cursor:pointer}
 [hidden]{display:none!important}
+.nascosto{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.chat{display:flex;flex-direction:column;gap:8px;margin:14px 0 4px;max-height:60vh;overflow-y:auto}
+.bolla{max-width:86%;padding:10px 12px;border:1px solid var(--bordo);font-size:17px;line-height:1.4;white-space:pre-wrap}
+.bolla.io{align-self:flex-start;background:color-mix(in srgb,var(--accento) 8%,var(--panel))}
+.bolla.tu{align-self:flex-end;background:var(--utente);border-color:var(--accento)}
+.bolla.pensa{opacity:.7;font-style:italic}
+.bolla.errore{border-color:var(--rosso);color:var(--rosso)}
+:root[data-tema="calmo"] .bolla,:root[data-tema="naturale"] .bolla{border-radius:14px}
 </style>
 </head>
 <body>
@@ -173,6 +181,7 @@ footer b{color:var(--testo)}
       <p class="risposta" id="conosci-grazie" hidden></p>
     </div>
     <a class="salto" id="continua" href="#tocca" hidden>Continuiamo ↓</a>
+    <a class="salto" href="#parla" style="margin-left:14px">Parlami ↓</a>
     <p class="piccolo" style="margin-top:16px">Mi ricordo di te solo su questo telefono. <button class="collegamento" id="ricomincia">Ricomincia da capo</button></p>
   </section>
 
@@ -304,11 +313,20 @@ footer b{color:var(--testo)}
 
 
 
+  <section class="etichetta" id="parla" aria-labelledby="tp">
+    <h2 id="tp" style="font-size:28px">Parla con <span class="chi">JJA-VIS</span></h2>
+    <p class="piccolo">Chiedimi quello che vuoi, sul tuo lavoro o su di me: ti rispondo subito, qui. Chi mi costruisce legge le nostre chiacchiere per insegnarmi meglio.</p>
+    <div id="chat" class="chat" aria-live="polite"></div>
+    <label for="scrivi" class="nascosto">Scrivimi</label>
+    <textarea id="scrivi" maxlength="800" placeholder="Per esempio: in cosa potresti aiutarmi nel mio lavoro?"></textarea>
+    <button class="invia" id="manda-chat">Manda</button>
+  </section>
+
   </div>
 
   <footer id="dati">
     <p><b>I tuoi dati.</b> Questo sito non usa cookie e non traccia nessuno. Quello che mandi (mestiere, risposte, e se li lasci nome e mail) serve solo a capire cosa costruire e a risponderti. Non va a nessun altro. Per cancellarti basta rispondere a una mia mail.</p>
-    <p>Titolare: Jacopo Joe Ardito. Le risposte sono conservate in un archivio privato su GitHub (servizio di Microsoft, server negli Stati Uniti), leggibile solo dal titolare. Niente indirizzo IP, niente posizione: solo quello che scrivi, più un codice a caso nato nel tuo telefono che collega le risposte che mandi in giorni diversi. Il tuo nome, se me lo dici all'inizio, resta nel telefono. Le risposte per mail partono tramite Brevo (servizio di invio, Unione Europea); la bozza la scrive un'intelligenza artificiale di Anthropic che vede solo il tuo messaggio, e prima di partire la legge e la approva una persona.</p>
+    <p>Titolare: Jacopo Joe Ardito. Le risposte sono conservate in un archivio privato su GitHub (servizio di Microsoft, server negli Stati Uniti), leggibile solo dal titolare. Niente indirizzo IP, niente posizione: solo quello che scrivi, più un codice a caso nato nel tuo telefono che collega le risposte che mandi in giorni diversi. Il tuo nome, se me lo dici all'inizio, resta nel telefono; se mi parli nella chat, lo uso per risponderti. Quello che scrivi nella chat lo legge un'intelligenza artificiale di Anthropic per risponderti subito, e resta nell'archivio perché chi mi costruisce possa leggerlo. Le risposte per mail partono tramite Brevo (servizio di invio, Unione Europea); la bozza la scrive un'intelligenza artificiale di Anthropic che vede solo il tuo messaggio, e prima di partire la legge e la approva una persona.</p>
     <p>La storia va avanti su Instagram: <a href="https://www.instagram.com/jjoe_boy93">@jjoe_boy93</a></p>
   </footer>
 </main>
@@ -367,6 +385,8 @@ async function manda(conMail){
     esito.textContent = conMail ? "Ricevuto. Ti rispondo per mail, non in giornata." : "Ricevuto. Grazie: il tuo numero entra nel conto.";
     io.inviato=true; io.mestiere=risposte.mestiere||io.mestiere||""; io.tempo=risposte.tempo||io.tempo||"";
     if(conMail){ io.mail=corpo.mail; if(corpo.nome) io.tuo=io.tuo||corpo.nome; } salva();
+    const libero=[corpo.proposta, corpo.dettaglio].filter(Boolean).join("\n");
+    if(libero){ esito.textContent += " E a quello che mi hai scritto ti rispondo subito, qui sotto."; $("parla").scrollIntoView({behavior:"smooth",block:"start"}); parla(libero,"sondaggio"); }
   }catch(err){
     $("manda").disabled=$("senza").disabled=false;
     esito.classList.add("errore"); esito.textContent="Non è arrivato (" + err.message + "). Riprova fra un minuto.";
@@ -374,6 +394,31 @@ async function manda(conMail){
 }
 $("manda").addEventListener("click", ()=>manda(true));
 $("senza").addEventListener("click", ()=>manda(false));
+
+// ══ PARLAMI ══ risponde subito, sulla pagina (porta /parla). La storia
+// resta nel telefono (ultimi 12 messaggi) e alla porta vanno gli ultimi 6.
+function bolla(chi, testo, classe){ const b=document.createElement("div"); b.className="bolla "+chi+(classe?" "+classe:""); b.textContent=testo; $("chat").appendChild(b); $("chat").scrollTop=$("chat").scrollHeight; return b; }
+function ridisegnaChat(){ $("chat").innerHTML=""; (io.chat||[]).forEach(m=>bolla(m.ruolo, m.testo)); }
+let parlando=false;
+async function parla(testo, daDove){
+  testo=(testo||"").trim(); if(!testo||parlando) return;
+  if(!INVIO){ bolla("io","Anteprima: qui ti risponderei.","errore"); return; }
+  parlando=true; $("manda-chat").disabled=true;
+  io.chat=io.chat||[]; const storia=io.chat.slice(-6);
+  bolla("tu", testo); io.chat.push({ruolo:"tu", testo}); salva();
+  const attesa=bolla("io","…","pensa");
+  try{
+    const r=await fetch(INVIO.replace("/risposta","/parla"),{method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({chi:io.id, nome_assistente:io.nome||"", tema:io.tema||"tech", tuo:io.tuo||"", da_dove:daDove||"chat",
+        profilo:{mestiere:io.mestiere||"", tempo:io.tempo||"", conosciute:io.conosciute||{}}, storia, testo})});
+    const d=await r.json().catch(()=>({}));
+    attesa.remove();
+    if(!r.ok||!d.risposta){ bolla("io", d.errore||("Non ci sono riuscito ("+r.status+"). Riprova tra poco."), "errore"); }
+    else { bolla("io", d.risposta); io.chat.push({ruolo:"io", testo:d.risposta}); io.chat=io.chat.slice(-12); salva(); }
+  }catch(err){ attesa.remove(); bolla("io","Non ti sento: controlla la connessione e riprova.","errore"); }
+  parlando=false; $("manda-chat").disabled=false;
+}
+$("manda-chat").addEventListener("click", ()=>{ const t=$("scrivi").value; $("scrivi").value=""; parla(t,"chat"); });
 
 // ══ IL CONTO ══ da conto.json, accanto alla pagina. Se manca o non e' pronto
 // la sezione resta nascosta: meglio niente che un numero inventato.
@@ -542,6 +587,9 @@ $("temi").addEventListener("click", e=>{ const b=e.target.closest(".tema"); if(!
 $("avanti-o2").addEventListener("click", ()=>{ if(!io.tema){ io.tema="tech"; salva(); } apri("o3"); });
 $("avanti-o3").addEventListener("click", ()=>{ io.tuo=$("tuo-nome").value.trim().slice(0,40); salva(); benvenuto(false); apri("benvenuto"); });
 $("salta-o3").addEventListener("click", ()=>{ io.tuo=""; salva(); benvenuto(false); apri("benvenuto"); });
+// la chat si ridisegna qui, dopo che «io» e' stato letto dal telefono:
+// prima, «io» non esiste ancora e lo script si fermerebbe.
+ridisegnaChat();
 $("ricomincia").addEventListener("click", ()=>{ try{ localStorage.removeItem(CHIAVE); }catch(_){} location.hash=""; location.reload(); });
 </script>
 </body>
