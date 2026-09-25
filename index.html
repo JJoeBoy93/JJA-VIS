@@ -81,6 +81,14 @@ footer b{color:var(--testo)}
 .gruppo li{margin:4px 0;font-size:17px}
 .gruppo li::marker{color:var(--accento)}
 .gruppo b{color:var(--oro);font-weight:700}
+.salto{display:inline-block;margin-top:14px;font:600 16px/1 "Share Tech Mono",monospace;letter-spacing:.06em;color:var(--accento);text-decoration:none;border-bottom:1px solid var(--accento);padding-bottom:3px}
+.totale-conto{margin-top:10px}
+.totale-conto b{font:700 56px/1 Rajdhani,sans-serif;color:var(--oro);text-shadow:0 0 22px rgba(255,214,10,.35)}
+.totale-conto span{color:var(--tenue);font-size:20px}
+.voci-conto{list-style:none;margin:14px 0 8px;padding:0}
+.voci-conto li{display:flex;justify-content:space-between;gap:12px;border-top:1px solid var(--bordo);padding:8px 0;font-size:17px}
+.voci-conto li span:last-child{font-family:"Share Tech Mono",monospace;color:var(--oro);white-space:nowrap}
+.voci-conto small{display:block;color:var(--tenue);font-size:14px}
 </style>
 </head>
 <body>
@@ -92,10 +100,62 @@ footer b{color:var(--testo)}
     <div class="nome">JJA-VIS<small>imparo il lavoro delle persone</small></div>
   </header>
 
-  <section class="etichetta nastro">
-    <p class="dice">Ciao. Sono JJA-VIS.</p>
-    <p class="dice">Mi sta costruendo un corriere, la sera dopo il giro. Ho imparato il suo lavoro: le vie, i portoni, l'ordine in cui si carica un furgone.</p>
-    <p class="dice">Adesso voglio imparare il tuo. Quattro domande, un minuto.</p>
+  <section class="etichetta">
+    <p class="dice">Ciao. Sono JJA-VIS: un assistente a cui si parla, non si scrive.</p>
+    <p class="dice">Mi sta costruendo un corriere, la sera, dopo il giro. Prima ho imparato il suo lavoro. Adesso voglio imparare il tuo.</p>
+    <a class="salto" href="#tocca">Vai alle domande ↓</a>
+  </section>
+
+  <section class="etichetta" aria-labelledby="tf">
+    <h2 id="tf" style="font-size:28px">Cosa so già fare</h2>
+    <p class="piccolo">Sul telefono di chi mi costruisce, usato ogni giorno sul furgone. Ho più di quaranta attrezzi: questi sono quelli che si vedono di più.</p>
+
+    <div class="gruppo">
+      <h3>In macchina</h3>
+      <ul>
+        <li>Sono una sorgente di Android Auto, con la mia icona e <b>sei preselezioni</b> coi loghi delle radio, come l'autoradio</li>
+        <li>Mi parli mentre guidi, anche con la musica accesa, e se mi parli sopra mi zittisco</li>
+      </ul>
+    </div>
+    <div class="gruppo">
+      <h3>Al lavoro</h3>
+      <ul>
+        <li>Conosco un paese intero civico per civico: <b>8.385</b> numeri civici, i sensi di marcia, <b>18</b> zone di consegna</li>
+        <li>Metti un pacco nel giro e la giornata parte; a sera la chiudo io, e non la chiudo se resta qualcosa da fare</li>
+      </ul>
+    </div>
+    <div class="gruppo">
+      <h3>La tua giornata</h3>
+      <ul>
+        <li>Metto sveglie e appuntamenti nel telefono, e i compleanni che si ripetono ogni anno</li>
+        <li>La mattina ti dico cosa ti aspetta, in ordine d'orologio</li>
+        <li>Ricordo le persone della tua vita: se dici «mia figlia» so di chi parli</li>
+      </ul>
+    </div>
+    <div class="gruppo">
+      <h3>Occhi e orecchie</h3>
+      <ul>
+        <li>Riconosco le canzoni: <b>4.639</b>, imparate ascoltando la radio da solo</li>
+        <li>Guardo le foto, cerco sul web e ti lascio le fonti da toccare</li>
+        <li>Resto in un globo che galleggia sopra le altre app, e mi scrivi anche da Telegram</li>
+      </ul>
+    </div>
+
+    <p class="piccolo" style="margin-top:14px">Come sono fatto dentro non lo racconto: sono mesi di lavoro, notte dopo notte. Cosa so fare sì.</p>
+  </section>
+
+  <section class="etichetta" id="conto" aria-labelledby="tc" hidden>
+    <h2 id="tc" style="font-size:28px">Quanto costo</h2>
+    <p class="piccolo">Quello che si spende davvero per tenermi acceso, voce per voce.</p>
+    <div class="totale-conto"><b id="conto-totale">—</b> <span id="conto-mese"></span></div>
+    <ul class="voci-conto" id="conto-voci"></ul>
+    <p class="piccolo" id="conto-quando"></p>
+    <p class="piccolo" style="margin-top:12px">Il costo si legge insieme a quello che faccio risparmiare: tempo e soldi. Li sto misurando sul furgone, e compaiono qui quando sono misurati, non prima.</p>
+  </section>
+
+  <section class="etichetta" id="tocca">
+    <h2 style="font-size:28px">Adesso tocca a te</h2>
+    <p class="piccolo">Quattro domande, un minuto. Decidono cosa costruisco dopo, e chi risponde mi prova per primo.</p>
   </section>
 
   <section class="etichetta domanda aperta" id="d1" aria-labelledby="t1">
@@ -171,43 +231,7 @@ footer b{color:var(--testo)}
     <p class="avviso" id="esito" role="status"></p>
   </section>
 
-  <section class="etichetta" aria-labelledby="tf">
-    <h2 id="tf" style="font-size:28px">Cosa so già fare</h2>
-    <p class="piccolo">Sul telefono di chi mi costruisce, provato sul campo. Non sono ancora in vendita: chi risponde qui mi prova per primo.</p>
 
-    <div class="gruppo">
-      <h3>In macchina</h3>
-      <ul>
-        <li>Sono una sorgente di Android Auto, con la mia icona e <b>sei preselezioni</b> coi loghi delle radio, come l'autoradio</li>
-        <li>Mi parli mentre guidi, anche con la musica accesa, e se mi parli sopra mi zittisco</li>
-      </ul>
-    </div>
-    <div class="gruppo">
-      <h3>Al lavoro</h3>
-      <ul>
-        <li>Conosco un paese intero civico per civico: <b>8.385</b> numeri civici, i sensi di marcia, <b>18</b> zone di consegna</li>
-        <li>Metti un pacco nel giro e la giornata parte; a sera la chiudo io, e non la chiudo se resta qualcosa da fare</li>
-      </ul>
-    </div>
-    <div class="gruppo">
-      <h3>La tua giornata</h3>
-      <ul>
-        <li>Metto sveglie e appuntamenti nel telefono, e i compleanni che si ripetono ogni anno</li>
-        <li>La mattina ti dico cosa ti aspetta, in ordine d'orologio</li>
-        <li>Ricordo le persone della tua vita: se dici «mia figlia» so di chi parli</li>
-      </ul>
-    </div>
-    <div class="gruppo">
-      <h3>Occhi e orecchie</h3>
-      <ul>
-        <li>Riconosco le canzoni: <b>4.639</b>, imparate ascoltando la radio da solo</li>
-        <li>Guardo le foto, cerco sul web e ti lascio le fonti da toccare</li>
-        <li>Resto in un globo che galleggia sopra le altre app, e mi scrivi anche da Telegram</li>
-      </ul>
-    </div>
-
-    <p class="piccolo" style="margin-top:14px">Come sono fatto dentro non lo racconto: sono mesi di lavoro, notte dopo notte. Cosa so fare sì. Il lavoro di un corriere l'ho imparato da un corriere; quello degli altri mestieri lo imparo da chi li fa.</p>
-  </section>
 
   <footer id="dati">
     <p><b>I tuoi dati.</b> Questo sito non usa cookie e non traccia nessuno. Quello che mandi (mestiere, risposte, e se li lasci nome e mail) serve solo a capire cosa costruire e a risponderti. Non va a nessun altro. Per cancellarti basta rispondere a una mia mail.</p>
@@ -274,6 +298,21 @@ async function manda(conMail){
 }
 $("manda").addEventListener("click", ()=>manda(true));
 $("senza").addEventListener("click", ()=>manda(false));
+
+// ══ IL CONTO ══ da conto.json, accanto alla pagina. Se manca o non e' pronto
+// la sezione resta nascosta: meglio niente che un numero inventato.
+fetch("conto.json", {cache:"no-store"}).then(r=>r.ok?r.json():null).then(c=>{
+  if(!c || !c.pronto || !Array.isArray(c.voci)) return;
+  const eur=n=>n.toLocaleString("it-IT",{minimumFractionDigits:2,maximumFractionDigits:2})+" €";
+  const tot=c.voci.reduce((t,v)=>t+(+v.euro||0),0);
+  $("conto-totale").textContent=eur(tot); $("conto-mese").textContent=c.mese?("· "+c.mese):"";
+  const ul=$("conto-voci");
+  c.voci.forEach(v=>{ const li=document.createElement("li"); const a=document.createElement("span"); a.textContent=v.nome;
+    if(v.nota){ const n=document.createElement("small"); n.textContent=v.nota; a.appendChild(n); }
+    const b=document.createElement("span"); b.textContent=eur(+v.euro||0); li.append(a,b); ul.appendChild(li); });
+  $("conto-quando").textContent = c.aggiornato ? "Aggiornato il "+c.aggiornato+"." : "";
+  $("conto").hidden=false;
+}).catch(()=>{});
 
 // il globo di JARVIS: una sfera a maglia che gira piano e respira
 (function(){
