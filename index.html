@@ -265,7 +265,7 @@ async function manda(conMail){
   $("manda").disabled=$("senza").disabled=true;
   try{
     const r = await fetch(INVIO,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(corpo)});
-    if(!r.ok) throw new Error("HTTP "+r.status);
+    if(!r.ok){ let perche=""; try{ perche=(await r.json()).errore||""; }catch(_){} throw new Error("HTTP "+r.status+(perche?": "+perche:"")); }
     esito.textContent = conMail ? "Ricevuto. Ti rispondo per mail, non in giornata." : "Ricevuto. Grazie: il tuo numero entra nel conto.";
   }catch(err){
     $("manda").disabled=$("senza").disabled=false;
