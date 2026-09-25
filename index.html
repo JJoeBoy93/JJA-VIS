@@ -1,0 +1,313 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>JJA-VIS — dimmi che lavoro fai</title>
+<meta name="description" content="Sono JJA-VIS. Imparo il lavoro delle persone. Dimmi cosa ti fa perdere tempo e quanto varrebbe toglierlo.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+/* Il tema di JARVIS, preso da lib/theme/jarvis_theme.dart del guscio */
+:root{
+  --bg:#020B18; --panel:#030E1E; --bordo:#0D3A5C; --accento:#00B4D8; --accento2:#0077B6;
+  --testo:#CAF0F8; --tenue:#48CAE4; --utente:#0D2A3E; --oro:#FFD60A; --rosso:#E63946; --input:#020D1A; --suggerimento:#1A4A60;
+  color-scheme:dark;
+  box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#020B18}}
+:root[data-theme="dark"]{--bg:#020B18}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px);background:var(--bg)}
+body{margin:0;background:var(--bg);color:var(--testo);font:500 18px/1.5 Rajdhani,"Segoe UI",system-ui,sans-serif;
+  background-image:radial-gradient(ellipse 90% 45% at 50% 0%,rgba(0,180,216,.10),transparent 70%),
+    linear-gradient(rgba(0,180,216,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(0,180,216,.035) 1px,transparent 1px);
+  background-size:auto,28px 28px,28px 28px}
+main{max-width:560px;margin:0 auto;padding:18px 16px 56px}
+h1,h2{font-family:Rajdhani,sans-serif;font-weight:700;line-height:1.05;margin:0;color:var(--testo)}
+a{color:var(--accento)}
+:focus-visible{outline:2px solid var(--oro);outline-offset:2px}
+
+/* il globo: l'unica cosa che si muove da sola */
+.testa{text-align:center;margin:6px 0 20px}
+#globo{width:200px;height:200px;display:block;margin:0 auto}
+.nome{font:700 44px/1 Rajdhani,sans-serif;letter-spacing:.14em;color:var(--testo);text-shadow:0 0 18px rgba(0,180,216,.55);margin-top:4px}
+.nome small{display:block;font:400 14px/1.4 "Share Tech Mono",monospace;letter-spacing:.12em;color:var(--tenue);margin-top:8px;text-shadow:none}
+
+/* il pannello: squadrato col bordo acceso, come i tasti dell'app */
+.etichetta{background:var(--panel);border:1px solid var(--bordo);padding:18px 18px 20px;margin:0 0 16px;position:relative}
+.etichetta::before{content:"";position:absolute;top:-1px;left:-1px;width:18px;height:18px;border-top:2px solid var(--accento);border-left:2px solid var(--accento)}
+.etichetta::after{content:"";position:absolute;bottom:-1px;right:-1px;width:18px;height:18px;border-bottom:2px solid var(--accento);border-right:2px solid var(--accento)}
+.dice{font-size:20px;margin:0 0 6px}
+.dice + .dice{margin-top:10px}
+.piccolo{color:var(--tenue);font-size:16px;font-weight:500}
+
+.domanda{display:none}
+.domanda.aperta{display:block;animation:entra .3s ease-out}
+@keyframes entra{from{opacity:0;transform:translateY(8px)}}
+@media (prefers-reduced-motion:reduce){.domanda.aperta{animation:none}}
+.domanda h2{font-size:28px;margin:0 0 14px}
+.scelte{display:flex;flex-wrap:wrap;gap:8px}
+.scelta{font:600 17px/1 Rajdhani,sans-serif;padding:11px 14px;border:1px solid var(--bordo);background:rgba(0,180,216,.05);color:var(--testo);cursor:pointer}
+.scelta:hover{border-color:var(--accento)}
+.scelta[aria-pressed="true"]{background:var(--utente);border-color:var(--accento);color:var(--testo);box-shadow:0 0 12px rgba(0,180,216,.35) inset}
+.risposta{margin-top:12px;color:var(--tenue)}
+input[type=text],input[type=email],textarea{width:100%;font:500 18px/1.4 Rajdhani,sans-serif;padding:11px 12px;border:1px solid var(--bordo);border-radius:0;background:var(--input);color:var(--testo)}
+input::placeholder,textarea::placeholder{color:var(--suggerimento)}
+input:focus,textarea:focus{border-color:var(--accento);outline:none;box-shadow:0 0 0 1px var(--accento)}
+textarea{min-height:92px;resize:vertical}
+label{display:block;font-weight:600;margin:14px 0 6px;color:var(--tenue)}
+.cursore{margin-top:6px}
+input[type=range]{width:100%;accent-color:var(--accento);height:32px}
+.cifra{font:700 64px/1 Rajdhani,sans-serif;color:var(--oro);text-shadow:0 0 22px rgba(255,214,10,.35)}
+.cifra span{font-size:22px;color:var(--tenue);font-weight:500;text-shadow:none}
+.estremi{display:flex;justify-content:space-between;color:var(--tenue);font:400 13px/1.4 "Share Tech Mono",monospace}
+.consenso{display:flex;gap:10px;align-items:flex-start;font-weight:500;font-size:16px;color:var(--testo)}
+.consenso input{margin-top:4px;width:20px;height:20px;accent-color:var(--accento)}
+.invia{display:block;width:100%;margin-top:16px;padding:15px;border:1px solid var(--accento);border-radius:0;background:rgba(0,180,216,.14);color:var(--testo);font:700 19px/1 Rajdhani,sans-serif;letter-spacing:.12em;cursor:pointer}
+.invia:hover:not(:disabled){background:rgba(0,180,216,.26);box-shadow:0 0 16px rgba(0,180,216,.35)}
+.invia:disabled{opacity:.35;cursor:not-allowed}
+.invia.secondario{background:transparent;border-color:var(--bordo);letter-spacing:.06em;font-weight:600}
+.avviso{margin-top:12px;font-size:16px;color:var(--tenue)}
+.avviso.errore{color:var(--rosso)}
+
+footer{color:var(--tenue);font-size:15px;line-height:1.5;border-top:1px solid var(--bordo);padding-top:14px}
+footer b{color:var(--testo)}
+.anteprima{border:1px solid var(--oro);color:var(--oro);padding:8px 12px;font:400 13px/1.4 "Share Tech Mono",monospace;margin-bottom:10px}
+.gruppo{border-top:1px solid var(--bordo);padding-top:12px;margin-top:14px}
+.gruppo h3{font:600 14px/1.3 "Share Tech Mono",monospace;letter-spacing:.1em;color:var(--accento);margin:0 0 6px}
+.gruppo ul{margin:0;padding-left:18px}
+.gruppo li{margin:4px 0;font-size:17px}
+.gruppo li::marker{color:var(--accento)}
+.gruppo b{color:var(--oro);font-weight:700}
+</style>
+</head>
+<body>
+<main>
+  <div class="anteprima" id="anteprima" hidden>Anteprima: il modulo non invia ancora niente.</div>
+
+  <header class="testa">
+    <canvas id="globo" width="400" height="400" aria-hidden="true"></canvas>
+    <div class="nome">JJA-VIS<small>imparo il lavoro delle persone</small></div>
+  </header>
+
+  <section class="etichetta nastro">
+    <p class="dice">Ciao. Sono JJA-VIS.</p>
+    <p class="dice">Mi sta costruendo un corriere, la sera dopo il giro. Ho imparato il suo lavoro: le vie, i portoni, l'ordine in cui si carica un furgone.</p>
+    <p class="dice">Adesso voglio imparare il tuo. Quattro domande, un minuto.</p>
+  </section>
+
+  <section class="etichetta domanda aperta" id="d1" aria-labelledby="t1">
+    <h2 id="t1">Che lavoro fai?</h2>
+    <div class="scelte" data-campo="mestiere">
+      <button class="scelta" aria-pressed="false">Corriere o autista</button>
+      <button class="scelta" aria-pressed="false">Negozio o commercio</button>
+      <button class="scelta" aria-pressed="false">Artigiano o tecnico</button>
+      <button class="scelta" aria-pressed="false">Sanità</button>
+      <button class="scelta" aria-pressed="false">Ufficio</button>
+      <button class="scelta" aria-pressed="false">Studio</button>
+      <button class="scelta" aria-pressed="false">Altro</button>
+    </div>
+    <p class="risposta" id="r1" hidden></p>
+  </section>
+
+  <section class="etichetta domanda" id="d2" aria-labelledby="t2">
+    <h2 id="t2">Cosa ti fa perdere più tempo?</h2>
+    <div class="scelte" data-campo="tempo">
+      <button class="scelta" aria-pressed="false">Organizzare la giornata</button>
+      <button class="scelta" aria-pressed="false">Rispondere a messaggi e mail</button>
+      <button class="scelta" aria-pressed="false">Preventivi, conti, fatture</button>
+      <button class="scelta" aria-pressed="false">Appuntamenti</button>
+      <button class="scelta" aria-pressed="false">Cercare informazioni</button>
+      <button class="scelta" aria-pressed="false">Altro lavoro ripetitivo</button>
+    </div>
+    <label for="dettaglio">Raccontamelo con le tue parole, se vuoi</label>
+    <textarea id="dettaglio" maxlength="800" placeholder="Per esempio: ogni mattina perdo un'ora a…"></textarea>
+    <button class="invia" id="avanti2" disabled>Vai avanti</button>
+  </section>
+
+  <section class="etichetta domanda" id="d3" aria-labelledby="t3">
+    <h2 id="t3">Se lo facessi io al posto tuo, quanto varrebbe al mese?</h2>
+    <div class="cifra" aria-live="polite"><output id="valore">15</output> <span>€ al mese</span></div>
+    <div class="cursore">
+      <input type="range" id="prezzo" min="0" max="100" step="1" value="15" aria-describedby="estremi" aria-label="Quanto varrebbe al mese, in euro">
+      <div class="estremi" id="estremi"><span>0 · non lo userei</span><span>100 €</span></div>
+    </div>
+    <button class="invia" id="avanti3">Questo è il mio numero</button>
+  </section>
+
+  <section class="etichetta domanda" id="d5" aria-labelledby="t5">
+    <h2 id="t5">Cosa costruisco dopo?</h2>
+    <p class="piccolo">Scegline fino a tre. Costruisco in ordine di voti.</p>
+    <div class="scelte" id="progetti">
+      <button class="scelta" aria-pressed="false">Il giro più corto, fino a 150 fermate</button>
+      <button class="scelta" aria-pressed="false">Carichi di ritorno per chi fa trasporto</button>
+      <button class="scelta" aria-pressed="false">Avvisare i clienti quando arrivo</button>
+      <button class="scelta" aria-pressed="false">Preventivi e listini detti a voce</button>
+      <button class="scelta" aria-pressed="false">Rispondere a messaggi e mail dei clienti</button>
+      <button class="scelta" aria-pressed="false">Ricordarmi dei clienti abituali</button>
+      <button class="scelta" aria-pressed="false">Scadenze e documenti sotto controllo</button>
+      <button class="scelta" aria-pressed="false">Appunti di una visita o di un incontro, scritti da soli</button>
+    </div>
+    <label for="proposta">Un'altra cosa, se ce l'hai</label>
+    <input type="text" id="proposta" maxlength="200" placeholder="Costruisci una cosa che…">
+    <button class="invia" id="avanti5" disabled>Questi sono i miei voti</button>
+  </section>
+
+  <section class="etichetta domanda" id="d4" aria-labelledby="t4">
+    <h2 id="t4">Vuoi che ti scriva?</h2>
+    <p class="piccolo">Ti scrivo quando c'è qualcosa da provare per il tuo lavoro. Se hai una domanda o un'idea da farmi costruire, scrivila qui: rispondo per mail, non in giornata.</p>
+    <label for="nome">Come ti chiami</label>
+    <input type="text" id="nome" maxlength="60" autocomplete="given-name">
+    <label for="mail">La tua mail</label>
+    <input type="email" id="mail" maxlength="120" autocomplete="email">
+    <label for="messaggio">Una domanda o un'idea (facoltativo)</label>
+    <textarea id="messaggio" maxlength="1500"></textarea>
+    <label class="consenso"><input type="checkbox" id="ok"> <span>JJA-VIS può scrivermi a questa mail. Nome e mail non vanno a nessun altro. <a href="#dati">Come tratto i tuoi dati</a></span></label>
+    <button class="invia" id="manda">Manda a JJA-VIS</button>
+    <button class="invia secondario" id="senza">Manda senza mail</button>
+    <input type="text" id="sito" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;height:0;width:0;opacity:0">
+    <p class="avviso" id="esito" role="status"></p>
+  </section>
+
+  <section class="etichetta" aria-labelledby="tf">
+    <h2 id="tf" style="font-size:28px">Cosa so già fare</h2>
+    <p class="piccolo">Sul telefono di chi mi costruisce, provato sul campo. Non sono ancora in vendita: chi risponde qui mi prova per primo.</p>
+
+    <div class="gruppo">
+      <h3>In macchina</h3>
+      <ul>
+        <li>Sono una sorgente di Android Auto, con la mia icona e <b>sei preselezioni</b> coi loghi delle radio, come l'autoradio</li>
+        <li>Mi parli mentre guidi, anche con la musica accesa, e se mi parli sopra mi zittisco</li>
+      </ul>
+    </div>
+    <div class="gruppo">
+      <h3>Al lavoro</h3>
+      <ul>
+        <li>Conosco un paese intero civico per civico: <b>8.385</b> numeri civici, i sensi di marcia, <b>18</b> zone di consegna</li>
+        <li>Metti un pacco nel giro e la giornata parte; a sera la chiudo io, e non la chiudo se resta qualcosa da fare</li>
+      </ul>
+    </div>
+    <div class="gruppo">
+      <h3>La tua giornata</h3>
+      <ul>
+        <li>Metto sveglie e appuntamenti nel telefono, e i compleanni che si ripetono ogni anno</li>
+        <li>La mattina ti dico cosa ti aspetta, in ordine d'orologio</li>
+        <li>Ricordo le persone della tua vita: se dici «mia figlia» so di chi parli</li>
+      </ul>
+    </div>
+    <div class="gruppo">
+      <h3>Occhi e orecchie</h3>
+      <ul>
+        <li>Riconosco le canzoni: <b>4.639</b>, imparate ascoltando la radio da solo</li>
+        <li>Guardo le foto, cerco sul web e ti lascio le fonti da toccare</li>
+        <li>Resto in un globo che galleggia sopra le altre app, e mi scrivi anche da Telegram</li>
+      </ul>
+    </div>
+
+    <p class="piccolo" style="margin-top:14px">Come sono fatto dentro non lo racconto: sono mesi di lavoro, notte dopo notte. Cosa so fare sì. Il lavoro di un corriere l'ho imparato da un corriere; quello degli altri mestieri lo imparo da chi li fa.</p>
+  </section>
+
+  <footer id="dati">
+    <p><b>I tuoi dati.</b> Questo sito non usa cookie e non traccia nessuno. Quello che mandi (mestiere, risposte, e se li lasci nome e mail) serve solo a capire cosa costruire e a risponderti. Non va a nessun altro. Per cancellarti basta rispondere a una mia mail.</p>
+    <p>Titolare: Jacopo Joe Ardito. Le risposte sono conservate in un archivio privato su GitHub (servizio di Microsoft, server negli Stati Uniti), leggibile solo dal titolare. Niente indirizzo IP, niente posizione: solo quello che scrivi.</p>
+    <p>La storia va avanti su Instagram: <a href="https://www.instagram.com/jjoe_boy93">@jjoe_boy93</a></p>
+  </footer>
+</main>
+
+<script>
+// Dove vanno le risposte. Vuoto = anteprima: non si invia niente, e si dice.
+const INVIO = "https://jjavis-porta.19-jjardito93.workers.dev/risposta";
+
+const risposte = {mestiere:"", tempo:"", dettaglio:"", prezzo:15};
+const $ = id => document.getElementById(id);
+if (!INVIO) $("anteprima").hidden = false;
+
+function apri(id){ const d=$(id); if(!d.classList.contains("aperta")){ d.classList.add("aperta"); d.scrollIntoView({behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block:"start"}); } }
+
+document.querySelectorAll(".scelte").forEach(g=>{
+  g.addEventListener("click", e=>{
+    const b = e.target.closest(".scelta"); if(!b) return;
+    g.querySelectorAll(".scelta").forEach(x=>x.setAttribute("aria-pressed","false"));
+    b.setAttribute("aria-pressed","true");
+    risposte[g.dataset.campo] = b.textContent.trim();
+    if (g.dataset.campo === "mestiere"){
+      const r=$("r1"); r.hidden=false;
+      r.textContent = b.textContent.trim()==="Altro" ? "Bene: allora me lo racconti nella prossima." : "Bene. Adesso la parte che mi interessa davvero.";
+      apri("d2");
+    } else { $("avanti2").disabled = false; }
+  });
+});
+$("avanti2").addEventListener("click", ()=>{ risposte.dettaglio = $("dettaglio").value.trim(); apri("d3"); });
+$("prezzo").addEventListener("input", e=>{ risposte.prezzo = +e.target.value; $("valore").textContent = e.target.value; });
+$("avanti3").addEventListener("click", ()=> apri("d5"));
+const scelti=new Set();
+$("progetti").addEventListener("click", e=>{
+  const b=e.target.closest(".scelta"); if(!b) return; const t=b.textContent.trim();
+  if(scelti.has(t)){ scelti.delete(t); b.setAttribute("aria-pressed","false"); }
+  else if(scelti.size<3){ scelti.add(t); b.setAttribute("aria-pressed","true"); }
+  $("avanti5").disabled = !(scelti.size || $("proposta").value.trim());
+});
+$("proposta").addEventListener("input", ()=>{ $("avanti5").disabled = !(scelti.size || $("proposta").value.trim()); });
+$("avanti5").addEventListener("click", ()=> apri("d4"));
+
+async function manda(conMail){
+  const esito=$("esito"); esito.className="avviso";
+  const corpo = {...risposte, dettaglio: $("dettaglio").value.trim(), messaggio: $("messaggio").value.trim(), voti:[...scelti], proposta: $("proposta").value.trim(), sito: $("sito").value};
+  if (conMail){
+    const mail=$("mail").value.trim();
+    if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(mail)){ esito.classList.add("errore"); esito.textContent="La mail non sembra completa: controlla la parte dopo la chiocciola."; return; }
+    if(!$("ok").checked){ esito.classList.add("errore"); esito.textContent="Per scriverti mi serve la spunta sul consenso."; return; }
+    corpo.nome=$("nome").value.trim(); corpo.mail=mail; corpo.consenso=true;
+  } else { corpo.messaggio=""; }
+  if(!INVIO){ esito.textContent="Anteprima: qui la risposta verrebbe mandata. Non è partito niente."; return; }
+  $("manda").disabled=$("senza").disabled=true;
+  try{
+    const r = await fetch(INVIO,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(corpo)});
+    if(!r.ok) throw new Error("HTTP "+r.status);
+    esito.textContent = conMail ? "Ricevuto. Ti rispondo per mail, non in giornata." : "Ricevuto. Grazie: il tuo numero entra nel conto.";
+  }catch(err){
+    $("manda").disabled=$("senza").disabled=false;
+    esito.classList.add("errore"); esito.textContent="Non è arrivato (" + err.message + "). Riprova fra un minuto.";
+  }
+}
+$("manda").addEventListener("click", ()=>manda(true));
+$("senza").addEventListener("click", ()=>manda(false));
+
+// il globo di JARVIS: una sfera a maglia che gira piano e respira
+(function(){
+  const cv=document.getElementById("globo"), g=cv.getContext("2d");
+  const fermo=matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const W=400, C=200, R=118, LAT=9, LON=16;
+  function disegna(t){
+    g.clearRect(0,0,W,W);
+    const r=R*(1+0.03*Math.sin(t/700));
+    const alone=g.createRadialGradient(C,C,r*0.2,C,C,r*1.6);
+    alone.addColorStop(0,"rgba(0,180,216,.28)"); alone.addColorStop(1,"rgba(0,180,216,0)");
+    g.fillStyle=alone; g.fillRect(0,0,W,W);
+    const fondo=g.createRadialGradient(C-r*.3,C-r*.3,r*.1,C,C,r);
+    fondo.addColorStop(0,"#0a4d6e"); fondo.addColorStop(1,"#021526");
+    g.beginPath(); g.arc(C,C,r,0,Math.PI*2); g.fillStyle=fondo; g.fill();
+    const giro=t/5200, incl=-0.42;
+    const punto=(la,lo)=>{ let x=Math.cos(la)*Math.sin(lo+giro), y=Math.sin(la), z=Math.cos(la)*Math.cos(lo+giro);
+      const y2=y*Math.cos(incl)-z*Math.sin(incl), z2=y*Math.sin(incl)+z*Math.cos(incl);
+      return [C+x*r, C-y2*r, z2]; };
+    g.lineWidth=1.2;
+    for(let i=1;i<LAT;i++){ const la=-Math.PI/2+i*Math.PI/LAT; g.beginPath();
+      for(let k=0;k<=64;k++){ const [x,y,z]=punto(la,k/64*Math.PI*2); g.strokeStyle="rgba(72,202,228,.32)"; k?g.lineTo(x,y):g.moveTo(x,y);} g.stroke(); }
+    for(let j=0;j<LON;j++){ const lo=j/LON*Math.PI*2; g.beginPath();
+      for(let k=0;k<=40;k++){ const [x,y]=punto(-Math.PI/2+k/40*Math.PI,lo); k?g.lineTo(x,y):g.moveTo(x,y);} g.strokeStyle="rgba(72,202,228,.22)"; g.stroke(); }
+    for(let i=1;i<LAT;i++) for(let j=0;j<LON;j++){
+      const [x,y,z]=punto(-Math.PI/2+i*Math.PI/LAT, j/LON*Math.PI*2); if(z<0) continue;
+      g.beginPath(); g.arc(x,y,1.6+z*1.8,0,Math.PI*2); g.fillStyle=`rgba(202,240,248,${.35+z*.6})`; g.fill(); }
+    g.beginPath(); g.arc(C,C,r,0,Math.PI*2); g.strokeStyle="rgba(0,180,216,.9)"; g.lineWidth=2; g.shadowColor="#00B4D8"; g.shadowBlur=18; g.stroke(); g.shadowBlur=0;
+    g.beginPath(); g.arc(C,C,r+16,-Math.PI/2+giro*2,Math.PI*0.35+giro*2); g.strokeStyle="rgba(0,180,216,.55)"; g.lineWidth=2; g.stroke();
+    g.beginPath(); g.arc(C,C,r+16,Math.PI*0.6+giro*2,Math.PI*1.1+giro*2); g.stroke();
+  }
+  if(fermo){ disegna(0); return; }
+  const giro=t=>{ disegna(t); requestAnimationFrame(giro); }; requestAnimationFrame(giro);
+})();
+</script>
+</body>
+</html>
