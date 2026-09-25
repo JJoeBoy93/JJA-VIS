@@ -116,6 +116,11 @@ footer b{color:var(--testo)}
 .campioni i{width:18px;height:18px;border-radius:50%;border:1px solid rgba(128,128,128,.35)}
 .collegamento{background:none;border:0;padding:0;color:var(--accento);font:inherit;text-decoration:underline;cursor:pointer}
 [hidden]{display:none!important}
+.video-elenco{display:flex;flex-direction:column;gap:16px;margin-top:14px}
+.video-elenco figure{margin:0}
+.video-elenco video{width:100%;max-height:70vh;background:#000;border:1px solid var(--bordo);display:block}
+.video-elenco figcaption{margin-top:6px;font-size:16px;color:var(--tenue)}
+:root[data-tema="calmo"] .video-elenco video,:root[data-tema="naturale"] .video-elenco video{border-radius:12px}
 .nascosto{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 .chat{display:flex;flex-direction:column;gap:8px;margin:14px 0 4px;max-height:60vh;overflow-y:auto}
 .bolla{max-width:86%;padding:10px 12px;border:1px solid var(--bordo);font-size:17px;line-height:1.4;white-space:pre-wrap}
@@ -224,6 +229,12 @@ footer b{color:var(--testo)}
     </div>
 
     <p class="piccolo" style="margin-top:14px">Come sono fatto dentro non lo racconto: sono mesi di lavoro, notte dopo notte. Cosa so fare sì.</p>
+  </section>
+
+  <section class="etichetta" id="video" aria-labelledby="tv" hidden>
+    <h2 id="tv" style="font-size:28px">Guardami al lavoro</h2>
+    <p class="piccolo">Video veri, dal telefono e dal furgone di chi mi costruisce. Nessun montaggio che non sia mio.</p>
+    <div id="video-elenco" class="video-elenco"></div>
   </section>
 
   <section class="etichetta" id="conto" aria-labelledby="tc" hidden>
@@ -346,6 +357,51 @@ function apri(id){ const d=$(id); if(!d.classList.contains("aperta")){ d.classLi
 // solo le domande del sondaggio (quelle con data-campo): i nomi, i voti e le
 // domande del ritorno hanno i loro gestori. Prima questo li prendeva tutti:
 // scegliere un nome accendeva «Vai avanti», e i voti restavano uno solo.
+// ══ LE DOMANDE CAMBIANO COL MESTIERE ══ — 25 settembre, JJ: «se sono
+// corriere non ho gli stessi problemi del farmacista, e vorrò costruire
+// altro rispetto a 150 fermate». Tempo perso e progetti da votare dipendono
+// dal mestiere scelto; «Altro» tiene le liste generali.
+const PER_MESTIERE={
+  "Corriere o autista":{
+    tempo:["Costruire il giro del mattino","Caricare il furgone in ordine","Clienti non in casa e riconsegne","Traffico, ZTL e parcheggi","Contrassegni e firme","Cercare carichi di ritorno"],
+    progetti:["Il giro più corto, fino a 150 fermate","Leggere le lettere di vettura con la fotocamera","Avvisare i clienti quando arrivo","Carichi di ritorno dalle borse carichi","L'ordine di carico del furgone per zona","Avviso di stanchezza e pause alla guida"],
+    esempio:"Per esempio: ogni mattina perdo un'ora a mettere in ordine i pacchi…"},
+  "Negozio o commercio":{
+    tempo:["Scorte da controllare","Ordini ai fornitori","Clienti su WhatsApp e social","Chiusura cassa e conti","Ricordarmi dei clienti abituali","Turni del personale"],
+    progetti:["Ricordarmi dei clienti abituali e cosa comprano","Avviso prima che finiscano le scorte","Rispondere ai clienti su WhatsApp","I conti della giornata detti a voce","Ordini ai fornitori pronti da mandare","Chi arriva oggi e cosa cerca"],
+    esempio:"Per esempio: a fine giornata perdo mezz'ora a fare i conti…"},
+  "Artigiano o tecnico":{
+    tempo:["Preventivi","Organizzare gli interventi","Rincorrere pagamenti","Ordinare il materiale","Rispondere al telefono mentre lavoro","Scadenze e certificazioni"],
+    progetti:["Preventivi detti a voce","Agenda degli interventi col percorso","Promemoria dei pagamenti ai clienti","Lista del materiale da comprare","Rispondere ai clienti mentre ho le mani occupate","Foto dei lavori archiviate per cliente"],
+    esempio:"Per esempio: la sera perdo un'ora a scrivere i preventivi…"},
+  "Sanità":{
+    tempo:["Scrivere note e referti","Appuntamenti e disdette","Terapie da ricordare","Rispondere a pazienti e familiari","Scorte e scadenze","Burocrazia"],
+    progetti:["Appunti della visita scritti da soli","Promemoria delle terapie","Scorte e scadenze sotto controllo","Appuntamenti e disdette gestiti a voce","Riepilogo della giornata","Burocrazia preparata in anticipo"],
+    esempio:"Per esempio: dopo ogni visita perdo dieci minuti a scrivere…"},
+  "Ufficio":{
+    tempo:["Mail e messaggi","Riunioni e appuntamenti","Scadenze e documenti","Cercare file e informazioni","Report e fogli di calcolo","Organizzare la settimana"],
+    progetti:["Mail riassunte e bozze di risposta","Scadenze e documenti sotto controllo","Riepilogo delle riunioni","Trovare un file a voce","Le priorità della giornata","Report fatti da soli"],
+    esempio:"Per esempio: ogni mattina perdo un'ora dietro alle mail…"},
+  "Studio":{
+    tempo:["Organizzare lo studio","Scadenze ed esami","Riassunti e appunti","Cercare informazioni","Studio e lavoro insieme","Ripassare"],
+    progetti:["Piano di studio fino all'esame","Riassunti dagli appunti","Domande per ripassare","Scadenze e iscrizioni","Niente distrazioni mentre studio","Fonti affidabili trovate per me"],
+    esempio:"Per esempio: perdo tempo a capire da dove cominciare…"},
+};
+const GENERALI={tempo:[...document.querySelectorAll('.scelte[data-campo="tempo"] .scelta')].map(b=>b.textContent.trim()),
+                progetti:[...document.querySelectorAll('#progetti .scelta')].map(b=>b.textContent.trim()),
+                esempio:$("dettaglio").getAttribute("placeholder")};
+function riempi(contenitore, voci){ contenitore.innerHTML=""; voci.forEach(t=>{ const b=document.createElement("button"); b.className="scelta"; b.setAttribute("aria-pressed","false"); b.textContent=t; contenitore.appendChild(b); }); }
+function perMestiere(m){
+  const set=PER_MESTIERE[m]||GENERALI;
+  riempi(document.querySelector('.scelte[data-campo="tempo"]'), set.tempo);
+  riempi($("progetti"), set.progetti);
+  $("dettaglio").setAttribute("placeholder", set.esempio||GENERALI.esempio);
+  risposte.tempo=""; $("avanti2").disabled=true;
+  if(typeof scelti!=="undefined"){ scelti.clear(); $("avanti5").disabled=!$("proposta").value.trim(); }
+}
+
+// solo le domande del sondaggio (quelle con data-campo): i nomi, i voti e le
+// domande del ritorno hanno i loro gestori.
 document.querySelectorAll(".scelte[data-campo]").forEach(g=>{
   g.addEventListener("click", e=>{
     const b = e.target.closest(".scelta"); if(!b) return;
@@ -354,6 +410,7 @@ document.querySelectorAll(".scelte[data-campo]").forEach(g=>{
     risposte[g.dataset.campo] = b.textContent.trim();
     if(g.dataset.campo==="mestiere"||g.dataset.campo==="tempo"){ io[g.dataset.campo]=risposte[g.dataset.campo]; salva(); }
     if (g.dataset.campo === "mestiere"){
+      perMestiere(risposte.mestiere);
       const r=$("r1"); r.hidden=false;
       r.textContent = b.textContent.trim()==="Altro" ? "Bene: allora me lo racconti nella prossima." : "Bene. Adesso la parte che mi interessa davvero.";
       apri("d2");
@@ -444,6 +501,24 @@ async function controllaRisposte(){
   }catch(_){ return 0; }
 }
 $("manda-chat").addEventListener("click", ()=>{ const t=$("scrivi").value; $("scrivi").value=""; parla(t,"chat"); });
+
+// ══ I VIDEO ══ la cartella video/ del repository della pagina: ogni .mp4 che
+// JJ ci carica compare qui, col nome del file come didascalia. Niente
+// piattaforme esterne: niente cookie, come promette la pagina. Se la cartella
+// non c'e' o e' vuota, la sezione resta nascosta.
+fetch("https://api.github.com/repos/JJoeBoy93/JJA-VIS/contents/video").then(r=>r.ok?r.json():[]).then(el=>{
+  const vid=(Array.isArray(el)?el:[]).filter(f=>/\.(mp4|webm|mov)$/i.test(f.name)).sort((a,b)=>a.name.localeCompare(b.name));
+  if(!vid.length) return;
+  const casa=$("video-elenco");
+  vid.forEach(f=>{
+    const fig=document.createElement("figure"); const v=document.createElement("video");
+    v.src="video/"+encodeURIComponent(f.name); v.controls=true; v.preload="metadata"; v.playsInline=true;
+    const cap=document.createElement("figcaption");
+    cap.textContent=f.name.replace(/\.[^.]+$/,"").replace(/^\d+[\s._-]*/,"").replace(/[_-]+/g," ");
+    fig.append(v,cap); casa.appendChild(fig);
+  });
+  $("video").hidden=false;
+}).catch(()=>{});
 
 // ══ IL CONTO ══ da conto.json, accanto alla pagina. Se manca o non e' pronto
 // la sezione resta nascosta: meglio niente che un numero inventato.
