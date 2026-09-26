@@ -142,14 +142,24 @@ footer b{color:var(--testo)}
 .bolla .attesa{display:block;font-size:13px;color:var(--tenue);margin-top:4px;font-style:italic}
 /* ══ LE SCHEDE ══ 26 settembre, JJ: «dinamico, scorri tra sezioni dedicate».
    Una barra in basso come un'app, e il dito che scorre a destra e a sinistra. */
-main{padding-bottom:104px}
-.schede{position:fixed;left:0;right:0;bottom:0;z-index:20;display:flex;justify-content:center;gap:2px;
+main{padding-bottom:104px;overflow-x:hidden;overflow-x:clip}   /* il pannello che entra da destra non allarga la pagina */
+/* 26 settembre, JJ: «falle scorrevoli, così non si stringono e non vanno a
+   schiacciare le altre icone». Ogni scheda ha la sua larghezza, la barra
+   scorre col dito; se c'è posto restano centrate (margini automatici). */
+.schede{position:fixed;left:0;right:0;bottom:0;z-index:20;display:flex;gap:2px;
+  overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none;-webkit-overflow-scrolling:touch;
   background:color-mix(in srgb,var(--bg) 90%,transparent);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
   border-top:1px solid var(--bordo);padding:4px 4px calc(4px + env(safe-area-inset-bottom,0px))}
-.schede button{flex:1 1 0;max-width:108px;min-width:0;background:none;border:0;border-top:2px solid transparent;color:var(--tenue);
-  font:600 11px/1.1 var(--f-mono);letter-spacing:.02em;padding:7px 1px 6px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px}
+.schede::-webkit-scrollbar{display:none}
+.schede button:first-child{margin-left:auto}
+.schede button:last-child{margin-right:auto}
+.schede.piu-dx{-webkit-mask-image:linear-gradient(to right,#000 82%,transparent);mask-image:linear-gradient(to right,#000 82%,transparent)}
+.schede.piu-sx{-webkit-mask-image:linear-gradient(to left,#000 82%,transparent);mask-image:linear-gradient(to left,#000 82%,transparent)}
+.schede.piu-sx.piu-dx{-webkit-mask-image:linear-gradient(to right,transparent,#000 18%,#000 82%,transparent);mask-image:linear-gradient(to right,transparent,#000 18%,#000 82%,transparent)}
+.schede button{flex:0 0 auto;min-width:74px;background:none;border:0;border-top:2px solid transparent;color:var(--tenue);
+  font:600 12px/1.1 var(--f-mono);letter-spacing:.03em;padding:7px 8px 6px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px}
 .schede svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
-.schede .et{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.schede .et{max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .schede button[aria-selected="true"]{color:var(--testo);border-top-color:var(--accento)}
 .schede button{position:relative}
 .schede button.nuovo::before{content:"";position:absolute;top:6px;left:calc(50% + 8px);width:9px;height:9px;border-radius:50%;background:var(--oro);box-shadow:0 0 8px var(--oro)}
@@ -1096,12 +1106,26 @@ function vaiA(nome, verso, bersaglio){
     tb.setAttribute("aria-selected",String(si)); tb.tabIndex=si?0:-1; });
   if(prima){ const v=verso||(SCHEDE.indexOf(nome)>SCHEDE.indexOf(prima)?1:-1);
     const pn=$("p-"+nome); void pn.offsetWidth; pn.classList.add(v>0?"da-destra":"da-sinistra"); }
+  centraScheda(nome, !!prima);
   schedaAttiva=nome; document.body.dataset.scheda=nome;
   if(nome==="inizia") $("s-inizia").classList.remove("nuovo");
   aggiornaProfilo();
   if(bersaglio) requestAnimationFrame(()=>bersaglio.scrollIntoView({block:"start"}));
   else window.scrollTo(0, prima ? (posizioni[nome]||0) : 0);
 }
+const barra=document.querySelector(".schede");
+function bordiBarra(){
+  barra.classList.toggle("piu-sx", barra.scrollLeft>4);
+  barra.classList.toggle("piu-dx", barra.scrollLeft+barra.clientWidth < barra.scrollWidth-4);
+}
+function centraScheda(nome, liscio){
+  const b=$("s-"+nome); if(!b) return;
+  const x=b.offsetLeft-(barra.clientWidth-b.offsetWidth)/2;
+  barra.scrollTo({left:Math.max(0,x), behavior: liscio && !matchMedia("(prefers-reduced-motion: reduce)").matches ? "smooth" : "auto"});
+  setTimeout(bordiBarra, liscio?350:0);
+}
+barra.addEventListener("scroll", bordiBarra, {passive:true});
+window.addEventListener("resize", ()=>{ bordiBarra(); if(schedaAttiva) centraScheda(schedaAttiva,false); });
 function daIndirizzo(){
   const h=decodeURIComponent(location.hash.slice(1));
   if(!h){ vaiA(schedaAttiva||"inizia"); return; }
