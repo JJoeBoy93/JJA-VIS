@@ -14,6 +14,7 @@ PAGINA=open(sys.argv[1],encoding="utf-8").read()
 PORTA="https://jjavis-porta.19-jjardito93.workers.dev"
 BASE="https://jjoeboy93.github.io/JJA-VIS/"
 inviati=[]
+conta_risposte=[]
 async def instrada(route):
     u=route.request.url
     if u.startswith(BASE) and (u==BASE or "#" in u or u.endswith("index.html")):
@@ -25,10 +26,13 @@ async def instrada(route):
             inviati.append((u.split("/")[-1], json.loads(route.request.post_data)))
             return await route.fulfill(status=201, body='{"ok":true,"id":"abc12345"}', content_type="application/json", headers={"Access-Control-Allow-Origin":"https://jjoeboy93.github.io"})
         if u.endswith("/vetrina"): return await route.fulfill(body='{"canzoni":5747,"attrezzi":41}', content_type="application/json")
-        if "/risposte" in u: return await route.fulfill(body='{"risposte":[]}', content_type="application/json")
+        if "/risposte" in u:
+            conta_risposte.append(1)
+            return await route.fulfill(body=json.dumps({"risposte":RISPOSTE}), content_type="application/json")
         return await route.fulfill(body='[]', content_type="application/json")
     await route.fulfill(status=404, body="")
 SOST={"pronto":False,"modi":[]}
+RISPOSTE=[]
 def ok(c,m):
     print(("  ✅ " if c else "  ❌ ")+m); 
     if not c: ok.errori+=1
@@ -95,8 +99,20 @@ async def main():
         inv=[d for (r,d) in inviati if r=="parla"]
         ok(len(inv)==1 and inv[0]["da_dove"]=="investitori", "parte su /parla con da_dove investitori")
         if inv: print("     testo:", json.dumps(inv[0]["testo"], ensure_ascii=False))
-        ok(inv and "\n\n\n" not in inv[0]["testo"] and "Società" not in inv[0]["testo"], "niente righe vuote né Società se non c'è")
+        ok(inv and "anna@" not in inv[0]["testo"] and "Anna" not in inv[0]["testo"], "nome e mail NON nel testo (va all'IA)")
+        ok(inv and inv[0].get("contatto",{}).get("mail")=="anna@esempio.it" and inv[0]["contatto"].get("consenso") is True, "nome e mail viaggiano in «contatto», con consenso")
         t=await pg.inner_text("#inv-esito"); print("     esito:",t); ok("Arrivato" in t, "dice Arrivato")
+        print("── costruiscimi qualcosa")
+        await pg.click("#s-chi-sono"); await pg.wait_for_timeout(200)
+        ok(await pg.is_visible("#costruisci"), "la sezione commissioni è in Chi sono")
+        await pg.click('#cm-cosa .scelta:has-text("Sito")'); await pg.fill("#cm-descrizione","Il sito della pizzeria col menù")
+        await pg.fill("#cm-mail","luca@pizzeria.it"); await pg.fill("#cm-nome","Luca")
+        await pg.click("#cm-manda"); ok("spunta" in await pg.inner_text("#cm-esito"), "senza consenso non parte")
+        await pg.check("#cm-ok"); await pg.click("#cm-manda"); await pg.wait_for_timeout(300)
+        cm=[d for (r,d) in inviati if r=="parla" and d.get("da_dove")=="commissione"]
+        ok(len(cm)==1 and cm[0]["testo"].startswith("🛠 Sito o pagina web — ") and "luca@" not in cm[0]["testo"], "parte come commissione, senza mail nel testo")
+        ok(cm and cm[0]["contatto"]["mail"]=="luca@pizzeria.it", "la mail nel contatto")
+        ok("preventivo" in await pg.inner_text("#cm-esito"), "dice che il preventivo arriva per mail")
         print("── chi torna (il caso che si rompeva)")
         e_prima=len(errori)
         pg2=await ctx.new_page(); pg2.on("pageerror", lambda e: errori.append(str(e)))
@@ -110,6 +126,43 @@ async def main():
         SOST={"pronto":True,"modi":[{"nome":"Offrimi un caffè","url":"https://ko-fi.com/esempio"}]}
         await pg2.goto(BASE+"#sostieni"); await pg2.reload(); await pg2.wait_for_timeout(400)
         ok("Offrimi un caffè" in await pg2.inner_text("#sostieni-modi"), "col link compare il pulsante")
+        print("── la prima scheda, al ritorno")
+        await pg2.goto(BASE+"#inizia"); await pg2.wait_for_timeout(300)
+        ok(await pg2.locator("#benvenuto #ricomincia").count()==0 and "Ricomincia" not in await pg2.inner_text("#benvenuto"), "niente «Ricomincia» nella prima scheda")
+        ok(await pg2.locator('#benvenuto a[href="#profilo"]').count()==1, "rimanda al Profilo")
+        print("── le domande del ritorno, in fila")
+        pg3=await ctx.new_page(); pg3.on("pageerror", lambda e: errori.append(str(e)))
+        await pg3.add_init_script("localStorage.setItem('jjavis-io', JSON.stringify({id:'a1b2c3d4e5f60718',nome:'Nova',tema:'deciso',tuo:'Jacopo',inviato:true,mestiere:'Corriere o autista',tempo:'Preventivi, conti, fatture'}))")
+        await pg3.goto(BASE); await pg3.wait_for_timeout(300)
+        d1=await pg3.evaluate("document.getElementById('conosci-domanda').textContent"); ok("ora comincia" in d1, "prima domanda: "+d1)
+        await pg3.click('#conosci-scelte .scelta:has-text("Cambia ogni giorno")'); await pg3.wait_for_timeout(1200)
+        d2=await pg3.evaluate("document.getElementById('conosci-domanda').textContent"); ok(d2!=d1 and d2, "dopo un secondo, senza ricaricare: "+d2)
+        for _ in range(8):
+            if not await pg3.is_visible("#conosci-scelte .scelta:not([disabled])"): break
+            await pg3.click("#conosci-scelte .scelta:not([disabled]) >> nth=0"); await pg3.wait_for_timeout(1100)
+        ok(await pg3.is_visible("#conosci-fine") and not await pg3.is_visible("#conosci"), "finite le domande: «di te so già parecchio»")
+        await pg3.close()
+        print("── le risposte arrivano da sole")
+        pg4=await ctx.new_page(); pg4.on("pageerror", lambda e: errori.append(str(e)))
+        await pg4.clock.install()
+        await pg4.add_init_script("localStorage.setItem('jjavis-io', JSON.stringify({id:'a1b2c3d4e5f60718',nome:'Nova',inviato:true,mestiere:'Ufficio'}))")
+        await pg4.goto(BASE+"#parla"); await pg4.wait_for_timeout(300)
+        await pg4.fill("#scrivi","Mi faresti il sito della mia azienda?"); await pg4.click("#manda-chat"); await pg4.wait_for_timeout(300)
+        prima=len(conta_risposte)
+        await pg4.click("#s-chi-sono")
+        RISPOSTE.append({"id":"abc12345","domanda":"Mi faresti il sito della mia azienda?","risposta":"Sì, si può fare: lasciami la mail.","quando":"2026-09-26T10:00:00Z"})
+        await pg4.clock.fast_forward(21000); await pg4.wait_for_timeout(400)
+        ok(len(conta_risposte)>prima, "dopo 20 secondi chiede da sola")
+        ok("si può fare" in await pg4.inner_text("#chat"), "la risposta è nella chat senza ricaricare")
+        ok(await pg4.evaluate("document.getElementById('s-inizia').classList.contains('nuovo')"), "il puntino sulla prima scheda, perché sei altrove")
+        await pg4.click("#s-inizia"); await pg4.wait_for_timeout(200)
+        ok(not await pg4.evaluate("document.getElementById('s-inizia').classList.contains('nuovo')"), "tornando, il puntino si spegne")
+        dopo=len(conta_risposte); await pg4.clock.fast_forward(180000); await pg4.wait_for_timeout(300)
+        ok(len(conta_risposte)==dopo, "niente più in attesa: smette di chiedere")
+        RISPOSTE.clear(); await pg4.close()
+        print("── Creator o gamer")
+        await pg2.goto(BASE+"#d1"); await pg2.wait_for_timeout(200)
+        ok(await pg2.locator('#d1 .scelta:has-text("Creator o gamer")').count()==1, "c'è il mestiere Creator o gamer")
         print("── errori JavaScript:", errori or "nessuno")
         ok(not errori, "zero errori in tutta la prova")
         await b.close()
