@@ -146,8 +146,8 @@ main{padding-bottom:104px}
 .schede{position:fixed;left:0;right:0;bottom:0;z-index:20;display:flex;justify-content:center;gap:2px;
   background:color-mix(in srgb,var(--bg) 90%,transparent);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
   border-top:1px solid var(--bordo);padding:4px 4px calc(4px + env(safe-area-inset-bottom,0px))}
-.schede button{flex:1 1 0;max-width:118px;min-width:0;background:none;border:0;border-top:2px solid transparent;color:var(--tenue);
-  font:600 12px/1.1 var(--f-mono);letter-spacing:.03em;padding:7px 2px 6px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px}
+.schede button{flex:1 1 0;max-width:108px;min-width:0;background:none;border:0;border-top:2px solid transparent;color:var(--tenue);
+  font:600 11px/1.1 var(--f-mono);letter-spacing:.02em;padding:7px 1px 6px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px}
 .schede svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
 .schede .et{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .schede button[aria-selected="true"]{color:var(--testo);border-top-color:var(--accento)}
@@ -192,6 +192,7 @@ body:not([data-scheda="inizia"]) .testa{margin-bottom:12px}
 <nav class="schede" role="tablist" aria-label="Sezioni">
   <button role="tab" id="s-inizia" data-scheda="inizia" aria-controls="p-inizia" aria-selected="false"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M4.5 9.5h15M4.5 14.5h15M12 4c2.5 2.3 2.5 13.7 0 16M12 4c-2.5 2.3-2.5 13.7 0 16"/></svg><span class="et" id="et-inizia">Inizia</span></button>
   <button role="tab" id="s-chi-sono" data-scheda="chi-sono" aria-controls="p-chi-sono" aria-selected="false"><svg viewBox="0 0 24 24"><path d="M12 3l2.4 5.2 5.6.6-4.2 3.8 1.2 5.6L12 15.4 7 18.2l1.2-5.6L4 8.8l5.6-.6z"/></svg><span class="et">Chi sono</span></button>
+  <button role="tab" id="s-bottega" data-scheda="bottega" aria-controls="p-bottega" aria-selected="false"><svg viewBox="0 0 24 24"><path d="M4 9l1.5-5h13L20 9M4 9h16M4 9c0 1.7 1.3 3 3 3s3-1.3 3-3c0 1.7 1.3 3 3 3s3-1.3 3-3c0 1.7 1.3 3 3 3M5 12v8h14v-8M10 20v-5h4v5"/></svg><span class="et">Bottega</span></button>
   <button role="tab" id="s-profilo" data-scheda="profilo" aria-controls="p-profilo" aria-selected="false"><svg viewBox="0 0 24 24"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 20c1-4 4-6 7-6s6 2 7 6"/></svg><span class="et">Profilo</span></button>
   <button role="tab" id="s-investitori" data-scheda="investitori" aria-controls="p-investitori" aria-selected="false"><svg viewBox="0 0 24 24"><path d="M4 19V5M4 19h16M8 15l4-4 3 3 5-6"/><path d="M16 8h4v4"/></svg><span class="et">Investi</span></button>
   <button role="tab" id="s-sostieni" data-scheda="sostieni" aria-controls="p-sostieni" aria-selected="false"><svg viewBox="0 0 24 24"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg><span class="et">Sostieni</span></button>
@@ -359,6 +360,7 @@ body:not([data-scheda="inizia"]) .testa{margin-bottom:12px}
     <h2 id="tcs" style="font-size:30px;margin:0 0 8px">Chi sono</h2>
     <p class="dice">Sono un assistente personale che impara <b>te</b>, non il tuo settore.</p>
     <p class="piccolo">Non aspetto le domande: preparo le cose prima che servano. Poi imparo il mestiere di chi mi usa, qualunque sia.</p>
+    <p class="piccolo">Quello che puoi già avere sta nella <a href="#bottega">Bottega</a>.</p>
     <p class="piccolo">Sono nato anche per gioco. Chi mi costruisce è creatore ufficiale di isole di Fortnite, e voleva un assistente che le costruisse con lui. Ma fa anche il corriere: così sono finito sul suo furgone, e il lavoro di strada è la prima cosa che ho imparato bene.</p>
   </section>
   <section class="etichetta" id="novita" aria-labelledby="tn" hidden>
@@ -418,6 +420,19 @@ body:not([data-scheda="inizia"]) .testa{margin-bottom:12px}
     <p class="piccolo" style="margin-top:12px">Il costo si legge insieme a quello che faccio risparmiare: tempo e soldi. Li sto misurando sul furgone, e compaiono qui quando sono misurati, non prima.</p>
   </section>
 
+  <section class="etichetta">
+    <h2 style="font-size:26px;margin:0 0 6px">Provami</h2>
+    <p class="piccolo" id="prova-testo">Dammi un nome e scegli come vedermi: un minuto, e comincio a imparare te.</p>
+    <a class="invia" id="prova" href="#inizia" style="text-align:center;text-decoration:none">Comincia</a>
+  </section>
+</div>
+
+<div class="pannello" id="p-bottega" role="tabpanel" aria-labelledby="s-bottega">
+  <section class="etichetta" aria-labelledby="tbo">
+    <h2 id="tbo" style="font-size:30px;margin:0 0 8px">Bottega</h2>
+    <p class="dice">Quello che puoi avere già adesso, senza aspettare l'app.</p>
+    <p class="piccolo">Un prodotto pronto per un mestiere, un sopralluogo gratis, e i lavori su misura. Man mano che le mie funzioni diventano pronte per tutti, arrivano qui.</p>
+  </section>
   <section class="etichetta" id="clio" aria-labelledby="tcl">
     <p class="piccolo" style="margin:0;font-family:var(--f-mono);letter-spacing:.1em;color:var(--accento)">GIÀ PRONTO · PER LE GUIDE TURISTICHE</p>
     <h2 id="tcl" style="font-size:30px;margin:4px 0 8px">Clio</h2>
@@ -501,11 +516,6 @@ body:not([data-scheda="inizia"]) .testa{margin-bottom:12px}
     <p class="avviso" id="cm-esito" role="status"></p>
   </section>
 
-  <section class="etichetta">
-    <h2 style="font-size:26px;margin:0 0 6px">Provami</h2>
-    <p class="piccolo" id="prova-testo">Dammi un nome e scegli come vedermi: un minuto, e comincio a imparare te.</p>
-    <a class="invia" id="prova" href="#inizia" style="text-align:center;text-decoration:none">Comincia</a>
-  </section>
 </div>
 
 <div class="pannello" id="p-profilo" role="tabpanel" aria-labelledby="s-profilo">
@@ -1074,7 +1084,7 @@ prossimoGiro();
 // che scorre li cambiano. Ogni scheda ha il suo indirizzo (#investitori…),
 // e un link a qualcosa che sta in un'altra scheda (#dati, #parla, #conto)
 // apre quella scheda e ci scorre dentro.
-const SCHEDE=["inizia","chi-sono","profilo","investitori","sostieni"];
+const SCHEDE=["inizia","chi-sono","bottega","profilo","investitori","sostieni"];
 let schedaAttiva="", posizioni={};
 function vaiA(nome, verso, bersaglio){
   if(!SCHEDE.includes(nome)) nome="inizia";
