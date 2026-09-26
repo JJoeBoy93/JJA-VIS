@@ -273,6 +273,7 @@ body:not([data-scheda="inizia"]) .testa{margin-bottom:12px}
       <button class="scelta" aria-pressed="false">Sanità</button>
       <button class="scelta" aria-pressed="false">Ufficio</button>
       <button class="scelta" aria-pressed="false">Studio</button>
+      <button class="scelta" aria-pressed="false">Guida turistica</button>
       <button class="scelta" aria-pressed="false">Creator o gamer</button>
       <button class="scelta" aria-pressed="false">Altro</button>
     </div>
@@ -417,6 +418,32 @@ body:not([data-scheda="inizia"]) .testa{margin-bottom:12px}
     <p class="piccolo" style="margin-top:12px">Il costo si legge insieme a quello che faccio risparmiare: tempo e soldi. Li sto misurando sul furgone, e compaiono qui quando sono misurati, non prima.</p>
   </section>
 
+  <section class="etichetta" id="clio" aria-labelledby="tcl">
+    <p class="piccolo" style="margin:0;font-family:var(--f-mono);letter-spacing:.1em;color:var(--accento)">GIÀ PRONTO · PER LE GUIDE TURISTICHE</p>
+    <h2 id="tcl" style="font-size:30px;margin:4px 0 8px">Clio</h2>
+    <p class="dice">Parli una volta sola, nella tua lingua. Ogni visitatore ti legge nella sua, sul suo telefono, mentre parli.</p>
+    <div class="gruppo">
+      <ul>
+        <li>Si entra inquadrando un QR: niente radioline da distribuire</li>
+        <li>Prepari i tour da casa, tappa per tappa, con le foto</li>
+        <li>Le domande dei visitatori ti arrivano tradotte</li>
+        <li>Lo stesso tour, detto una volta invece che una per lingua</li>
+      </ul>
+    </div>
+    <p class="piccolo" style="margin-top:12px">È nata per una guida vera, e l'ha provata sul campo con visitatori veri. Si entra con un invito personale: chiedilo qui.</p>
+    <label for="cl-nome">Come ti chiami</label>
+    <input type="text" id="cl-nome" maxlength="60" autocomplete="name">
+    <label for="cl-lingue">In che lingue fai i tour</label>
+    <input type="text" id="cl-lingue" maxlength="120" placeholder="Per esempio: italiano, inglese, francese">
+    <label for="cl-dove">Dove lavori (facoltativo)</label>
+    <input type="text" id="cl-dove" maxlength="80">
+    <label for="cl-mail">Mail</label>
+    <input type="email" id="cl-mail" maxlength="120" autocomplete="email">
+    <label class="consenso"><input type="checkbox" id="cl-ok"> <span>Potete conservare questi dati e mandarmi l'invito a questa mail. Non vanno a nessun altro. <a href="#dati">Come tratto i dati</a></span></label>
+    <button class="invia" id="cl-manda" disabled>Voglio provare Clio</button>
+    <p class="avviso" id="cl-esito" role="status"></p>
+  </section>
+
   <section class="etichetta" id="costruisci" aria-labelledby="tcm">
     <h2 id="tcm" style="font-size:28px;margin:0 0 6px">Costruiscimi qualcosa</h2>
     <p class="piccolo">Queste non aspettano l'app: chi mi costruisce le realizza su commissione, adesso.</p>
@@ -487,7 +514,7 @@ body:not([data-scheda="inizia"]) .testa{margin-bottom:12px}
 
   <footer id="dati">
     <p><b>I tuoi dati.</b> Questo sito non usa cookie e non traccia nessuno. Quello che mandi (mestiere, risposte, e se li lasci nome e mail) serve solo a capire cosa costruire e a risponderti. Non va a nessun altro. Per cancellarti basta rispondere a una mia mail.</p>
-    <p>Titolare: Jacopo Joe Ardito. Le risposte sono conservate in un archivio privato su GitHub (servizio di Microsoft, server negli Stati Uniti), leggibile solo dal titolare. Niente indirizzo IP, niente posizione: solo quello che scrivi, più un codice a caso nato nel tuo telefono che collega le risposte che mandi in giorni diversi. Il tuo nome, se me lo dici all'inizio, resta nel telefono; se mi parli nella chat, lo uso per risponderti. Quello che scrivi nella chat arriva a chi mi costruisce e resta nell'archivio. Se decide di risponderti con l'aiuto di un'intelligenza artificiale (Anthropic, OpenAI o Google), quella vede solo il tuo messaggio e il tuo mestiere, mai il tuo nome né la tua mail; la risposta la approva sempre una persona. I video presi da Instagram, YouTube o TikTok si caricano solo se li tocchi: da quel momento valgono le regole e i cookie di quella piattaforma. Se scrivi dalla sezione Investitori o chiedi un preventivo, nome, azienda e mail si conservano solo con la tua spunta e servono solo a risponderti; non arrivano mai a un'intelligenza artificiale. Le risposte per mail partono tramite Brevo (servizio di invio, Unione Europea); la bozza la scrive un'intelligenza artificiale di Anthropic che vede solo il tuo messaggio, e prima di partire la legge e la approva una persona.</p>
+    <p>Titolare: Jacopo Joe Ardito. Le risposte sono conservate in un archivio privato su GitHub (servizio di Microsoft, server negli Stati Uniti), leggibile solo dal titolare. Niente indirizzo IP, niente posizione: solo quello che scrivi, più un codice a caso nato nel tuo telefono che collega le risposte che mandi in giorni diversi. Il tuo nome, se me lo dici all'inizio, resta nel telefono; se mi parli nella chat, lo uso per risponderti. Quello che scrivi nella chat arriva a chi mi costruisce e resta nell'archivio. Se decide di risponderti con l'aiuto di un'intelligenza artificiale (Anthropic, OpenAI o Google), quella vede solo il tuo messaggio e il tuo mestiere, mai il tuo nome né la tua mail; la risposta la approva sempre una persona. I video presi da Instagram, YouTube o TikTok si caricano solo se li tocchi: da quel momento valgono le regole e i cookie di quella piattaforma. Se scrivi dalla sezione Investitori, chiedi un preventivo o l'invito a Clio, nome, azienda e mail si conservano solo con la tua spunta e servono solo a risponderti; non arrivano mai a un'intelligenza artificiale. Le risposte per mail partono tramite Brevo (servizio di invio, Unione Europea); la bozza la scrive un'intelligenza artificiale di Anthropic che vede solo il tuo messaggio, e prima di partire la legge e la approva una persona.</p>
     <p>La storia va avanti su Instagram: <a href="https://www.instagram.com/jjoe_boy93">@jjoe_boy93</a></p>
   </footer>
 </div>
@@ -618,6 +645,10 @@ const PER_MESTIERE={
     tempo:["Organizzare lo studio","Scadenze ed esami","Riassunti e appunti","Cercare informazioni","Studio e lavoro insieme","Ripassare"],
     progetti:["Piano di studio fino all'esame","Riassunti dagli appunti","Domande per ripassare","Scadenze e iscrizioni","Niente distrazioni mentre studio","Fonti affidabili trovate per me"],
     esempio:"Per esempio: perdo tempo a capire da dove cominciare…"},
+  "Guida turistica":{
+    tempo:["Ripetere lo stesso tour in più lingue","Radioline e attrezzatura","Preparare i tour","Rispondere alle domande dei visitatori","Prenotazioni e gruppi","Trovare clienti e agenzie"],
+    progetti:["Il tour tradotto dal vivo sul telefono dei visitatori","Tour preparati da casa, tappa per tappa","Domande dei visitatori tradotte","Prenotazioni e gruppi in un posto solo","Una pagina per farti trovare dalle agenzie","Riepilogo del tour da mandare dopo"],
+    esempio:"Per esempio: faccio lo stesso giro tre volte, una per lingua…"},
   "Creator o gamer":{
     tempo:["Montare i video","Trovare idee per i contenuti","Programmare le uscite","Rispondere a commenti e messaggi","Costruire mappe e isole","Capire le statistiche"],
     progetti:["Un assistente che costruisce isole Fortnite con me","Idee per i video dai trend","Calendario delle uscite sui social","Risposte a commenti e messaggi","Le statistiche dei canali in un colpo d'occhio","Titoli e descrizioni scritti da soli"],
@@ -649,6 +680,8 @@ document.querySelectorAll(".scelte[data-campo]").forEach(g=>{
       perMestiere(risposte.mestiere);
       const r=$("r1"); r.hidden=false;
       r.textContent = b.textContent.trim()==="Altro" ? "Bene: allora me lo racconti nella prossima." : "Bene. Adesso la parte che mi interessa davvero.";
+      // una guida non deve aspettare l'app: Clio c'è già
+      if(b.textContent.trim()==="Guida turistica"){ r.textContent="Per te c'è già una cosa pronta, che non aspetta l'app: "; const a=document.createElement("a"); a.href="#clio"; a.textContent="Clio →"; r.appendChild(a); r.appendChild(document.createTextNode(" Intanto, due domande.")); }
       apri("d2");
     } else { $("avanti2").disabled = false; }
   });
@@ -898,7 +931,7 @@ function applicaNome(n){
 // altre domande per conoscermi». Ogni ritorno: il nome, quello che sa gia'
 // detto in una riga, e UNA domanda nuova — mai la stessa due volte.
 const LAVORO={"Corriere o autista":"guidi per lavoro","Negozio o commercio":"lavori nel commercio","Artigiano o tecnico":"fai un mestiere tecnico",
-  "Sanità":"lavori nella sanità","Ufficio":"lavori in ufficio","Studio":"studi","Creator o gamer":"crei contenuti","Altro":"fai un lavoro tutto tuo"};
+  "Sanità":"lavori nella sanità","Ufficio":"lavori in ufficio","Studio":"studi","Guida turistica":"fai la guida turistica","Creator o gamer":"crei contenuti","Altro":"fai un lavoro tutto tuo"};
 const CONOSCERTI=[
   {k:"inizio", d:"A che ora comincia la tua giornata?", s:["Prima delle 6","Tra le 6 e le 8","Dopo le 8","Cambia ogni giorno"]},
   {k:"telefono", d:"Mentre lavori, il telefono dov'è?", s:["In mano","In tasca","Sul cruscotto","Sul bancone o sulla scrivania","Lontano"]},
@@ -1164,6 +1197,29 @@ $("cm-manda").addEventListener("click", async ()=>{
     e.textContent="Arrivato. Il preventivo ti arriva per mail.";
     ["cm-descrizione","cm-nome","cm-societa","cm-mail"].forEach(id=>$(id).value=""); $("cm-ok").checked=false;
   }catch(err){ $("cm-manda").disabled=false; e.classList.add("errore"); e.textContent="Non è partito ("+err.message+"). Riprova fra un minuto."; }
+});
+
+// ══ CLIO ══ il primo prodotto di JJA-VIS gia' costruito: per le guide
+// turistiche non si aspetta l'app. Si entra con un invito personale che JJ
+// crea dall'Olimpo di Clio: la pagina lo fa chiedere, e arriva a JJ come
+// 🏛 CLIO. Nome e mail nel contatto, fuori dal testo.
+function clPronto(){ $("cl-manda").disabled=!($("cl-lingue").value.trim() && $("cl-mail").value.trim()); }
+["cl-lingue","cl-mail"].forEach(id=>$(id).addEventListener("input", clPronto));
+$("cl-manda").addEventListener("click", async ()=>{
+  const e=$("cl-esito"); e.className="avviso";
+  const mail=$("cl-mail").value.trim();
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(mail)){ e.classList.add("errore"); e.textContent="La mail non sembra completa: controlla la parte dopo la chiocciola."; return; }
+  if(!$("cl-ok").checked){ e.classList.add("errore"); e.textContent="Per mandarti l'invito mi serve la spunta sul consenso."; return; }
+  if(!INVIO){ e.textContent="Anteprima: qui la richiesta partirebbe. Non è partito niente."; return; }
+  const dove=$("cl-dove").value.trim();
+  const testo=(`🏛 Clio — lingue: ${$("cl-lingue").value.trim()}`+(dove?` · dove: ${dove}`:"")).slice(0,800);
+  $("cl-manda").disabled=true;
+  try{
+    const d=await mandaConContatto("clio", testo, {nome:$("cl-nome").value.trim(), societa:"", mail, consenso:true});
+    io.chat=io.chat||[]; io.chat.push({ruolo:"tu", testo, id:d.id, attesa:true}); io.chat=io.chat.slice(-20); salva(); ridisegnaChat(); inizioAttesa();
+    e.textContent="Arrivato. L'invito ti arriva per mail.";
+    ["cl-nome","cl-lingue","cl-dove","cl-mail"].forEach(id=>$(id).value=""); $("cl-ok").checked=false;
+  }catch(err){ $("cl-manda").disabled=false; e.classList.add("errore"); e.textContent="Non è partito ("+err.message+"). Riprova fra un minuto."; }
 });
 
 // ══ SOSTIENI ══ i modi per contribuire stanno in sostieni.json accanto
