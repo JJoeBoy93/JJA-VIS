@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>JJA-VIS — dimmi che lavoro fai</title>
+<title>JJA-VIS — il tuo nuovo assistente personale</title>
 <meta name="description" content="Sono JJA-VIS. Imparo il lavoro delle persone. Dimmi cosa ti fa perdere tempo e quanto varrebbe toglierlo.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -140,11 +140,60 @@ footer b{color:var(--testo)}
 .bolla.tu{align-self:flex-end;background:var(--utente);border-color:var(--accento)}
 .bolla.pensa{opacity:.7;font-style:italic}
 .bolla .attesa{display:block;font-size:13px;color:var(--tenue);margin-top:4px;font-style:italic}
+/* ══ LE SCHEDE ══ 26 settembre, JJ: «dinamico, scorri tra sezioni dedicate».
+   Una barra in basso come un'app, e il dito che scorre a destra e a sinistra. */
+main{padding-bottom:104px}
+.schede{position:fixed;left:0;right:0;bottom:0;z-index:20;display:flex;justify-content:center;gap:2px;
+  background:color-mix(in srgb,var(--bg) 90%,transparent);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
+  border-top:1px solid var(--bordo);padding:4px 4px calc(4px + env(safe-area-inset-bottom,0px))}
+.schede button{flex:1 1 0;max-width:118px;min-width:0;background:none;border:0;border-top:2px solid transparent;color:var(--tenue);
+  font:600 12px/1.1 var(--f-mono);letter-spacing:.03em;padding:7px 2px 6px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px}
+.schede svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.schede .et{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.schede button[aria-selected="true"]{color:var(--testo);border-top-color:var(--accento)}
+.schede button[aria-selected="true"] svg{color:var(--accento);filter:drop-shadow(0 0 6px color-mix(in srgb,var(--accento) 60%,transparent))}
+.pannello{display:none}
+.pannello.attivo{display:block}
+.pannello.da-destra{animation:daDestra .26s ease-out}
+.pannello.da-sinistra{animation:daSinistra .26s ease-out}
+@keyframes daDestra{from{opacity:0;transform:translateX(26px)}}
+@keyframes daSinistra{from{opacity:0;transform:translateX(-26px)}}
+@media (prefers-reduced-motion:reduce){.pannello.da-destra,.pannello.da-sinistra{animation:none}}
+body:not([data-scheda="inizia"]) #globo{width:92px;height:92px}
+body:not([data-scheda="inizia"]) .nome{font-size:26px}
+body:not([data-scheda="inizia"]) .nome small{margin-top:4px}
+body:not([data-scheda="inizia"]) .testa{margin-bottom:12px}
+.numeri{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.numeri div{border:1px solid var(--bordo);padding:10px 12px}
+.numeri b{display:block;font:700 30px/1.05 var(--f-titoli);color:var(--oro)}
+.numeri span{display:block;color:var(--tenue);font-size:15px;margin-top:4px}
+:root[data-tema="calmo"] .numeri div,:root[data-tema="naturale"] .numeri div{border-radius:10px}
+.livello{border-top:1px solid var(--bordo);padding-top:12px;margin-top:12px}
+.livello b{font:700 20px/1.2 var(--f-titoli);color:var(--testo)}
+.livello em{font-style:normal;font:400 13px/1.3 var(--f-mono);color:var(--accento);letter-spacing:.08em;margin-left:8px}
+.livello p{margin:4px 0 0;color:var(--tenue);font-size:16px}
+.fasi{list-style:none;margin:10px 0 0;padding:0;counter-reset:fase}
+.fasi li{position:relative;padding:8px 0 8px 40px;border-top:1px solid var(--bordo);font-size:17px}
+.fasi li::before{counter-increment:fase;content:counter(fase);position:absolute;left:0;top:8px;width:28px;height:28px;border:1px solid var(--bordo);
+  display:flex;align-items:center;justify-content:center;font:600 14px/1 var(--f-mono);color:var(--tenue)}
+.fasi li.ora::before{border-color:var(--accento);color:var(--testo);box-shadow:0 0 10px color-mix(in srgb,var(--accento) 40%,transparent)}
+.fasi small{display:block;color:var(--tenue);font-size:14px}
+.so-di-te{list-style:none;margin:10px 0 0;padding:0}
+.so-di-te li{display:flex;justify-content:space-between;gap:12px;border-top:1px solid var(--bordo);padding:8px 0;font-size:16px}
+.so-di-te li span:first-child{color:var(--tenue)}
+.so-di-te li span:last-child{text-align:right}
 .bolla.errore{border-color:var(--rosso);color:var(--rosso)}
 :root[data-tema="calmo"] .bolla,:root[data-tema="naturale"] .bolla{border-radius:14px}
 </style>
 </head>
 <body>
+<nav class="schede" role="tablist" aria-label="Sezioni">
+  <button role="tab" id="s-inizia" data-scheda="inizia" aria-controls="p-inizia" aria-selected="false"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M4.5 9.5h15M4.5 14.5h15M12 4c2.5 2.3 2.5 13.7 0 16M12 4c-2.5 2.3-2.5 13.7 0 16"/></svg><span class="et" id="et-inizia">Inizia</span></button>
+  <button role="tab" id="s-chi-sono" data-scheda="chi-sono" aria-controls="p-chi-sono" aria-selected="false"><svg viewBox="0 0 24 24"><path d="M12 3l2.4 5.2 5.6.6-4.2 3.8 1.2 5.6L12 15.4 7 18.2l1.2-5.6L4 8.8l5.6-.6z"/></svg><span class="et">Chi sono</span></button>
+  <button role="tab" id="s-profilo" data-scheda="profilo" aria-controls="p-profilo" aria-selected="false"><svg viewBox="0 0 24 24"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 20c1-4 4-6 7-6s6 2 7 6"/></svg><span class="et">Profilo</span></button>
+  <button role="tab" id="s-investitori" data-scheda="investitori" aria-controls="p-investitori" aria-selected="false"><svg viewBox="0 0 24 24"><path d="M4 19V5M4 19h16M8 15l4-4 3 3 5-6"/><path d="M16 8h4v4"/></svg><span class="et">Investi</span></button>
+  <button role="tab" id="s-sostieni" data-scheda="sostieni" aria-controls="p-sostieni" aria-selected="false"><svg viewBox="0 0 24 24"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg><span class="et">Sostieni</span></button>
+</nav>
 <main>
   <div class="anteprima" id="anteprima" hidden>Anteprima: il modulo non invia ancora niente.</div>
 
@@ -153,6 +202,7 @@ footer b{color:var(--testo)}
     <div class="nome"><span id="nome-testata">JJA-VIS</span><small id="sotto-testata">il tuo nuovo assistente personale</small></div>
   </header>
 
+<div class="pannello" id="p-inizia" role="tabpanel" aria-labelledby="s-inizia">
   <section class="etichetta" id="o1" aria-labelledby="to1">
     <p class="dice">Ciao. Sono il tuo nuovo assistente personale.</p>
     <h2 id="to1" style="font-size:30px;margin:8px 0 6px">Come vuoi chiamarmi?</h2>
@@ -200,67 +250,11 @@ footer b{color:var(--testo)}
     </div>
     <a class="salto" id="continua" href="#tocca" hidden>Continuiamo ↓</a>
     <a class="salto" href="#parla" style="margin-left:14px">Parlami ↓</a>
+    <a class="salto" href="#chi-sono" style="margin-left:14px">Cosa so fare →</a>
     <p class="piccolo" style="margin-top:16px">Mi ricordo di te solo su questo telefono. <button class="collegamento" id="ricomincia">Ricomincia da capo</button></p>
   </section>
 
   <div id="resto" hidden>
-
-  <section class="etichetta" id="novita" aria-labelledby="tn" hidden>
-    <h2 id="tn" style="font-size:28px">Novità</h2>
-    <div id="novita-elenco"></div>
-  </section>
-
-  <section class="etichetta" aria-labelledby="tf">
-    <h2 id="tf" style="font-size:28px">Cosa so già fare</h2>
-    <p class="piccolo">Oggi lo faccio su un telefono solo: quello di chi mi costruisce, ogni giorno sul furgone. Ho <span id="n-attrezzi">più di quaranta</span> attrezzi: questi sono quelli che si vedono di più. <b style="color:var(--testo)">Per te arriva con l'app</b>: per ora, qui, posso conoscerti e risponderti.</p>
-
-    <div class="gruppo">
-      <h3>In macchina</h3>
-      <ul>
-        <li>Sono una sorgente di Android Auto, con la mia icona e <b>sei preselezioni</b> coi loghi delle radio, come l'autoradio</li>
-        <li>Mi parli mentre guidi, anche con la musica accesa, e se mi parli sopra mi zittisco</li>
-      </ul>
-    </div>
-    <div class="gruppo">
-      <h3>Al lavoro</h3>
-      <ul>
-        <li>Conosco un paese intero civico per civico: <b>8.385</b> numeri civici, i sensi di marcia, <b>18</b> zone di consegna</li>
-        <li>Metti un pacco nel giro e la giornata parte; a sera la chiudo io, e non la chiudo se resta qualcosa da fare</li>
-      </ul>
-    </div>
-    <div class="gruppo">
-      <h3>La tua giornata</h3>
-      <ul>
-        <li>Metto sveglie e appuntamenti nel telefono, e i compleanni che si ripetono ogni anno</li>
-        <li>La mattina ti dico cosa ti aspetta, in ordine d'orologio</li>
-        <li>Ricordo le persone della tua vita: se dici «mia figlia» so di chi parli</li>
-      </ul>
-    </div>
-    <div class="gruppo">
-      <h3>Occhi e orecchie</h3>
-      <ul>
-        <li>Riconosco le canzoni: <b id="n-canzoni">4.639</b>, imparate ascoltando la radio da solo</li>
-        <li>Guardo le foto, cerco sul web e ti lascio le fonti da toccare</li>
-        <li>Resto in un globo che galleggia sopra le altre app, e mi scrivi anche da Telegram</li>
-      </ul>
-    </div>
-
-    <p class="piccolo" style="margin-top:14px">Come sono fatto dentro non lo racconto: sono mesi di lavoro, notte dopo notte. Cosa so fare sì.</p>
-  </section>
-
-  <section class="etichetta" id="video" aria-labelledby="tv" hidden>
-    <h2 id="tv" style="font-size:28px">Guardami al lavoro</h2>
-    <p class="piccolo">Video veri, dal telefono e dal furgone di chi mi costruisce. Nessun montaggio che non sia mio.</p>
-    <div id="video-elenco" class="video-elenco"></div>
-  </section>
-
-  <section class="etichetta" id="conto" aria-labelledby="tc" hidden>
-    <h2 id="tc" style="font-size:28px">Quanto costo</h2>
-    <p class="piccolo">Quello che si spende davvero, voce per voce. Due conti diversi: tenermi acceso, e costruirmi.</p>
-    <div id="conto-gruppi"></div>
-    <p class="piccolo" id="conto-quando"></p>
-    <p class="piccolo" style="margin-top:12px">Il costo si legge insieme a quello che faccio risparmiare: tempo e soldi. Li sto misurando sul furgone, e compaiono qui quando sono misurati, non prima.</p>
-  </section>
 
   <section class="etichetta" id="tocca">
     <h2 style="font-size:28px">Adesso imparo te</h2>
@@ -353,12 +347,196 @@ footer b{color:var(--testo)}
   </section>
 
   </div>
+</div>
+
+<div class="pannello" id="p-chi-sono" role="tabpanel" aria-labelledby="s-chi-sono">
+  <section class="etichetta" aria-labelledby="tcs">
+    <h2 id="tcs" style="font-size:30px;margin:0 0 8px">Chi sono</h2>
+    <p class="dice">Sono un assistente personale che impara <b>te</b>, non il tuo settore.</p>
+    <p class="piccolo">Non aspetto le domande: preparo le cose prima che servano. Chi mi costruisce fa il corriere, e sono nato sul suo furgone: per questo la prima cosa che so fare bene è il lavoro di strada. Poi imparo il mestiere di chi mi usa, qualunque sia.</p>
+  </section>
+  <section class="etichetta" id="novita" aria-labelledby="tn" hidden>
+    <h2 id="tn" style="font-size:28px">Novità</h2>
+    <div id="novita-elenco"></div>
+  </section>
+
+  <section class="etichetta" aria-labelledby="tf">
+    <h2 id="tf" style="font-size:28px">Cosa so già fare</h2>
+    <p class="piccolo">Oggi lo faccio su un telefono solo: quello di chi mi costruisce, ogni giorno sul furgone. Ho <span id="n-attrezzi">più di quaranta</span> attrezzi: questi sono quelli che si vedono di più. <b style="color:var(--testo)">Per te arriva con l'app</b>: per ora, qui, posso conoscerti e risponderti.</p>
+
+    <div class="gruppo">
+      <h3>In macchina</h3>
+      <ul>
+        <li>Sono una sorgente di Android Auto, con la mia icona e <b>sei preselezioni</b> coi loghi delle radio, come l'autoradio</li>
+        <li>Mi parli mentre guidi, anche con la musica accesa, e se mi parli sopra mi zittisco</li>
+      </ul>
+    </div>
+    <div class="gruppo">
+      <h3>Al lavoro</h3>
+      <ul>
+        <li>Conosco un paese intero civico per civico: <b>8.385</b> numeri civici, i sensi di marcia, <b>18</b> zone di consegna</li>
+        <li>Metti un pacco nel giro e la giornata parte; a sera la chiudo io, e non la chiudo se resta qualcosa da fare</li>
+      </ul>
+    </div>
+    <div class="gruppo">
+      <h3>La tua giornata</h3>
+      <ul>
+        <li>Metto sveglie e appuntamenti nel telefono, e i compleanni che si ripetono ogni anno</li>
+        <li>La mattina ti dico cosa ti aspetta, in ordine d'orologio</li>
+        <li>Ricordo le persone della tua vita: se dici «mia figlia» so di chi parli</li>
+      </ul>
+    </div>
+    <div class="gruppo">
+      <h3>Occhi e orecchie</h3>
+      <ul>
+        <li>Riconosco le canzoni: <b id="n-canzoni">4.639</b>, imparate ascoltando la radio da solo</li>
+        <li>Guardo le foto, cerco sul web e ti lascio le fonti da toccare</li>
+        <li>Resto in un globo che galleggia sopra le altre app, e mi scrivi anche da Telegram</li>
+      </ul>
+    </div>
+
+    <p class="piccolo" style="margin-top:14px">Come sono fatto dentro non lo racconto: sono mesi di lavoro, notte dopo notte. Cosa so fare sì.</p>
+  </section>
+
+  <section class="etichetta" id="video" aria-labelledby="tv" hidden>
+    <h2 id="tv" style="font-size:28px">Guardami al lavoro</h2>
+    <p class="piccolo">Video veri, dal telefono e dal furgone di chi mi costruisce. Nessun montaggio che non sia mio.</p>
+    <div id="video-elenco" class="video-elenco"></div>
+  </section>
+
+  <section class="etichetta" id="conto" aria-labelledby="tc" hidden>
+    <h2 id="tc" style="font-size:28px">Quanto costo</h2>
+    <p class="piccolo">Quello che si spende davvero, voce per voce. Due conti diversi: tenermi acceso, e costruirmi.</p>
+    <div id="conto-gruppi"></div>
+    <p class="piccolo" id="conto-quando"></p>
+    <p class="piccolo" style="margin-top:12px">Il costo si legge insieme a quello che faccio risparmiare: tempo e soldi. Li sto misurando sul furgone, e compaiono qui quando sono misurati, non prima.</p>
+  </section>
+
+  <section class="etichetta">
+    <h2 style="font-size:26px;margin:0 0 6px">Provami</h2>
+    <p class="piccolo" id="prova-testo">Dammi un nome e scegli come vedermi: un minuto, e comincio a imparare te.</p>
+    <a class="invia" id="prova" href="#inizia" style="text-align:center;text-decoration:none">Comincia</a>
+  </section>
+</div>
+
+<div class="pannello" id="p-profilo" role="tabpanel" aria-labelledby="s-profilo">
+  <section class="etichetta" aria-labelledby="tpr">
+    <h2 id="tpr" style="font-size:30px;margin:0 0 8px">Il tuo <span class="chi">JJA-VIS</span></h2>
+    <p class="piccolo" id="profilo-vuoto" hidden>Non mi hai ancora dato un nome. <a href="#inizia">Comincia da qui</a>, poi puoi cambiarlo quando vuoi.</p>
+    <div id="profilo-nome">
+      <label for="nuova-sigla">Come mi chiami</label>
+      <input type="text" id="nuova-sigla" name="sigla-profilo" maxlength="20" autocomplete="off" autocapitalize="words" spellcheck="false" data-lpignore="true" data-1p-ignore data-form-type="other">
+      <button class="invia" id="cambia-nome" disabled>Chiamami così</button>
+    </div>
+    <label style="margin-top:22px">Come mi vedi</label>
+    <div class="temi" id="temi-profilo">
+      <button class="tema" data-tema="tech" aria-pressed="true"><span class="campioni"><i style="background:#020B18"></i><i style="background:#00B4D8"></i><i style="background:#FFD60A"></i></span><b>Tecnologico</b><small>blu notte e luce</small></button>
+      <button class="tema" data-tema="calmo" aria-pressed="false"><span class="campioni"><i style="background:#0B0B1A"></i><i style="background:#8B8CF8"></i><i style="background:#F0ABFC"></i></span><b>Calmo</b><small>indaco e lilla</small></button>
+      <button class="tema" data-tema="deciso" aria-pressed="false"><span class="campioni"><i style="background:#0E0E0E"></i><i style="background:#FF5A1F"></i><i style="background:#FFC53D"></i></span><b>Deciso</b><small>nero e arancio</small></button>
+      <button class="tema" data-tema="naturale" aria-pressed="false"><span class="campioni"><i style="background:#08130E"></i><i style="background:#34D399"></i><i style="background:#FBBF24"></i></span><b>Naturale</b><small>verde bosco e oro</small></button>
+    </div>
+    <label for="profilo-tuo" style="margin-top:22px">Come ti chiami tu</label>
+    <input type="text" id="profilo-tuo" maxlength="40" autocomplete="given-name">
+    <button class="invia secondario" id="salva-tuo">Salva</button>
+    <p class="avviso" id="esito-profilo" role="status"></p>
+  </section>
+
+  <section class="etichetta" aria-labelledby="tsd">
+    <h2 id="tsd" style="font-size:26px;margin:0 0 6px">Cosa so di te</h2>
+    <p class="piccolo">Tutto quello che mi hai detto, niente di più. Sta in questo telefono; quello che mi hai mandato sta anche nell'archivio di chi mi costruisce.</p>
+    <ul class="so-di-te" id="so-di-te"></ul>
+    <p class="piccolo" style="margin-top:14px"><button class="collegamento" id="ricomincia-profilo">Dimentica tutto e ricomincia da capo</button></p>
+  </section>
 
   <footer id="dati">
     <p><b>I tuoi dati.</b> Questo sito non usa cookie e non traccia nessuno. Quello che mandi (mestiere, risposte, e se li lasci nome e mail) serve solo a capire cosa costruire e a risponderti. Non va a nessun altro. Per cancellarti basta rispondere a una mia mail.</p>
-    <p>Titolare: Jacopo Joe Ardito. Le risposte sono conservate in un archivio privato su GitHub (servizio di Microsoft, server negli Stati Uniti), leggibile solo dal titolare. Niente indirizzo IP, niente posizione: solo quello che scrivi, più un codice a caso nato nel tuo telefono che collega le risposte che mandi in giorni diversi. Il tuo nome, se me lo dici all'inizio, resta nel telefono; se mi parli nella chat, lo uso per risponderti. Quello che scrivi nella chat arriva a chi mi costruisce e resta nell'archivio. Se decide di risponderti con l'aiuto di un'intelligenza artificiale (Anthropic, OpenAI o Google), quella vede solo il tuo messaggio e il tuo mestiere, mai il tuo nome né la tua mail; la risposta la approva sempre una persona. I video presi da Instagram, YouTube o TikTok si caricano solo se li tocchi: da quel momento valgono le regole e i cookie di quella piattaforma. Le risposte per mail partono tramite Brevo (servizio di invio, Unione Europea); la bozza la scrive un'intelligenza artificiale di Anthropic che vede solo il tuo messaggio, e prima di partire la legge e la approva una persona.</p>
+    <p>Titolare: Jacopo Joe Ardito. Le risposte sono conservate in un archivio privato su GitHub (servizio di Microsoft, server negli Stati Uniti), leggibile solo dal titolare. Niente indirizzo IP, niente posizione: solo quello che scrivi, più un codice a caso nato nel tuo telefono che collega le risposte che mandi in giorni diversi. Il tuo nome, se me lo dici all'inizio, resta nel telefono; se mi parli nella chat, lo uso per risponderti. Quello che scrivi nella chat arriva a chi mi costruisce e resta nell'archivio. Se decide di risponderti con l'aiuto di un'intelligenza artificiale (Anthropic, OpenAI o Google), quella vede solo il tuo messaggio e il tuo mestiere, mai il tuo nome né la tua mail; la risposta la approva sempre una persona. I video presi da Instagram, YouTube o TikTok si caricano solo se li tocchi: da quel momento valgono le regole e i cookie di quella piattaforma. Se scrivi dalla sezione Investitori, nome, società e mail si conservano solo con la tua spunta e servono solo a risponderti di persona. Le risposte per mail partono tramite Brevo (servizio di invio, Unione Europea); la bozza la scrive un'intelligenza artificiale di Anthropic che vede solo il tuo messaggio, e prima di partire la legge e la approva una persona.</p>
     <p>La storia va avanti su Instagram: <a href="https://www.instagram.com/jjoe_boy93">@jjoe_boy93</a></p>
   </footer>
+</div>
+
+<div class="pannello" id="p-investitori" role="tabpanel" aria-labelledby="s-investitori">
+  <section class="etichetta" aria-labelledby="tin">
+    <h2 id="tin" style="font-size:30px;margin:0 0 8px">Per chi vuole investire</h2>
+    <p class="dice">Un assistente personale che impara la persona. Parte dal lavoro che conosco meglio: la consegna dell'ultimo miglio.</p>
+    <p class="piccolo">Qui c'è il <i>cosa</i>. Il piano completo — architettura, tempi, conti — lo mando dopo un primo contatto, con un accordo di riservatezza.</p>
+  </section>
+
+  <section class="etichetta" aria-labelledby="tpb">
+    <h2 id="tpb" style="font-size:26px;margin:0 0 6px">Il problema</h2>
+    <p class="piccolo">Ogni mattina, in ogni deposito, il corriere riceve i pacchi in ordine sparso e costruisce il giro a mano: legge l'indirizzo, lo cerca sul telefono, torna al pacco. Un'ora se il giro lo conosce, due o più se è nuovo. Ogni giorno.</p>
+    <div class="numeri">
+      <div><b>2 ore</b><span>perse al giorno da un corriere su un giro nuovo</span></div>
+      <div><b>30 €</b><span>al giorno per corriere, a 15 €/ora</span></div>
+      <div><b>180.000 €</b><span>l'anno per una filiale di 20 corrieri</span></div>
+      <div><b>36 mln €</b><span>l'anno su una rete di 200 filiali</span></div>
+    </div>
+    <p class="piccolo" style="margin-top:10px">Stime di chi fa questo lavoro, non ancora misure: quanto tempo faccio risparmiare lo sto misurando sul furgone, e i numeri misurati sostituiranno questi.</p>
+  </section>
+
+  <section class="etichetta" aria-labelledby="tso">
+    <h2 id="tso" style="font-size:26px;margin:0 0 6px">La soluzione, in tre livelli</h2>
+    <div class="livello"><b>JJA-VIS Free</b><em>CHIUNQUE</em><p>L'assistente personale a voce, per qualsiasi mestiere e in qualsiasi lingua. Gratis: è la porta d'ingresso.</p></div>
+    <div class="livello"><b>JJA-VIS Pro</b><em>CORRIERI E PICCOLI TRASPORTATORI</em><p>Legge le lettere di vettura con la fotocamera e costruisce il giro più corto, fino a 150 fermate. Trova i carichi di ritorno nelle borse carichi e porta solo quelli che convengono. Abbonamento mensile.</p></div>
+    <div class="livello"><b>Enterprise</b><em>FILIALI E AZIENDE</em><p>I bancali si costruiscono già in ordine di consegna, prima che arrivino al corriere: l'ordine non si recupera a valle, si costruisce a monte. Contratto annuale legato al risparmio documentato.</p></div>
+  </section>
+
+  <section class="etichetta" aria-labelledby="tpc">
+    <h2 id="tpc" style="font-size:26px;margin:0 0 6px">Perché io</h2>
+    <p class="piccolo">Chi mi costruisce è titolare di una ditta di trasporti e corriere attivo, con licenza internazionale superiore. Il problema lo vive ogni mattina. Le grandi aziende di tecnologia non lo conoscono da dentro; chi arriva dopo, deve ancora cominciare a imparare le persone.</p>
+  </section>
+
+  <section class="etichetta" aria-labelledby="tfa">
+    <h2 id="tfa" style="font-size:26px;margin:0 0 6px">A che punto siamo</h2>
+    <ol class="fasi">
+      <li class="ora">Validazione sul campo <small>in corso: l'app è in uso ogni giorno sul furgone del fondatore; questa pagina raccoglie mestieri e quanto varrebbe per chi risponde</small></li>
+      <li>JJA-VIS Free <small>l'app pubblica gratuita</small></li>
+      <li>JJA-VIS Pro <small>l'abbonamento per i corrieri; i ricavi finanziano il livello dopo</small></li>
+      <li>Enterprise <small>un progetto pilota con una filiale, poi la rete</small></li>
+    </ol>
+  </section>
+
+  <section class="etichetta" aria-labelledby="tsc">
+    <h2 id="tsc" style="font-size:26px;margin:0 0 6px">Scrivimi</h2>
+    <p class="piccolo">Ti risponde di persona chi mi costruisce, alla mail che lasci.</p>
+    <label>Cosa ti interessa</label>
+    <div class="scelte" id="inv-interesse">
+      <button class="scelta" aria-pressed="false">Investire</button>
+      <button class="scelta" aria-pressed="false">Un pilota nella mia azienda</button>
+      <button class="scelta" aria-pressed="false">Collaborare</button>
+      <button class="scelta" aria-pressed="false">Stampa</button>
+    </div>
+    <label for="inv-nome">Nome e cognome</label>
+    <input type="text" id="inv-nome" maxlength="60" autocomplete="name">
+    <label for="inv-societa">Società o fondo (facoltativo)</label>
+    <input type="text" id="inv-societa" maxlength="80" autocomplete="organization">
+    <label for="inv-mail">Mail</label>
+    <input type="email" id="inv-mail" maxlength="120" autocomplete="email">
+    <label for="inv-messaggio">Messaggio</label>
+    <textarea id="inv-messaggio" maxlength="500"></textarea>
+    <label class="consenso"><input type="checkbox" id="inv-ok"> <span>Potete conservare questi dati e scrivermi a questa mail. Non vanno a nessun altro. <a href="#dati">Come tratto i dati</a></span></label>
+    <button class="invia" id="inv-manda" disabled>Manda</button>
+    <p class="avviso" id="inv-esito" role="status"></p>
+  </section>
+</div>
+
+<div class="pannello" id="p-sostieni" role="tabpanel" aria-labelledby="s-sostieni">
+  <section class="etichetta" aria-labelledby="tsos">
+    <h2 id="tsos" style="font-size:30px;margin:0 0 8px">Sostienimi</h2>
+    <p class="dice">Mi costruisce una persona sola, di notte, dopo il furgone.</p>
+    <p class="piccolo">Il sostegno paga quello che serve per costruirmi: strumenti, calcolo, telefono. Quanto costa, voce per voce, lo trovi in <a href="#conto">Quanto costo</a>. Non è un acquisto e non è un investimento: per investire c'è la sezione <a href="#investitori">Investitori</a>.</p>
+    <div id="sostieni-modi"></div>
+    <p class="piccolo" id="sostieni-presto" style="margin-top:14px">Il modo per sostenermi con un contributo sta arrivando. Intanto mi aiuti così:</p>
+  </section>
+  <section class="etichetta">
+    <h2 style="font-size:24px;margin:0 0 6px">Anche senza soldi</h2>
+    <p class="piccolo">Rispondi alle mie domande: decidono cosa costruisco dopo. Fai vedere questa pagina a chi fa un lavoro come il tuo. Segui la storia su Instagram.</p>
+    <button class="invia" id="condividi">Condividi la pagina</button>
+    <a class="invia secondario" href="https://www.instagram.com/jjoe_boy93" target="_blank" rel="noopener" style="text-align:center;text-decoration:none">Seguimi su Instagram</a>
+    <p class="avviso" id="esito-condividi" role="status"></p>
+  </section>
+</div>
+
 </main>
 
 <script>
@@ -671,6 +849,7 @@ function applicaNome(n){
   $("sotto-testata").textContent = n ? "il tuo JJA-VIS" : "il tuo nuovo assistente personale";
   document.querySelectorAll(".chi").forEach(x=>x.textContent=nome);
   document.title = n ? `${n} — il tuo JJA-VIS` : "JJA-VIS — il tuo nuovo assistente personale";
+  $("et-inizia").textContent = io.nome ? io.nome : "Inizia";
 }
 // ══ CHI TORNA ══ JJ, 25 settembre: «non deve dirmi me lo ricordavo: se dice
 // il nome lo vedo già. Il resto deve adattarsi come se sa chi sono, farmi
@@ -713,7 +892,7 @@ function benvenuto(tornato){
   $("continua").hidden=true; $("conosci").hidden=true; $("saluto2").textContent="";
   if(!tornato){
     $("saluto").textContent = io.tuo ? `Piacere${tu}. Da adesso sono ${io.nome}, solo per te.` : `Da adesso sono ${io.nome}, solo per te.`;
-    $("saluto2").textContent="Prima ti faccio vedere cosa so già fare. Poi imparo te.";
+    $("saluto2").textContent="Cosa so già fare lo vedi scorrendo a destra. Qui imparo te.";
     mostraSondaggio(true);
   } else if(!io.inviato){
     $("saluto").textContent=`Ciao${tu}.`;
@@ -751,7 +930,7 @@ $("sigla").addEventListener("input", e=>{
   nomeScelto=v; $("avanti-o1").disabled=!v; applicaNome(v);
 });
 $("avanti-o1").addEventListener("click", ()=>{ if(!nomeScelto) return; io.nome=nomeScelto; salva(); applicaNome(io.nome); $("o1").hidden=true; apri("o2"); });
-$("temi").addEventListener("click", e=>{ const b=e.target.closest(".tema"); if(!b) return; io.tema=b.dataset.tema; salva(); applicaTema(io.tema); });
+["temi","temi-profilo"].forEach(id=>$(id).addEventListener("click", e=>{ const b=e.target.closest(".tema"); if(!b) return; io.tema=b.dataset.tema; salva(); applicaTema(io.tema); }));
 $("avanti-o2").addEventListener("click", ()=>{ if(!io.tema){ io.tema="tech"; salva(); } apri("o3"); });
 $("avanti-o3").addEventListener("click", ()=>{ io.tuo=$("tuo-nome").value.trim().slice(0,40); salva(); benvenuto(false); apri("benvenuto"); });
 $("salta-o3").addEventListener("click", ()=>{ io.tuo=""; salva(); benvenuto(false); apri("benvenuto"); });
@@ -763,6 +942,154 @@ controllaRisposte().then(n=>{ if(n && $("benvenuto").classList.contains("aperta"
 (function(){ let giri=0; const t=setInterval(()=>{ if(++giri>20){ clearInterval(t); return; }
   if(!document.hidden && (io.chat||[]).some(m=>m.attesa)) controllaRisposte(); },30000); })();
 $("ricomincia").addEventListener("click", ()=>{ try{ localStorage.removeItem(CHIAVE); }catch(_){} location.hash=""; location.reload(); });
+
+// ══ LE SCHEDE ══ 26 settembre, JJ: «dinamico, scorri tra sezioni
+// dedicate». Cinque pannelli, uno alla volta; la barra in basso e il dito
+// che scorre li cambiano. Ogni scheda ha il suo indirizzo (#investitori…),
+// e un link a qualcosa che sta in un'altra scheda (#dati, #parla, #conto)
+// apre quella scheda e ci scorre dentro.
+const SCHEDE=["inizia","chi-sono","profilo","investitori","sostieni"];
+let schedaAttiva="", posizioni={};
+function vaiA(nome, verso, bersaglio){
+  if(!SCHEDE.includes(nome)) nome="inizia";
+  const prima=schedaAttiva;
+  if(prima===nome){ if(bersaglio) bersaglio.scrollIntoView({block:"start"}); return; }
+  if(prima) posizioni[prima]=window.scrollY;
+  SCHEDE.forEach(k=>{ const pn=$("p-"+k), tb=$("s-"+k); const si=k===nome;
+    pn.classList.toggle("attivo",si); pn.classList.remove("da-destra","da-sinistra");
+    tb.setAttribute("aria-selected",String(si)); tb.tabIndex=si?0:-1; });
+  if(prima){ const v=verso||(SCHEDE.indexOf(nome)>SCHEDE.indexOf(prima)?1:-1);
+    const pn=$("p-"+nome); void pn.offsetWidth; pn.classList.add(v>0?"da-destra":"da-sinistra"); }
+  schedaAttiva=nome; document.body.dataset.scheda=nome;
+  aggiornaProfilo();
+  if(bersaglio) requestAnimationFrame(()=>bersaglio.scrollIntoView({block:"start"}));
+  else window.scrollTo(0, prima ? (posizioni[nome]||0) : 0);
+}
+function daIndirizzo(){
+  const h=decodeURIComponent(location.hash.slice(1));
+  if(!h){ vaiA(schedaAttiva||"inizia"); return; }
+  if(SCHEDE.includes(h)){ vaiA(h); return; }
+  const el=document.getElementById(h); const pn=el&&el.closest(".pannello");
+  if(pn) vaiA(pn.id.slice(2), 0, el); else vaiA(schedaAttiva||"inizia");
+}
+document.querySelectorAll(".schede button").forEach(b=>b.addEventListener("click", ()=>{
+  const k=b.dataset.scheda; if(location.hash!=="#"+k) history.pushState(null,"","#"+k); vaiA(k); }));
+document.querySelector(".schede").addEventListener("keydown", e=>{
+  if(e.key!=="ArrowRight"&&e.key!=="ArrowLeft") return;
+  const i=SCHEDE.indexOf(schedaAttiva)+(e.key==="ArrowRight"?1:-1); if(i<0||i>=SCHEDE.length) return;
+  history.pushState(null,"","#"+SCHEDE[i]); vaiA(SCHEDE[i]); $("s-"+SCHEDE[i]).focus(); });
+window.addEventListener("hashchange", daIndirizzo);
+// un link interno (#dati, #parla…) cliccato quando l'indirizzo e' gia' quello
+// non fa scattare hashchange: lo si gestisce qui, sempre.
+document.addEventListener("click", e=>{ const a=e.target.closest('a[href^="#"]'); if(!a) return;
+  const h=a.getAttribute("href"); if(h.length<2) return; e.preventDefault();
+  if(location.hash!==h) history.pushState(null,"",h); daIndirizzo(); });
+window.addEventListener("popstate", daIndirizzo);
+// il dito: scorrere di lato cambia scheda. Non dentro i campi, il cursore del
+// prezzo, la chat e i video, dove il dito serve a altro.
+(function(){
+  let x0=0,y0=0,t0=0,vale=false;
+  const zona=document.querySelector("main");
+  zona.addEventListener("touchstart", e=>{ if(e.touches.length!==1){ vale=false; return; }
+    vale=!e.target.closest("input,textarea,select,iframe,video,.chat,.video-elenco,.cursore");
+    x0=e.touches[0].clientX; y0=e.touches[0].clientY; t0=Date.now(); }, {passive:true});
+  zona.addEventListener("touchend", e=>{ if(!vale) return; vale=false;
+    const t=e.changedTouches[0], dx=t.clientX-x0, dy=t.clientY-y0;
+    if(Math.abs(dx)<70 || Math.abs(dx)<Math.abs(dy)*1.8 || Date.now()-t0>700) return;
+    const i=SCHEDE.indexOf(schedaAttiva)+(dx<0?1:-1); if(i<0||i>=SCHEDE.length) return;
+    history.pushState(null,"","#"+SCHEDE[i]); vaiA(SCHEDE[i], dx<0?1:-1); }, {passive:true});
+})();
+
+// ══ IL PROFILO ══ nome dell'assistente, aspetto, nome di chi legge, e
+// quello che JJA-VIS sa di lui — detto intero, niente di nascosto.
+const ETICHETTE_SO={mestiere:"Lavoro", tempo:"Il tempo te lo mangia", inizio:"La giornata comincia", telefono:"Il telefono mentre lavori",
+  parlare:"Come vuoi che ti parli", voce:"Voce o scrittura", giorni:"Giorni di lavoro", soldi:"Dove risparmiare", sera:"La sera vorresti"};
+function aggiornaProfilo(){
+  const ha=!!io.nome;
+  $("profilo-vuoto").hidden=ha; $("profilo-nome").hidden=!ha;
+  if(ha && document.activeElement!==$("nuova-sigla")){ $("nuova-sigla").value=io.nome; $("cambia-nome").disabled=true; }
+  if(document.activeElement!==$("profilo-tuo")) $("profilo-tuo").value=io.tuo||"";
+  const ul=$("so-di-te"); ul.innerHTML="";
+  const righe=[]; if(io.tuo) righe.push(["Ti chiami",io.tuo]); if(io.mestiere) righe.push([ETICHETTE_SO.mestiere,io.mestiere]);
+  if(io.tempo) righe.push([ETICHETTE_SO.tempo,io.tempo]);
+  Object.entries(io.conosciute||{}).forEach(([k,v])=>righe.push([ETICHETTE_SO[k]||k, v]));
+  if(io.mail) righe.push(["La tua mail", io.mail]);
+  if(!righe.length) righe.push(["Per ora","niente: non mi hai ancora detto nulla"]);
+  righe.forEach(([a,b])=>{ const li=document.createElement("li"); const x=document.createElement("span"), y=document.createElement("span");
+    x.textContent=a; y.textContent=b; li.append(x,y); ul.appendChild(li); });
+  $("prova-testo").textContent = ha ? `Sono ${io.nome}. Dimmi cosa ti serve, o rispondi alle mie domande: decidono cosa costruisco dopo.` : "Dammi un nome e scegli come vedermi: un minuto, e comincio a imparare te.";
+  $("prova").textContent = ha ? `Parla con ${io.nome}` : "Comincia";
+  $("prova").setAttribute("href", ha ? "#parla" : "#inizia");
+}
+$("nuova-sigla").addEventListener("input", e=>{ const v=e.target.value.trim().replace(/\s+/g," "); $("cambia-nome").disabled=!v||v===io.nome; });
+$("cambia-nome").addEventListener("click", ()=>{
+  const v=$("nuova-sigla").value.trim().replace(/\s+/g," ").slice(0,20); if(!v||!io.nome) return;
+  io.nome=v; salva(); applicaNome(v); $("cambia-nome").disabled=true;
+  $("esito-profilo").className="avviso"; $("esito-profilo").textContent=`Da adesso sono ${v}.`;
+});
+$("salva-tuo").addEventListener("click", ()=>{
+  io.tuo=$("profilo-tuo").value.trim().slice(0,40); salva();
+  if(io.tuo && !$("nome").value) $("nome").value=io.tuo;
+  $("esito-profilo").className="avviso"; $("esito-profilo").textContent = io.tuo ? `Piacere, ${io.tuo}.` : "Va bene: niente nome.";
+  aggiornaProfilo();
+});
+$("ricomincia-profilo").addEventListener("click", ()=>{ try{ localStorage.removeItem(CHIAVE); }catch(_){} location.hash=""; location.reload(); });
+
+// ══ INVESTITORI ══ il modulo passa dalla stessa porta della chat (/parla),
+// con da_dove «investitori»: arriva a JJ su Telegram col 💼 in testa, e i
+// numeri del sondaggio non si sporcano. La risposta la da' JJ di persona,
+// alla mail scritta nel messaggio; se risponde dal bot, torna anche qui
+// nella chat.
+let interesse="";
+function invPronto(){ $("inv-manda").disabled=!(interesse && $("inv-nome").value.trim() && $("inv-mail").value.trim()); }
+$("inv-interesse").addEventListener("click", e=>{ const b=e.target.closest(".scelta"); if(!b) return;
+  $("inv-interesse").querySelectorAll(".scelta").forEach(x=>x.setAttribute("aria-pressed",String(x===b))); interesse=b.textContent.trim(); invPronto(); });
+["inv-nome","inv-mail"].forEach(id=>$(id).addEventListener("input", invPronto));
+$("inv-manda").addEventListener("click", async ()=>{
+  const e=$("inv-esito"); e.className="avviso";
+  const nome=$("inv-nome").value.trim(), soc=$("inv-societa").value.trim(), mail=$("inv-mail").value.trim(), msg=$("inv-messaggio").value.trim();
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(mail)){ e.classList.add("errore"); e.textContent="La mail non sembra completa: controlla la parte dopo la chiocciola."; return; }
+  if(!$("inv-ok").checked){ e.classList.add("errore"); e.textContent="Per risponderti mi serve la spunta sul consenso."; return; }
+  if(!INVIO){ e.textContent="Anteprima: qui il messaggio partirebbe. Non è partito niente."; return; }
+  const righe=[`💼 INVESTITORI — ${interesse}`, `Nome: ${nome}`]; if(soc) righe.push(`Società: ${soc}`); righe.push(`Mail: ${mail}`);
+  if(msg) righe.push("", msg);
+  const testo=righe.join("\n").slice(0,800);
+  $("inv-manda").disabled=true;
+  try{
+    const r=await fetch(INVIO.replace("/risposta","/parla"),{method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({chi:io.id, nome_assistente:io.nome||"", tema:io.tema||"tech", tuo:nome, da_dove:"investitori",
+        profilo:{mestiere:"", tempo:"", conosciute:{}}, testo})});
+    const d=await r.json().catch(()=>({}));
+    if(!r.ok||!d.id) throw new Error(d.errore||("errore "+r.status));
+    io.chat=io.chat||[]; io.chat.push({ruolo:"tu", testo, id:d.id, attesa:true}); io.chat=io.chat.slice(-20); salva(); ridisegnaChat();
+    e.textContent="Arrivato. Ti rispondo di persona alla mail che hai lasciato.";
+    ["inv-nome","inv-societa","inv-mail","inv-messaggio"].forEach(id=>$(id).value=""); $("inv-ok").checked=false;
+  }catch(err){ $("inv-manda").disabled=false; e.classList.add("errore"); e.textContent="Non è partito ("+err.message+"). Riprova fra un minuto."; }
+});
+
+// ══ SOSTIENI ══ i modi per contribuire stanno in sostieni.json accanto
+// alla pagina: finche' non c'e' un link vero, la sezione dice che arriva e
+// non mostra pulsanti finti. Chi incassa (ditta o SRL) si decide col
+// commercialista prima del primo euro — stato.md.
+fetch("sostieni.json",{cache:"no-store"}).then(r=>r.ok?r.json():null).then(c=>{
+  const modi=(c&&c.pronto&&Array.isArray(c.modi))?c.modi.filter(m=>m&&m.nome&&/^https:\/\//.test(m.url||"")):[];
+  if(!modi.length) return;
+  const casa=$("sostieni-modi");
+  modi.forEach(m=>{ const a=document.createElement("a"); a.className="invia"; a.href=m.url; a.target="_blank"; a.rel="noopener";
+    a.style.textAlign="center"; a.style.textDecoration="none"; a.textContent=m.nome; casa.appendChild(a);
+    if(m.nota){ const n=document.createElement("p"); n.className="piccolo"; n.style.margin="6px 0 0"; n.textContent=m.nota; casa.appendChild(n); } });
+  $("sostieni-presto").textContent="E anche senza soldi mi aiuti:";
+}).catch(()=>{});
+$("condividi").addEventListener("click", async ()=>{
+  const url="https://jjoeboy93.github.io/JJA-VIS/", e=$("esito-condividi"); e.className="avviso";
+  try{
+    if(navigator.share){ await navigator.share({title:"JJA-VIS", text:"Un assistente personale che impara il tuo lavoro. Rispondi a quattro domande:", url}); return; }
+    await navigator.clipboard.writeText(url); e.textContent="Link copiato: incollalo dove vuoi.";
+  }catch(err){ if(err&&err.name==="AbortError") return; e.textContent="Copia questo link: "+url; }
+});
+
+aggiornaProfilo();
+daIndirizzo();
 </script>
 </body>
 </html>

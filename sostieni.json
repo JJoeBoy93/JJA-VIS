@@ -1,0 +1,7 @@
+{
+  "pronto": false,
+  "LEGGIMI": "I pulsanti compaiono sulla pagina quando pronto e' true e c'e' almeno un modo con un indirizzo https. Prima: chi incassa, ditta o SRL (commercialista).",
+  "modi": [
+    { "nome": "Offrimi un caffè", "url": "", "nota": "" }
+  ]
+}
