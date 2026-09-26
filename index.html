@@ -204,6 +204,7 @@ body:not([data-scheda="inizia"]) .testa{margin-bottom:12px}
   <button role="tab" id="s-chi-sono" data-scheda="chi-sono" aria-controls="p-chi-sono" aria-selected="false"><svg viewBox="0 0 24 24"><path d="M12 3l2.4 5.2 5.6.6-4.2 3.8 1.2 5.6L12 15.4 7 18.2l1.2-5.6L4 8.8l5.6-.6z"/></svg><span class="et">Chi sono</span></button>
   <button role="tab" id="s-bottega" data-scheda="bottega" aria-controls="p-bottega" aria-selected="false"><svg viewBox="0 0 24 24"><path d="M4 9l1.5-5h13L20 9M4 9h16M4 9c0 1.7 1.3 3 3 3s3-1.3 3-3c0 1.7 1.3 3 3 3s3-1.3 3-3c0 1.7 1.3 3 3 3M5 12v8h14v-8M10 20v-5h4v5"/></svg><span class="et">Bottega</span></button>
   <button role="tab" id="s-profilo" data-scheda="profilo" aria-controls="p-profilo" aria-selected="false"><svg viewBox="0 0 24 24"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 20c1-4 4-6 7-6s6 2 7 6"/></svg><span class="et">Profilo</span></button>
+  <button role="tab" id="s-numeri" data-scheda="numeri" aria-controls="p-numeri" aria-selected="false"><svg viewBox="0 0 24 24"><path d="M5 20V10M10 20V4M15 20v-8M20 20V7"/></svg><span class="et">Numeri</span></button>
   <button role="tab" id="s-investitori" data-scheda="investitori" aria-controls="p-investitori" aria-selected="false"><svg viewBox="0 0 24 24"><path d="M4 19V5M4 19h16M8 15l4-4 3 3 5-6"/><path d="M16 8h4v4"/></svg><span class="et">Investi</span></button>
   <button role="tab" id="s-sostieni" data-scheda="sostieni" aria-controls="p-sostieni" aria-selected="false"><svg viewBox="0 0 24 24"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg><span class="et">Sostieni</span></button>
 </nav>
@@ -335,16 +336,14 @@ body:not([data-scheda="inizia"]) .testa{margin-bottom:12px}
   </section>
 
   <section class="etichetta domanda" id="d4" aria-labelledby="t4">
-    <h2 id="t4">Vuoi che ti scriva?</h2>
-    <p class="piccolo">Ti scrivo quando c'è qualcosa da provare per il tuo lavoro. Se hai una domanda o un'idea da farmi costruire, scrivila qui: rispondo per mail, non in giornata.</p>
+    <h2 id="t4">Ultima cosa: vuoi che ti scriva?</h2>
+    <p class="piccolo">Ti scrivo quando c'è qualcosa da provare per il tuo lavoro, e le risposte ai tuoi messaggi ti arrivano anche per mail. Domande e idee scrivile qui sotto, in «Parla con».</p>
     <label for="nome">Come ti chiami</label>
     <input type="text" id="nome" maxlength="60" autocomplete="given-name">
     <label for="mail">La tua mail</label>
     <input type="email" id="mail" maxlength="120" autocomplete="email">
-    <label for="messaggio">Una domanda o un'idea (facoltativo)</label>
-    <textarea id="messaggio" maxlength="1500"></textarea>
     <label class="consenso"><input type="checkbox" id="ok"> <span>JJA-VIS può scrivermi a questa mail. Nome e mail non vanno a nessun altro. <a href="#dati">Come tratto i tuoi dati</a></span></label>
-    <button class="invia" id="manda">Manda a <span class="chi">JJA-VIS</span></button>
+    <button class="invia" id="manda">Manda le risposte</button>
     <button class="invia secondario" id="senza">Manda senza mail</button>
     <input type="text" id="sito" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;height:0;width:0;opacity:0">
     <p class="avviso" id="esito" role="status"></p>
@@ -354,7 +353,7 @@ body:not([data-scheda="inizia"]) .testa{margin-bottom:12px}
 
   <section class="etichetta" id="parla" aria-labelledby="tp">
     <h2 id="tp" style="font-size:28px">Parla con <span class="chi">JJA-VIS</span></h2>
-    <p class="piccolo">Chiedimi quello che vuoi, sul tuo lavoro o su di me. Non rispondo in automatico: ogni risposta la scelgo con chi mi costruisce, e la trovi qui quando torni — o per mail, se me l'hai lasciata.</p>
+    <p class="piccolo">Chiedimi quello che vuoi, sul tuo lavoro o su di me. Non rispondo in automatico: ogni risposta la scelgo con chi mi costruisce, e compare qui da sola. Se mi lasci la mail nel <a href="#profilo-mail">Profilo</a>, arriva anche lì.</p>
     <div id="chat" class="chat" aria-live="polite"></div>
     <label for="scrivi" class="nascosto">Scrivimi</label>
     <textarea id="scrivi" maxlength="800" placeholder="Per esempio: in cosa potresti aiutarmi nel mio lavoro?"></textarea>
@@ -422,13 +421,6 @@ body:not([data-scheda="inizia"]) .testa{margin-bottom:12px}
     <div id="video-elenco" class="video-elenco"></div>
   </section>
 
-  <section class="etichetta" id="conto" aria-labelledby="tc" hidden>
-    <h2 id="tc" style="font-size:28px">Quanto costo</h2>
-    <p class="piccolo">Quello che si spende davvero, voce per voce. Due conti diversi: tenermi acceso, e costruirmi.</p>
-    <div id="conto-gruppi"></div>
-    <p class="piccolo" id="conto-quando"></p>
-    <p class="piccolo" style="margin-top:12px">Il costo si legge insieme a quello che faccio risparmiare: tempo e soldi. Li sto misurando sul furgone, e compaiono qui quando sono misurati, non prima.</p>
-  </section>
 
   <section class="etichetta">
     <h2 style="font-size:26px;margin:0 0 6px">Provami</h2>
@@ -547,6 +539,11 @@ body:not([data-scheda="inizia"]) .testa{margin-bottom:12px}
     <label for="profilo-tuo" style="margin-top:22px">Come ti chiami tu</label>
     <input type="text" id="profilo-tuo" maxlength="40" autocomplete="given-name">
     <button class="invia secondario" id="salva-tuo">Salva</button>
+    <label for="profilo-mail" style="margin-top:22px">La tua mail, per ricevere le risposte anche lì</label>
+    <input type="email" id="profilo-mail" maxlength="120" autocomplete="email">
+    <label class="consenso"><input type="checkbox" id="profilo-mail-ok"> <span>JJA-VIS può scrivermi a questa mail. Non va a nessun altro.</span></label>
+    <button class="invia secondario" id="salva-mail">Salva la mail</button>
+    <p class="piccolo" style="margin-top:8px" id="mail-attuale" hidden></p>
     <p class="avviso" id="esito-profilo" role="status"></p>
   </section>
 
@@ -564,6 +561,33 @@ body:not([data-scheda="inizia"]) .testa{margin-bottom:12px}
   </footer>
 </div>
 
+<div class="pannello" id="p-numeri" role="tabpanel" aria-labelledby="s-numeri">
+  <section class="etichetta" aria-labelledby="tnu">
+    <h2 id="tnu" style="font-size:30px;margin:0 0 8px">Numeri</h2>
+    <p class="dice">Tutti i miei numeri, in un posto solo.</p>
+    <p class="piccolo">Quelli misurati e quelli stimati, ognuno detto per quello che è. Un numero stimato non deve poter sembrare misurato.</p>
+  </section>
+  <section class="etichetta" id="conto" aria-labelledby="tc" hidden>
+    <h2 id="tc" style="font-size:28px">Quanto costo</h2>
+    <p class="piccolo">Quello che si spende davvero, voce per voce. Due conti diversi: tenermi acceso, e costruirmi.</p>
+    <div id="conto-gruppi"></div>
+    <p class="piccolo" id="conto-quando"></p>
+    <p class="piccolo" style="margin-top:12px">Il costo si legge insieme a quello che faccio risparmiare: tempo e soldi. Li sto misurando sul furgone, e compaiono qui quando sono misurati, non prima.</p>
+  </section>
+
+  <section class="etichetta" id="numeri-problema" aria-labelledby="tnp">
+    <h2 id="tnp" style="font-size:28px;margin:0 0 6px">Il problema, in numeri</h2>
+    <p class="piccolo">Il tempo che un corriere perde ogni mattina a costruire il giro a mano, e quanto vale.</p>
+    <div class="numeri">
+      <div><b>2 ore</b><span>perse al giorno da un corriere su un giro nuovo</span></div>
+      <div><b>30 €</b><span>al giorno per corriere, a 15 €/ora</span></div>
+      <div><b>180.000 €</b><span>l'anno per una filiale di 20 corrieri</span></div>
+      <div><b>36 mln €</b><span>l'anno su una rete di 200 filiali</span></div>
+    </div>
+    <p class="piccolo" style="margin-top:10px">Stime di chi fa questo lavoro, non ancora misure: quanto tempo faccio risparmiare lo sto misurando sul furgone, e i numeri misurati sostituiranno questi.</p>
+  </section>
+</div>
+
 <div class="pannello" id="p-investitori" role="tabpanel" aria-labelledby="s-investitori">
   <section class="etichetta" aria-labelledby="tin">
     <h2 id="tin" style="font-size:30px;margin:0 0 8px">Per chi vuole investire</h2>
@@ -574,13 +598,7 @@ body:not([data-scheda="inizia"]) .testa{margin-bottom:12px}
   <section class="etichetta" aria-labelledby="tpb">
     <h2 id="tpb" style="font-size:26px;margin:0 0 6px">Il problema</h2>
     <p class="piccolo">Ogni mattina, in ogni deposito, il corriere riceve i pacchi in ordine sparso e costruisce il giro a mano: legge l'indirizzo, lo cerca sul telefono, torna al pacco. Un'ora se il giro lo conosce, due o più se è nuovo. Ogni giorno.</p>
-    <div class="numeri">
-      <div><b>2 ore</b><span>perse al giorno da un corriere su un giro nuovo</span></div>
-      <div><b>30 €</b><span>al giorno per corriere, a 15 €/ora</span></div>
-      <div><b>180.000 €</b><span>l'anno per una filiale di 20 corrieri</span></div>
-      <div><b>36 mln €</b><span>l'anno su una rete di 200 filiali</span></div>
-    </div>
-    <p class="piccolo" style="margin-top:10px">Stime di chi fa questo lavoro, non ancora misure: quanto tempo faccio risparmiare lo sto misurando sul furgone, e i numeri misurati sostituiranno questi.</p>
+    <p class="piccolo" style="margin-top:10px">Quanto costa, a un corriere, a una filiale, a una rete: <a href="#numeri-problema">i numeri</a>.</p>
   </section>
 
   <section class="etichetta" aria-labelledby="tso">
@@ -746,19 +764,19 @@ $("avanti5").addEventListener("click", ()=> apri("d4"));
 
 async function manda(conMail){
   const esito=$("esito"); esito.className="avviso";
-  const corpo = {...risposte, dettaglio: $("dettaglio").value.trim(), messaggio: $("messaggio").value.trim(), voti:[...scelti], proposta: $("proposta").value.trim(), sito: $("sito").value, nome_assistente: io.nome||"", tema: io.tema||"tech", chi: io.id||""};
+  const corpo = {...risposte, dettaglio: $("dettaglio").value.trim(), messaggio: "", voti:[...scelti], proposta: $("proposta").value.trim(), sito: $("sito").value, nome_assistente: io.nome||"", tema: io.tema||"tech", chi: io.id||""};
   if (conMail){
     const mail=$("mail").value.trim();
     if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(mail)){ esito.classList.add("errore"); esito.textContent="La mail non sembra completa: controlla la parte dopo la chiocciola."; return; }
     if(!$("ok").checked){ esito.classList.add("errore"); esito.textContent="Per scriverti mi serve la spunta sul consenso."; return; }
     corpo.nome=$("nome").value.trim(); corpo.mail=mail; corpo.consenso=true;
-  } else { corpo.messaggio=""; }
+  }
   if(!INVIO){ esito.textContent="Anteprima: qui la risposta verrebbe mandata. Non è partito niente."; return; }
   $("manda").disabled=$("senza").disabled=true;
   try{
     const r = await fetch(INVIO,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(corpo)});
     if(!r.ok){ let perche=""; try{ perche=(await r.json()).errore||""; }catch(_){} throw new Error("HTTP "+r.status+(perche?": "+perche:"")); }
-    esito.textContent = conMail ? "Ricevuto. Ti rispondo per mail, non in giornata." : "Ricevuto. Grazie: il tuo numero entra nel conto.";
+    esito.textContent = conMail ? "Ricevuto. Da adesso le risposte ti arrivano anche per mail." : "Ricevuto. Grazie: il tuo numero entra nel conto.";
     io.inviato=true; io.mestiere=risposte.mestiere||io.mestiere||""; io.tempo=risposte.tempo||io.tempo||"";
     if(conMail){ io.mail=corpo.mail; if(corpo.nome) io.tuo=io.tuo||corpo.nome; } salva();
     const libero=[corpo.proposta, corpo.dettaglio].filter(Boolean).join("\n");
@@ -788,11 +806,13 @@ async function parla(testo, daDove){
   try{
     const r=await fetch(INVIO.replace("/risposta","/parla"),{method:"POST",headers:{"Content-Type":"application/json"},
       body:JSON.stringify({chi:io.id, nome_assistente:io.nome||"", tema:io.tema||"tech", tuo:io.tuo||"", da_dove:daDove||"chat",
-        profilo:{mestiere:io.mestiere||"", tempo:io.tempo||"", conosciute:io.conosciute||{}}, testo})});
+        profilo:{mestiere:io.mestiere||"", tempo:io.tempo||"", conosciute:io.conosciute||{}}, testo,
+        // io.mail c'e' solo se l'ha data con la spunta: la risposta va anche li'
+        ...(io.mail ? {contatto:{nome:io.tuo||"", societa:"", mail:io.mail, consenso:true}} : {})})});
     const d=await r.json().catch(()=>({}));
     if(!r.ok||!d.id) throw new Error(d.errore||("errore "+r.status));
     io.chat=io.chat||[]; io.chat.push({ruolo:"tu", testo, id:d.id, attesa:true}); io.chat=io.chat.slice(-20); salva(); ridisegnaChat();
-    e.textContent="Arrivato. Ti rispondo qui, appena posso: la risposta compare da sola.";
+    e.textContent = io.mail ? "Arrivato. Ti rispondo qui e per mail, appena posso." : "Arrivato. Ti rispondo qui, appena posso: la risposta compare da sola.";
     inizioAttesa();
     return true;
   }catch(err){ e.classList.add("errore"); e.textContent="Non è partito: "+err.message+". Riprova tra poco."; return false; }
@@ -1007,7 +1027,9 @@ function mostraDomanda(){
 }
 function mostraSondaggio(mostra){
   ["tocca","d1","d2","d3","d5"].forEach(id=>{ const el=$(id); if(el) el.hidden=!mostra; });
-  if(!mostra){ $("d4").classList.add("aperta"); $("t4").textContent="Vuoi scrivermi ancora?"; }
+  // 26 settembre, JJ: «la prima pagina deve avere solo il parla con… così
+  // fai fatica a capire dove scrivere». Chi ha già risposto scrive solo lì.
+  $("d4").hidden=!mostra;
 }
 function benvenuto(tornato){
   const tu=io.tuo?`, ${io.tuo}`:"";
@@ -1094,7 +1116,7 @@ prossimoGiro();
 // che scorre li cambiano. Ogni scheda ha il suo indirizzo (#investitori…),
 // e un link a qualcosa che sta in un'altra scheda (#dati, #parla, #conto)
 // apre quella scheda e ci scorre dentro.
-const SCHEDE=["inizia","chi-sono","bottega","profilo","investitori","sostieni"];
+const SCHEDE=["inizia","chi-sono","bottega","profilo","numeri","investitori","sostieni"];
 let schedaAttiva="", posizioni={};
 function vaiA(nome, verso, bersaglio){
   if(!SCHEDE.includes(nome)) nome="inizia";
@@ -1170,6 +1192,8 @@ function aggiornaProfilo(){
   $("profilo-vuoto").hidden=ha; $("profilo-nome").hidden=!ha;
   if(ha && document.activeElement!==$("nuova-sigla")){ $("nuova-sigla").value=io.nome; $("cambia-nome").disabled=true; }
   if(document.activeElement!==$("profilo-tuo")) $("profilo-tuo").value=io.tuo||"";
+  if(document.activeElement!==$("profilo-mail")) $("profilo-mail").value=io.mail||"";
+  $("mail-attuale").hidden=!io.mail; $("mail-attuale").textContent = io.mail ? "Per toglierla, svuota il campo e salva." : "";
   const ul=$("so-di-te"); ul.innerHTML="";
   const righe=[]; if(io.tuo) righe.push(["Ti chiami",io.tuo]); if(io.mestiere) righe.push([ETICHETTE_SO.mestiere,io.mestiere]);
   if(io.tempo) righe.push([ETICHETTE_SO.tempo,io.tempo]);
@@ -1187,6 +1211,14 @@ $("cambia-nome").addEventListener("click", ()=>{
   const v=$("nuova-sigla").value.trim().replace(/\s+/g," ").slice(0,20); if(!v||!io.nome) return;
   io.nome=v; salva(); applicaNome(v); $("cambia-nome").disabled=true;
   $("esito-profilo").className="avviso"; $("esito-profilo").textContent=`Da adesso sono ${v}.`;
+});
+$("salva-mail").addEventListener("click", ()=>{
+  const e=$("esito-profilo"); e.className="avviso";
+  const m=$("profilo-mail").value.trim();
+  if(!m){ delete io.mail; salva(); e.textContent="Tolta: da adesso ti rispondo solo qui."; aggiornaProfilo(); return; }
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(m)){ e.classList.add("errore"); e.textContent="La mail non sembra completa: controlla la parte dopo la chiocciola."; return; }
+  if(!$("profilo-mail-ok").checked){ e.classList.add("errore"); e.textContent="Per scriverti mi serve la spunta sul consenso."; return; }
+  io.mail=m; salva(); $("profilo-mail-ok").checked=false; e.textContent="Salvata: le risposte ti arrivano anche per mail."; aggiornaProfilo();
 });
 $("salva-tuo").addEventListener("click", ()=>{
   io.tuo=$("profilo-tuo").value.trim().slice(0,40); salva();
