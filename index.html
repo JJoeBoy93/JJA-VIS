@@ -337,7 +337,7 @@ body:not([data-scheda="inizia"]) .testa{margin-bottom:12px}
 
   <section class="etichetta domanda" id="d4" aria-labelledby="t4">
     <h2 id="t4">Ultima cosa: vuoi che ti scriva?</h2>
-    <p class="piccolo">Ti scrivo quando c'è qualcosa da provare per il tuo lavoro, e le risposte ai tuoi messaggi ti arrivano anche per mail. Domande e idee scrivile qui sotto, in «Parla con».</p>
+    <p class="piccolo">Ti scrivo quando c'è qualcosa da provare per il tuo lavoro e, quando serve, ti rispondo anche per mail. Domande e idee scrivile qui sotto, in «Parla con».</p>
     <label for="nome">Come ti chiami</label>
     <input type="text" id="nome" maxlength="60" autocomplete="given-name">
     <label for="mail">La tua mail</label>
@@ -353,7 +353,7 @@ body:not([data-scheda="inizia"]) .testa{margin-bottom:12px}
 
   <section class="etichetta" id="parla" aria-labelledby="tp">
     <h2 id="tp" style="font-size:28px">Parla con <span class="chi">JJA-VIS</span></h2>
-    <p class="piccolo">Chiedimi quello che vuoi, sul tuo lavoro o su di me. Non rispondo in automatico: ogni risposta la scelgo con chi mi costruisce, e compare qui da sola. Se mi lasci la mail nel <a href="#profilo-mail">Profilo</a>, arriva anche lì.</p>
+    <p class="piccolo">Chiedimi quello che vuoi, sul tuo lavoro o su di me. Non rispondo in automatico: ogni risposta la scelgo con chi mi costruisce, e compare qui da sola. Se mi lasci la mail nel <a href="#profilo-mail">Profilo</a>, quando serve arriva anche lì.</p>
     <div id="chat" class="chat" aria-live="polite"></div>
     <label for="scrivi" class="nascosto">Scrivimi</label>
     <textarea id="scrivi" maxlength="800" placeholder="Per esempio: in cosa potresti aiutarmi nel mio lavoro?"></textarea>
@@ -539,7 +539,7 @@ body:not([data-scheda="inizia"]) .testa{margin-bottom:12px}
     <label for="profilo-tuo" style="margin-top:22px">Come ti chiami tu</label>
     <input type="text" id="profilo-tuo" maxlength="40" autocomplete="given-name">
     <button class="invia secondario" id="salva-tuo">Salva</button>
-    <label for="profilo-mail" style="margin-top:22px">La tua mail, per ricevere le risposte anche lì</label>
+    <label for="profilo-mail" style="margin-top:22px">La tua mail: quando serve, le risposte arrivano anche lì</label>
     <input type="email" id="profilo-mail" maxlength="120" autocomplete="email">
     <label class="consenso"><input type="checkbox" id="profilo-mail-ok"> <span>JJA-VIS può scrivermi a questa mail. Non va a nessun altro.</span></label>
     <button class="invia secondario" id="salva-mail">Salva la mail</button>
@@ -776,7 +776,7 @@ async function manda(conMail){
   try{
     const r = await fetch(INVIO,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(corpo)});
     if(!r.ok){ let perche=""; try{ perche=(await r.json()).errore||""; }catch(_){} throw new Error("HTTP "+r.status+(perche?": "+perche:"")); }
-    esito.textContent = conMail ? "Ricevuto. Da adesso le risposte ti arrivano anche per mail." : "Ricevuto. Grazie: il tuo numero entra nel conto.";
+    esito.textContent = conMail ? "Ricevuto. Quando serve, ti rispondo anche per mail." : "Ricevuto. Grazie: il tuo numero entra nel conto.";
     io.inviato=true; io.mestiere=risposte.mestiere||io.mestiere||""; io.tempo=risposte.tempo||io.tempo||"";
     if(conMail){ io.mail=corpo.mail; if(corpo.nome) io.tuo=io.tuo||corpo.nome; } salva();
     const libero=[corpo.proposta, corpo.dettaglio].filter(Boolean).join("\n");
@@ -812,7 +812,7 @@ async function parla(testo, daDove){
     const d=await r.json().catch(()=>({}));
     if(!r.ok||!d.id) throw new Error(d.errore||("errore "+r.status));
     io.chat=io.chat||[]; io.chat.push({ruolo:"tu", testo, id:d.id, attesa:true}); io.chat=io.chat.slice(-20); salva(); ridisegnaChat();
-    e.textContent = io.mail ? "Arrivato. Ti rispondo qui e per mail, appena posso." : "Arrivato. Ti rispondo qui, appena posso: la risposta compare da sola.";
+    e.textContent = io.mail ? "Arrivato. Ti rispondo qui appena posso, e per mail quando serve." : "Arrivato. Ti rispondo qui, appena posso: la risposta compare da sola.";
     inizioAttesa();
     return true;
   }catch(err){ e.classList.add("errore"); e.textContent="Non è partito: "+err.message+". Riprova tra poco."; return false; }
@@ -1218,7 +1218,7 @@ $("salva-mail").addEventListener("click", ()=>{
   if(!m){ delete io.mail; salva(); e.textContent="Tolta: da adesso ti rispondo solo qui."; aggiornaProfilo(); return; }
   if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(m)){ e.classList.add("errore"); e.textContent="La mail non sembra completa: controlla la parte dopo la chiocciola."; return; }
   if(!$("profilo-mail-ok").checked){ e.classList.add("errore"); e.textContent="Per scriverti mi serve la spunta sul consenso."; return; }
-  io.mail=m; salva(); $("profilo-mail-ok").checked=false; e.textContent="Salvata: le risposte ti arrivano anche per mail."; aggiornaProfilo();
+  io.mail=m; salva(); $("profilo-mail-ok").checked=false; e.textContent="Salvata: quando serve, ti rispondo anche per mail."; aggiornaProfilo();
 });
 $("salva-tuo").addEventListener("click", ()=>{
   io.tuo=$("profilo-tuo").value.trim().slice(0,40); salva();
