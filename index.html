@@ -444,6 +444,31 @@ body:not([data-scheda="inizia"]) .testa{margin-bottom:12px}
     <p class="avviso" id="cl-esito" role="status"></p>
   </section>
 
+  <section class="etichetta" id="sopralluogo" aria-labelledby="tso2">
+    <p class="piccolo" style="margin:0;font-family:var(--f-mono);letter-spacing:.1em;color:var(--accento)">GRATIS · PER CHI HA UN'ATTIVITÀ</p>
+    <h2 id="tso2" style="font-size:30px;margin:4px 0 8px">Sopralluogo</h2>
+    <p class="dice">Prima di un lavoro si va a vedere. Lasciami il link e ci faccio un sopralluogo.</p>
+    <p class="piccolo">Il sito della tua attività, il tuo profilo, o un concorrente che vuoi capire meglio. Ti scrivo per mail cosa funziona, cosa no e da dove partirei. Li faccio uno per uno, e ognuno lo guarda anche chi mi costruisce prima che parta.</p>
+    <label>Cosa guardo</label>
+    <div class="scelte" id="so-cosa">
+      <button class="scelta" aria-pressed="false">La mia attività</button>
+      <button class="scelta" aria-pressed="false">Il mio profilo</button>
+      <button class="scelta" aria-pressed="false">Un concorrente</button>
+    </div>
+    <label for="so-link">Il link</label>
+    <input type="url" id="so-link" maxlength="300" inputmode="url" autocapitalize="off" spellcheck="false" placeholder="https://…">
+    <p class="piccolo" style="margin:6px 0 0">Un sito si legge meglio di un profilo social: molti social non si aprono senza entrare.</p>
+    <label for="so-note">Cosa ti preoccupa (facoltativo)</label>
+    <textarea id="so-note" maxlength="400"></textarea>
+    <label for="so-nome">Come ti chiami</label>
+    <input type="text" id="so-nome" maxlength="60" autocomplete="name">
+    <label for="so-mail">Dove ti mando il sopralluogo</label>
+    <input type="email" id="so-mail" maxlength="120" autocomplete="email">
+    <label class="consenso"><input type="checkbox" id="so-ok"> <span>Potete guardare il link, anche con un'intelligenza artificiale, e scrivermi a questa mail. Nome e mail non vanno a nessun altro. <a href="#dati">Come tratto i dati</a></span></label>
+    <button class="invia" id="so-manda" disabled>Fammi il sopralluogo</button>
+    <p class="avviso" id="so-esito" role="status"></p>
+  </section>
+
   <section class="etichetta" id="costruisci" aria-labelledby="tcm">
     <h2 id="tcm" style="font-size:28px;margin:0 0 6px">Costruiscimi qualcosa</h2>
     <p class="piccolo">Queste non aspettano l'app: chi mi costruisce le realizza su commissione, adesso.</p>
@@ -514,7 +539,7 @@ body:not([data-scheda="inizia"]) .testa{margin-bottom:12px}
 
   <footer id="dati">
     <p><b>I tuoi dati.</b> Questo sito non usa cookie e non traccia nessuno. Quello che mandi (mestiere, risposte, e se li lasci nome e mail) serve solo a capire cosa costruire e a risponderti. Non va a nessun altro. Per cancellarti basta rispondere a una mia mail.</p>
-    <p>Titolare: Jacopo Joe Ardito. Le risposte sono conservate in un archivio privato su GitHub (servizio di Microsoft, server negli Stati Uniti), leggibile solo dal titolare. Niente indirizzo IP, niente posizione: solo quello che scrivi, più un codice a caso nato nel tuo telefono che collega le risposte che mandi in giorni diversi. Il tuo nome, se me lo dici all'inizio, resta nel telefono; se mi parli nella chat, lo uso per risponderti. Quello che scrivi nella chat arriva a chi mi costruisce e resta nell'archivio. Se decide di risponderti con l'aiuto di un'intelligenza artificiale (Anthropic, OpenAI o Google), quella vede solo il tuo messaggio e il tuo mestiere, mai il tuo nome né la tua mail; la risposta la approva sempre una persona. I video presi da Instagram, YouTube o TikTok si caricano solo se li tocchi: da quel momento valgono le regole e i cookie di quella piattaforma. Se scrivi dalla sezione Investitori, chiedi un preventivo o l'invito a Clio, nome, azienda e mail si conservano solo con la tua spunta e servono solo a risponderti; non arrivano mai a un'intelligenza artificiale. Le risposte per mail partono tramite Brevo (servizio di invio, Unione Europea); la bozza la scrive un'intelligenza artificiale di Anthropic che vede solo il tuo messaggio, e prima di partire la legge e la approva una persona.</p>
+    <p>Titolare: Jacopo Joe Ardito. Le risposte sono conservate in un archivio privato su GitHub (servizio di Microsoft, server negli Stati Uniti), leggibile solo dal titolare. Niente indirizzo IP, niente posizione: solo quello che scrivi, più un codice a caso nato nel tuo telefono che collega le risposte che mandi in giorni diversi. Il tuo nome, se me lo dici all'inizio, resta nel telefono; se mi parli nella chat, lo uso per risponderti. Quello che scrivi nella chat arriva a chi mi costruisce e resta nell'archivio. Se decide di risponderti con l'aiuto di un'intelligenza artificiale (Anthropic, OpenAI o Google), quella vede solo il tuo messaggio e il tuo mestiere, mai il tuo nome né la tua mail; la risposta la approva sempre una persona. I video presi da Instagram, YouTube o TikTok si caricano solo se li tocchi: da quel momento valgono le regole e i cookie di quella piattaforma. Se scrivi dalla sezione Investitori, chiedi un preventivo, l'invito a Clio o un sopralluogo, nome, azienda e mail si conservano solo con la tua spunta e servono solo a risponderti; non arrivano mai a un'intelligenza artificiale. Il link di un sopralluogo invece sì: la pagina pubblica che indichi la legge anche un'intelligenza artificiale, per scriverti cosa ne pensa. Le risposte per mail partono tramite Brevo (servizio di invio, Unione Europea); la bozza la scrive un'intelligenza artificiale di Anthropic che vede solo il tuo messaggio, e prima di partire la legge e la approva una persona.</p>
     <p>La storia va avanti su Instagram: <a href="https://www.instagram.com/jjoe_boy93">@jjoe_boy93</a></p>
   </footer>
 </div>
@@ -1220,6 +1245,38 @@ $("cl-manda").addEventListener("click", async ()=>{
     e.textContent="Arrivato. L'invito ti arriva per mail.";
     ["cl-nome","cl-lingue","cl-dove","cl-mail"].forEach(id=>$(id).value=""); $("cl-ok").checked=false;
   }catch(err){ $("cl-manda").disabled=false; e.classList.add("errore"); e.textContent="Non è partito ("+err.message+"). Riprova fra un minuto."; }
+});
+
+// ══ SOPRALLUOGO ══ JJ, 26 settembre: la porta delle commissioni, con un
+// nome nostro. Il link viaggia a parte (la porta lo controlla e, quando JJ
+// tocca Bozza, legge la pagina per Claude); nome e mail nel contatto.
+let soCosa="";
+function soLink(){ let v=$("so-link").value.trim(); if(v && !/^https?:\/\//i.test(v)) v="https://"+v; return v; }
+function soPronto(){ $("so-manda").disabled=!(soCosa && $("so-link").value.trim() && $("so-mail").value.trim()); }
+$("so-cosa").addEventListener("click", e=>{ const b=e.target.closest(".scelta"); if(!b) return;
+  $("so-cosa").querySelectorAll(".scelta").forEach(x=>x.setAttribute("aria-pressed",String(x===b))); soCosa=b.textContent.trim(); soPronto(); });
+["so-link","so-mail"].forEach(id=>$(id).addEventListener("input", soPronto));
+$("so-manda").addEventListener("click", async ()=>{
+  const e=$("so-esito"); e.className="avviso";
+  const link=soLink(), mail=$("so-mail").value.trim();
+  let buono=false; try{ const u=new URL(link); buono=/^https?:$/.test(u.protocol) && u.hostname.includes("."); }catch(_){}
+  if(!buono){ e.classList.add("errore"); e.textContent="Il link non sembra un indirizzo web: copialo dalla barra del browser."; return; }
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(mail)){ e.classList.add("errore"); e.textContent="La mail non sembra completa: controlla la parte dopo la chiocciola."; return; }
+  if(!$("so-ok").checked){ e.classList.add("errore"); e.textContent="Per guardare il link e scriverti mi serve la spunta sul consenso."; return; }
+  if(!INVIO){ e.textContent="Anteprima: qui la richiesta partirebbe. Non è partito niente."; return; }
+  const note=$("so-note").value.trim();
+  const testo=(`🔎 ${soCosa}: ${link}`+(note?` — ${note}`:"")).slice(0,800);
+  $("so-manda").disabled=true;
+  try{
+    const r=await fetch(INVIO.replace("/risposta","/parla"),{method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({chi:io.id, nome_assistente:io.nome||"", tema:io.tema||"tech", tuo:io.tuo||"", da_dove:"sopralluogo", link,
+        profilo:{mestiere:io.mestiere||"", tempo:io.tempo||"", conosciute:{}}, testo, contatto:{nome:$("so-nome").value.trim(), societa:"", mail, consenso:true}})});
+    const d=await r.json().catch(()=>({}));
+    if(!r.ok||!d.id) throw new Error(d.errore||("errore "+r.status));
+    io.chat=io.chat||[]; io.chat.push({ruolo:"tu", testo, id:d.id, attesa:true}); io.chat=io.chat.slice(-20); salva(); ridisegnaChat(); inizioAttesa();
+    e.textContent="Arrivato. Il sopralluogo ti arriva per mail.";
+    ["so-link","so-note","so-nome","so-mail"].forEach(id=>$(id).value=""); $("so-ok").checked=false;
+  }catch(err){ $("so-manda").disabled=false; e.classList.add("errore"); e.textContent="Non è partito ("+err.message+"). Riprova fra un minuto."; }
 });
 
 // ══ SOSTIENI ══ i modi per contribuire stanno in sostieni.json accanto
