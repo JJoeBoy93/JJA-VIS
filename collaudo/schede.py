@@ -52,7 +52,13 @@ async def main():
         ok(not await pg.is_visible("#p-chi-sono"), "le altre schede sono chiuse")
         await pg.click("#s-chi-sono"); await pg.wait_for_timeout(300)
         ok(await pg.is_visible("#tcs") and "#chi-sono" in pg.url, "tocco «Chi sono»: pannello e indirizzo")
+        testo_chi=await pg.inner_text("#p-chi-sono")
+        ok("Non rispondo: anticipo" in testo_chi and "Imparo te" in testo_chi and "Per chiunque" in testo_chi and not await pg.evaluate("!!document.querySelector('#p-chi-sono #tf')"), "Chi sono parla di chi è JJA-VIS; l'elenco di cosa so fare non c'è più (JJ, 29/9)")
+        ok(not any(p in testo_chi for p in ["Albero","JARVIS privato","Stark","archetip"]), "dal blueprint solo quello che si può dire in pubblico")
+        await pg.click("#s-sa-fare"); await pg.wait_for_timeout(300)
+        ok(await pg.is_visible("#tf") and "#sa-fare" in pg.url, "«Cosa so fare» è una scheda sua")
         ok(await pg.inner_text("#n-canzoni")=="5.747", "i numeri della vetrina arrivano")
+        await pg.click("#s-chi-sono"); await pg.wait_for_timeout(300)
         ok(not await pg.evaluate("!!document.querySelector('#p-chi-sono #conto')"), "Quanto costo non è più in Chi sono")
         ok(await pg.inner_text("#prova")=="Comincia", "Provami dice Comincia, senza nome")
         await pg.click("#s-profilo"); await pg.wait_for_timeout(200)
@@ -69,7 +75,7 @@ async def main():
               m.dispatchEvent(new TouchEvent('touchend',{touches:[],changedTouches:[T(300+dx,410)],bubbles:true}));}""", dx)
             await pg.wait_for_timeout(250)
         await scorri(-150); ok(await pg.evaluate("document.body.dataset.scheda")=="chi-sono", "a sinistra: Chi sono")
-        await scorri(-150); ok(await pg.evaluate("document.body.dataset.scheda")=="bottega", "ancora: Bottega")
+        await scorri(-150); ok(await pg.evaluate("document.body.dataset.scheda")=="sa-fare", "ancora: Cosa so fare")
         await scorri(150); ok(await pg.evaluate("document.body.dataset.scheda")=="chi-sono", "a destra: torna")
         await scorri(-30); ok(await pg.evaluate("document.body.dataset.scheda")=="chi-sono", "un tocco corto non cambia scheda")
         await pg.click("#s-inizia"); await scorri(150); ok(await pg.evaluate("document.body.dataset.scheda")=="inizia", "dalla prima non si va oltre")
@@ -79,8 +85,9 @@ async def main():
         ok(await pg.inner_text("#et-inizia")=="Atlas", "la scheda prende il nome dato: Atlas")
         ok(await pg.is_visible("#d1") and not await pg.is_visible("#parla"), "sotto il benvenuto le domande; la chat arriva a questionario finito (JJ, 29/9)")
         await pg.click('#d1 .scelta:has-text("Corriere")'); await pg.wait_for_timeout(200)
-        await pg.click('a[href="#chi-sono"]'); await pg.wait_for_timeout(300)
-        ok(await pg.evaluate("document.body.dataset.scheda")=="chi-sono", "«Cosa so fare →» porta a Chi sono")
+        await pg.click('#salto-cosa'); await pg.wait_for_timeout(300)
+        ok(await pg.evaluate("document.body.dataset.scheda")=="sa-fare", "«Cosa so fare →» porta a Cosa so fare, non più a Chi sono")
+        await pg.click("#s-chi-sono"); await pg.wait_for_timeout(300)
         ok(await pg.inner_text("#prova")=="Parla con Atlas", "Provami adesso dice Parla con Atlas")
         await pg.click("#s-profilo"); await pg.wait_for_timeout(200)
         so=await pg.inner_text("#so-di-te")
@@ -301,7 +308,7 @@ async def main():
         ok(await vede("#o3") and not await vede("#benvenuto"), "ricaricato dopo il colore: si riparte da «E tu come ti chiami?»")
         await pg2.fill("#tuo-nome","Jacopo"); await pg2.click("#avanti-o3"); await pg2.wait_for_timeout(250)
         subito=await pg2.evaluate("""(()=>{const t=document.querySelector('#benvenuto').innerText;return {
-          ordine: t.indexOf('Mi ricordo')>=0 && t.indexOf('Mi ricordo')<t.indexOf('scorrendo a destra'), scopri: t.includes('lo scopri scorrendo a destra'),
+          ordine: t.indexOf('Mi ricordo')>=0 && t.indexOf('Mi ricordo')<t.indexOf('scorrendo a destra'), scopri: t.includes('li scopri scorrendo a destra'),
           fissa: getComputedStyle(document.querySelector('.testa')).position==='fixed',
           tocca: document.querySelector('#tocca').offsetParent!==null, d1: document.querySelector('#d1').offsetParent!==null}})()""")
         ok(subito["ordine"] and subito["scopri"], "il saluto: «Mi ricordo di te… nel Profilo» sta sopra «Cosa so già fare lo scopri scorrendo a destra»")

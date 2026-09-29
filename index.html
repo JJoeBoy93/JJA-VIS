@@ -267,6 +267,7 @@ body.con-nome[data-scheda="inizia"] #esito-chat{margin:6px 0 0}
 <nav class="schede" role="tablist" aria-label="Sezioni">
   <button role="tab" id="s-inizia" data-scheda="inizia" aria-controls="p-inizia" aria-selected="false"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M4.5 9.5h15M4.5 14.5h15M12 4c2.5 2.3 2.5 13.7 0 16M12 4c-2.5 2.3-2.5 13.7 0 16"/></svg><span class="et" id="et-inizia">Inizia</span></button>
   <button role="tab" id="s-chi-sono" data-scheda="chi-sono" aria-controls="p-chi-sono" aria-selected="false"><svg viewBox="0 0 24 24"><path d="M12 3l2.4 5.2 5.6.6-4.2 3.8 1.2 5.6L12 15.4 7 18.2l1.2-5.6L4 8.8l5.6-.6z"/></svg><span class="et">Chi sono</span></button>
+  <button role="tab" id="s-sa-fare" data-scheda="sa-fare" aria-controls="p-sa-fare" aria-selected="false"><svg viewBox="0 0 24 24"><path d="M13 3L5 13h6l-1 8 8-10h-6l1-8z"/></svg><span class="et">Cosa so fare</span></button>
   <button role="tab" id="s-bottega" data-scheda="bottega" aria-controls="p-bottega" aria-selected="false"><svg viewBox="0 0 24 24"><path d="M4 9l1.5-5h13L20 9M4 9h16M4 9c0 1.7 1.3 3 3 3s3-1.3 3-3c0 1.7 1.3 3 3 3s3-1.3 3-3c0 1.7 1.3 3 3 3M5 12v8h14v-8M10 20v-5h4v5"/></svg><span class="et">Bottega</span></button>
   <button role="tab" id="s-profilo" data-scheda="profilo" aria-controls="p-profilo" aria-selected="false"><svg viewBox="0 0 24 24"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 20c1-4 4-6 7-6s6 2 7 6"/></svg><span class="et">Profilo</span></button>
   <button role="tab" id="s-numeri" data-scheda="numeri" aria-controls="p-numeri" aria-selected="false"><svg viewBox="0 0 24 24"><path d="M5 20V10M10 20V4M15 20v-8M20 20V7"/></svg><span class="et">Numeri</span></button>
@@ -324,8 +325,8 @@ body.con-nome[data-scheda="inizia"] #esito-chat{margin:6px 0 0}
          saluto, si spostano in tutte le fasi». L'ordine sta qui, fisso. -->
     <p class="dice" id="saluto"></p>
     <p class="piccolo" id="ricordo" style="margin:10px 0">Mi ricordo di te solo su questo telefono. Nome e colore li cambi nel <a href="#profilo">Profilo</a>.</p>
-    <p class="dice" id="scopri" hidden>Cosa so già fare lo scopri scorrendo a destra.</p>
-    <a class="salto" id="salto-cosa" href="#chi-sono" style="margin:0 0 14px">Cosa so fare →</a>
+    <p class="dice" id="scopri" hidden>Chi sono e cosa so già fare li scopri scorrendo a destra.</p>
+    <a class="salto" id="salto-cosa" href="#sa-fare" style="margin:0 0 14px">Cosa so fare →</a>
     <p class="dice" id="saluto2"></p>
     <div id="conosci" hidden>
       <h2 id="conosci-domanda" style="font-size:26px;margin:12px 0 12px"></h2>
@@ -435,14 +436,41 @@ body.con-nome[data-scheda="inizia"] #esito-chat{margin:6px 0 0}
   </div>
 </div>
 
+<!-- 29/9, JJ: «Cosa so fare comunque si chiama chi sono… il chi sono deve
+     parlare del chi è JJA-VIS, come nel blueprint, il cosa sa fare deve essere
+     una scheda a parte». Dal blueprint solo quello che si può dire in pubblico:
+     cos'è, il principio, la missione, da dove nasce. -->
 <div class="pannello" id="p-chi-sono" role="tabpanel" aria-labelledby="s-chi-sono">
   <section class="etichetta" aria-labelledby="tcs">
     <h2 id="tcs" style="font-size:30px;margin:0 0 8px">Chi sono</h2>
-    <p class="dice">Sono un assistente personale che impara <b>te</b>, non il tuo settore.</p>
-    <p class="piccolo">Non aspetto le domande: preparo le cose prima che servano. Poi imparo il mestiere di chi mi usa, qualunque sia.</p>
-    <p class="piccolo">Quello che puoi già avere sta nella <a href="#bottega">Bottega</a>.</p>
+    <p class="dice">Sono JJA-VIS, un sistema personale intelligente.</p>
+    <p class="dice">Non rispondo: anticipo. Non archivio: imparo. Non servo il settore: servo la persona.</p>
+    <p class="piccolo">Un assistente vocale risponde quando gli chiedi qualcosa. Io preparo le cose prima che servano: la giornata, il lavoro, quello che ti sei dimenticato.</p>
+  </section>
+  <section class="etichetta" aria-labelledby="tcs2">
+    <h2 id="tcs2" style="font-size:26px;margin:0 0 8px">Imparo te</h2>
+    <p class="piccolo">Un assistente professionale conosce un lavoro. Io imparo chi sei: le tue abitudini, le tue giornate, quello che ti preoccupa e quello che vuoi. Il lavoro è solo una parte di te.</p>
+    <p class="piccolo">Più mi usi, più divento tuo. Uguale per tutti, diverso per ognuno.</p>
+  </section>
+  <section class="etichetta" aria-labelledby="tcs3">
+    <h2 id="tcs3" style="font-size:26px;margin:0 0 8px">Da dove nasco</h2>
+    <p class="piccolo">Chi mi costruisce ha molte vite insieme: ha una ditta di trasporti, fa il corriere, sviluppa, crea contenuti. Cercava qualcosa che lo aiutasse in tutte, che imparasse e anticipasse. Non l'ha trovato da nessuna parte, e ha deciso di costruirlo.</p>
     <p class="piccolo">Sono nato anche per gioco. Chi mi costruisce è creatore ufficiale di isole di Fortnite, e voleva un assistente che le costruisse con lui. Ma fa anche il corriere: così sono finito sul suo furgone, e il lavoro di strada è la prima cosa che ho imparato bene.</p>
   </section>
+  <section class="etichetta" aria-labelledby="tcs4">
+    <h2 id="tcs4" style="font-size:26px;margin:0 0 8px">Per chiunque</h2>
+    <p class="piccolo">Chiunque, ovunque nasca, qualunque lingua parli e qualunque lavoro faccia, ha diritto al suo assistente personale. Non solo chi se lo può permettere, non solo chi mastica tecnologia.</p>
+    <p class="piccolo">Il corriere di Milano, il farmacista di Tokyo, l'agricoltore del Brasile, il meccanico del Cairo. Parto dal lavoro che conosco meglio, la consegna, e da lì vado verso tutti.</p>
+    <p class="piccolo">Cosa so già fare oggi è in <a href="#sa-fare">Cosa so fare</a>; quello che puoi avere subito sta nella <a href="#bottega">Bottega</a>.</p>
+  </section>
+  <section class="etichetta">
+    <h2 style="font-size:26px;margin:0 0 6px">Provami</h2>
+    <p class="piccolo" id="prova-testo">Dammi un nome e scegli come vedermi: un minuto, e comincio a imparare te.</p>
+    <a class="invia" id="prova" href="#inizia" style="text-align:center;text-decoration:none">Comincia</a>
+  </section>
+</div>
+
+<div class="pannello" id="p-sa-fare" role="tabpanel" aria-labelledby="s-sa-fare">
   <section class="etichetta" id="novita" aria-labelledby="tn" hidden>
     <h2 id="tn" style="font-size:28px">Novità</h2>
     <div id="novita-elenco"></div>
@@ -490,13 +518,6 @@ body.con-nome[data-scheda="inizia"] #esito-chat{margin:6px 0 0}
     <h2 id="tv" style="font-size:28px">Guardami al lavoro</h2>
     <p class="piccolo">Video veri, dal telefono e dal furgone di chi mi costruisce. Nessun montaggio che non sia mio.</p>
     <div id="video-elenco" class="video-elenco"></div>
-  </section>
-
-
-  <section class="etichetta">
-    <h2 style="font-size:26px;margin:0 0 6px">Provami</h2>
-    <p class="piccolo" id="prova-testo">Dammi un nome e scegli come vedermi: un minuto, e comincio a imparare te.</p>
-    <a class="invia" id="prova" href="#inizia" style="text-align:center;text-decoration:none">Comincia</a>
   </section>
 </div>
 
@@ -1278,7 +1299,7 @@ prossimoGiro();
 // che scorre li cambiano. Ogni scheda ha il suo indirizzo (#investitori…),
 // e un link a qualcosa che sta in un'altra scheda (#dati, #parla, #conto)
 // apre quella scheda e ci scorre dentro.
-const SCHEDE=["inizia","chi-sono","bottega","profilo","numeri","investitori","sostieni"];
+const SCHEDE=["inizia","chi-sono","sa-fare","bottega","profilo","numeri","investitori","sostieni"];
 let schedaAttiva="", posizioni={};
 function vaiA(nome, verso, bersaglio){
   if(!SCHEDE.includes(nome)) nome="inizia";
