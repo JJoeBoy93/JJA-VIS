@@ -842,7 +842,7 @@ async function manda(conMail){
     if(!r.ok){ let perche=""; try{ perche=(await r.json()).errore||""; }catch(_){} throw new Error("HTTP "+r.status+(perche?": "+perche:"")); }
     esito.textContent = conMail ? "Ricevuto. Quando serve, ti rispondo anche per mail." : "Ricevuto. Grazie: il tuo numero entra nel conto.";
     // mandate le risposte, il sondaggio se ne va: resta la chat, e Nova dice «ricevuto»
-    setTimeout(()=>{ mostraSondaggio(false); if($("tocca")) $("tocca").hidden=true; benvenuto(true); bolla("io", esito.textContent); }, 1200);
+    setTimeout(()=>{ mostraSondaggio(false); if($("tocca")) $("tocca").hidden=true; benvenuto(true); $("parla").hidden=false; bolla("io", esito.textContent); }, 1200);
     io.inviato=true; io.mestiere=risposte.mestiere||io.mestiere||""; io.tempo=risposte.tempo||io.tempo||"";
     if(conMail){ io.mail=corpo.mail; if(corpo.nome) io.tuo=io.tuo||corpo.nome; } salva();
     const libero=[corpo.proposta, corpo.dettaglio].filter(Boolean).join("\n");
@@ -1059,7 +1059,10 @@ function applicaNome(n){
   document.querySelectorAll(".chi").forEach(x=>x.textContent=nome);
   document.title = n ? `${n} — il tuo JJA-VIS` : "JJA-VIS — il tuo nuovo assistente personale";
   $("et-inizia").textContent = io.nome ? io.nome : "Inizia";
-  document.body.classList.toggle("con-nome", !!n);
+  // 29/9, JJ: «è brutto che appena premo il nome la sfera va subito in alto
+  // piccola, falla restare grande fino a che non saluta». La testata piccola
+  // arriva col saluto (benvenuto), non col nome; senza nome se ne va.
+  if(!n) document.body.classList.remove("con-nome");
 }
 // ══ CHI TORNA ══ JJ, 25 settembre: «non deve dirmi me lo ricordavo: se dice
 // il nome lo vedo già. Il resto deve adattarsi come se sa chi sono, farmi
@@ -1103,6 +1106,10 @@ function mostraSondaggio(mostra){
 }
 function benvenuto(tornato){
   const tu=io.tuo?`, ${io.tuo}`:"";
+  document.body.classList.add("con-nome");
+  // 29/9, JJ: «la chat per scrivere deve comparire alla fine, quando ho finito il
+  // questionario, senó c'è sempre in mezzo il pulsante manda che confonde»
+  $("parla").hidden = !io.inviato;
   // nome, colore e il tuo nome sono fatti: quei passi lasciano il posto al saluto
   ["o2","o3"].forEach(k=>{ const x=$(k); if(x && x.classList.contains("aperta")){ x.classList.remove("aperta"); x.classList.add("fatta"); } });
   if(io.tuo && !$("nome").value) $("nome").value=io.tuo;
