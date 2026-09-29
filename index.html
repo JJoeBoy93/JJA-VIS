@@ -53,6 +53,8 @@ a{color:var(--accento)}
 .scelta:hover{border-color:var(--accento)}
 .scelta[aria-pressed="true"]{background:var(--utente);border-color:var(--accento);color:var(--testo);box-shadow:0 0 12px color-mix(in srgb,var(--accento) 35%,transparent) inset}
 .risposta{margin-top:12px;color:var(--tenue)}
+.risposta.da-prima{margin:0 0 12px}
+.domanda.fatta{display:none}
 input[type=text],input[type=email],textarea{width:100%;font:500 18px/1.4 var(--f-testo);padding:11px 12px;border:1px solid var(--bordo);border-radius:0;background:var(--input);color:var(--testo)}
 input::placeholder,textarea::placeholder{color:var(--suggerimento)}
 input:focus,textarea:focus{border-color:var(--accento);outline:none;box-shadow:0 0 0 1px var(--accento)}
@@ -722,7 +724,21 @@ const risposte = {mestiere:"", tempo:"", dettaglio:"", prezzo:15};
 const $ = id => document.getElementById(id);
 if (!INVIO) $("anteprima").hidden = false;
 
-function apri(id){ const d=$(id); if(!d.classList.contains("aperta")){ d.classList.add("aperta"); d.scrollIntoView({behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block:"start"}); } }
+// 29 settembre, JJ: «quando scelgo colore e nome e dico il mio poi devono
+// sparire dalla prima pagina così come tutte le altre cose, senó poi la chat è
+// piena senza aver neanche scritto». Un passo fatto se ne va quando si apre il
+// seguente; la sua risposta («Bene. Adesso la parte che mi interessa…») passa
+// in testa al passo nuovo, come una frase di chat.
+function apri(id){ const d=$(id); if(d.classList.contains("aperta")) return;
+  // ognuno col suo gruppo: i passi del benvenuto (o1-o3) e le domande (d1-d5)
+  const gruppo = /^o\d$/.test(id) ? "#o1,#o2,#o3" : /^d\d$/.test(id) ? "#d1,#d2,#d3,#d4,#d5" : "";
+  if(gruppo) document.querySelectorAll(gruppo).forEach(prima=>{ if(prima===d || !prima.classList.contains("aperta")) return;
+    prima.querySelectorAll(".risposta:not([hidden])").forEach(r=>{ if(!r.textContent.trim()) return;
+      const c=r.cloneNode(true); c.removeAttribute("id"); c.classList.add("da-prima"); d.insertBefore(c, d.firstElementChild); });
+    prima.classList.remove("aperta"); prima.classList.add("fatta"); });
+  if(id==="d2" && $("tocca")) $("tocca").hidden=true;
+  d.classList.add("aperta");
+  d.scrollIntoView({behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block:"start"}); }
 
 // solo le domande del sondaggio (quelle con data-campo): i nomi, i voti e le
 // domande del ritorno hanno i loro gestori. Prima questo li prendeva tutti:
@@ -825,6 +841,8 @@ async function manda(conMail){
     const r = await fetch(INVIO,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(corpo)});
     if(!r.ok){ let perche=""; try{ perche=(await r.json()).errore||""; }catch(_){} throw new Error("HTTP "+r.status+(perche?": "+perche:"")); }
     esito.textContent = conMail ? "Ricevuto. Quando serve, ti rispondo anche per mail." : "Ricevuto. Grazie: il tuo numero entra nel conto.";
+    // mandate le risposte, il sondaggio se ne va: resta la chat, e Nova dice «ricevuto»
+    setTimeout(()=>{ mostraSondaggio(false); if($("tocca")) $("tocca").hidden=true; benvenuto(true); bolla("io", esito.textContent); }, 1200);
     io.inviato=true; io.mestiere=risposte.mestiere||io.mestiere||""; io.tempo=risposte.tempo||io.tempo||"";
     if(conMail){ io.mail=corpo.mail; if(corpo.nome) io.tuo=io.tuo||corpo.nome; } salva();
     const libero=[corpo.proposta, corpo.dettaglio].filter(Boolean).join("\n");
@@ -1085,6 +1103,8 @@ function mostraSondaggio(mostra){
 }
 function benvenuto(tornato){
   const tu=io.tuo?`, ${io.tuo}`:"";
+  // nome, colore e il tuo nome sono fatti: quei passi lasciano il posto al saluto
+  ["o2","o3"].forEach(k=>{ const x=$(k); if(x && x.classList.contains("aperta")){ x.classList.remove("aperta"); x.classList.add("fatta"); } });
   if(io.tuo && !$("nome").value) $("nome").value=io.tuo;
   if(io.mail && !$("mail").value) $("mail").value=io.mail;
   $("continua").hidden=true; $("conosci").hidden=true; $("conosci-fine").hidden=true; $("saluto2").textContent="";
