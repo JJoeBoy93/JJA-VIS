@@ -767,6 +767,7 @@ function apri(id){ const d=$(id); if(d.classList.contains("aperta")) return;
     prima.classList.remove("aperta"); prima.classList.add("fatta"); });
   if(id==="d2" && $("tocca")) $("tocca").hidden=true;
   d.classList.add("aperta");
+  if(/^d\d$/.test(id)){ io.passo=id; ricordaBozza(); }
   // i primi passi si aprono dall'alto: sfera sopra, pulsante in vista (JJ, 29/9)
   if(/^o\d$/.test(id)){ window.scrollTo({top:0, behavior:"auto"}); return; }
   d.scrollIntoView({behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block:"start"}); }
@@ -857,6 +858,37 @@ $("progetti").addEventListener("click", e=>{
 $("proposta").addEventListener("input", ()=>{ $("avanti5").disabled = !(scelti.size || $("proposta").value.trim()); });
 $("avanti5").addEventListener("click", ()=> apri("d4"));
 
+// ══ SI RIPRENDE DA DOVE CI SI ERA FERMATI — 29 settembre ══ JJ: «se ricarichi
+// prima di avere finito devi ripartire da capo». Il passo e le risposte date
+// restano su questo telefono (io.passo, io.bozza); tornando, si riapre la
+// domanda di adesso con le scelte già segnate.
+const ORDINE_DOMANDE=["d1","d2","d3","d5","d4"];
+function ricordaBozza(){
+  io.bozza={tempo:risposte.tempo, dettaglio:$("dettaglio").value.trim(), prezzo:risposte.prezzo,
+            voti:[...scelti], proposta:$("proposta").value.trim()};
+  salva();
+}
+["dettaglio","proposta"].forEach(k=>$(k).addEventListener("input", ricordaBozza));
+$("prezzo").addEventListener("change", ricordaBozza);
+$("progetti").addEventListener("click", ()=>setTimeout(ricordaBozza,0));
+function riprendi(){
+  const p=io.passo; if(!p || p==="d1" || !io.mestiere || !ORDINE_DOMANDE.includes(p)) return false;
+  const b=io.bozza||{};
+  perMestiere(io.mestiere);
+  Object.assign(risposte,{mestiere:io.mestiere, tempo:b.tempo||io.tempo||"", dettaglio:b.dettaglio||"", prezzo:typeof b.prezzo==="number"?b.prezzo:15});
+  const segna=(sel,val)=>document.querySelectorAll(sel).forEach(x=>x.setAttribute("aria-pressed",String(x.textContent.trim()===val)));
+  segna('.scelte[data-campo="mestiere"] .scelta', risposte.mestiere);
+  segna('.scelte[data-campo="tempo"] .scelta', risposte.tempo); $("avanti2").disabled=!risposte.tempo;
+  $("dettaglio").value=risposte.dettaglio; $("prezzo").value=risposte.prezzo; $("valore").textContent=risposte.prezzo;
+  scelti.clear();
+  (b.voti||[]).forEach(v=>{ const x=[...document.querySelectorAll("#progetti .scelta")].find(y=>y.textContent.trim()===v); if(x){ scelti.add(v); x.setAttribute("aria-pressed","true"); } });
+  $("proposta").value=b.proposta||""; $("avanti5").disabled=!(scelti.size||$("proposta").value.trim());
+  ORDINE_DOMANDE.forEach(k=>{ const d=$(k); d.classList.toggle("aperta", k===p);
+    d.classList.toggle("fatta", ORDINE_DOMANDE.indexOf(k)<ORDINE_DOMANDE.indexOf(p)); });
+  $("tocca").hidden=true; $("continua").setAttribute("href","#"+p);
+  return true;
+}
+
 async function manda(conMail){
   const esito=$("esito"); esito.className="avviso";
   const corpo = {...risposte, dettaglio: $("dettaglio").value.trim(), messaggio: "", voti:[...scelti], proposta: $("proposta").value.trim(), sito: $("sito").value, nome_assistente: io.nome||"", tema: io.tema||"tech", chi: io.id||""};
@@ -874,7 +906,7 @@ async function manda(conMail){
     esito.textContent = conMail ? "Ricevuto. Quando serve, ti rispondo anche per mail." : "Ricevuto. Grazie: il tuo numero entra nel conto.";
     // mandate le risposte, il sondaggio se ne va: resta la chat, e Nova dice «ricevuto»
     setTimeout(()=>{ mostraSondaggio(false); if($("tocca")) $("tocca").hidden=true; benvenuto(true); $("parla").hidden=false; bolla("io", esito.textContent); }, 1200);
-    io.inviato=true; io.mestiere=risposte.mestiere||io.mestiere||""; io.tempo=risposte.tempo||io.tempo||"";
+    io.inviato=true; delete io.passo; delete io.bozza; io.mestiere=risposte.mestiere||io.mestiere||""; io.tempo=risposte.tempo||io.tempo||"";
     if(conMail){ io.mail=corpo.mail; if(corpo.nome) io.tuo=io.tuo||corpo.nome; } salva();
     const libero=[corpo.proposta, corpo.dettaglio].filter(Boolean).join("\n");
     if(libero){ parla(libero,"sondaggio").then(ok=>{ if(ok){ esito.textContent += " A quello che mi hai scritto ti rispondo nella chat qui sotto, appena posso."; } }); }
@@ -1164,7 +1196,7 @@ function benvenuto(tornato){
   } else if(!io.inviato){
     $("saluto").textContent=`Ciao${tu}.`;
     $("saluto2").textContent = io.mestiere ? "Eravamo a metà: riprendiamo da dove ci eravamo fermati." : "L'altra volta non mi hai ancora detto che lavoro fai. Riprendiamo da lì.";
-    $("continua").hidden=false; mostraSondaggio(true);
+    $("continua").hidden=false; mostraSondaggio(true); riprendi();
   } else {
     $("saluto").textContent=`Ciao${tu}.`;
     const l=LAVORO[io.mestiere]; const t=io.tempo?io.tempo.toLowerCase():"";
