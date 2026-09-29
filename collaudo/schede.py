@@ -297,7 +297,12 @@ async def main():
         await pg2.click("#d2 .scelta >> nth=0"); await pg2.click("#avanti2"); await pg2.wait_for_timeout(250)
         await pg2.click("#avanti3"); await pg2.wait_for_timeout(250)
         await pg2.click("#d5 .scelta >> nth=0"); await pg2.click("#avanti5"); await pg2.wait_for_timeout(250)
-        await pg2.click("#senza"); await pg2.wait_for_timeout(1800)
+        t4=await pg2.inner_text("#d4")
+        ok("Come ti chiami" not in t4 and not await pg2.evaluate("document.querySelector('#nome').type!=='hidden'"), "l'ultima domanda non richiede il nome: l'ha già detto all'inizio")
+        ok("Parla con" not in t4 and "si apre appena mandi" in t4, "e non rimanda più a «Parla con», che non c'è")
+        await pg2.fill("#mail","jacopo@esempio.it"); await pg2.check("#ok"); await pg2.click("#manda"); await pg2.wait_for_timeout(1800)
+        inv4=[d for (r,d) in inviati if d.get("mail")=="jacopo@esempio.it"]
+        ok(inv4 and inv4[-1].get("nome")=="Jacopo", "con la mail parte il nome detto all'inizio")
         rimaste=await pg2.evaluate("[...document.querySelectorAll('#p-inizia .domanda, #tocca')].filter(x=>x.offsetParent!==null && x.id!=='benvenuto').map(x=>x.id)")
         ok(rimaste==[], f"mandate le risposte, il sondaggio se ne va tutto ({rimaste})")
         ok("Ricevuto" in (await pg2.inner_text("#chat")), "e Nova dice «Ricevuto» nella chat")

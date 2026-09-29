@@ -400,9 +400,10 @@ body.con-nome[data-scheda="inizia"] #esito-chat{margin:6px 0 0}
 
   <section class="etichetta domanda" id="d4" aria-labelledby="t4">
     <h2 id="t4">Ultima cosa: vuoi che ti scriva?</h2>
-    <p class="piccolo">Ti scrivo quando c'è qualcosa da provare per il tuo lavoro e, quando serve, ti rispondo anche per mail. Domande e idee scrivile qui sotto, in «Parla con».</p>
-    <label for="nome">Come ti chiami</label>
-    <input type="text" id="nome" maxlength="60" autocomplete="given-name">
+    <p class="piccolo">Ti scrivo quando c'è qualcosa da provare per il tuo lavoro e, quando serve, ti rispondo anche per mail. Domande e idee me le scrivi nella chat, che si apre appena mandi le risposte.</p>
+    <!-- 29/9, JJ: «come ti chiami lo abbiamo già chiesto, a questo punto non
+         serve più». Il nome detto all'inizio (io.tuo) va da solo con la mail. -->
+    <input type="hidden" id="nome">
     <label for="mail">La tua mail</label>
     <input type="email" id="mail" maxlength="120" autocomplete="email">
     <label class="consenso"><input type="checkbox" id="ok"> <span>JJA-VIS può scrivermi a questa mail. Nome e mail non vanno a nessun altro. <a href="#dati">Come tratto i tuoi dati</a></span></label>
@@ -856,7 +857,7 @@ async function manda(conMail){
     const mail=$("mail").value.trim();
     if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(mail)){ esito.classList.add("errore"); esito.textContent="La mail non sembra completa: controlla la parte dopo la chiocciola."; return; }
     if(!$("ok").checked){ esito.classList.add("errore"); esito.textContent="Per scriverti mi serve la spunta sul consenso."; return; }
-    corpo.nome=$("nome").value.trim(); corpo.mail=mail; corpo.consenso=true;
+    corpo.nome=(io.tuo||$("nome").value||"").trim(); corpo.mail=mail; corpo.consenso=true;
   }
   if(!INVIO){ esito.textContent="Anteprima: qui la risposta verrebbe mandata. Non è partito niente."; return; }
   $("manda").disabled=$("senza").disabled=true;
