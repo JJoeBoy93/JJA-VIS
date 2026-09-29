@@ -768,6 +768,7 @@ function apri(id){ const d=$(id); if(d.classList.contains("aperta")) return;
   if(id==="d2" && $("tocca")) $("tocca").hidden=true;
   d.classList.add("aperta");
   if(/^d\d$/.test(id)){ io.passo=id; ricordaBozza(); }
+  if(id==="o2"||id==="o3"){ io.inizio=id; salva(); }
   // i primi passi si aprono dall'alto: sfera sopra, pulsante in vista (JJ, 29/9)
   if(/^o\d$/.test(id)){ window.scrollTo({top:0, behavior:"auto"}); return; }
   d.scrollIntoView({behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block:"start"}); }
@@ -1170,6 +1171,7 @@ function mostraSondaggio(mostra){
 const PASSO_SALUTO = 900;   // ms fra saluto, sfera che sale, «Adesso imparo te», «Che lavoro fai?»
 function benvenuto(tornato){
   const tu=io.tuo?`, ${io.tuo}`:"";
+  if(io.inizio){ delete io.inizio; salva(); }
   document.body.classList.add("con-nome");
   // 29/9, JJ: «la chat per scrivere deve comparire alla fine, quando ho finito il
   // questionario, senó c'è sempre in mezzo il pulsante manda che confonde»
@@ -1208,8 +1210,12 @@ function benvenuto(tornato){
 }
 if(!io.id){ io.id=[...crypto.getRandomValues(new Uint8Array(8))].map(x=>x.toString(16).padStart(2,"0")).join(""); salva(); }
 if(io.tema) applicaTema(io.tema);
+// 29/9, JJ: «anche all'inizio… se ricarichi ti salti le altre 2 impostazioni».
+// Finché colore e «come ti chiami» non sono fatti, si riparte da lì (io.inizio).
 if(io.nome){
-  applicaNome(io.nome); $("o1").hidden=true; benvenuto(true);
+  applicaNome(io.nome); $("o1").hidden=true;
+  if(io.inizio==="o2"||io.inizio==="o3") $(io.inizio).classList.add("aperta");
+  else benvenuto(true);
 }
 let nomeScelto="";
 $("nomi").addEventListener("click", e=>{

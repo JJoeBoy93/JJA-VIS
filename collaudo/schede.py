@@ -287,7 +287,11 @@ async def main():
         await pg2.click("#nomi .scelta >> text=Nova"); await pg2.click("#avanti-o1"); await pg2.wait_for_timeout(250)
         grande=await pg2.evaluate("getComputedStyle(document.querySelector('.testa')).position!=='fixed' && document.querySelector('#globo').getBoundingClientRect().width>90 && Math.abs(document.querySelector('#globo').getBoundingClientRect().left+document.querySelector('#globo').getBoundingClientRect().width/2-innerWidth/2)<4")
         ok(grande, "scelto il nome, la sfera resta grande al centro: si fa piccola solo col saluto")
+        await pg2.reload(); await pg2.wait_for_timeout(500)
+        ok(await vede("#o2") and not await vede("#benvenuto") and not await vede("#o1"), "ricaricato dopo il nome: si riparte da «Come mi vuoi vedere?», non si salta")
         await pg2.click("#avanti-o2"); await pg2.wait_for_timeout(250)
+        await pg2.reload(); await pg2.wait_for_timeout(500)
+        ok(await vede("#o3") and not await vede("#benvenuto"), "ricaricato dopo il colore: si riparte da «E tu come ti chiami?»")
         await pg2.fill("#tuo-nome","Jacopo"); await pg2.click("#avanti-o3"); await pg2.wait_for_timeout(250)
         subito=await pg2.evaluate("""(()=>{const t=document.querySelector('#benvenuto').innerText;return {
           ordine: t.indexOf('Mi ricordo')>=0 && t.indexOf('Mi ricordo')<t.indexOf('scorrendo a destra'), scopri: t.includes('lo scopri scorrendo a destra'),
