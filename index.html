@@ -190,6 +190,31 @@ body.con-nome .nome{font-size:26px;margin:0;min-width:0}
 body.con-nome #nome-testata{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 body.con-nome .nome small{font-size:11px;margin-top:3px;letter-spacing:.16em}
 body.con-nome main{padding-top:calc(env(safe-area-inset-top,0px) + 88px)}
+/* ══ NOVA È UNA CHAT, COME JARVIS — 29 settembre ══ JJ: «la pagina iniziale
+   dove ci parli deve avere la chat come Jarvis». Sulla scheda del nome, a nome
+   scelto: il saluto è il primo messaggio di Nova, i pannelli spariscono, la
+   casella sta in basso sopra le schede. Resta, piccola, la frase onesta: le
+   risposte non sono automatiche. */
+body.con-nome[data-scheda="inizia"] #benvenuto{max-width:88%;padding:12px 14px;border:1px solid var(--bordo);
+  background:color-mix(in srgb,var(--accento) 8%,var(--panel));margin:4px 0 12px}
+body.con-nome[data-scheda="inizia"] #benvenuto::before,body.con-nome[data-scheda="inizia"] #benvenuto::after,
+body.con-nome[data-scheda="inizia"] #parla::before,body.con-nome[data-scheda="inizia"] #parla::after{display:none}
+body.con-nome[data-scheda="inizia"] #benvenuto .dice{font-size:17px;line-height:1.4}
+body.con-nome[data-scheda="inizia"] #salto-parla{display:none}
+body.con-nome[data-scheda="inizia"] #conosci-domanda{font-size:20px!important;margin:10px 0!important}
+body.con-nome[data-scheda="inizia"] #parla{background:none;border:0;padding:0;margin:0}
+body.con-nome[data-scheda="inizia"] #tp{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+body.con-nome[data-scheda="inizia"] .spiega-chat{font-size:13px;text-align:center;color:var(--tenue);margin:8px 12px 4px;opacity:.85}
+body.con-nome[data-scheda="inizia"] .chat{max-height:none;overflow:visible}
+body.con-nome[data-scheda="inizia"] .barra-chat{position:fixed;left:0;right:0;bottom:var(--alto-schede,72px);z-index:19;
+  display:flex;gap:8px;align-items:flex-end;
+  padding:8px max(16px,calc((100% - 560px)/2 + 16px));
+  background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  border-top:1px solid var(--bordo)}
+body.con-nome[data-scheda="inizia"] .barra-chat textarea{flex:1;min-height:48px;max-height:120px;margin:0;resize:none;font-size:16px}
+body.con-nome[data-scheda="inizia"] .barra-chat .invia{width:auto;margin:0;padding:0 18px;height:48px;font-size:15px}
+body.con-nome[data-scheda="inizia"] main{padding-bottom:calc(var(--alto-schede,72px) + 96px)}
+body.con-nome[data-scheda="inizia"] #esito-chat{margin:6px 0 0}
 .numeri{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
 .numeri div{border:1px solid var(--bordo);padding:10px 12px}
 .numeri b{display:block;font:700 30px/1.05 var(--f-titoli);color:var(--oro)}
@@ -279,7 +304,7 @@ body.con-nome main{padding-top:calc(env(safe-area-inset-top,0px) + 88px)}
     </div>
     <p class="dice" id="conosci-fine" hidden>Di te so già parecchio. Se vuoi dirmi altro, parlami.</p>
     <a class="salto" id="continua" href="#tocca" hidden>Continuiamo ↓</a>
-    <a class="salto" href="#parla" style="margin-left:14px">Parlami ↓</a>
+    <a class="salto" id="salto-parla" href="#parla" style="margin-left:14px">Parlami ↓</a>
     <a class="salto" href="#chi-sono" style="margin-left:14px">Cosa so fare →</a>
     <p class="piccolo" style="margin-top:16px">Mi ricordo di te solo su questo telefono. Nome e colore li cambi nel <a href="#profilo">Profilo</a>.</p>
   </section>
@@ -368,11 +393,13 @@ body.con-nome main{padding-top:calc(env(safe-area-inset-top,0px) + 88px)}
 
   <section class="etichetta" id="parla" aria-labelledby="tp">
     <h2 id="tp" style="font-size:28px">Parla con <span class="chi">JJA-VIS</span></h2>
-    <p class="piccolo">Chiedimi quello che vuoi, sul tuo lavoro o su di me. Non rispondo in automatico: ogni risposta la scelgo con chi mi costruisce, e compare qui da sola. Se mi lasci la mail nel <a href="#profilo-mail">Profilo</a>, quando serve arriva anche lì.</p>
+    <p class="piccolo spiega-chat">Chiedimi quello che vuoi, sul tuo lavoro o su di me. Non rispondo in automatico: ogni risposta la scelgo con chi mi costruisce, e compare qui da sola. Se mi lasci la mail nel <a href="#profilo-mail">Profilo</a>, quando serve arriva anche lì.</p>
     <div id="chat" class="chat" aria-live="polite"></div>
-    <label for="scrivi" class="nascosto">Scrivimi</label>
-    <textarea id="scrivi" maxlength="800" placeholder="Per esempio: in cosa potresti aiutarmi nel mio lavoro?"></textarea>
-    <button class="invia" id="manda-chat">Manda</button>
+    <div class="barra-chat" id="barra-chat">
+      <label for="scrivi" class="nascosto">Scrivimi</label>
+      <textarea id="scrivi" maxlength="800" placeholder="Scrivimi…"></textarea>
+      <button class="invia" id="manda-chat">Manda</button>
+    </div>
     <p class="avviso" id="esito-chat" role="status"></p>
   </section>
 
@@ -816,7 +843,10 @@ $("senza").addEventListener("click", ()=>manda(false));
 // alla porta (/risposte) all'apertura e ogni 30 secondi per 10 minuti.
 function bolla(chi, testo, attesa){ const b=document.createElement("div"); b.className="bolla "+chi; b.textContent=testo;
   if(attesa){ const x=document.createElement("small"); x.className="attesa"; x.textContent="ti rispondo appena posso"; b.appendChild(x); }
-  $("chat").appendChild(b); $("chat").scrollTop=$("chat").scrollHeight; return b; }
+  $("chat").appendChild(b); $("chat").scrollTop=$("chat").scrollHeight;
+  // come JARVIS: l'ultimo messaggio resta in vista sopra la casella
+  if(document.body.classList.contains("con-nome") && document.body.dataset.scheda==="inizia") requestAnimationFrame(()=>window.scrollTo(0, document.body.scrollHeight));
+  return b; }
 function ridisegnaChat(){ $("chat").innerHTML=""; (io.chat||[]).forEach(m=>bolla(m.ruolo, m.testo, m.ruolo==="tu" && m.attesa)); }
 let parlando=false;
 async function parla(testo, daDove){
@@ -1155,9 +1185,13 @@ function vaiA(nome, verso, bersaglio){
   if(nome==="inizia") $("s-inizia").classList.remove("nuovo");
   aggiornaProfilo();
   if(bersaglio) requestAnimationFrame(()=>bersaglio.scrollIntoView({block:"start"}));
+  else if(nome==="inizia" && io.nome && (io.chat||[]).length) requestAnimationFrame(()=>window.scrollTo(0, document.body.scrollHeight));
   else window.scrollTo(0, prima ? (posizioni[nome]||0) : 0);
 }
 const barra=document.querySelector(".schede");
+// la casella della chat sta sopra le schede: quanto sono alte lo dice la barra
+function altoSchede(){ document.documentElement.style.setProperty("--alto-schede", barra.offsetHeight+"px"); }
+altoSchede(); window.addEventListener("resize", altoSchede);
 function bordiBarra(){
   barra.classList.toggle("piu-sx", barra.scrollLeft>4);
   barra.classList.toggle("piu-dx", barra.scrollLeft+barra.clientWidth < barra.scrollWidth-4);

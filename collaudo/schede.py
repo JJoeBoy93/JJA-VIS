@@ -264,6 +264,20 @@ async def main():
             ok(t["pos"]=="fixed" and t["top"]<=1 and t["gx"]<40 and t["nome"]=="Nova" and t["sotto"]=="il tuo JJA-VIS", f"{sch}: testata fissa in alto anche scorrendo, globo a sinistra, «Nova» e «il tuo JJA-VIS»")
         coperto=await pg2.evaluate("(()=>{window.scrollTo(0,0);const t=document.querySelector('.testa').getBoundingClientRect().bottom;const p=document.querySelector('.pannello.attivo .etichetta');return p.getBoundingClientRect().top<t})()")
         ok(not coperto, "la testata non copre il primo pannello")
+        print("── Nova è una chat, come JARVIS (29 settembre)")
+        await pg2.evaluate("localStorage.setItem(CHIAVE, JSON.stringify({nome:'Nova',tema:'tech',id:'x1',tuo:'Jacopo',inviato:true,mestiere:'Corriere o autista',tempo:'Preventivi, conti, fatture',chat:[{ruolo:'tu',testo:'Come mi potresti aiutare?'},{ruolo:'io',testo:'Ultima risposta di prova'}]}))")
+        await pg2.goto(BASE+"#inizia"); await pg2.reload(); await pg2.wait_for_timeout(700)
+        c=await pg2.evaluate("""(()=>{const b=document.querySelector('#barra-chat').getBoundingClientRect(), n=document.querySelector('.schede').getBoundingClientRect();
+          const bolle=[...document.querySelectorAll('#chat .bolla')], u=bolle[bolle.length-1].getBoundingClientRect();
+          return {pos:getComputedStyle(document.querySelector('#barra-chat')).position, sopra:Math.abs(b.bottom-n.top)<=1,
+            titolo:document.querySelector('#tp').getBoundingClientRect().height>2, ultima:u.bottom<=b.top+1 && u.top>=0,
+            spiega:getComputedStyle(document.querySelector('.spiega-chat')).display!=='none'}})()""")
+        ok(c["pos"]=="fixed" and c["sopra"], "la casella è fissa in basso, appoggiata sopra le schede")
+        ok(not c["titolo"], "niente titolo «Parla con»: la chat è la pagina")
+        ok(c["ultima"], "aprendo Nova si vede l'ultimo messaggio, sopra la casella")
+        ok(c["spiega"], "resta la frase onesta: le risposte non sono automatiche")
+        await pg2.goto(BASE+"#bottega"); await pg2.wait_for_timeout(300)
+        ok(not await pg2.is_visible("#barra-chat"), "sulle altre schede la casella non c'è")
         await pg2.close()
         print("── errori JavaScript:", errori or "nessuno")
         ok(not errori, "zero errori in tutta la prova")
