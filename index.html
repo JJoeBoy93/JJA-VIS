@@ -175,6 +175,21 @@ body:not([data-scheda="inizia"]) #globo{width:92px;height:92px}
 body:not([data-scheda="inizia"]) .nome{font-size:26px}
 body:not([data-scheda="inizia"]) .nome small{margin-top:4px}
 body:not([data-scheda="inizia"]) .testa{margin-bottom:12px}
+/* ══ LA TESTATA DI JARVIS — 29 settembre ══ JJ: «il globo che resta in alto a
+   sinistra, il nome che viene scelto accanto al globo e sotto più piccolo il
+   tuo JJAVIS, linea che resta in tutte le pagine fissa come header». Finché
+   il nome non c'è, il globo resta grande al centro: è la prima cosa che si vede.
+   Da quando c'è, la testata è una riga fissa in alto, su ogni scheda. */
+body.con-nome .testa{position:fixed;top:0;left:0;right:0;z-index:21;margin:0;text-align:left;
+  display:flex;align-items:center;gap:12px;
+  padding:calc(env(safe-area-inset-top,0px) + 8px) max(16px,calc((100% - 560px)/2 + 16px)) 8px;
+  background:color-mix(in srgb,var(--bg) 90%,transparent);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  border-bottom:1px solid var(--bordo)}
+body.con-nome #globo{width:54px;height:54px;margin:0;flex:0 0 auto}
+body.con-nome .nome{font-size:26px;margin:0;min-width:0}
+body.con-nome #nome-testata{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+body.con-nome .nome small{font-size:11px;margin-top:3px;letter-spacing:.16em}
+body.con-nome main{padding-top:calc(env(safe-area-inset-top,0px) + 88px)}
 .numeri{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
 .numeri div{border:1px solid var(--bordo);padding:10px 12px}
 .numeri b{display:block;font:700 30px/1.05 var(--f-titoli);color:var(--oro)}
@@ -996,6 +1011,7 @@ function applicaNome(n){
   document.querySelectorAll(".chi").forEach(x=>x.textContent=nome);
   document.title = n ? `${n} — il tuo JJA-VIS` : "JJA-VIS — il tuo nuovo assistente personale";
   $("et-inizia").textContent = io.nome ? io.nome : "Inizia";
+  document.body.classList.toggle("con-nome", !!n);
 }
 // ══ CHI TORNA ══ JJ, 25 settembre: «non deve dirmi me lo ricordavo: se dice
 // il nome lo vedo già. Il resto deve adattarsi come se sa chi sono, farmi
