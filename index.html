@@ -757,7 +757,9 @@ function apri(id){ const d=$(id); if(d.classList.contains("aperta")) return;
   // ognuno col suo gruppo: i passi del benvenuto (o1-o3) e le domande (d1-d5)
   const gruppo = /^o\d$/.test(id) ? "#o1,#o2,#o3" : /^d\d$/.test(id) ? "#d1,#d2,#d3,#d4,#d5" : "";
   if(gruppo) document.querySelectorAll(gruppo).forEach(prima=>{ if(prima===d || !prima.classList.contains("aperta")) return;
-    prima.querySelectorAll(".risposta:not([hidden])").forEach(r=>{ if(!r.textContent.trim()) return;
+    // solo la risposta di QUEL passo, non quella che si era portato dietro (JJ, 29/9:
+    // «il bene, adesso la parte che mi interessa davvero… l'ha già scritto nella prima»)
+    prima.querySelectorAll(".risposta:not([hidden]):not(.da-prima)").forEach(r=>{ if(!r.textContent.trim()) return;
       const c=r.cloneNode(true); c.removeAttribute("id"); c.classList.add("da-prima"); d.insertBefore(c, d.firstElementChild); });
     prima.classList.remove("aperta"); prima.classList.add("fatta"); });
   if(id==="d2" && $("tocca")) $("tocca").hidden=true;

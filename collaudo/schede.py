@@ -307,6 +307,7 @@ async def main():
         visibili=await pg2.evaluate("[...document.querySelectorAll('#p-inizia .domanda')].filter(x=>x.offsetParent!==null && x.id!=='benvenuto').map(x=>x.id)")
         ok(visibili==["d2"], f"sulla pagina c'è solo la domanda di adesso ({visibili})")
         await pg2.click("#d2 .scelta >> nth=0"); await pg2.click("#avanti2"); await pg2.wait_for_timeout(250)
+        ok("interessa davvero" not in await pg2.inner_text("#d3"), "alla domanda del prezzo «Bene. Adesso la parte che mi interessa davvero» non si ripete")
         await pg2.click("#avanti3"); await pg2.wait_for_timeout(250)
         await pg2.click("#d5 .scelta >> nth=0"); await pg2.click("#avanti5"); await pg2.wait_for_timeout(250)
         t4=await pg2.inner_text("#d4")
