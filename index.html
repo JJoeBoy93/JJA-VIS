@@ -1146,7 +1146,10 @@ const CONOSCERTI=[
 function prossimaDomanda(){ io.conosciute=io.conosciute||{}; return CONOSCERTI.find(q=>!(q.k in io.conosciute)); }
 function mostraDomanda(){
   const q=prossimaDomanda(); const box=$("conosci");
-  if(!q){ box.hidden=true; $("conosci-fine").hidden=false; return; }
+  // 29/9, JJ: «quando finisco le domande deve sparire la scritta oggi voglio
+  // sapere una cosa in più, anche senza ricaricare»
+  if(!q){ box.hidden=true; $("conosci-fine").hidden=false;
+    $("saluto2").textContent=$("saluto2").textContent.replace(/\s*Oggi voglio sapere una cosa in più\./,"").trim(); return; }
   $("conosci-fine").hidden=true;
   $("conosci-domanda").textContent=q.d; const sc=$("conosci-scelte"); sc.innerHTML="";
   q.s.forEach(t=>{ const b=document.createElement("button"); b.className="scelta"; b.setAttribute("aria-pressed","false"); b.textContent=t; sc.appendChild(b); });
