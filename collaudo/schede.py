@@ -274,6 +274,9 @@ async def main():
             spiega:getComputedStyle(document.querySelector('.spiega-chat')).display!=='none'}})()""")
         ok(c["pos"]=="fixed" and c["sopra"], "la casella è fissa in basso, appoggiata sopra le schede")
         ok(not c["titolo"], "niente titolo «Parla con»: la chat è la pagina")
+        ordine=await pg2.evaluate("""(()=>{const y=id=>document.getElementById(id).getBoundingClientRect().top;
+          return y('saluto')<y('ricordo') && y('ricordo')<y('salto-cosa') && y('salto-cosa')<y('saluto2')})()""")
+        ok(ordine, "chi torna: saluto, poi «Mi ricordo di te», poi «Cosa so fare →», poi il resto")
         ok(c["ultima"], "aprendo Nova si vede l'ultimo messaggio, sopra la casella")
         ok(c["spiega"], "resta la frase onesta: le risposte non sono automatiche")
         await pg2.goto(BASE+"#bottega"); await pg2.wait_for_timeout(300)
@@ -291,6 +294,8 @@ async def main():
           fissa: getComputedStyle(document.querySelector('.testa')).position==='fixed',
           tocca: document.querySelector('#tocca').offsetParent!==null, d1: document.querySelector('#d1').offsetParent!==null}})()""")
         ok(subito["ordine"] and subito["scopri"], "il saluto: «Mi ricordo di te… nel Profilo» sta sopra «Cosa so già fare lo scopri scorrendo a destra»")
+        ok(await pg2.evaluate("(()=>{const y=id=>document.getElementById(id).getBoundingClientRect().top;return y('saluto')<y('ricordo')&&y('ricordo')<y('scopri')&&y('scopri')<y('salto-cosa')})()"), "primo saluto: saluto, «Mi ricordo», «lo scopri scorrendo a destra», «Cosa so fare →»")
+        ok(await pg2.inner_text("#avanti-o1")=="Salva" and await pg2.inner_text("#avanti-o2")=="Salva" and await pg2.inner_text("#avanti3")=="Vai avanti", "pulsanti: «Salva», «Salva», «Vai avanti» (JJ, 29/9)")
         ok(not subito["fissa"] and not subito["tocca"] and not subito["d1"], "non compare tutto insieme: prima solo il saluto, la sfera ancora grande")
         await pg2.wait_for_timeout(900)
         ok(await pg2.evaluate("getComputedStyle(document.querySelector('.testa')).position")=="fixed" and not await vede("#tocca"), "poi la sfera e il nome vanno su")
@@ -331,7 +336,7 @@ async def main():
             await p3.click("#nomi .scelta >> text=Nova"); a1=await in_vista("#avanti-o1")
             await p3.click("#avanti-o1"); await p3.wait_for_timeout(300); await p3.click('.tema[data-tema="naturale"]'); await p3.wait_for_timeout(200); a2=await in_vista("#avanti-o2")
             await p3.click("#avanti-o2"); await p3.wait_for_timeout(300); a3=await in_vista("#salta-o3")
-            ok(a1 and a2 and a3, f"{w}x{h}: «Ti chiamo così», «Mi piaccio così», «Piacere / Preferisco non dirlo» in vista senza scorrere, con la sfera sopra")
+            ok(a1 and a2 and a3, f"{w}x{h}: «Salva», «Salva», «Piacere / Preferisco non dirlo» in vista senza scorrere, con la sfera sopra")
             await c3.close()
         print("── errori JavaScript:", errori or "nessuno")
         ok(not errori, "zero errori in tutta la prova")

@@ -296,7 +296,7 @@ body.con-nome[data-scheda="inizia"] #esito-chat{margin:6px 0 0}
     </div>
     <label for="sigla">Oppure scrivilo tu</label>
     <input type="text" id="sigla" name="sigla-assistente" maxlength="20" autocomplete="off" autocapitalize="words" spellcheck="false" data-lpignore="true" data-1p-ignore data-form-type="other">
-    <button class="invia" id="avanti-o1" disabled>Ti chiamo così</button>
+    <button class="invia" id="avanti-o1" disabled>Salva</button>
   </section>
 
   <section class="etichetta domanda" id="o2" aria-labelledby="to2">
@@ -309,7 +309,7 @@ body.con-nome[data-scheda="inizia"] #esito-chat{margin:6px 0 0}
       <button class="tema" data-tema="deciso" aria-pressed="false"><span class="campioni"><i style="background:#0E0E0E"></i><i style="background:#FF5A1F"></i><i style="background:#FFC53D"></i></span><b>Deciso</b><small>nero e arancio, energia</small></button>
       <button class="tema" data-tema="naturale" aria-pressed="false"><span class="campioni"><i style="background:#08130E"></i><i style="background:#34D399"></i><i style="background:#FBBF24"></i></span><b>Naturale</b><small>verde bosco e oro</small></button>
     </div>
-    <button class="invia" id="avanti-o2">Mi piaccio così</button>
+    <button class="invia" id="avanti-o2">Salva</button>
   </section>
 
   <section class="etichetta domanda" id="o3" aria-labelledby="to3">
@@ -320,7 +320,12 @@ body.con-nome[data-scheda="inizia"] #esito-chat{margin:6px 0 0}
   </section>
 
   <section class="etichetta domanda" id="benvenuto">
+    <!-- 29/9, JJ: «cosa so fare va sotto a mi ricordo di te che va sotto al
+         saluto, si spostano in tutte le fasi». L'ordine sta qui, fisso. -->
     <p class="dice" id="saluto"></p>
+    <p class="piccolo" id="ricordo" style="margin:10px 0">Mi ricordo di te solo su questo telefono. Nome e colore li cambi nel <a href="#profilo">Profilo</a>.</p>
+    <p class="dice" id="scopri" hidden>Cosa so già fare lo scopri scorrendo a destra.</p>
+    <a class="salto" id="salto-cosa" href="#chi-sono" style="margin:0 0 14px">Cosa so fare →</a>
     <p class="dice" id="saluto2"></p>
     <div id="conosci" hidden>
       <h2 id="conosci-domanda" style="font-size:26px;margin:12px 0 12px"></h2>
@@ -330,8 +335,6 @@ body.con-nome[data-scheda="inizia"] #esito-chat{margin:6px 0 0}
     <p class="dice" id="conosci-fine" hidden>Di te so già parecchio. Se vuoi dirmi altro, parlami.</p>
     <a class="salto" id="continua" href="#tocca" hidden>Continuiamo ↓</a>
     <a class="salto" id="salto-parla" href="#parla" style="margin-left:14px">Parlami ↓</a>
-    <a class="salto" href="#chi-sono" style="margin-left:14px">Cosa so fare →</a>
-    <p class="piccolo" id="ricordo" style="margin-top:16px">Mi ricordo di te solo su questo telefono. Nome e colore li cambi nel <a href="#profilo">Profilo</a>.</p>
   </section>
 
   <div id="resto" hidden>
@@ -379,7 +382,7 @@ body.con-nome[data-scheda="inizia"] #esito-chat{margin:6px 0 0}
       <input type="range" id="prezzo" min="0" max="100" step="1" value="15" aria-describedby="estremi" aria-label="Quanto varrebbe al mese, in euro">
       <div class="estremi" id="estremi"><span>0 · non lo userei</span><span>100 €</span></div>
     </div>
-    <button class="invia" id="avanti3">Questo è il mio numero</button>
+    <button class="invia" id="avanti3">Vai avanti</button>
   </section>
 
   <section class="etichetta domanda" id="d5" aria-labelledby="t5">
@@ -1143,15 +1146,14 @@ function benvenuto(tornato){
   ["o2","o3"].forEach(k=>{ const x=$(k); if(x && x.classList.contains("aperta")){ x.classList.remove("aperta"); x.classList.add("fatta"); } });
   if(io.tuo && !$("nome").value) $("nome").value=io.tuo;
   if(io.mail && !$("mail").value) $("mail").value=io.mail;
-  $("continua").hidden=true; $("conosci").hidden=true; $("conosci-fine").hidden=true; $("saluto2").textContent="";
+  $("continua").hidden=true; $("conosci").hidden=true; $("conosci-fine").hidden=true; $("saluto2").textContent=""; $("scopri").hidden=true;
   if(!tornato){
     $("saluto").textContent = io.tuo ? `Piacere${tu}. Da adesso sono ${io.nome}, solo per te.` : `Da adesso sono ${io.nome}, solo per te.`;
     // 29/9, JJ: saluta, «mi ricordo di te… nel Profilo» passa sopra a «cosa so
     // fare lo scopri scorrendo a destra», la sfera e il nome vanno su, e «non
     // deve comparire tutto insieme: prima adesso imparo te, dopo qualche
     // istante compare che lavoro fai».
-    $("saluto2").textContent="Cosa so già fare lo scopri scorrendo a destra.";
-    $("saluto").after($("ricordo")); $("ricordo").style.margin="10px 0";
+    $("scopri").hidden=false;
     mostraSondaggio(true); $("tocca").hidden=true; $("d1").hidden=true; $("parla").hidden=true;
     document.body.classList.remove("con-nome");
     $("benvenuto").classList.add("aperta"); $("resto").hidden=false;
