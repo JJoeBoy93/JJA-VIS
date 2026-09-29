@@ -192,6 +192,27 @@ body.con-nome .nome{font-size:26px;margin:0;min-width:0}
 body.con-nome #nome-testata{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 body.con-nome .nome small{font-size:11px;margin-top:3px;letter-spacing:.16em}
 body.con-nome main{padding-top:calc(env(safe-area-inset-top,0px) + 88px)}
+/* ══ I PRIMI TRE PASSI STANNO IN UNO SCHERMO — 29 settembre ══ JJ: «non devo
+   scorrere in basso per cercare i pulsanti di conferma, riduci gli spazi».
+   Finché non c'è il saluto: sfera più piccola, titoli e pannelli più stretti,
+   e ogni passo si apre dall'alto, con la sfera sopra e il pulsante in vista. */
+body:not(.con-nome) .testa{margin:0 0 10px}
+body:not(.con-nome) #globo{width:108px;height:108px}
+body:not(.con-nome) .nome{font-size:30px}
+body:not(.con-nome) .nome small{margin-top:4px;font-size:12px}
+body:not(.con-nome) #o1,body:not(.con-nome) #o2,body:not(.con-nome) #o3{padding:14px 14px 16px}
+body:not(.con-nome) #o1 .dice,body:not(.con-nome) #o2 .dice{font-size:17px;margin:0 0 2px}
+body:not(.con-nome) #to1,body:not(.con-nome) #to2,body:not(.con-nome) #to3{font-size:24px!important;margin:4px 0 4px!important}
+body:not(.con-nome) #o1 .piccolo,body:not(.con-nome) #o2 .piccolo{font-size:15px;margin:0}
+body:not(.con-nome) #nomi{margin-top:10px!important;gap:6px}
+body:not(.con-nome) #nomi .scelta{padding:9px 12px;font-size:16px}
+body:not(.con-nome) #o1 label{margin-top:10px}
+body:not(.con-nome) .temi{gap:8px;margin-top:8px}
+body:not(.con-nome) .tema{padding:8px 10px}
+body:not(.con-nome) .tema b{font-size:16px}
+body:not(.con-nome) .tema small{font-size:13px;line-height:1.3}
+body:not(.con-nome) #o1 .invia,body:not(.con-nome) #o2 .invia,body:not(.con-nome) #o3 .invia{margin-top:12px;padding:12px}
+
 /* ══ NOVA È UNA CHAT, COME JARVIS — 29 settembre ══ JJ: «la pagina iniziale
    dove ci parli deve avere la chat come Jarvis». Sulla scheda del nome, a nome
    scelto: il saluto è il primo messaggio di Nova, i pannelli spariscono, la
@@ -738,6 +759,8 @@ function apri(id){ const d=$(id); if(d.classList.contains("aperta")) return;
     prima.classList.remove("aperta"); prima.classList.add("fatta"); });
   if(id==="d2" && $("tocca")) $("tocca").hidden=true;
   d.classList.add("aperta");
+  // i primi passi si aprono dall'alto: sfera sopra, pulsante in vista (JJ, 29/9)
+  if(/^o\d$/.test(id)){ window.scrollTo({top:0, behavior:"auto"}); return; }
   d.scrollIntoView({behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block:"start"}); }
 
 // solo le domande del sondaggio (quelle con data-campo): i nomi, i voti e le
