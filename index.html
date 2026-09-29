@@ -55,6 +55,8 @@ a{color:var(--accento)}
 .risposta{margin-top:12px;color:var(--tenue)}
 .risposta.da-prima{margin:0 0 12px}
 .domanda.fatta{display:none}
+.entra{animation:entra .35s ease-out}
+@media (prefers-reduced-motion:reduce){.entra{animation:none}}
 input[type=text],input[type=email],textarea{width:100%;font:500 18px/1.4 var(--f-testo);padding:11px 12px;border:1px solid var(--bordo);border-radius:0;background:var(--input);color:var(--testo)}
 input::placeholder,textarea::placeholder{color:var(--suggerimento)}
 input:focus,textarea:focus{border-color:var(--accento);outline:none;box-shadow:0 0 0 1px var(--accento)}
@@ -218,12 +220,12 @@ body:not(.con-nome) #o1 .invia,body:not(.con-nome) #o2 .invia,body:not(.con-nome
    scelto: il saluto è il primo messaggio di Nova, i pannelli spariscono, la
    casella sta in basso sopra le schede. Resta, piccola, la frase onesta: le
    risposte non sono automatiche. */
-body.con-nome[data-scheda="inizia"] #benvenuto{max-width:88%;padding:12px 14px;border:1px solid var(--bordo);
+[data-scheda="inizia"] #benvenuto{max-width:88%;padding:12px 14px;border:1px solid var(--bordo);
   background:color-mix(in srgb,var(--accento) 8%,var(--panel));margin:4px 0 12px}
-body.con-nome[data-scheda="inizia"] #benvenuto::before,body.con-nome[data-scheda="inizia"] #benvenuto::after,
+[data-scheda="inizia"] #benvenuto::before,[data-scheda="inizia"] #benvenuto::after,
 body.con-nome[data-scheda="inizia"] #parla::before,body.con-nome[data-scheda="inizia"] #parla::after{display:none}
-body.con-nome[data-scheda="inizia"] #benvenuto .dice{font-size:17px;line-height:1.4}
-body.con-nome[data-scheda="inizia"] #salto-parla{display:none}
+[data-scheda="inizia"] #benvenuto .dice{font-size:17px;line-height:1.4}
+[data-scheda="inizia"] #salto-parla{display:none}
 body.con-nome[data-scheda="inizia"] #conosci-domanda{font-size:20px!important;margin:10px 0!important}
 body.con-nome[data-scheda="inizia"] #parla{background:none;border:0;padding:0;margin:0}
 body.con-nome[data-scheda="inizia"] #tp{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
@@ -329,7 +331,7 @@ body.con-nome[data-scheda="inizia"] #esito-chat{margin:6px 0 0}
     <a class="salto" id="continua" href="#tocca" hidden>Continuiamo ↓</a>
     <a class="salto" id="salto-parla" href="#parla" style="margin-left:14px">Parlami ↓</a>
     <a class="salto" href="#chi-sono" style="margin-left:14px">Cosa so fare →</a>
-    <p class="piccolo" style="margin-top:16px">Mi ricordo di te solo su questo telefono. Nome e colore li cambi nel <a href="#profilo">Profilo</a>.</p>
+    <p class="piccolo" id="ricordo" style="margin-top:16px">Mi ricordo di te solo su questo telefono. Nome e colore li cambi nel <a href="#profilo">Profilo</a>.</p>
   </section>
 
   <div id="resto" hidden>
@@ -1128,6 +1130,7 @@ function mostraSondaggio(mostra){
   // fai fatica a capire dove scrivere». Chi ha già risposto scrive solo lì.
   $("d4").hidden=!mostra;
 }
+const PASSO_SALUTO = 900;   // ms fra saluto, sfera che sale, «Adesso imparo te», «Che lavoro fai?»
 function benvenuto(tornato){
   const tu=io.tuo?`, ${io.tuo}`:"";
   document.body.classList.add("con-nome");
@@ -1141,8 +1144,19 @@ function benvenuto(tornato){
   $("continua").hidden=true; $("conosci").hidden=true; $("conosci-fine").hidden=true; $("saluto2").textContent="";
   if(!tornato){
     $("saluto").textContent = io.tuo ? `Piacere${tu}. Da adesso sono ${io.nome}, solo per te.` : `Da adesso sono ${io.nome}, solo per te.`;
-    $("saluto2").textContent="Cosa so già fare lo vedi scorrendo a destra. Qui imparo te.";
-    mostraSondaggio(true);
+    // 29/9, JJ: saluta, «mi ricordo di te… nel Profilo» passa sopra a «cosa so
+    // fare lo scopri scorrendo a destra», la sfera e il nome vanno su, e «non
+    // deve comparire tutto insieme: prima adesso imparo te, dopo qualche
+    // istante compare che lavoro fai».
+    $("saluto2").textContent="Cosa so già fare lo scopri scorrendo a destra.";
+    $("saluto").after($("ricordo")); $("ricordo").style.margin="10px 0";
+    mostraSondaggio(true); $("tocca").hidden=true; $("d1").hidden=true; $("parla").hidden=true;
+    document.body.classList.remove("con-nome");
+    $("benvenuto").classList.add("aperta"); $("resto").hidden=false;
+    setTimeout(()=>{ document.body.classList.add("con-nome"); window.scrollTo(0,0); }, PASSO_SALUTO);
+    setTimeout(()=>{ $("tocca").hidden=false; $("tocca").classList.add("entra"); }, PASSO_SALUTO*2);
+    setTimeout(()=>{ $("d1").hidden=false; $("d1").classList.add("entra"); }, PASSO_SALUTO*3);
+    return;
   } else if(!io.inviato){
     $("saluto").textContent=`Ciao${tu}.`;
     $("saluto2").textContent = io.mestiere ? "Eravamo a metà: riprendiamo da dove ci eravamo fermati." : "L'altra volta non mi hai ancora detto che lavoro fai. Riprendiamo da lì.";
