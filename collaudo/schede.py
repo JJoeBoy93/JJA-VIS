@@ -55,6 +55,7 @@ async def main():
         testo_chi=await pg.inner_text("#p-chi-sono")
         ok("Non rispondo: anticipo" in testo_chi and "Imparo te" in testo_chi and "Per chiunque" in testo_chi and not await pg.evaluate("!!document.querySelector('#p-chi-sono #tf')"), "Chi sono parla di chi è JJA-VIS; l'elenco di cosa so fare non c'è più (JJ, 29/9)")
         ok(not any(p in testo_chi for p in ["Albero","JARVIS privato","Stark","archetip"]), "dal blueprint solo quello che si può dire in pubblico")
+        ok(testo_chi.count("Chi mi costruisce")==1 and testo_chi.count("corriere")<=2, "«Da dove nasco» non si ripete (JJ, 29/9)")
         await pg.click("#s-sa-fare"); await pg.wait_for_timeout(300)
         ok(await pg.is_visible("#tf") and "#sa-fare" in pg.url, "«Cosa so fare» è una scheda sua")
         ok(await pg.inner_text("#n-canzoni")=="5.747", "i numeri della vetrina arrivano")
