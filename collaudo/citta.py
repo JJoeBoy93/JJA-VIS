@@ -109,6 +109,11 @@ async def main():
         prova("la scena non è vuota (colori diversi nel disegno)", px > 25, f"{px} colori")
         prova("i numeri veri dalla porta in testata", "4.639" in await p.inner_text("#numeri"))
         prova("il primo giro parte dalla Sartoria", "Sartoria" in await p.inner_text("#giro"))
+        m = await p.evaluate("window.CITTA.misure()")
+        storti = {k: v for k, v in m["tetti"].items() if v["angoli"] != 4 or abs(v["largo"] - v["w"] * 1.08) > 0.05 or abs(v["profondo"] - v["d"] * 1.08) > 0.05}
+        prova("i tetti a falde sono dritti: la base è il rettangolo del palazzo, con quattro angoli veri", len(m["tetti"]) == 3 and not storti, storti or m["tetti"])
+        prova("Borsa: l'insegna sta davanti alle colonne", m["borsa"]["davantiColonne"] is not None and m["borsa"]["davantiColonne"] > m["borsa"]["colonne"], m["borsa"])
+        prova("Torre: il logo JJA-VIS in cima, sui quattro lati", m["logoTorre"] == 4, m["logoTorre"])
         await foto(p, "01-ingresso")
 
         # 2. il mestiere della pagina arriva in Sartoria, il vestito segue ma resta libero

@@ -789,8 +789,12 @@ async function costruisci(){
     corpo.position.y=P.h/2; g.add(corpo); toccabili.push([corpo,chiave]); muri.push(corpo);
     if(P.vetro){ const cornice=scatola(P.w+0.3,0.5,P.d+0.3,0x0D3A5C); cornice.position.y=P.h+0.25; g.add(cornice);
       const lin=scatola(P.w+0.32,0.08,0.08,0x00B4D8,true); lin.position.set(0,P.h+0.5,P.d/2+0.15); g.add(lin); }
-    if(P.tetto==="falde"){ const t=new THREE.Mesh(new THREE.ConeGeometry(1,1,4), mat(P.id==="forgia"?0x2f2a28:0x9c4a32));
-      t.rotation.y=Math.PI/4; t.scale.set(P.w/1.414*1.08, 2.6, P.d/1.414*1.08); t.position.y=P.h+1.3; g.add(t); }
+    if(P.tetto==="falde"){
+      // 2 ottobre, JJ: «Sartoria, Bottega e Forgia hanno i tetti storti». Three scala PRIMA di ruotare:
+      // allungare una piramide a rombo e poi girarla la deforma. La rotazione va nella forma, prima della scala.
+      GEO.tetto=GEO.tetto||new THREE.ConeGeometry(Math.SQRT2/2,1,4).rotateY(Math.PI/4);   // base: quadrato 1×1, lati sugli assi
+      const t=new THREE.Mesh(GEO.tetto, mat(P.id==="forgia"?0x2f2a28:0x9c4a32));
+      t.scale.set(P.w*1.08, 2.6, P.d*1.08); t.position.y=P.h+1.3; t.name="tetto-"+P.id; g.add(t); }
     else if(!P.vetro){ const c=scatola(P.w+0.4,0.4,P.d+0.4,0x2b2f36); c.position.y=P.h+0.2; g.add(c); }
 
     const ins=insegna(P.titolo,P.sotto,Math.min(P.w*0.85,8),P.colore);
@@ -802,9 +806,11 @@ async function costruisci(){
       // in vetrina, i prodotti
       ["CLIO","SOPRALLUOGO","SU MISURA"].forEach((n,i)=>{ const v=insegna(n,"",2.2,"#FFD60A"); v.position.set((i-1)*2.6-0.0,1.15,P.d/2+0.4); v.rotation.x=-0.15;
         const sup=scatola(2.3,0.08,0.5,0x5a3b22); sup.position.set((i-1)*2.6,0.85,P.d/2+0.45); g.add(sup, v); }); }
-    if(P.colonne){ for(let i=0;i<4;i++){ const c=cilindro(0.32,0.36,P.h-1,0xeee8da,12); c.position.set(-P.w/2+1.2+i*(P.w-2.4)/3,(P.h-1)/2,P.d/2+1.2); g.add(c);
+    if(P.colonne){ for(let i=0;i<4;i++){ const c=cilindro(0.32,0.36,P.h-2,0xeee8da,12); c.position.set(-P.w/2+1.2+i*(P.w-2.4)/3,(P.h-2)/2,P.d/2+1.2); c.name="colonna"; g.add(c);
         solidi.push({cerchio:true,x:px+Math.cos(g.rotation.y)*c.position.x+Math.sin(g.rotation.y)*c.position.z, z:pz-Math.sin(g.rotation.y)*c.position.x+Math.cos(g.rotation.y)*c.position.z, r:0.45}); }
-      const fr2=scatola(P.w+0.6,0.8,2.4,0xe7e1d2); fr2.position.set(0,P.h-0.6,P.d/2+1.1); g.add(fr2); }
+      // 2 ottobre, JJ: «la Borsa ha i pilastri che vanno davanti al cartello». L'insegna sale sulla trabeazione, davanti alle colonne
+      const fr2=scatola(P.w+0.6,2,2.4,0xe7e1d2); fr2.position.set(0,P.h-1,P.d/2+1.1); g.add(fr2);
+      ins.position.set(0,P.h-1,P.d/2+2.32); ins.name="insegna-borsa"; }
     if(P.orologio){ const c=tela(256,256), x=c.getContext("2d"); x.fillStyle="#f4ecd6"; x.beginPath(); x.arc(128,128,120,0,7); x.fill();
       x.strokeStyle="#20160f"; x.lineWidth=10; x.stroke(); x.lineWidth=12; x.lineCap="round";
       const ora=new Date(), h=(ora.getHours()%12+ora.getMinutes()/60)/12*Math.PI*2, m=ora.getMinutes()/60*Math.PI*2;
@@ -826,6 +832,9 @@ async function costruisci(){
     if(P.id==="cinema"){ const mq=scatola(P.w*0.9,0.3,2,0x1a1024); mq.position.set(0,3.1,P.d/2+1); g.add(mq);
       for(let i=0;i<14;i++){ const l=palla(0.08,0xffd60a,true,6); l.position.set(-P.w*0.43+i*(P.w*0.86/13),2.92,P.d/2+2); g.add(l); } }
     if(P.id==="torre"){
+      // 2 ottobre, JJ: «in alto alla torre, dove c'è la luce spenta, metterei il logo di JJA-VIS». Sui quattro lati
+      for(let k=0;k<4;k++){ const lg=insegna("JJA-VIS","",P.w*0.96); const a=k*Math.PI/2, r=P.w/2+0.07;
+        lg.position.set(Math.sin(a)*r, P.h-1.6, Math.cos(a)*r); lg.rotation.y=a; lg.name="logo-torre"; g.add(lg); }
       // il globo di JARVIS in cima alla torre: si vede da tutta la città
       const globo=new THREE.Group(); globo.position.set(0,P.h+6,0); g.add(globo);
       globo.add(new THREE.Mesh(new THREE.IcosahedronGeometry(3.4,2), new THREE.MeshBasicMaterial({color:0x00B4D8,wireframe:true,transparent:true,opacity:.8})));
@@ -1064,6 +1073,21 @@ async function costruisci(){
   // per il collaudo: girare lo sguardo, e sapere se una cosa si vede
   scena.guarda=(yaw,pitch)=>{ stato.yaw=yaw; stato.pitch=pitch; };
   scena.vedo=nome=>{ const o=nome==="globo"?scena._globo:null; if(!o) return false; const v=new THREE.Vector3(); o.getWorldPosition(v); v.y+=3.5; v.project(cam); return v.z<1 && Math.abs(v.x)<=1 && v.y<=1 && v.y>=-1; };
+  scena.misure=()=>{ const out={tetti:{},borsa:null,logoTorre:0}; const b=new THREE.Box3(), v=new THREE.Vector3();
+    S.traverse(o=>{
+      if(o.name&&o.name.startsWith("tetto-")){ // la base del tetto come sta nel palazzo (rotazione e scala comprese): dev'essere un rettangolo dritto
+        o.updateMatrix(); const pos=o.geometry.attributes.position, pts=[];
+        for(let i=0;i<pos.count;i++){ if(Math.abs(pos.getY(i)+0.5)<1e-6){ v.set(pos.getX(i),pos.getY(i),pos.getZ(i)).applyMatrix4(o.matrix); pts.push([v.x,v.z]); } }
+        const X=Math.max(...pts.map(q=>Math.abs(q[0]))), Z=Math.max(...pts.map(q=>Math.abs(q[1])));
+        const angoli=[[1,1],[1,-1],[-1,1],[-1,-1]].filter(([sx,sz])=>pts.some(q=>Math.abs(q[0]-sx*X)<0.01&&Math.abs(q[1]-sz*Z)<0.01)).length;
+        const P=PALAZZI.find(q=>"tetto-"+q.id===o.name);
+        out.tetti[o.name.slice(6)]={largo:2*X, profondo:2*Z, w:P.w, d:P.d, angoli};
+      }
+      if(o.name==="logo-torre") out.logoTorre++;
+    });
+    let cmax=-Infinity, ins=null; S.traverse(o=>{ if(o.name==="colonna"){ const p=o.position; cmax=Math.max(cmax,p.z+0.36); } if(o.name==="insegna-borsa") ins=o.position.z; });
+    out.borsa={davantiColonne:ins, colonne:cmax};
+    return out; };
   scena.lotti=()=>Object.values(porte).filter(P=>P.id==="lotto").length;
   scena.modo=m=>{ stato.modo=m; if(m==="sartoria"){ const d=Math.hypot(tu.position.x,tu.position.z)||1; stato.spinBase=Math.atan2(-tu.position.x/d,-tu.position.z/d); stato.spin=0; } };
   scena.dove=()=>({x:tu.position.x,z:tu.position.z});
