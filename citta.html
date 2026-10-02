@@ -253,6 +253,8 @@ const ORDINE={guida:["clio","sopralluogo","sumisura","athena"], corriere:["athen
 const PER_TE={guida:"clio"};
 
 // ── il primo giro: tre fermate, come un giro di consegne ──
+// le strade radiali, in gradi (0 è il viale d'ingresso): i varchi fra i palazzi abbastanza larghi
+const STRADE=[0,40,74,109,250,286,320];
 const FERMATE=[["sartoria","Sartoria"],["reception","Reception"],["bottega","Bottega"]];
 function disegnaGiro(){
   const g=$("giro"); g.textContent="";
@@ -443,7 +445,7 @@ const LUOGHI={
     NOTA("A cosa vorresti giocare? Dimmelo nella chat: le idee più chieste diventano il prossimo cabinato."),
     AZIONI(vai(PAGINA+"#inizia","Dimmi a cosa vorresti giocare"))]; }},
   lotto:{nome:"Lotto libero",ic:"🏗",breve:"qui c'è posto per la tua attività",stanza(){ return [
-    ...TESTA("Terreno edificabile","Lotto libero","Questo spazio aspetta un'attività. Il sito che la Forgia costruisce per te può avere il suo palazzo qui in città, come Athena Trasporti."),
+    ...TESTA("Terreno edificabile","Lotto libero","Questo spazio aspetta un'attività. Il sito che la Forgia costruisce per te avrà il suo palazzo qui in città, come Athena Trasporti: chi passa lo vede, e ci entra."),
     BLOCCO(H3("Come si comincia"), PASSI(["Mi racconti la tua attività e cosa ti serve.","Ricevi il preventivo per mail.","Si costruisce."])),
     AZIONI(vai(PAGINA+"#costruisci","Costruiamolo"), vai(PRODOTTI.athena.link,"Un lavoro già fatto",true,true))]; }},
   albero:{nome:"L'Albero della Vita",ic:"🌳",breve:"il cuore della città",stanza(){
@@ -631,7 +633,10 @@ function cammina(av, passo){
 function fermo(av){ const u=av.userData; u.gambe.forEach(g=>g.rotation.x*=0.8); if(!u.ferme){ u.braccia[0].rotation.x*=0.8; if(!u.alzato) u.braccia[1].rotation.x*=0.8; } }
 
 // ── insegne e facciate, disegnate nel telefono ──
+const INSEGNE=new Map();
 function insegna(titolo, sotto, larghezza, colore="#CAF0F8"){
+  const chiave=[titolo,sotto,colore].join("|");
+  if(INSEGNE.has(chiave)) return new THREE.Mesh(new THREE.PlaneGeometry(larghezza, larghezza/4), INSEGNE.get(chiave));
   const W=1024,H=256, c=tela(W,H), x=c.getContext("2d");
   x.fillStyle="rgba(2,11,24,.94)"; x.fillRect(0,0,W,H);
   x.strokeStyle="#0D3A5C"; x.lineWidth=6; x.strokeRect(3,3,W-6,H-6);
@@ -642,8 +647,8 @@ function insegna(titolo, sotto, larghezza, colore="#CAF0F8"){
   x.fillText(titolo, W/2, sotto?H*0.42:H/2); x.shadowBlur=0;
   if(sotto){ let g=46; x.font=`400 ${g}px "DM Mono", monospace`; while(x.measureText(sotto).width>W-80 && g>22){ g-=2; x.font=`400 ${g}px "DM Mono", monospace`; }
     x.fillStyle="#48CAE4"; x.fillText(sotto, W/2, H*0.78); }
-  const m=new THREE.Mesh(new THREE.PlaneGeometry(larghezza, larghezza/4), new THREE.MeshBasicMaterial({map:tex(c)}));
-  return m;
+  const materiale=new THREE.MeshBasicMaterial({map:tex(c)}); INSEGNE.set(chiave, materiale);
+  return new THREE.Mesh(new THREE.PlaneGeometry(larghezza, larghezza/4), materiale);
 }
 function facciata(w,h,{muro="#c9b9a0",porta=false,vetrine=0,serranda=false,vetro=false,luce=0.7,seme=1}){
   const k=24, cw=Math.max(16,Math.round(w*k)), ch=Math.max(16,Math.round(h*k));
@@ -690,7 +695,7 @@ async function costruisci(){
 
   const S=new THREE.Scene();
   S.background=new THREE.Color(0x061428);
-  S.fog=new THREE.Fog(0x061428, 45, 120);
+  S.fog=new THREE.Fog(0x061428, 60, 170);
   const cam=new THREE.PerspectiveCamera(innerHeight>innerWidth?68:58, innerWidth/innerHeight, 0.1, 400);
 
   S.add(new THREE.HemisphereLight(0xdde8ff, 0x2a2622, 1.7));
@@ -715,11 +720,20 @@ async function costruisci(){
     const piazza=new THREE.Mesh(new THREE.CircleGeometry(22,72), new THREE.MeshLambertMaterial({map:t}));
     piazza.rotation.x=-Math.PI/2; piazza.position.y=0.02; S.add(piazza);
     const t2=t.clone(); t2.repeat.set(2,7); t2.needsUpdate=true;
-    const viale=new THREE.Mesh(new THREE.PlaneGeometry(7,30), new THREE.MeshLambertMaterial({map:t2}));
-    viale.rotation.x=-Math.PI/2; viale.position.set(0,0.015,37); S.add(viale); }
+    t2.repeat.set(2,11);
+    const viale=new THREE.Mesh(new THREE.PlaneGeometry(7,44), new THREE.MeshLambertMaterial({map:t2}));
+    viale.rotation.x=-Math.PI/2; viale.position.set(0,0.015,47.5); S.add(viale); }
   { const anello=new THREE.Mesh(new THREE.RingGeometry(22,25.5,72), mat(0x161c27)); anello.rotation.x=-Math.PI/2; anello.position.y=0.01; S.add(anello);
     const bordo=new THREE.Mesh(new THREE.RingGeometry(21.85,22.05,72), mat(0x00B4D8,true)); bordo.rotation.x=-Math.PI/2; bordo.position.y=0.03; S.add(bordo); }
 
+  // ══ GLI ANELLI — 2 ottobre, JJ: «espandi aprendo altre strade e altri anelli intorno alla piazza» ══
+  // anello 1 (22–25,5) intorno alla piazza; i palazzi a 31; anello 2 (38–41,5); i lotti a 48; anello 3 (55–58,5).
+  // Le strade radiali passano solo nei varchi fra i palazzi larghi almeno 3,4 m al bordo della piazza.
+  for(const [r0,r1] of [[38,41.5],[55,58.5]]){ const a=new THREE.Mesh(new THREE.RingGeometry(r0,r1,96), mat(0x161c27)); a.rotation.x=-Math.PI/2; a.position.y=0.012; S.add(a);
+    for(const r of [r0+0.1,r1-0.1]){ const b=new THREE.Mesh(new THREE.RingGeometry(r-0.06,r+0.06,96), mat(0x0D3A5C,true)); b.rotation.x=-Math.PI/2; b.position.y=0.02; S.add(b); } }
+  for(const ang of STRADE){ if(ang===0) continue; const a=ang*Math.PI/180, g=new THREE.Group(); g.position.set(Math.sin(a)*40.25,0,Math.cos(a)*40.25); g.rotation.y=a;
+    const st=new THREE.Mesh(new THREE.PlaneGeometry(3.4,29.5), mat(0x161c27)); st.rotation.x=-Math.PI/2; st.position.y=0.014; g.add(st);
+    const lin=new THREE.Mesh(new THREE.PlaneGeometry(0.12,29.5), mat(0x00B4D8,true)); lin.rotation.x=-Math.PI/2; lin.position.y=0.02; g.add(lin); S.add(g); }
   const solidi=[];      // cosa non si attraversa: {x,z,r,w,d} ruotati, oppure cerchi
   const toccabili=[];   // cosa si tocca col dito: mesh → id del luogo
   const porte={};       // dove ci si ferma davanti a ogni luogo
@@ -740,6 +754,9 @@ async function costruisci(){
     {id:"bottega",  ang:268,w:13,d:9,h:7,muro:"#e3cfa8",vetrine:1,tetto:"falde",titolo:"BOTTEGA",sotto:"i prodotti di JJA-VIS",tenda:true},
     {id:"athena",   ang:302,w:11,d:10,h:6,muro:"#9aa3ad",serranda:true,tetto:"piano",titolo:"ATHENA TRASPORTI",sotto:"consegne · urgenze · sgomberi",furgone:true},
   ];
+  // i lotti dell'anello 2: uno ogni 18°, lontani almeno 10° dalle strade. Ognuno aspetta un'attività.
+  for(let k=0;k<20;k++){ const ang=k*18+9; if(STRADE.some(s=>Math.abs(((ang-s+540)%360)-180)<10)) continue;
+    PALAZZI.push({id:"lotto",ang,w:9,d:8,h:0,r:48,titolo:"LOTTO LIBERO",sotto:"la tua attività, qui"}); }
   let seme=1, lottiN=0; const centri={};
   for(const P of PALAZZI){
     const a=P.ang*Math.PI/180, r=P.r||R;
@@ -749,7 +766,7 @@ async function costruisci(){
     S.add(g);
     const fronte=new THREE.Vector3(px+dx*(P.d/2+2.4),0,pz+dz*(P.d/2+2.4));
     const chiave=P.id==="lotto"?`lotto${lottiN++}`:P.id;
-    porte[chiave]={id:P.id, x:fronte.x, z:fronte.z, guarda:Math.atan2(-dx,-dz)};
+    porte[chiave]={id:P.id, x:fronte.x, z:fronte.z, guarda:Math.atan2(-dx,-dz), cx:px, cz:pz};
 
     if(P.id==="lotto"){
       // un lotto: recinto basso, la sagoma di un palazzo che ancora non c'è, il cartello
@@ -876,15 +893,19 @@ async function costruisci(){
   for(let i=0;i<12;i++){ const a=i/12*Math.PI*2+0.13; if(Math.abs(Math.sin(a))<0.12 && Math.cos(a)>0) continue;
     const x=Math.sin(a)*20.8, z=Math.cos(a)*20.8; const p=cilindro(0.07,0.1,4.2,0x1c2a38,6); p.position.set(x,2.1,z);
     const l=palla(0.26,0xffe7b0,true,8); l.position.set(x,4.3,z); S.add(p,l); solidi.push({cerchio:true,x,z,r:0.3}); }
-  for(let i=0;i<34;i++){ const a=i/34*Math.PI*2+0.07, r=44+(i*13%9); const x=Math.sin(a)*r, z=Math.cos(a)*r; if(Math.abs(x)<6 && z>0) continue;
+  for(let i=0;i<52;i++){ const a=i/52*Math.PI*2+0.07, r=64+(i*13%11); const x=Math.sin(a)*r, z=Math.cos(a)*r; if(Math.abs(x)<6 && z>0) continue;
     const t=cilindro(0.2,0.3,1.6,0x3b2a1e,6); t.position.set(x,0.8,z); const c=new THREE.Mesh(new THREE.ConeGeometry(1.6+(i%3)*0.4,4+(i%4),7), mat([0x1f4a33,0x245a3a,0x1a3d2b][i%3])); c.position.set(x,3.4+(i%4)/2,z); S.add(t,c); }
   // il cancello d'ingresso
-  { for(const s of [-1,1]){ const p=scatola(0.8,6,0.8,0x0D3A5C); p.position.set(4.5*s,3,46); S.add(p); solidi.push({cerchio:true,x:4.5*s,z:46,r:0.7}); }
-    const arco=insegna("JJA-VIS","la città",8); arco.position.set(0,6.4,45.98); arco.rotation.y=Math.PI; S.add(arco);
-    const arco2=insegna("LA CITTÀ DI JJA-VIS","benvenuto, entra pure",8); arco2.position.set(0,6.4,46.02); S.add(arco2); }
+  { for(const s of [-1,1]){ const p=scatola(0.8,6,0.8,0x0D3A5C); p.position.set(4.5*s,3,61); S.add(p); solidi.push({cerchio:true,x:4.5*s,z:61,r:0.7}); }
+    const arco=insegna("JJA-VIS","la città",8); arco.position.set(0,6.4,60.98); arco.rotation.y=Math.PI; S.add(arco);
+    const arco2=insegna("LA CITTÀ DI JJA-VIS","benvenuto, entra pure",8); arco2.position.set(0,6.4,61.02); S.add(arco2); }
+  // lampioni lungo l'anello 2
+  for(let i=0;i<24;i++){ const a=i/24*Math.PI*2+0.13; if(STRADE.some(s=>Math.abs(((a*180/Math.PI-s+540)%360)-180)<5)) continue;
+    const x=Math.sin(a)*37.4, z=Math.cos(a)*37.4; const p=cilindro(0.07,0.1,4.2,0x1c2a38,6); p.position.set(x,2.1,z);
+    const l=palla(0.26,0xffe7b0,true,8); l.position.set(x,4.3,z); S.add(p,l); solidi.push({cerchio:true,x,z,r:0.3}); }
 
   // ── tu, e chi passeggia ──
-  let tu=avatar(citta); S.add(tu); tu.position.set(0,0,49); tu.rotation.y=Math.PI;
+  let tu=avatar(citta); S.add(tu); tu.position.set(0,0,64); tu.rotation.y=Math.PI;
   function rivestiTu(){ const p=tu.position.clone(), r=tu.rotation.y; S.remove(tu); tu=avatar(citta); tu.position.copy(p); tu.rotation.y=r; S.add(tu); }
   rivesti=rivestiTu;
   const passanti=[]; const vv=Object.keys(VESTITI);
@@ -975,7 +996,7 @@ async function costruisci(){
   scena.entra=id=>{
     tStanza=0;
     if(id==="albero"||id==="lotto"){
-      const c=id==="albero"?ESTERNI.albero:{x:centri.lotto.x,z:centri.lotto.z,r:12,h:6,y:2};
+      const L=porte[lottoVicino()]; const c=id==="albero"?ESTERNI.albero:{x:L.cx,z:L.cz,r:12,h:6,y:2};
       attiva={esterno:true,...c}; return;
     }
     if(!interni[id]){ const S2=guscio(id==="torre"?0x0f2d47:id==="cinema"?0x1a1024:id==="giochi"?0x1c0d2e:id==="forgia"?0x3a2f2a:0x26425c); (ARREDI[id]||(()=>{}))(S2); interni[id]=S2; }
@@ -1012,23 +1033,38 @@ async function costruisci(){
       if(Math.abs(lx)<hw && Math.abs(lz)<hd){ let nx=lx, nz=lz; if(hw-Math.abs(lx)<hd-Math.abs(lz)) nx=Math.sign(lx||1)*hw; else nz=Math.sign(lz||1)*hd;
         p.x=s.x+nx*c+nz*sn; p.z=s.z-nx*sn+nz*c; }
     }
-    const d=Math.hypot(p.x,p.z); if(d>50){ p.x*=50/d; p.z*=50/d; }
+    const d=Math.hypot(p.x,p.z); if(d>67){ p.x*=67/d; p.z*=67/d; }
   }
-  function percorso(k){
-    const P=porte[k]; if(!P) return;
-    const tappe=[]; let a={x:tu.position.x,z:tu.position.z};
-    if(Math.hypot(a.x,a.z)>23.5){
-      if(Math.abs(a.x)<3.6 && a.z>0){ a={x:0,z:20}; tappe.push(a); }   // dal viale si entra dal cancello
-      else { const r=Math.hypot(a.x,a.z); tu.position.set(a.x/r*20,0,a.z/r*20); a={x:tu.position.x,z:tu.position.z}; } // dietro ai palazzi: si rientra in piazza
-    }
-    const b={x:P.x,z:P.z}, ux=b.x-a.x, uz=b.z-a.z, l2=ux*ux+uz*uz||1;
+  // ── il percorso, a tappe: si cammina sulle strade, non attraverso i palazzi ──
+  // dentro (r<36): la piazza e le porte dei palazzi; fuori: l'anello 2, i lotti, il viale.
+  const polare=(g,r)=>({x:Math.sin(g*Math.PI/180)*r, z:Math.cos(g*Math.PI/180)*r});
+  const angolo=q=>((Math.atan2(q.x,q.z)*180/Math.PI)+360)%360;
+  const distAng=(a,b)=>Math.abs(((a-b+540)%360)-180);
+  const stradaVicina=g=>STRADE.reduce((m,s)=>distAng(s,g)<distAng(m,g)?s:m, STRADE[0]);
+  function arco(g0,g1,r,tappe){ let d=((g1-g0+540)%360)-180; const n=Math.ceil(Math.abs(d)/12); for(let i=1;i<=n;i++) tappe.push(polare(g0+d*i/n,r)); }
+  function giraAlbero(a,b,tappe){ const ux=b.x-a.x, uz=b.z-a.z, l2=ux*ux+uz*uz||1;
     const t=Math.max(0,Math.min(1,-(a.x*ux+a.z*uz)/l2)), cx=a.x+ux*t, cz=a.z+uz*t;
     if(Math.hypot(cx,cz)<3.8){ let nx=-uz, nz=ux; const nl=Math.hypot(nx,nz)||1; nx/=nl; nz/=nl;
-      if(nx*(a.x+b.x)+nz*(a.z+b.z)<0){ nx=-nx; nz=-nz; } tappe.push({x:nx*5.5,z:nz*5.5}); }  // intorno all'albero
+      if(nx*(a.x+b.x)+nz*(a.z+b.z)<0){ nx=-nx; nz=-nz; } tappe.push({x:nx*5.5,z:nz*5.5}); } }
+  function lottoVicino(){ let m=null, dm=Infinity; for(const [k,P] of Object.entries(porte)){ if(P.id!=="lotto") continue; const d=Math.hypot(P.x-tu.position.x,P.z-tu.position.z); if(d<dm){ dm=d; m=k; } } return m; }
+  function percorso(k){
+    if(k==="lotto") k=lottoVicino();
+    const P=porte[k]; if(!P) return;
+    const tappe=[]; const a={x:tu.position.x,z:tu.position.z}, b={x:P.x,z:P.z};
+    const fuoriA=Math.hypot(a.x,a.z)>36, fuoriB=Math.hypot(b.x,b.z)>36;
+    if(!fuoriA && !fuoriB){ giraAlbero(a,b,tappe); }
+    else if(fuoriA && fuoriB){ const ga=angolo(a), gb=angolo(b); tappe.push(polare(ga,39.75)); arco(ga,gb,39.75,tappe); }
+    else if(!fuoriA && fuoriB){ const gb=angolo(b), s=stradaVicina(gb); const p22=polare(s,21); giraAlbero(a,p22,tappe); tappe.push(p22, polare(s,39.75)); arco(s,gb,39.75,tappe); }
+    else { const ga=angolo(a), s=stradaVicina(ga); tappe.push(polare(ga,39.75)); arco(ga,s,39.75,tappe); const p21=polare(s,21); tappe.push(p21); giraAlbero(p21,b,tappe); }
     tappe.push(b);
     stato.tappe=tappe.map(q=>new THREE.Vector3(q.x,0,q.z)); stato.meta=stato.tappe.shift(); stato.metaId=k; stato.fermoDa=0; stato.distPrima=Infinity;
   }
-  scena.vaiVerso=id=>percorso(id==="lotto"?"lotto0":id);
+  scena.vaiVerso=id=>percorso(id);
+  stato.salti=0; scena.salti=()=>stato.salti;
+  // per il collaudo: girare lo sguardo, e sapere se una cosa si vede
+  scena.guarda=(yaw,pitch)=>{ stato.yaw=yaw; stato.pitch=pitch; };
+  scena.vedo=nome=>{ const o=nome==="globo"?scena._globo:null; if(!o) return false; const v=new THREE.Vector3(); o.getWorldPosition(v); v.y+=3.5; v.project(cam); return v.z<1 && Math.abs(v.x)<=1 && v.y<=1 && v.y>=-1; };
+  scena.lotti=()=>Object.values(porte).filter(P=>P.id==="lotto").length;
   scena.modo=m=>{ stato.modo=m; if(m==="sartoria"){ const d=Math.hypot(tu.position.x,tu.position.z)||1; stato.spinBase=Math.atan2(-tu.position.x/d,-tu.position.z/d); stato.spin=0; } };
   scena.dove=()=>({x:tu.position.x,z:tu.position.z});
   scena.nelMuro=()=>solidi.some(s=>{ if(s.cerchio) return Math.hypot(tu.position.x-s.x,tu.position.z-s.z)<s.r;
@@ -1048,7 +1084,7 @@ async function costruisci(){
   const sguardi=new Map(); const ray=new THREE.Raycaster(), v2=new THREE.Vector2();
   tela3d.addEventListener("pointerdown",e=>{ sguardi.set(e.pointerId,{x:e.clientX,y:e.clientY,x0:e.clientX,y0:e.clientY,t:performance.now()}); try{ tela3d.setPointerCapture(e.pointerId); }catch(_){} });
   tela3d.addEventListener("pointermove",e=>{ const s=sguardi.get(e.pointerId); if(!s) return;
-    stato.yaw-=(e.clientX-s.x)*0.0065; stato.pitch=Math.min(0.95,Math.max(0.08,stato.pitch+(e.clientY-s.y)*0.004)); s.x=e.clientX; s.y=e.clientY;
+    stato.yaw-=(e.clientX-s.x)*0.0065; stato.pitch=Math.min(1.3,Math.max(-0.22,stato.pitch+(e.clientY-s.y)*0.004)); s.x=e.clientX; s.y=e.clientY;
     if(Math.hypot(e.clientX-s.x0,e.clientY-s.y0)>12) nascondiAiuto(); });
   const fineSguardo=e=>{ const s=sguardi.get(e.pointerId); sguardi.delete(e.pointerId); if(!s || e.type==="pointercancel") return;
     if(Math.hypot(e.clientX-s.x0,e.clientY-s.y0)<10 && performance.now()-s.t<400){
@@ -1085,7 +1121,7 @@ async function costruisci(){
       if(d<0.5 && stato.tappe && stato.tappe.length){ stato.meta=stato.tappe.shift(); stato.distPrima=Infinity; }
       else if(d<0.5){ const P=porte[stato.metaId]; stato.meta=null; tu.rotation.y=P.guarda; apriFoglio(P.id); }
       else { vx=dx/d; vz=dz/d; vel=Math.min(7.5,d*3+1);
-        stato.fermoDa+=dt; if(stato.fermoDa>0.8){ if(stato.distPrima-d<0.3){ tu.position.set(stato.meta.x,0,stato.meta.z); } stato.distPrima=d; stato.fermoDa=0; } // incastrato: si salta alla tappa
+        stato.fermoDa+=dt; if(stato.fermoDa>0.8){ if(stato.distPrima-d<0.3){ tu.position.set(stato.meta.x,0,stato.meta.z); stato.salti++; } stato.distPrima=d; stato.fermoDa=0; } // incastrato: si salta alla tappa
         // la telecamera gira dolce dietro a dove vai
         const ya=Math.atan2(-vx,-vz); let dy=ya-stato.yaw; dy=Math.atan2(Math.sin(dy),Math.cos(dy)); stato.yaw+=dy*Math.min(1,dt*2.2); } }
     if(vel>0){ tu.position.x+=vx*vel*dt; tu.position.z+=vz*vel*dt; spingiFuori(tu.position,0.45);
@@ -1114,11 +1150,12 @@ async function costruisci(){
       ideale.set(tu.position.x+Math.sin(a)*5, 1.4, tu.position.z+Math.cos(a)*5);
       tu.rotation.y=Math.atan2(ideale.x-tu.position.x,ideale.z-tu.position.z)+Math.sin(stato.spin*1.7)*0.6;
       bersaglio.set(tu.position.x,-0.5,tu.position.z); } // il bersaglio sotto i piedi: l'avatar sale nella metà alta, sopra il foglio
-    else { const cp=Math.cos(stato.pitch); let dist=stato.dist;
-      bersaglio.set(tu.position.x,1.6,tu.position.z);
+    else { const cp=Math.cos(stato.pitch); let dist=stato.dist+Math.max(0,stato.pitch-0.6)*22;  // più in alto, più lontano: la città dall'alto
+      // trascinando in su la telecamera scende e lo sguardo sale: si vede la cima della torre
+      bersaglio.set(tu.position.x,1.6+Math.max(0,0.18-stato.pitch)*95,tu.position.z);
       dir.set(Math.sin(stato.yaw)*cp, Math.sin(stato.pitch), Math.cos(stato.yaw)*cp).normalize();
-      ray.set(bersaglio,dir); ray.far=dist; const muro=ray.intersectObjects(muri,false); if(muro.length) dist=Math.max(1.2,muro[0].distance-0.4);
-      ideale.copy(bersaglio).addScaledVector(dir,dist); ray.far=Infinity; }
+      const testa=new THREE.Vector3(tu.position.x,1.6,tu.position.z); ray.set(testa,dir); ray.far=dist; const muro=ray.intersectObjects(muri,false); if(muro.length) dist=Math.max(1.2,muro[0].distance-0.4);
+      ideale.set(tu.position.x,1.6,tu.position.z).addScaledVector(dir,dist); if(ideale.y<0.5) ideale.y=0.5; ray.far=Infinity; }
     cam.position.lerp(ideale, Math.min(1,dt*(stato.modo==="sartoria"?4:9))); cam.lookAt(bersaglio);
 
     if(scena._globo){ scena._globo.rotation.y+=dt*0.35; scena._globo.position.y=36+Math.sin(t*0.8)*0.4; }

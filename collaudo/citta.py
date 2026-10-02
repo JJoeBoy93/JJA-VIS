@@ -80,7 +80,7 @@ def tempi_della_pagina():
     i = INDICE.find("const PER_MESTIERE={"); j = INDICE.find("\n};", i)
     return {k: json.loads(v) for k, v in re.findall(r'"([^"]+)":\{\s*tempo:(\[[^\]]*\])', INDICE[i:j])}
 
-async def vai(p, nome, attesa=60000):
+async def vai(p, nome, attesa=120000):
     await p.click("#vai")
     await p.click(f'#foglio .elenco-vai button:has-text({json.dumps(nome)})')
     await p.wait_for_function(f"!document.getElementById('stanza').hidden && (document.getElementById('stanza-titolo')||{{}}).textContent==={json.dumps(nome)}", timeout=attesa)
@@ -173,6 +173,31 @@ async def main():
         prova("tutti i link dei palazzi portano a un posto che esiste", not rotti, rotti)
         prova("il giro è chiuso dopo Sartoria, Reception e Bottega", "Giro chiuso" in await p.inner_text("#giro"))
         await p.wait_for_timeout(500); await foto(p, "05-dopo-il-giro")
+
+        # 3b. la città è più grande: i lotti dell'anello 2, e ci si arriva per strada senza saltare
+        n_lotti = await p.evaluate("window.CITTA.lotti()")
+        prova("ci sono i lotti dell'anello 2 (almeno 12)", n_lotti >= 12, n_lotti)
+        lontano = await p.evaluate("""()=>{const d=window.CITTA.dove(); let m=null,dm=-1; for(const [k,P] of Object.entries(window.CITTA.porte)){ if(P.id!=='lotto') continue;
+           const x=Math.hypot(P.x-d.x,P.z-d.z); if(x>dm){dm=x;m=k;} } return m}""")
+        prima_salti = await p.evaluate("window.CITTA.salti()")
+        await p.evaluate(f"window.CITTA.vaiVerso({json.dumps(lontano)})")
+        await p.wait_for_function("!document.getElementById('stanza').hidden && (document.getElementById('stanza-titolo')||{}).textContent==='Lotto libero'", timeout=120000)
+        prova("al lotto più lontano si arriva camminando per strada, senza salti", await p.evaluate("window.CITTA.salti()") == prima_salti, (lontano, await p.evaluate("window.CITTA.salti()")))
+        prova("il lotto promette il palazzo (JJ ha detto sì)", "avrà il suo palazzo" in (await foglio(p))["testo"])
+        await foto(p, "11-lotto-lontano")
+        await p.click("#esci-stanza"); await p.wait_for_timeout(500)
+
+        # 3c. la visuale: davanti alla Torre, con lo sguardo di prima la cima non si vede; alzandolo sì
+        await vai(p, "La Torre"); await p.click("#esci-stanza"); await p.wait_for_timeout(500)
+        yaw = await p.evaluate("""()=>{const P=window.CITTA.porte.torre, d=window.CITTA.dove(); return Math.atan2(-(P.cx-d.x),-(P.cz-d.z))}""")
+        await p.evaluate(f"window.CITTA.guarda({yaw},0.38)"); await p.wait_for_timeout(2500)
+        prima = await p.evaluate("window.CITTA.vedo('globo')")
+        await p.evaluate(f"window.CITTA.guarda({yaw},-0.22)"); await p.wait_for_timeout(2500)
+        dopo = await p.evaluate("window.CITTA.vedo('globo')")
+        await foto(p, "12-cima-della-torre")
+        prova("con lo sguardo alzato si vede la cima della torre (prima no)", (not prima) and dopo, (prima, dopo))
+        await p.evaluate(f"window.CITTA.guarda({yaw},1.3)"); await p.wait_for_timeout(2500); await foto(p, "13-dall-alto")
+        await p.evaluate(f"window.CITTA.guarda({yaw},0.38)"); await p.wait_for_timeout(800)
 
         # 4. camminare col cerchio sposta davvero, e i palazzi non si attraversano:
         # davanti alla Borsa si spinge avanti, contro la facciata, per tre secondi
