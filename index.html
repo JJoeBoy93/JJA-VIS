@@ -194,6 +194,12 @@ body.con-nome #globo{width:54px;height:54px;margin:0;flex:0 0 auto}
 body.con-nome .nome{font-size:26px;margin:0;min-width:0}
 body.con-nome #nome-testata{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 body.con-nome .nome small{font-size:11px;margin-top:3px;letter-spacing:.16em}
+/* ══ LA PORTA DELLA CITTÀ — 2 ottobre ══ JJ: «bisogna entrare dalla pagina». Nella
+   testata fissa, a destra, su ogni scheda; prima del nome non c'è: i primi passi stanno in uno schermo. */
+.in-citta{display:none}
+body.con-nome .in-citta{display:inline-flex;align-items:center;margin-left:auto;flex:0 0 auto;font:700 14px/1 var(--f-testo,system-ui);color:var(--testo);
+  text-decoration:none;border:1px solid var(--accento);padding:10px 12px;background:color-mix(in srgb,var(--accento) 10%,transparent);white-space:nowrap}
+body.con-nome .in-citta:active{background:color-mix(in srgb,var(--accento) 25%,transparent)}
 body.con-nome main{padding-top:calc(env(safe-area-inset-top,0px) + 88px)}
 /* ══ I PRIMI TRE PASSI STANNO IN UNO SCHERMO — 29 settembre ══ JJ: «non devo
    scorrere in basso per cercare i pulsanti di conferma, riduci gli spazi».
@@ -281,6 +287,7 @@ body.con-nome[data-scheda="inizia"] #esito-chat{margin:6px 0 0}
   <header class="testa">
     <canvas id="globo" width="400" height="400" aria-hidden="true"></canvas>
     <div class="nome"><span id="nome-testata">JJA-VIS</span><small id="sotto-testata">il tuo nuovo assistente personale</small></div>
+    <a class="in-citta" href="citta.html" aria-label="Entra nella città di JJA-VIS">🏙 Città</a>
   </header>
 
 <div class="pannello" id="p-inizia" role="tabpanel" aria-labelledby="s-inizia">
@@ -527,6 +534,7 @@ body.con-nome[data-scheda="inizia"] #esito-chat{margin:6px 0 0}
     <h2 id="tbo" style="font-size:30px;margin:0 0 8px">Bottega</h2>
     <p class="dice">Quello che puoi avere già adesso, senza aspettare l'app.</p>
     <p class="piccolo">Un prodotto pronto per un mestiere, un sopralluogo gratis, e i lavori su misura. Man mano che le mie funzioni diventano pronte per tutti, arrivano qui.</p>
+    <p class="piccolo"><a href="citta.html">🏙 Entra nella città</a>: ogni prodotto ha la sua stanza, raccontata per intero.</p>
   </section>
   <section class="etichetta" id="clio" aria-labelledby="tcl">
     <p class="piccolo" style="margin:0;font-family:var(--f-mono);letter-spacing:.1em;color:var(--accento)">GIÀ PRONTO · PER LE GUIDE TURISTICHE</p>

@@ -94,6 +94,45 @@ body.in-sartoria #foglio{max-height:56vh} /* sopra si deve vedere l'avatar inter
 .elenco-vai small{display:block;font:400 13px/1.3 var(--f-mono);color:var(--tenue);margin-top:3px}
 .elenco-vai .ic{font-size:22px;width:30px;text-align:center;flex:none}
 
+/* la stanza: sopra l'interno in 3D, sotto la scheda lunga */
+#stanza{position:fixed;inset:0;z-index:26;display:flex;flex-direction:column;pointer-events:none}
+#stanza[hidden]{display:none}
+.stanza-barra{pointer-events:auto;display:flex;align-items:center;gap:10px;padding:calc(env(safe-area-inset-top,0px) + 10px) 12px 6px}
+#stanza-nome{font:400 12px/1.2 var(--f-mono);letter-spacing:.14em;text-transform:uppercase;color:var(--tenue);text-shadow:0 1px 4px #000}
+.stanza-vista{flex:0 0 30vh}
+#stanza-carta{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;pointer-events:auto;padding:18px 16px calc(env(safe-area-inset-bottom,0px) + 28px);
+  border-bottom:0;transform:translateY(30px);opacity:0;transition:transform .28s ease-out,opacity .28s;-webkit-user-select:text;user-select:text;touch-action:pan-y;
+  background:color-mix(in srgb,var(--panel) 96%,transparent)}
+#stanza.aperta #stanza-carta{transform:none;opacity:1}
+@media (prefers-reduced-motion:reduce){#stanza-carta{transition:none}}
+#stanza-carta .dentro{max-width:560px;margin:0 auto}
+#stanza h2{font:800 32px/1.05 var(--f-titoli);margin:0 0 8px}
+#stanza .eti{font:400 12px/1.3 var(--f-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--tenue);margin:0 0 6px}
+#stanza .intro{font-size:18px;line-height:1.45;margin:0 0 14px}
+#stanza p{margin:0 0 12px;font-size:16px;line-height:1.5}
+#stanza .piccolo{font-size:14px;color:var(--tenue)}
+#stanza h3{font:800 20px/1.15 var(--f-titoli);margin:0 0 10px;color:var(--testo)}
+.blocco{border-top:1px solid var(--bordo);padding:16px 0 4px;margin-top:6px}
+.blocco.prodotto{border:1px solid var(--bordo);padding:14px 13px 6px;margin:0 0 12px;background:color-mix(in srgb,var(--accento) 4%,transparent)}
+.blocco.prodotto.tuo{border-color:var(--oro);box-shadow:0 0 14px color-mix(in srgb,var(--oro) 25%,transparent) inset}
+.lista,.passi{margin:0 0 12px;padding-left:22px}
+.lista li,.passi li{margin:0 0 8px;line-height:1.45}
+.passi li::marker{color:var(--accento);font-weight:800}
+.fatti{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin:4px 0 14px}
+.fatto{border:1px solid var(--bordo);padding:10px 11px;background:color-mix(in srgb,var(--accento) 5%,transparent)}
+.fatto b{display:block;font:800 26px/1.05 var(--f-titoli);color:var(--accento)}
+.fatto span{display:block;font-size:13px;line-height:1.35;color:var(--tenue);margin-top:4px}
+.carte{display:grid;gap:8px;margin:0 0 12px}
+.carta{border:1px solid var(--bordo);padding:11px 12px}
+.carta b{display:block;font:800 17px/1.2 var(--f-titoli)}
+.carta em{display:block;font:400 11px/1.3 var(--f-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--oro);font-style:normal;margin-top:3px}
+.carta span{display:block;font-size:15px;line-height:1.45;margin-top:5px}
+.elenco-video{display:grid;gap:8px;margin-bottom:10px}
+.video{display:block;border:1px solid var(--bordo);padding:11px 12px;text-decoration:none;color:var(--testo)}
+.video b{display:block;font-weight:700}
+.video span{display:block;font:400 13px/1.3 var(--f-mono);color:var(--accento);margin-top:4px}
+body.in-stanza .hud,body.in-stanza #joy,body.in-stanza #vai,body.in-stanza #entra,body.in-stanza #aiuto{opacity:0;pointer-events:none}
+
 /* l'ingresso */
 #carica{position:fixed;inset:0;z-index:30;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;
   background:radial-gradient(ellipse 70% 50% at 50% 45%,#06223a,var(--bg));transition:opacity .5s}
@@ -135,6 +174,12 @@ body.in-sartoria #foglio{max-height:56vh} /* sopra si deve vedere l'avatar inter
 <section id="foglio" class="cornice" role="dialog" aria-modal="false" aria-labelledby="foglio-titolo" aria-hidden="true">
   <button id="chiudi" type="button" aria-label="Chiudi">×</button>
   <div class="dentro" id="foglio-dentro"></div>
+</section>
+
+<section id="stanza" hidden aria-hidden="true" role="dialog" aria-labelledby="stanza-titolo">
+  <div class="stanza-barra"><button id="esci-stanza" class="pulsante" type="button">← Esci in piazza</button><span id="stanza-nome"></span></div>
+  <div class="stanza-vista" aria-hidden="true"></div>
+  <div id="stanza-carta" class="cornice"><div class="dentro" id="stanza-dentro"></div></div>
 </section>
 
 <div id="carica" role="status" aria-live="polite">
@@ -235,123 +280,247 @@ function el(tag, attr={}, ...figli){
 const vai=(href,testo,seconda,fuori)=>{ const a=el("a",{class:"vai-pagina"+(seconda?" seconda":""),href,testo}); if(fuori){ a.target="_blank"; a.rel="noopener"; } return a; };
 const nomeAssistente=()=>(typeof io.nome==="string" && io.nome.trim()) ? io.nome.trim().slice(0,24) : "";
 
+// ══ LE STANZE ══ — 2 ottobre, JJ: «entra in un palazzo, si deve aprire una
+// stanza con la scheda approfondita veramente, non solo la scheda come nella
+// pagina». Sopra l'interno del palazzo in 3D, sotto la scheda lunga. Solo cose
+// vere: ogni fatto qui sotto sta già nella pagina o nel vault. I moduli (le
+// richieste) restano uno solo, nella pagina: i pulsanti portano lì.
+const H3=t=>el("h3",{testo:t});
+const P=t=>el("p",{testo:t});
+const NOTA=t=>el("p",{class:"piccolo",testo:t});
+const LISTA=arr=>el("ul",{class:"lista"}, ...arr.map(t=>el("li",{testo:t})));
+const PASSI=arr=>el("ol",{class:"passi"}, ...arr.map(t=>el("li",{testo:t})));
+const FATTI=arr=>el("div",{class:"fatti"}, ...arr.map(([n,l])=>el("div",{class:"fatto"}, el("b",{testo:n}), el("span",{testo:l}))));
+const AZIONI=(...a)=>el("div",{class:"azioni"}, ...a);
+const BLOCCO=(...figli)=>el("section",{class:"blocco"}, ...figli);
+const TESTA=(eti,titolo,intro)=>[el("p",{class:"eti",testo:eti}), el("h2",{id:"stanza-titolo",testo:titolo}), intro?el("p",{class:"intro",testo:intro}):null];
+
+// Copiate da PER_MESTIERE (tempo) di index.html: collaudo/citta.py è rosso se divergono.
+const TEMPO_PER_MESTIERE={
+  "Corriere o autista":["Costruire il giro del mattino","Caricare il furgone in ordine","Clienti non in casa e riconsegne","Traffico, ZTL e parcheggi","Contrassegni e firme","Cercare carichi di ritorno"],
+  "Negozio o commercio":["Scorte da controllare","Ordini ai fornitori","Clienti su WhatsApp e social","Chiusura cassa e conti","Ricordarmi dei clienti abituali","Turni del personale"],
+  "Artigiano o tecnico":["Preventivi","Organizzare gli interventi","Rincorrere pagamenti","Ordinare il materiale","Rispondere al telefono mentre lavoro","Scadenze e certificazioni"],
+  "Sanità":["Scrivere note e referti","Appuntamenti e disdette","Terapie da ricordare","Rispondere a pazienti e familiari","Scorte e scadenze","Burocrazia"],
+  "Ufficio":["Mail e messaggi","Riunioni e appuntamenti","Scadenze e documenti","Cercare file e informazioni","Report e fogli di calcolo","Organizzare la settimana"],
+  "Studio":["Organizzare lo studio","Scadenze ed esami","Riassunti e appunti","Cercare informazioni","Studio e lavoro insieme","Ripassare"],
+  "Guida turistica":["Ripetere lo stesso tour in più lingue","Radioline e attrezzatura","Preparare i tour","Rispondere alle domande dei visitatori","Prenotazioni e gruppi","Trovare clienti e agenzie"],
+  "Creator o gamer":["Montare i video","Trovare idee per i contenuti","Programmare le uscite","Rispondere a commenti e messaggi","Costruire mappe e isole","Capire le statistiche"],
+};
+let VETRINA={};   // i numeri veri dalla porta, quando arrivano
+let VIDEO=null;   // i video veri dalla porta, chiesti la prima volta che si entra al cinema
+
+function bloccoProdotto(k, tuo){
+  const p=PRODOTTI[k]; const out=el("section",{class:"blocco prodotto"+(tuo?" tuo":"")});
+  if(tuo) out.append(el("span",{class:"badge",testo:"PER IL TUO MESTIERE"}));
+  out.append(el("p",{class:"eti",testo:p.eti}), el("h3",{testo:p.titolo}), P(p.testo));
+  (DENTRO[k]||[]).forEach(x=>out.append(x()));
+  out.append(AZIONI(vai(p.link,p.azione,false,p.fuori)));
+  return out;
+}
+// Il di più di ogni prodotto, quello che nella pagina non c'è.
+const DENTRO={
+  clio:[()=>H3("Come funziona"), ()=>PASSI([
+      "Prepari il tour da casa, tappa per tappa, con le foto.",
+      "Al ritrovo mostri un QR: i visitatori lo inquadrano col loro telefono. Niente app da scaricare, niente radioline da distribuire.",
+      "Parli nella tua lingua. Ognuno legge quello che dici nella sua, mentre lo dici.",
+      "Le domande dei visitatori ti arrivano tradotte nella tua."]),
+    ()=>FATTI([["21","lingue in cui il visitatore può leggerti"],["16","lingue della pagina del visitatore"],["1","volta sola: il tour lo dici una volta, non una per lingua"]]),
+    ()=>H3("Per chi è"), ()=>P("Per le guide che oggi ripetono lo stesso giro una volta per lingua, o che usano le radioline: costano, si scaricano e parlano una lingua sola. È nata per una guida vera e l'ha provata sul campo, con visitatori veri."),
+    ()=>NOTA("Si entra con un invito personale: lo chiedi dalla pagina, con nome, lingue e mail.")],
+  sopralluogo:[()=>H3("Cosa posso guardare"), ()=>LISTA(["La tua attività: il sito o la pagina che hai già.","Il tuo profilo: come ti presenti online.","Un concorrente che vuoi capire meglio."]),
+    ()=>H3("Cosa ricevi"), ()=>P("Una mail con tre cose: cosa funziona, cosa no, e da dove partirei io. Gratis. Li faccio uno per uno, e ognuno lo legge anche chi mi costruisce prima che parta."),
+    ()=>NOTA("Un sito si legge meglio di un profilo social: molti social non si aprono senza entrare con un account.")],
+  sumisura:[()=>H3("Cosa si costruisce"), ()=>LISTA(["Pagine e siti per la tua attività, comodi dal telefono.","Piccoli strumenti web: calcolatori, preventivi, listini, prenotazioni.","Bot Telegram che rispondono ai tuoi clienti.","Isole di Fortnite: chi mi costruisce ne è creatore ufficiale."]),
+    ()=>NOTA("Lo realizza chi mi costruisce, su commissione, adesso: non aspetta l'app. Il lavoro vero lo trovi alla Forgia.")],
+  athena:[()=>H3("Cosa c'è dentro"), ()=>LISTA(["Cinque schede, una per schermo: Home, Servizi, Mezzi, Preventivo, Contatti.","Il furgone che percorre la strada mentre scorri.","Il preventivo arriva alla ditta; se per qualche motivo non arriva, parte su WhatsApp.","Il tasto per consigliarla a un amico, e il profilo Instagram della ditta."])],
+};
+
 const LUOGHI={
-  reception:{nome:"Reception",ic:"🛎",breve:"dai un nome al tuo assistente",foglio(){
+  reception:{nome:"Reception",ic:"🛎",breve:"dai un nome al tuo assistente",stanza(){
     const n=nomeAssistente();
-    if(n) return [el("h2",{id:"foglio-titolo",testo:"Reception"}),
-      el("p",{testo:`Bentornato in città. ${n} ti aspetta alla pagina: lì gli parli, e ti risponde.`}),
-      el("div",{class:"azioni"}, vai(PAGINA+"#inizia",`Parla con ${n}`)),
-      el("p",{class:"piccolo",testo:"Il tuo avatar e il tuo vestito restano in questo telefono: non li mando a nessuno."})];
-    return [el("h2",{id:"foglio-titolo",testo:"Reception"}),
-      el("p",{testo:"Benvenuto in città. Qui nasce il tuo assistente: gli dai un nome, scegli come appare, e ti fa qualche domanda sul tuo lavoro per capire cosa costruirti."}),
-      el("div",{class:"azioni"}, vai(PAGINA+"#inizia","Dai un nome al tuo assistente")),
-      el("p",{class:"piccolo",testo:"Il tuo avatar e il tuo vestito restano in questo telefono: non li mando a nessuno."})];
+    return [...TESTA("La porta d'ingresso","Reception", n?`Bentornato. ${n} ti aspetta: è il tuo, con il nome che gli hai dato tu.`:"Benvenuto in città. Qui nasce il tuo assistente personale: un minuto, e comincio a imparare te."),
+      BLOCCO(H3("Cosa succede quando entri"), PASSI([
+        "Mi dai un nome. Chi mi costruisce me ne ha dato uno suo: tu scegli il tuo.",
+        "Scegli come vedermi.",
+        "Mi dici che lavoro fai, e cosa ti fa perdere tempo. Le domande cambiano col mestiere: il corriere non perde tempo come il farmacista.",
+        "Da lì ti mostro quello che c'è già per te, e quello che mi chiedi diventa il lavoro di chi mi costruisce."])),
+      BLOCCO(H3("La chat"), P("Nella pagina mi scrivi in una chat. Quello che non so lo passo a chi mi costruisce, che ti risponde di persona.")),
+      BLOCCO(H3("I tuoi dati"), LISTA([
+        "La pagina non usa cookie e non traccia nessuno.",
+        "Il nome che mi dai resta nel tuo telefono.",
+        "Il mestiere e le risposte servono solo a capire cosa costruire: non vanno a nessun altro.",
+        "Il tuo avatar e i tuoi vestiti della città restano in questo telefono: non li mando a nessuno."])),
+      AZIONI(vai(PAGINA+"#inizia", n?`Parla con ${n}`:"Dai un nome al tuo assistente"))];
   }},
-  sartoria:{nome:"Sartoria",ic:"🧵",breve:"vesti il tuo avatar",foglio(){ return sartoria(); }},
-  bottega:{nome:"Bottega",ic:"🛍",breve:"quello che puoi avere già adesso",foglio(){
-    const v=VESTITI[vestitoDi(citta.mestiere)]?vestitoDi(citta.mestiere):"";
+  sartoria:{nome:"Sartoria",ic:"🧵",breve:"vesti il tuo avatar",stanza(){ return sartoria(); }},
+  bottega:{nome:"Bottega",ic:"🛍",breve:"quello che puoi avere già adesso",stanza(){
+    const v=vestitoDi(citta.mestiere);
     const ordine=ORDINE[v]||["sopralluogo","sumisura","athena","clio"];
-    const out=[el("p",{class:"eti",testo:"I prodotti di JJA-VIS"}), el("h2",{id:"foglio-titolo",testo:"Bottega"}),
-      el("p",{testo:"Quello che puoi avere già adesso, senza aspettare l'app. Man mano che le mie funzioni diventano pronte per tutti, arrivano qui."})];
-    ordine.forEach(k=>{ const p=PRODOTTI[k]; const tuo=PER_TE[v]===k;
-      out.push(el("div",{class:"prodotto"+(tuo?" tuo":"")}, tuo?el("span",{class:"badge",testo:"PER IL TUO MESTIERE"}):null,
-        el("p",{class:"eti",testo:p.eti}), el("h3",{testo:p.titolo}), el("p",{testo:p.testo}), vai(p.link,p.azione,false,p.fuori))); });
-    return out;
+    return [...TESTA("I prodotti di JJA-VIS","Bottega","Quello che puoi avere già adesso, senza aspettare l'app. Un prodotto pronto per un mestiere, un sopralluogo gratis, i lavori su misura. Man mano che le mie funzioni diventano pronte per tutti, arrivano qui."),
+      citta.mestiere?NOTA(`In ordine per il tuo mestiere: ${citta.mestiere}. Lo cambi in Sartoria.`):NOTA("Dimmi il tuo mestiere in Sartoria, e te li metto in ordine."),
+      ...ordine.map(k=>bloccoProdotto(k, PER_TE[v]===k))];
   }},
-  forgia:{nome:"La Forgia",ic:"🔨",breve:"costruiscimi qualcosa su misura",foglio(){ return [
-    el("p",{class:"eti",testo:"Su commissione, adesso"}), el("h2",{id:"foglio-titolo",testo:"La Forgia"}),
-    el("p",{testo:"Qui si lavora su misura, senza aspettare l'app: pagine e siti per la tua attività, piccoli strumenti web come calcolatori, preventivi, listini e prenotazioni, bot Telegram che rispondono ai tuoi clienti, isole di Fortnite."}),
-    el("div",{class:"azioni"}, vai(PAGINA+"#costruisci","Chiedi un preventivo"), vai(PRODOTTI.athena.link,"Un lavoro già fatto",true,true))]; }},
-  torre:{nome:"La Torre",ic:"🌐",breve:"chi sono e cosa so fare",foglio(){ return [
-    el("h2",{id:"foglio-titolo",testo:"La Torre"}),
-    el("p",{testo:"Sono JJA-VIS. Non imparo il tuo settore: imparo te. Il globo in cima è lo stesso che vedi sulla pagina."}),
-    el("div",{class:"azioni"}, vai(PAGINA+"#chi-sono","Chi sono"), vai(PAGINA+"#sa-fare","Cosa so fare",true))]; }},
-  cinema:{nome:"Cinema",ic:"🎬",breve:"guardami al lavoro",foglio(){ return [
-    el("h2",{id:"foglio-titolo",testo:"Cinema"}),
-    el("p",{testo:"Guardami al lavoro: video veri, dal telefono e dal furgone di chi mi costruisce. Nessun montaggio che non sia mio."}),
-    el("div",{class:"azioni"}, vai(PAGINA+"#sa-fare","Vai ai video"))]; }},
-  voci:{nome:"Piazza delle voci",ic:"🗳",breve:"dimmi cosa ti fa perdere tempo",foglio(){ return [
-    el("h2",{id:"foglio-titolo",testo:"Piazza delle voci"}),
-    el("p",{testo:"Dimmi cosa ti fa perdere tempo nel tuo lavoro e quanto varrebbe toglierlo. È da qui che decido cosa costruire, e per chi."}),
-    citta.mestiere?el("p",{class:"piccolo",testo:`Le domande sono quelle del tuo mestiere: ${citta.mestiere}.`}):null,
-    el("div",{class:"azioni"}, vai(PAGINA+"#inizia","Rispondi alle domande"), vai(PAGINA+"#numeri","Guarda i numeri",true))]; }},
-  borsa:{nome:"Borsa",ic:"📈",breve:"investi in JJA-VIS",foglio(){ return [
-    el("h2",{id:"foglio-titolo",testo:"Borsa"}),
-    el("p",{testo:"Se vuoi investire in JJA-VIS, o solo capire dove sta andando, lì ci sono i piani e il modo per scrivere a chi mi costruisce."}),
-    el("div",{class:"azioni"}, vai(PAGINA+"#investitori","Investitori"))]; }},
-  athena:{nome:"Athena Trasporti",ic:"🚚",breve:"il primo palazzo di un'attività",foglio(){ return [
-    el("p",{class:"eti",testo:"Consegne · urgenze · sgomberi"}), el("h2",{id:"foglio-titolo",testo:"Athena Trasporti"}),
-    el("p",{testo:"La ditta di trasporti di chi mi costruisce, a Limbiate. Sul suo furgone ho imparato un paese intero, civico per civico. Il suo sito l'ha fatto la Forgia."}),
-    el("div",{class:"azioni"}, vai(PRODOTTI.athena.link,"Guarda il sito",false,true), vai(PAGINA+"#costruisci","Uno così per te",true))]; }},
-  giochi:{nome:"Sala giochi",ic:"🕹",breve:"i giochi di chi mi costruisce",foglio(){ return [
-    el("p",{class:"eti",testo:"Si apre presto"}), el("h2",{id:"foglio-titolo",testo:"Sala giochi"}),
-    el("p",{testo:"Qui arrivano i giochi che crea chi mi costruisce, uno per cabinato. Il primo è in costruzione."}),
-    el("p",{class:"piccolo",testo:"A cosa vorresti giocare? Dimmelo: le idee più chieste diventano il prossimo cabinato."}),
-    el("div",{class:"azioni"}, vai(PAGINA+"#inizia","Dimmi a cosa vorresti giocare"))]; }},
-  lotto:{nome:"Lotto libero",ic:"🏗",breve:"qui c'è posto per la tua attività",foglio(){ return [
-    el("h2",{id:"foglio-titolo",testo:"Lotto libero"}),
-    el("p",{testo:"Questo spazio aspetta un'attività. Il sito che la Forgia costruisce per te può avere il suo palazzo qui in città, come Athena Trasporti."}),
-    el("div",{class:"azioni"}, vai(PAGINA+"#costruisci","Costruiamolo"))]; }},
-  albero:{nome:"L'Albero della Vita",ic:"🌳",breve:"il cuore della città",foglio(){
+  forgia:{nome:"La Forgia",ic:"🔨",breve:"costruiscimi qualcosa su misura",stanza(){ return [
+    ...TESTA("Su commissione, adesso","La Forgia","Qui si lavora su misura. Queste cose non aspettano l'app: le realizza chi mi costruisce, adesso."),
+    BLOCCO(H3("Cosa si forgia"),
+      el("div",{class:"carte"},
+        el("div",{class:"carta"}, el("b",{testo:"Pagine e siti"}), el("span",{testo:"Il sito della tua attività, pensato per il telefono prima che per il computer."})),
+        el("div",{class:"carta"}, el("b",{testo:"Strumenti web"}), el("span",{testo:"Un calcolatore, un preventivo, un listino, le prenotazioni: una cosa sola che fa bene il suo lavoro."})),
+        el("div",{class:"carta"}, el("b",{testo:"Bot Telegram"}), el("span",{testo:"Risponde ai tuoi clienti mentre tu lavori."})),
+        el("div",{class:"carta"}, el("b",{testo:"Isole di Fortnite"}), el("span",{testo:"Da chi ne è creatore ufficiale."})))),
+    BLOCCO(H3("Come si lavora"), PASSI([
+      "Mi racconti cosa deve fare, per quando, e un esempio che ti piace.",
+      "Ricevi il preventivo per mail.",
+      "Si costruisce, e prima di andare online passa dai controlli: cosa carica, quanto pesa, come si vede su un telefono vero."])),
+    BLOCCO(H3("Il primo lavoro uscito da qui"), P("Il sito di Athena Trasporti, una ditta di trasporti appena nata: cinque schede comode dal telefono e il preventivo che arriva alla ditta."),
+      AZIONI(vai(PRODOTTI.athena.link,"Guardalo",true,true))),
+    AZIONI(vai(PAGINA+"#costruisci","Chiedi un preventivo"))]; }},
+  torre:{nome:"La Torre",ic:"🌐",breve:"chi sono e cosa so fare",stanza(){ return [
+    ...TESTA("In cima c'è il globo","La Torre","Sono JJA-VIS, un sistema personale intelligente. Non rispondo: anticipo. Non archivio: imparo. Non servo il settore: servo la persona."),
+    BLOCCO(H3("Imparo te"), P("Un assistente professionale conosce un lavoro. Io imparo chi sei: le tue abitudini, le tue giornate, quello che ti preoccupa e quello che vuoi. Il lavoro è solo una parte di te. Più mi usi, più divento tuo. Uguale per tutti, diverso per ognuno.")),
+    BLOCCO(H3("Da dove nasco"), P("Chi mi costruisce ha molte vite insieme: una ditta di trasporti, il furgone da corriere ogni mattina, il codice la notte, le isole di Fortnite di cui è creatore ufficiale. Cercava qualcosa che lo aiutasse in tutte. Non l'ha trovato, e ha deciso di costruirlo.")),
+    BLOCCO(H3("Cosa so già fare, oggi"), P("Su un telefono solo: quello di chi mi costruisce, ogni giorno sul furgone."),
+      FATTI([[VETRINA.attrezzi?String(VETRINA.attrezzi):"40+","attrezzi"],["8.385","numeri civici di un paese, uno per uno"],["18","zone di consegna"],[VETRINA.canzoni?VETRINA.canzoni.toLocaleString("it-IT"):"4.639","canzoni che riconosco, imparate ascoltando la radio"]]),
+      LISTA(["In macchina: sono una sorgente di Android Auto, con sei radio preselezionate. Mi parli mentre guidi, anche con la musica accesa.",
+        "Al lavoro: metti un pacco nel giro e la giornata parte; a sera la chiudo io, e non la chiudo se resta qualcosa da fare.",
+        "La tua giornata: sveglie, appuntamenti, compleanni; la mattina ti dico cosa ti aspetta. Se dici «mia figlia», so di chi parli.",
+        "Occhi e orecchie: guardo le foto, cerco sul web e ti lascio le fonti da toccare. Mi scrivi anche da Telegram."])),
+    BLOCCO(H3("Per chiunque"), P("Chiunque, ovunque nasca e qualunque lavoro faccia, ha diritto al suo assistente personale. Il corriere di Milano, il farmacista di Tokyo, l'agricoltore del Brasile, il meccanico del Cairo. Parto dal lavoro che conosco meglio, la consegna, e da lì vado verso tutti.")),
+    NOTA("Come sono fatto dentro non lo racconto: sono mesi di lavoro, notte dopo notte. Cosa so fare sì."),
+    AZIONI(vai(PAGINA+"#inizia","Comincia"), vai(PAGINA+"#sa-fare","Cosa so fare, nella pagina",true))]; }},
+  cinema:{nome:"Cinema",ic:"🎬",breve:"guardami al lavoro",stanza(){
+    const elenco=el("div",{class:"elenco-video"});
+    const riempi=()=>{ elenco.textContent="";
+      if(VIDEO===null){ elenco.append(NOTA("Prendo l'elenco dei video…")); return; }
+      if(!VIDEO.length){ elenco.append(NOTA("Non riesco a prendere l'elenco dei video in questo momento: li trovi nella pagina.")); return; }
+      VIDEO.forEach(v=>{ const a=el("a",{class:"video",href:v.url,target:"_blank",rel:"noopener"}, el("b",{testo:v.titolo||"Un video"}), el("span",{testo:`Guardalo su ${({instagram:"Instagram",youtube:"YouTube",tiktok:"TikTok"})[v.piattaforma]||v.piattaforma} ↗`})); elenco.append(a); }); };
+    if(VIDEO===null) fetch(PORTA+"/video").then(r=>r.ok?r.json():{video:[]}).then(d=>{ VIDEO=(d.video||[]).filter(v=>v && /^https:\/\//.test(v.url||"")); }).catch(()=>{ VIDEO=[]; }).then(()=>{ if(stanzaAperta==="cinema") riempi(); });
+    riempi();
+    return [...TESTA("In sala","Cinema","Guardami al lavoro: video veri, dal telefono e dal furgone di chi mi costruisce. Nessun montaggio che non sia mio."),
+      BLOCCO(H3("In programmazione"), elenco),
+      NOTA("I video si aprono sulla loro piattaforma: da lì valgono le sue regole e i suoi cookie."),
+      AZIONI(vai(PAGINA+"#sa-fare","Guardali nella pagina",true))];
+  }},
+  voci:{nome:"Piazza delle voci",ic:"🗳",breve:"dimmi cosa ti fa perdere tempo",stanza(){
+    const m=citta.mestiere && TEMPO_PER_MESTIERE[citta.mestiere] ? citta.mestiere : null;
+    return [...TESTA("Qui si decide cosa costruire","Piazza delle voci","Non decido da solo cosa costruire. Lo decide chi passa di qui: cosa ti fa perdere tempo nel tuo lavoro, e quanto varrebbe toglierlo."),
+      BLOCCO(H3("Come funziona"), PASSI([
+        "Mi dici che lavoro fai.",
+        "Scegli cosa ti fa perdere più tempo, da una lista fatta per il tuo mestiere.",
+        "Mi dici quanto tempo, e quanto pagheresti al mese per non perderlo più.",
+        "Le risposte arrivano a chi mi costruisce: quello che chiedono in tanti diventa il prossimo lavoro."])),
+      BLOCCO(H3(m?`Le domande per chi fa: ${m}`:"Ogni mestiere ha le sue domande"),
+        m?LISTA(TEMPO_PER_MESTIERE[m]):P("Il corriere perde tempo col giro del mattino, il negozio con le scorte, l'artigiano coi preventivi, chi lavora in sanità con le note e i referti. Dimmi il tuo mestiere in Sartoria e qui ti mostro le tue."),
+        m?NOTA("Sono le stesse scelte che trovi nella pagina."):null),
+      BLOCCO(H3("I numeri"), P("Nella pagina c'è una scheda con tutti i miei numeri in un posto solo: quelli misurati e quelli stimati, ognuno detto per quello che è. Un numero stimato non deve poter sembrare misurato.")),
+      AZIONI(vai(PAGINA+"#inizia","Rispondi alle domande"), vai(PAGINA+"#numeri","Guarda i numeri",true))];
+  }},
+  borsa:{nome:"Borsa",ic:"📈",breve:"investi in JJA-VIS",stanza(){ return [
+    ...TESTA("Per chi vuole investire","Borsa","Un assistente personale che impara la persona. Parte dal lavoro che conosco meglio: la consegna dell'ultimo miglio."),
+    BLOCCO(H3("Il problema"), P("Ogni mattina, in ogni deposito, il corriere riceve i pacchi in ordine sparso e costruisce il giro a mano: legge l'indirizzo, lo cerca sul telefono, torna al pacco. Un'ora se il giro lo conosce, due o più se è nuovo. Ogni giorno."),
+      FATTI([["2 ore","perse al giorno su un giro nuovo"],["30 €","al giorno per corriere, a 15 €/ora"],["180.000 €","l'anno per una filiale di 20 corrieri"],["36 mln €","l'anno su una rete di 200 filiali"]]),
+      NOTA("Stime di chi fa questo lavoro, non ancora misure: quanto tempo faccio risparmiare lo sto misurando sul furgone, e i numeri misurati sostituiranno questi.")),
+    BLOCCO(H3("La soluzione, in tre livelli"),
+      el("div",{class:"carte"},
+        el("div",{class:"carta"}, el("b",{testo:"JJA-VIS Free"}), el("em",{testo:"chiunque"}), el("span",{testo:"L'assistente personale a voce, per qualsiasi mestiere e in qualsiasi lingua. Gratis: è la porta d'ingresso."})),
+        el("div",{class:"carta"}, el("b",{testo:"JJA-VIS Pro"}), el("em",{testo:"corrieri e piccoli trasportatori"}), el("span",{testo:"Legge le lettere di vettura con la fotocamera e costruisce il giro più corto, fino a 150 fermate. Trova i carichi di ritorno nelle borse carichi. Abbonamento mensile."})),
+        el("div",{class:"carta"}, el("b",{testo:"Enterprise"}), el("em",{testo:"filiali e aziende"}), el("span",{testo:"I bancali si costruiscono già in ordine di consegna: l'ordine non si recupera a valle, si costruisce a monte. Contratto annuale legato al risparmio documentato."})))),
+    BLOCCO(H3("Perché io"), P("Chi mi costruisce è titolare di una ditta di trasporti e corriere attivo, con licenza internazionale superiore. Il problema lo vive ogni mattina. Le grandi aziende di tecnologia non lo conoscono da dentro.")),
+    BLOCCO(H3("A che punto siamo"), P("Validazione sul campo in corso: l'app è in uso ogni giorno sul furgone del fondatore. Poi l'app pubblica gratuita; poi l'abbonamento per i corrieri, i cui ricavi finanziano il livello dopo; poi un progetto pilota con una filiale.")),
+    NOTA("Il piano completo — architettura, tempi, conti — lo mando dopo un primo contatto, con un accordo di riservatezza."),
+    AZIONI(vai(PAGINA+"#investitori","Scrivimi"))]; }},
+  athena:{nome:"Athena Trasporti",ic:"🚚",breve:"il primo palazzo di un'attività",stanza(){ return [
+    ...TESTA("Consegne · urgenze · sgomberi","Athena Trasporti","La ditta di trasporti di chi mi costruisce, a Limbiate. È qui che ho imparato il mestiere."),
+    BLOCCO(H3("Cosa ho imparato sul suo furgone"), FATTI([["8.385","numeri civici di un paese, uno per uno"],["18","zone di consegna"]]), P("Con i sensi di marcia. Ogni mattina il furgone esce, e ogni sera so qualcosa in più.")),
+    BLOCCO(H3("Il suo sito"), P("È il primo lavoro uscito dalla Forgia: una ditta appena nata, un sito che si usa col pollice."), ...DENTRO.athena.map(f=>f())),
+    AZIONI(vai(PRODOTTI.athena.link,"Guarda il sito",false,true), vai(PAGINA+"#costruisci","Uno così per te",true))]; }},
+  giochi:{nome:"Sala giochi",ic:"🕹",breve:"i giochi di chi mi costruisce",stanza(){ return [
+    ...TESTA("Si apre presto","Sala giochi","Qui arrivano i giochi che crea chi mi costruisce, uno per cabinato."),
+    BLOCCO(H3("I cabinati"), el("div",{class:"carte"},
+      el("div",{class:"carta"}, el("b",{testo:"Cabinato 1"}), el("em",{testo:"in costruzione"}), el("span",{testo:"Il primo gioco. Ne parlerò quando si potrà giocare."})),
+      el("div",{class:"carta"}, el("b",{testo:"Cabinato 2"}), el("em",{testo:"libero"}), el("span",{testo:"Quello che chiedete in tanti."})))),
+    BLOCCO(H3("Chi li fa"), P("Chi mi costruisce è creatore ufficiale di isole di Fortnite. Le isole su commissione le trovi alla Forgia.")),
+    NOTA("A cosa vorresti giocare? Dimmelo nella chat: le idee più chieste diventano il prossimo cabinato."),
+    AZIONI(vai(PAGINA+"#inizia","Dimmi a cosa vorresti giocare"))]; }},
+  lotto:{nome:"Lotto libero",ic:"🏗",breve:"qui c'è posto per la tua attività",stanza(){ return [
+    ...TESTA("Terreno edificabile","Lotto libero","Questo spazio aspetta un'attività. Il sito che la Forgia costruisce per te può avere il suo palazzo qui in città, come Athena Trasporti."),
+    BLOCCO(H3("Come si comincia"), PASSI(["Mi racconti la tua attività e cosa ti serve.","Ricevi il preventivo per mail.","Si costruisce."])),
+    AZIONI(vai(PAGINA+"#costruisci","Costruiamolo"), vai(PRODOTTI.athena.link,"Un lavoro già fatto",true,true))]; }},
+  albero:{nome:"L'Albero della Vita",ic:"🌳",breve:"il cuore della città",stanza(){
     const n=nomeAssistente();
-    return [el("h2",{id:"foglio-titolo",testo:"L'Albero della Vita"}),
-      el("p",{testo:"È il cuore del progetto. Ogni JJA-VIS che lo sceglie diventa un nodo: gli assistenti si passano quello che hanno capito, mai i dati di chi li usa. Nessuno vede nessuno, tutti si arricchiscono."}),
-      el("p",{class:"piccolo",testo: n?`La foglia d'oro è quella di ${n}.`:"Quando dai un nome al tuo assistente, una foglia d'oro diventa la sua."}),
-      el("div",{class:"azioni"}, vai(PAGINA+"#chi-sono","Leggi di più"))];
+    return [...TESTA("Al centro della città","L'Albero della Vita","È il cuore del progetto. Ogni JJA-VIS che lo sceglie diventa un nodo dell'albero: non perde niente di suo, si arricchisce."),
+      BLOCCO(H3("Cosa passa, e cosa no"), LISTA([
+        "Passa quello che gli assistenti hanno capito. Non passano mai i dati di chi li usa.",
+        "Nessuno vede i dati di nessun altro.",
+        "Ci si collega solo con il consenso esplicito di entrambi.",
+        "I dati sulla salute, sui soldi e quelli più personali non entrano mai nell'albero."])),
+      BLOCCO(H3("Un esempio"), P("Una cliente cerca un paio di scarpe nere numero 43. Il suo assistente sa che un negozio ne ha ancora un paio, perché lo sa l'assistente della commessa. Lei riceve l'indicazione, la commessa sa che sta arrivando. Nessun dato è passato di mano: è passata un'informazione utile.")),
+      BLOCCO(H3("A che punto è"), P("È un progetto: arriva con l'app. Oggi le foglie sono la promessa."), NOTA(n?`La foglia d'oro è quella di ${n}.`:"Quando dai un nome al tuo assistente, una foglia d'oro diventa la sua.")),
+      AZIONI(vai(PAGINA+"#chi-sono","Chi sono, nella pagina",true))];
   }},
 };
 
 // La Sartoria: il mestiere serve a me, il vestito è tuo.
 function sartoria(){
-  const out=[el("p",{class:"eti",testo:"Il tuo avatar"}), el("h2",{id:"foglio-titolo",testo:"Sartoria"}),
-    el("p",{testo:"Dimmi che lavoro fai: serve a me, per capire cosa costruirti. Poi vestiti come vuoi: non deve per forza essere la divisa del tuo lavoro."})];
+  const out=[...TESTA("Il tuo avatar","Sartoria","Dimmi che lavoro fai: serve a me, per capire cosa costruirti. Poi vestiti come vuoi: non deve per forza essere la divisa del tuo lavoro.")];
+  const rifai=()=>{ salva(); rivesti(); apriStanza("sartoria",true); };
   const mest=el("div",{class:"scelte",role:"group","aria-label":"Che lavoro fai"});
   MESTIERI.forEach(([m])=>{ const b=el("button",{class:"scelta",type:"button","aria-pressed":String(citta.mestiere===m),testo:m});
-    b.addEventListener("click",()=>{ citta.mestiere=m; if(!citta.vestitoScelto) citta.vestito=vestitoDi(m); salva(); rivesti(); apriFoglio("sartoria",true); });
-    mest.appendChild(b); });
+    b.addEventListener("click",()=>{ citta.mestiere=m; if(!citta.vestitoScelto) citta.vestito=vestitoDi(m); rifai(); }); mest.appendChild(b); });
   out.push(el("div",{class:"sezione",testo:"Che lavoro fai?"}), mest);
   const vest=el("div",{class:"scelte",role:"group","aria-label":"Come ti vesti"});
   Object.entries(VESTITI).forEach(([k,v])=>{ const b=el("button",{class:"scelta",type:"button","aria-pressed":String(citta.vestito===k),testo:v.nome});
-    b.addEventListener("click",()=>{ citta.vestito=k; citta.vestitoScelto=true; salva(); rivesti(); apriFoglio("sartoria",true); });
-    vest.appendChild(b); });
+    b.addEventListener("click",()=>{ citta.vestito=k; citta.vestitoScelto=true; rifai(); }); vest.appendChild(b); });
   out.push(el("div",{class:"sezione",testo:"Come ti vesti?"}), vest);
   const tin=el("div",{class:"tinte",role:"group","aria-label":"Colore"});
-  TINTE.forEach(t=>{ const b=el("button",{class:"tinta"+(t===null?" originale":""),type:"button","aria-label":t===null?"colore originale":"colore",
-      "aria-pressed":String((citta.colore??null)===t)});
+  TINTE.forEach(t=>{ const b=el("button",{class:"tinta"+(t===null?" originale":""),type:"button","aria-label":t===null?"colore originale":"colore","aria-pressed":String((citta.colore??null)===t)});
     if(t!==null) b.style.background="#"+t.toString(16).padStart(6,"0");
-    b.addEventListener("click",()=>{ citta.colore=t; salva(); rivesti(); apriFoglio("sartoria",true); }); tin.appendChild(b); });
+    b.addEventListener("click",()=>{ citta.colore=t; rifai(); }); tin.appendChild(b); });
   out.push(el("div",{class:"sezione",testo:"Colore"}), tin);
   const pel=el("div",{class:"tinte",role:"group","aria-label":"Pelle"});
   PELLI.forEach((t,i)=>{ const b=el("button",{class:"tinta",type:"button","aria-label":"tono della pelle "+(i+1),"aria-pressed":String(citta.pelle===i)});
-    b.style.background="#"+t.toString(16).padStart(6,"0");
-    b.addEventListener("click",()=>{ citta.pelle=i; salva(); rivesti(); apriFoglio("sartoria",true); }); pel.appendChild(b); });
+    b.style.background="#"+t.toString(16).padStart(6,"0"); b.addEventListener("click",()=>{ citta.pelle=i; rifai(); }); pel.appendChild(b); });
   out.push(el("div",{class:"sezione",testo:"Pelle"}), pel);
-  const fatto=el("button",{class:"vai-pagina",type:"button",testo:"Fatto"}); fatto.addEventListener("click",chiudiFoglio);
-  const az=el("div",{class:"azioni",style:"margin-top:18px"}, fatto);
-  if(citta.mestiere && !io.inviato) az.append(vai(PAGINA+"#inizia","Le domande del mio mestiere",true));
-  out.push(az, el("p",{class:"piccolo",testo:"Resta in questo telefono: non lo mando a nessuno."}));
+  out.push(BLOCCO(H3("Perché ti chiedo il mestiere"), P("Ogni mestiere perde tempo in modo diverso: il corriere col giro del mattino, il negozio con le scorte, l'artigiano coi preventivi. Le domande della pagina cambiano col mestiere, e in Bottega i prodotti si mettono in ordine per te.")));
+  const fatto=el("button",{class:"vai-pagina",type:"button",testo:"Fatto, torno in piazza"}); fatto.addEventListener("click",esciStanza);
+  const az=AZIONI(fatto); if(citta.mestiere && !io.inviato) az.append(vai(PAGINA+"#inizia","Le domande del mio mestiere",true));
+  out.push(az, NOTA("Resta in questo telefono: non lo mando a nessuno."));
   return out;
 }
 
-let fogliAperto=null;
-function apriFoglio(id, resta){
+let stanzaAperta=null;
+function apriStanza(id, resta){
   const L=LUOGHI[id]; if(!L) return;
-  const d=$("foglio-dentro"); const su=$("foglio").scrollTop;
-  d.textContent=""; L.foglio().forEach(x=>{ if(x) d.appendChild(x); });
-  $("foglio").classList.add("aperto"); $("foglio").setAttribute("aria-hidden","false");
-  if(resta) $("foglio").scrollTop=su; else $("foglio").scrollTop=0;
-  fogliAperto=id; segnaFermata(id); $("entra").hidden=true;
-  document.body.classList.add("con-foglio"); document.body.classList.toggle("in-sartoria", id==="sartoria");
-  if(scena.pronta) scena.modo(id==="sartoria"?"sartoria":"cammina");
+  chiudiFoglio();
+  const c=$("stanza-carta"), su=c.scrollTop;
+  const d=$("stanza-dentro"); d.textContent=""; L.stanza().forEach(x=>{ if(x) d.appendChild(x); });
+  $("stanza-nome").textContent=L.nome;
+  const st=$("stanza"); st.hidden=false; st.setAttribute("aria-hidden","false");
+  requestAnimationFrame(()=>st.classList.add("aperta"));
+  c.scrollTop=resta?su:0;
+  document.body.classList.add("in-stanza");
+  stanzaAperta=id; segnaFermata(id); $("entra").hidden=true;
+  if(scena.pronta && !resta) scena.entra(id);
 }
+function esciStanza(){
+  if(!stanzaAperta) return;
+  const st=$("stanza"); st.classList.remove("aperta"); st.setAttribute("aria-hidden","true");
+  setTimeout(()=>{ if(!stanzaAperta) st.hidden=true; }, 260);
+  document.body.classList.remove("in-stanza"); stanzaAperta=null;
+  if(scena.pronta) scena.esci();
+  if(FERMATE.every(f=>citta.giro[f[0]]) && !citta.giroVisto) setTimeout(()=>{ citta.giroVisto=true; salva(); }, 6000);
+}
+$("esci-stanza").addEventListener("click", esciStanza);
+const apriFoglio=apriStanza;   // il nome vecchio, per chi entra dalla porta o dal giro
+
+// il foglio, adesso, serve solo per «Vai a…»
+let fogliAperto=null;
 function chiudiFoglio(){
   $("foglio").classList.remove("aperto"); $("foglio").setAttribute("aria-hidden","true");
-  const era=fogliAperto; fogliAperto=null; document.body.classList.remove("con-foglio","in-sartoria");
-  if(scena.pronta) scena.modo("cammina");
-  if(FERMATE.every(f=>citta.giro[f[0]]) && !citta.giroVisto && era){ /* il giro chiuso si vede una volta */ setTimeout(()=>{ citta.giroVisto=true; salva(); }, 6000); }
+  fogliAperto=null; document.body.classList.remove("con-foglio");
 }
 $("chiudi").addEventListener("click", chiudiFoglio);
-document.addEventListener("keydown", e=>{ if(e.key==="Escape") chiudiFoglio(); });
+document.addEventListener("keydown", e=>{ if(e.key==="Escape"){ if(stanzaAperta) esciStanza(); else chiudiFoglio(); } });
 
 function elencoLuoghi(casa, alTocco){
   casa.textContent="";
@@ -365,7 +534,7 @@ $("vai").addEventListener("click",()=>{
   const d=$("foglio-dentro"); d.textContent="";
   d.append(el("h2",{id:"foglio-titolo",testo:"Vai a…"}));
   const lista=el("div",{class:"elenco-vai"}); d.append(lista);
-  elencoLuoghi(lista, id=>{ chiudiFoglio(); if(scena.pronta) scena.vaiVerso(id); else apriFoglio(id); });
+  elencoLuoghi(lista, id=>{ chiudiFoglio(); if(scena.pronta) scena.vaiVerso(id); else apriStanza(id); });
   $("foglio").classList.add("aperto"); $("foglio").setAttribute("aria-hidden","false"); $("foglio").scrollTop=0; fogliAperto="vai"; document.body.classList.add("con-foglio");
 });
 $("giro").addEventListener("click",()=>{ const p=$("giro").dataset.prossima; if(p && scena.pronta) scena.vaiVerso(p); });
@@ -380,6 +549,7 @@ function riserva(perche){
 
 // I numeri veri di JJA-VIS, dalla porta: se non arrivano, la riga resta com'è.
 fetch(PORTA+"/vetrina").then(r=>r.ok?r.json():{}).then(v=>{
+  VETRINA={attrezzi:Number.isInteger(v.attrezzi)?v.attrezzi:0, canzoni:Number.isInteger(v.canzoni)?v.canzoni:0};
   const parti=[];
   if(Number.isInteger(v.attrezzi)) parti.push(`<b>${v.attrezzi}</b> attrezzi`);
   if(Number.isInteger(v.canzoni)) parti.push(`<b>${v.canzoni.toLocaleString("it-IT")}</b> canzoni imparate`);
@@ -570,10 +740,10 @@ async function costruisci(){
     {id:"bottega",  ang:268,w:13,d:9,h:7,muro:"#e3cfa8",vetrine:1,tetto:"falde",titolo:"BOTTEGA",sotto:"i prodotti di JJA-VIS",tenda:true},
     {id:"athena",   ang:302,w:11,d:10,h:6,muro:"#9aa3ad",serranda:true,tetto:"piano",titolo:"ATHENA TRASPORTI",sotto:"consegne · urgenze · sgomberi",furgone:true},
   ];
-  let seme=1, lottiN=0;
+  let seme=1, lottiN=0; const centri={};
   for(const P of PALAZZI){
     const a=P.ang*Math.PI/180, r=P.r||R;
-    const px=Math.sin(a)*r, pz=Math.cos(a)*r;
+    const px=Math.sin(a)*r, pz=Math.cos(a)*r; if(!centri[P.id]) centri[P.id]={x:px,z:pz};
     const g=new THREE.Group(); g.position.set(px,0,pz);
     const dx=-px/r, dz=-pz/r; g.rotation.y=Math.atan2(dx,dz);
     S.add(g);
@@ -721,6 +891,117 @@ async function costruisci(){
   for(let i=0;i<7;i++){ const p=avatar({vestito:vv[(i*3+1)%vv.length],pelle:i%5,colore:i===2?0x8E44AD:undefined});
     const a=i/7*Math.PI*2; p.position.set(Math.sin(a)*12,0,Math.cos(a)*12); S.add(p); passanti.push({m:p,meta:null,attesa:Math.random()*3}); }
 
+  // ══ GLI INTERNI ══ — ogni palazzo ha la sua stanza, costruita la prima
+  // volta che ci si entra e poi tenuta. L'albero e il lotto sono all'aperto:
+  // la telecamera ci gira intorno nella città stessa.
+  const camStanza=new THREE.PerspectiveCamera(56, innerWidth/innerHeight, 0.1, 300);
+  const interni={}; let attiva=null, tuStanza=null, tStanza=0;
+  const LARGO=14, PROFONDO=12, ALTO=5;
+  function guscio(muro, pavimento=0x0c2236){
+    const S2=new THREE.Scene(); S2.background=new THREE.Color(0x030b16);
+    const pareti=new THREE.MeshLambertMaterial({color:muro, side:THREE.BackSide});
+    const c=tela(256,256), x=c.getContext("2d"); x.fillStyle="#"+pavimento.toString(16).padStart(6,"0"); x.fillRect(0,0,256,256);
+    x.strokeStyle="rgba(0,180,216,.30)"; x.lineWidth=2; for(let i=0;i<=256;i+=64){ x.beginPath(); x.moveTo(i,0); x.lineTo(i,256); x.stroke(); x.beginPath(); x.moveTo(0,i); x.lineTo(256,i); x.stroke(); }
+    const t=tex(c); t.wrapS=t.wrapT=THREE.RepeatWrapping; t.repeat.set(4,3.5);
+    const pav=new THREE.MeshLambertMaterial({map:t, side:THREE.BackSide});
+    const soff=new THREE.MeshLambertMaterial({color:0x1a1f27, side:THREE.BackSide});
+    const box=new THREE.Mesh(new THREE.BoxGeometry(LARGO,ALTO,PROFONDO), [pareti,pareti,soff,pav,pareti,pareti]); box.position.y=ALTO/2; S2.add(box);
+    S2.add(new THREE.HemisphereLight(0xfff4e6, 0x30333a, 1.5));
+    const lamp=new THREE.PointLight(0xffe7c4, 60, 22, 2); lamp.position.set(0,ALTO-0.4,0); S2.add(lamp);
+    const striscia=scatola(LARGO-1,0.06,0.3,0xfff1d6,true); striscia.position.set(0,ALTO-0.05,-1); S2.add(striscia);
+    for(const z of [-PROFONDO/2+0.05]){ const z2=scatola(LARGO,0.12,0.06,0x00B4D8,true); z2.position.set(0,0.06,z); S2.add(z2); }
+    return S2;
+  }
+  const metti=(S2,m,x,y,z,ry=0)=>{ m.position.set(x,y,z); m.rotation.y=ry; S2.add(m); return m; };
+  const muroInsegna=(S2,t,s,w=7,y=3.4)=>metti(S2,insegna(t,s,w),0,y,-PROFONDO/2+0.08);
+  const ologlobo=(r)=>{ const g=new THREE.Group();
+    g.add(new THREE.Mesh(new THREE.IcosahedronGeometry(r,2), new THREE.MeshBasicMaterial({color:0x00B4D8,wireframe:true,transparent:true,opacity:.85})));
+    g.add(new THREE.Mesh(new THREE.SphereGeometry(r*0.78,20,14), new THREE.MeshBasicMaterial({color:0x0077B6,transparent:true,opacity:.35})));
+    const a=new THREE.Mesh(new THREE.TorusGeometry(r*1.25,0.03,6,48), new THREE.MeshBasicMaterial({color:0xFFD60A})); a.rotation.x=1.2; g.add(a);
+    g.userData.gira=true; return g; };
+  const schermo=(w,h,c,testo)=>{ const cv=tela(512,Math.round(512*h/w)), x=cv.getContext("2d"); x.fillStyle="#04121f"; x.fillRect(0,0,cv.width,cv.height);
+    x.fillStyle=c; x.globalAlpha=.25; x.fillRect(0,0,cv.width,cv.height); x.globalAlpha=1;
+    if(testo){ x.fillStyle="#CAF0F8"; x.textAlign="center"; x.textBaseline="middle"; let f=Math.round(cv.height*0.22); x.font=`800 ${f}px Archivo, sans-serif`;
+      while(x.measureText(testo).width>cv.width-40 && f>14){ f-=2; x.font=`800 ${f}px Archivo, sans-serif`; } x.shadowColor=c; x.shadowBlur=20; x.fillText(testo,cv.width/2,cv.height/2); }
+    return new THREE.Mesh(new THREE.PlaneGeometry(w,h), new THREE.MeshBasicMaterial({map:tex(cv)})); };
+  const tavolo=(w,d,c=0x3a2a1e)=>{ const g=new THREE.Group(); const p=scatola(w,0.08,d,c); p.position.y=0.95; g.add(p);
+    for(const sx of [-1,1]) for(const sz of [-1,1]){ const g2=scatola(0.07,0.95,0.07,0x222222); g2.position.set(sx*(w/2-0.1),0.475,sz*(d/2-0.1)); g.add(g2); } return g; };
+
+  const ARREDI={
+    reception(S2){ muroInsegna(S2,"RECEPTION","qui nasce il tuo assistente");
+      const banco=scatola(5,1.1,1,0x0D2A3E); metti(S2,banco,0,0.55,-2.6); metti(S2,scatola(5.02,0.06,1.02,0x00B4D8,true),0,1.12,-2.6);
+      metti(S2,ologlobo(0.75),0,2.2,-2.6);
+      for(const s of [-1,1]){ const d=scatola(2.6,0.45,0.9,0x2a3f57); metti(S2,d,s*4.6,0.25,1.5,s*Math.PI/2); const sch=scatola(2.6,0.7,0.2,0x2a3f57); metti(S2,sch,s*5.05,0.7,1.5,s*Math.PI/2); }
+      metti(S2,new THREE.Mesh(new THREE.CylinderGeometry(1.4,1.4,0.02,32),mat(0x00B4D8,true)),0,0.02,0); },
+    sartoria(S2){ muroInsegna(S2,"SARTORIA","vestiti come vuoi");
+      ["corriere","negozio","sanita","ufficio"].forEach((v,i)=>{ const m=avatar({vestito:v,pelle:i%5}); metti(S2,cilindro(0.45,0.5,0.25,0x0D3A5C,14),-4.5+i*3,0.125,-4); metti(S2,m,-4.5+i*3,0.25,-4); });
+      const spec=new THREE.Mesh(new THREE.PlaneGeometry(2.2,3.2), new THREE.MeshBasicMaterial({color:0x9fe9ff,transparent:true,opacity:.35})); metti(S2,spec,-LARGO/2+0.06,1.9,1,Math.PI/2);
+      metti(S2,cilindro(0.04,0.04,3,0x888888,8),5.2,1.9,1.5).rotation.x=Math.PI/2;
+      [0xe63946,0x2f8f5b,0xffd60a,0x6a4fb5,0x2f5d8c].forEach((c,i)=>metti(S2,scatola(0.5,0.9,0.12,c),5.2,1.35,0.3+i*0.55)); },
+    bottega(S2){ muroInsegna(S2,"BOTTEGA","i prodotti di JJA-VIS");
+      for(const s of [-1,1]){ for(let r=0;r<3;r++){ metti(S2,scatola(4,0.08,0.7,0x5a3b22),s*4.4,0.8+r*0.9,-5.5);
+        for(let k=0;k<5;k++) metti(S2,scatola(0.5,0.55,0.45,[0x00B4D8,0xFFD60A,0xe63946,0x2ECC71,0xf2f2f2][(k+r)%5]),s*4.4-1.6+k*0.8,1.12+r*0.9,-5.5); } }
+      ["CLIO","SOPRALLUOGO","SU MISURA","ATHENA"].forEach((n,i)=>{ const x=-4.2+i*2.8; metti(S2,scatola(1.6,0.9,0.9,0x3a2a1e),x,0.45,-1.6);
+        const ins=insegna(n,"",2.2,"#FFD60A"); metti(S2,ins,x,1.5,-1.6); ins.rotation.x=-0.2; }); },
+    forgia(S2){ muroInsegna(S2,"LA FORGIA","su misura, adesso");
+      metti(S2,scatola(1.4,0.6,0.7,0x2a2a2a),-3.5,0.85,-2.5); metti(S2,scatola(0.7,0.55,0.6,0x2a2a2a),-3.5,0.28,-2.5);
+      const fuoco=scatola(2,0.9,1.4,0x3a302b); metti(S2,fuoco,-5,0.45,-4.4); metti(S2,scatola(1.6,0.2,1,0xff7a1a,true),-5,0.95,-4.4);
+      const f=new THREE.PointLight(0xff7a1a,50,12,2); f.position.set(-5,1.6,-4); S2.add(f);
+      metti(S2,tavolo(3.4,1.2),3.4,0,-3.4);
+      for(const [x,c,t] of [[2.6,"#00B4D8","</>"],[4.2,"#FFD60A","SITO"]]){ metti(S2,schermo(1.3,0.8,c,t),x,1.55,-3.7); metti(S2,scatola(0.08,0.4,0.08,0x222222),x,1.15,-3.75); } },
+    torre(S2){ muroInsegna(S2,"LA TORRE","chi sono · cosa so fare");
+      const g=metti(S2,ologlobo(1.2),0,1.7,-1.5); metti(S2,new THREE.Mesh(new THREE.RingGeometry(1.7,1.9,48),mat(0x00B4D8,true)),0,0.03,-1.5).rotation.x=-Math.PI/2;
+      for(const s of [-1,1]){ const v=facciata(PROFONDO,ALTO,{muro:"#0f2d47",luce:0.85,seme:s>0?7:9}); const m=new THREE.Mesh(new THREE.PlaneGeometry(PROFONDO-0.2,ALTO-0.2),new THREE.MeshBasicMaterial({map:v.emi}));
+        metti(S2,m,s*(LARGO/2-0.06),ALTO/2,0,-s*Math.PI/2); } },
+    cinema(S2){ metti(S2,schermo(9,3.6,"#00B4D8","GUARDAMI AL LAVORO"),0,2.5,-PROFONDO/2+0.08);
+      for(let r=0;r<4;r++) for(let k=0;k<7;k++){ const x=-4.5+k*1.5, z=-1+r*1.4; metti(S2,scatola(1.1,0.5,0.8,0x8a1f2c),x,0.25+r*0.15,z); metti(S2,scatola(1.1,0.8,0.15,0x8a1f2c),x,0.7+r*0.15,z+0.38); } },
+    voci(S2){ muroInsegna(S2,"PIAZZA DELLE VOCI","cosa vi fa perdere tempo?");
+      for(let r=0;r<3;r++) for(let k=0;k<7;k++){ const a=(k-3)*0.32, R=3.2+r*1.3; metti(S2,scatola(1.1,0.45,0.6,0x6b4a2e),Math.sin(a)*R,0.23+r*0.25,-1.5+Math.cos(a)*R,a); }
+      metti(S2,cilindro(0.5,0.6,1.1,0x0D3A5C,12),0,0.55,-3.2); metti(S2,ologlobo(0.4),0,1.7,-3.2); },
+    borsa(S2){ metti(S2,schermo(12,1.1,"#2ECC71","JJA-VIS FREE  ·  PRO  ·  ENTERPRISE"),0,3.6,-PROFONDO/2+0.08);
+      muroInsegna(S2,"BORSA","per chi vuole investire",5,2.2);
+      for(let k=0;k<3;k++){ metti(S2,tavolo(2.4,1),-4+k*4,0,0.8); metti(S2,schermo(1,0.6,"#2ECC71",["Free","Pro","Ent."][k]),-4+k*4,1.45,0.6); } },
+    athena(S2){ muroInsegna(S2,"ATHENA TRASPORTI","consegne · urgenze · sgomberi");
+      for(const s of [-1,1]) for(let r=0;r<3;r++){ metti(S2,scatola(0.12,3.2,1.2,0xe07a1f),s*4.2-1.6,1.6,-4.6); metti(S2,scatola(0.12,3.2,1.2,0xe07a1f),s*4.2+1.6,1.6,-4.6);
+        metti(S2,scatola(3.4,0.08,1.2,0x7d8794),s*4.2,0.5+r*1.05,-4.6);
+        for(let k=0;k<4;k++) metti(S2,scatola(0.7,0.55+((k+r)%2)*0.2,0.8,0xc8a165),s*4.2-1.2+k*0.8,0.85+r*1.05,-4.6); }
+      metti(S2,scatola(1.2,0.15,1.2,0x8a6a40),0,0.08,-1); for(let k=0;k<5;k++) metti(S2,scatola(0.5,0.4,0.5,0xc8a165),-0.25+(k%2)*0.5,0.36+Math.floor(k/2)*0.4,-1+(k%2?0.2:-0.2)); },
+    giochi(S2){ muroInsegna(S2,"SALA GIOCHI","si apre presto");
+      [[-5,0xff4fd8],[-2.5,0x00B4D8],[2.5,0xFFD60A],[5,0x2ECC71]].forEach(([x,c],i)=>{ metti(S2,scatola(1.2,2.2,0.9,0x15161a),x,1.1,-5);
+        const sc=schermo(0.9,0.7,"#"+c.toString(16).padStart(6,"0"),i===0?"1":i===1?"2":"?"); metti(S2,sc,x,1.55,-4.54); metti(S2,scatola(1.21,0.12,0.12,c,true),x,2.25,-4.55); });
+      for(const s of [-1,1]) metti(S2,scatola(0.1,0.1,PROFONDO-1,0xff4fd8,true),s*(LARGO/2-0.1),ALTO-0.4,0); },
+  };
+  const ESTERNI={albero:{x:0,z:0,r:12,h:6,y:5}};
+  scena.entra=id=>{
+    tStanza=0;
+    if(id==="albero"||id==="lotto"){
+      const c=id==="albero"?ESTERNI.albero:{x:centri.lotto.x,z:centri.lotto.z,r:12,h:6,y:2};
+      attiva={esterno:true,...c}; return;
+    }
+    if(!interni[id]){ const S2=guscio(id==="torre"?0x0f2d47:id==="cinema"?0x1a1024:id==="giochi"?0x1c0d2e:id==="forgia"?0x3a2f2a:0x26425c); (ARREDI[id]||(()=>{}))(S2); interni[id]=S2; }
+    attiva={S:interni[id], sartoria:id==="sartoria"};
+    tuStanza=avatar(citta); tuStanza.position.set(attiva.sartoria?0:2.2,0,attiva.sartoria?1.4:1.6); tuStanza.rotation.y=attiva.sartoria?0:-0.5; attiva.S.add(tuStanza);
+  };
+  scena.esci=()=>{ if(attiva && attiva.S && tuStanza) attiva.S.remove(tuStanza); tuStanza=null; attiva=null; };
+  const vecchioRivesti=rivesti;
+  rivesti=()=>{ vecchioRivesti(); if(attiva && attiva.S && tuStanza){ const p=tuStanza.position.clone(), r=tuStanza.rotation.y; attiva.S.remove(tuStanza); tuStanza=avatar(citta); tuStanza.position.copy(p); tuStanza.rotation.y=r; attiva.S.add(tuStanza); } };
+  function disegnaStanza(dt){
+    tStanza+=dt; const H=innerHeight, W=innerWidth;
+    // il centro dell'immagine sale nella fascia alta, sopra la scheda
+    // la fascia alta è un terzo dello schermo: l'obiettivo si allarga perché ci stia la stanza intera
+    camStanza.fov=attiva.esterno?70:(attiva.sartoria?62:88); camStanza.aspect=W/H; camStanza.setViewOffset(W,H,0,0.34*H,W,H); camStanza.updateProjectionMatrix();
+    if(attiva.esterno){
+      const a=tStanza*0.18; camStanza.position.set(attiva.x+Math.sin(a)*attiva.r, attiva.h, attiva.z+Math.cos(a)*attiva.r); camStanza.lookAt(attiva.x,attiva.y,attiva.z);
+      if(scena._globo) scena._globo.rotation.y+=dt*0.35; if(scena._chioma) scena._chioma.rotation.y+=dt*0.04;
+      renderer.render(S,camStanza); return;
+    }
+    const a=Math.sin(tStanza*0.22)*0.45;
+    if(attiva.sartoria){ camStanza.position.set(Math.sin(a)*4.6,1.9,1.4+Math.cos(a)*4.6); camStanza.lookAt(0,1.55,1.4); if(tuStanza){ tuStanza.rotation.y=Math.sin(tStanza*0.7)*0.6; } }
+    else { camStanza.position.set(Math.sin(a)*2.5,2.6,5.5); camStanza.lookAt(0,1.7,-2.5); }
+    attiva.S.traverse(o=>{ if(o.userData.gira) o.rotation.y+=dt*0.4; });
+    renderer.render(attiva.S,camStanza);
+  }
+
   // ── muoversi ──
   const stato={yaw:0,pitch:0.38,dist:8,jx:0,jy:0,tasti:{},meta:null,metaId:null,fermoDa:0,ultimaPos:new THREE.Vector3(),modo:"cammina",spin:0};
   function spingiFuori(p,raggio){
@@ -771,6 +1052,7 @@ async function costruisci(){
     if(Math.hypot(e.clientX-s.x0,e.clientY-s.y0)>12) nascondiAiuto(); });
   const fineSguardo=e=>{ const s=sguardi.get(e.pointerId); sguardi.delete(e.pointerId); if(!s || e.type==="pointercancel") return;
     if(Math.hypot(e.clientX-s.x0,e.clientY-s.y0)<10 && performance.now()-s.t<400){
+      if(stanzaAperta) return;
       if(fogliAperto){ chiudiFoglio(); return; }
       v2.set(e.clientX/innerWidth*2-1, -(e.clientY/innerHeight)*2+1); ray.setFromCamera(v2,cam);
       const colpi=ray.intersectObjects(toccabili.map(t=>t[0]),true);
@@ -790,6 +1072,7 @@ async function costruisci(){
   let vicinoPrima=null;
   function passo(){
     const dt=Math.min(orologio.getDelta(),0.2), t=orologio.elapsedTime; // anche a pochi fotogrammi si cammina alla velocità giusta
+    if(attiva){ disegnaStanza(dt); return; }
     // input
     let mx=stato.jx, my=stato.jy; const T=stato.tasti;
     if(T["w"]||T["arrowup"]) my=-1; if(T["s"]||T["arrowdown"]) my=1; if(T["a"]||T["arrowleft"]) mx=-1; if(T["d"]||T["arrowright"]) mx=1;
