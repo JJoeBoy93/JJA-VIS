@@ -23,8 +23,12 @@ async def instrada(route):
     if u.endswith("sostieni.json"): return await route.fulfill(body=json.dumps(SOST), content_type="application/json")
     if u.startswith(PORTA):
         if route.request.method=="POST":
-            inviati.append((u.split("/")[-1], json.loads(route.request.post_data)))
+            corpo=json.loads(route.request.post_data); inviati.append((u.split("/")[-1], corpo))
+            if NOVA["acceso"] and u.endswith("/parla") and corpo.get("da_dove")=="chat":
+                sub={"id":"abc12345-n","testo":"Posso prepararti uno strumento per le interrogazioni.","azione":{"servizio":"commissione","tipo":"Strumento web","bozza":"Uno strumento per preparare le interrogazioni"},"passa":False}
+                return await route.fulfill(status=201, body=json.dumps({"ok":True,"id":"abc12345","subito":sub}), content_type="application/json", headers={"Access-Control-Allow-Origin":"https://jjoeboy93.github.io"})
             return await route.fulfill(status=201, body='{"ok":true,"id":"abc12345"}', content_type="application/json", headers={"Access-Control-Allow-Origin":"https://jjoeboy93.github.io"})
+        if u.endswith("/nova"): return await route.fulfill(body=json.dumps({"acceso":NOVA["acceso"]}), content_type="application/json")
         if u.endswith("/vetrina"): return await route.fulfill(body='{"canzoni":5747,"attrezzi":41}', content_type="application/json")
         if "/risposte" in u:
             conta_risposte.append(1)
@@ -32,6 +36,7 @@ async def instrada(route):
         return await route.fulfill(body='[]', content_type="application/json")
     await route.fulfill(status=404, body="")
 SOST={"pronto":False,"modi":[]}
+NOVA={"acceso":False}
 RISPOSTE=[]
 def ok(c,m):
     print(("  ✅ " if c else "  ❌ ")+m); 
@@ -290,6 +295,23 @@ async def main():
         await pg2.goto(BASE+"#bottega"); await pg2.wait_for_timeout(300)
         ok(not await pg2.is_visible("#barra-chat"), "sulle altre schede la casella non c'è")
         vede_=lambda sel: pg2.is_visible(sel)
+        print("── Nova risponde subito e porta alla Bottega (2 ottobre)")
+        NOVA["acceso"]=True
+        await pg2.evaluate("localStorage.setItem(CHIAVE, JSON.stringify({nome:'Nova',tema:'tech',id:'abcdef0123456789',inviato:true,mestiere:'Altro',tempo:'Altro lavoro ripetitivo'}))")
+        await pg2.goto(BASE+"#inizia"); await pg2.reload(); await pg2.wait_for_timeout(600)
+        ok("Ti rispondo subito" in await pg2.inner_text("#spiega-chat") and "Non rispondo in automatico" not in await pg2.inner_text("#spiega-chat"), "con Nova accesa la frase sotto la chat dice la cosa vera")
+        await pg2.fill("#scrivi","Sono un insegnante e perdo tempo con le interrogazioni"); await pg2.click("#manda-chat"); await pg2.wait_for_timeout(600)
+        bolle=await pg2.evaluate("[...document.querySelectorAll('#chat .bolla')].map(b=>b.className+'|'+b.innerText)")
+        ok(any("io|Posso prepararti" in b for b in bolle) and not any("appena posso" in b for b in bolle), "la risposta arriva subito, niente «ti rispondo appena posso»")
+        await pg2.click("#chat .azione"); await pg2.wait_for_timeout(500)
+        ok(await pg2.evaluate("document.body.dataset.scheda")=="bottega" and await pg2.input_value("#cm-descrizione")=="Uno strumento per preparare le interrogazioni"
+           and await pg2.evaluate("[...document.querySelectorAll('#cm-cosa .scelta')].find(x=>x.getAttribute('aria-pressed')==='true').textContent.trim()")=="Strumento web",
+           "il pulsante apre la Bottega su «Costruiscimi qualcosa», col tipo scelto e la richiesta già scritta")
+        await pg2.reload(); await pg2.wait_for_timeout(500)
+        ok(await pg2.evaluate("document.querySelectorAll('#chat .azione').length")==1, "ricaricando, la risposta e il pulsante restano")
+        NOVA["acceso"]=False
+        await pg2.goto(BASE+"#inizia"); await pg2.reload(); await pg2.wait_for_timeout(500)
+        ok("Non rispondo in automatico" in await pg2.inner_text("#spiega-chat"), "con Nova spenta resta la frase di prima")
         print("── finite le domande del giorno, la frase se ne va (29 settembre)")
         await pg2.evaluate("(()=>{const c={};CONOSCERTI.slice(0,-1).forEach(q=>c[q.k]='x');localStorage.setItem(CHIAVE, JSON.stringify({nome:'Nova',tema:'tech',id:'x1',inviato:true,mestiere:'Creator o gamer',tempo:'Trovare idee per i contenuti',conosciute:c}))})()")
         await pg2.goto(BASE+"#inizia"); await pg2.reload(); await pg2.wait_for_timeout(600)

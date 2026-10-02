@@ -142,6 +142,7 @@ footer b{color:var(--testo)}
 .bolla{max-width:86%;padding:10px 12px;border:1px solid var(--bordo);font-size:17px;line-height:1.4;white-space:pre-wrap}
 .bolla.io{align-self:flex-start;background:color-mix(in srgb,var(--accento) 8%,var(--panel))}
 .bolla.tu{align-self:flex-end;background:var(--utente);border-color:var(--accento)}
+.bolla .azione{background:none;border:0;border-bottom:1px solid var(--accento);padding:0 0 3px;margin-top:10px;cursor:pointer;font-size:14px;text-align:left;white-space:normal}
 .bolla.pensa{opacity:.7;font-style:italic}
 .bolla .attesa{display:block;font-size:13px;color:var(--tenue);margin-top:4px;font-style:italic}
 /* ══ LE SCHEDE ══ 26 settembre, JJ: «dinamico, scorri tra sezioni dedicate».
@@ -423,7 +424,7 @@ body.con-nome[data-scheda="inizia"] #esito-chat{margin:6px 0 0}
 
   <section class="etichetta" id="parla" aria-labelledby="tp">
     <h2 id="tp" style="font-size:28px">Parla con <span class="chi">JJA-VIS</span></h2>
-    <p class="piccolo spiega-chat">Chiedimi quello che vuoi, sul tuo lavoro o su di me. Non rispondo in automatico: ogni risposta la scelgo con chi mi costruisce, e compare qui da sola. Se mi lasci la mail nel <a href="#profilo-mail">Profilo</a>, quando serve arriva anche lì.</p>
+    <p class="piccolo spiega-chat" id="spiega-chat">Chiedimi quello che vuoi, sul tuo lavoro o su di me. Non rispondo in automatico: ogni risposta la scelgo con chi mi costruisce, e compare qui da sola. Se mi lasci la mail nel <a href="#profilo-mail">Profilo</a>, quando serve arriva anche lì.</p>
     <div id="chat" class="chat" aria-live="polite"></div>
     <div class="barra-chat" id="barra-chat">
       <label for="scrivi" class="nascosto">Scrivimi</label>
@@ -654,7 +655,7 @@ body.con-nome[data-scheda="inizia"] #esito-chat{margin:6px 0 0}
 
   <footer id="dati">
     <p><b>I tuoi dati.</b> Questo sito non usa cookie e non traccia nessuno. Quello che mandi (mestiere, risposte, e se li lasci nome e mail) serve solo a capire cosa costruire e a risponderti. Non va a nessun altro. Per cancellarti basta rispondere a una mia mail.</p>
-    <p>Titolare: Jacopo Joe Ardito. Le risposte sono conservate in un archivio privato su GitHub (servizio di Microsoft, server negli Stati Uniti), leggibile solo dal titolare. Niente indirizzo IP, niente posizione: solo quello che scrivi, più un codice a caso nato nel tuo telefono che collega le risposte che mandi in giorni diversi. Il tuo nome, se me lo dici all'inizio, resta nel telefono; se mi parli nella chat, lo uso per risponderti. Quello che scrivi nella chat arriva a chi mi costruisce e resta nell'archivio. Se decide di risponderti con l'aiuto di un'intelligenza artificiale (Anthropic, OpenAI o Google), quella vede solo il tuo messaggio e il tuo mestiere, mai il tuo nome né la tua mail; la risposta la approva sempre una persona. I video presi da Instagram, YouTube o TikTok si caricano solo se li tocchi: da quel momento valgono le regole e i cookie di quella piattaforma. Se scrivi dalla sezione Investitori, chiedi un preventivo, l'invito a Clio o un sopralluogo, nome, azienda e mail si conservano solo con la tua spunta e servono solo a risponderti; non arrivano mai a un'intelligenza artificiale. Il link di un sopralluogo invece sì: la pagina pubblica che indichi la legge anche un'intelligenza artificiale, per scriverti cosa ne pensa. Le risposte per mail partono tramite Brevo (servizio di invio, Unione Europea); la bozza la scrive un'intelligenza artificiale di Anthropic che vede solo il tuo messaggio, e prima di partire la legge e la approva una persona.</p>
+    <p>Titolare: Jacopo Joe Ardito. Le risposte sono conservate in un archivio privato su GitHub (servizio di Microsoft, server negli Stati Uniti), leggibile solo dal titolare. Niente indirizzo IP, niente posizione: solo quello che scrivi, più un codice a caso nato nel tuo telefono che collega le risposte che mandi in giorni diversi. Il tuo nome, se me lo dici all'inizio, resta nel telefono; se mi parli nella chat, lo uso per risponderti. Quello che scrivi nella chat arriva a chi mi costruisce e resta nell'archivio. Se decide di risponderti con l'aiuto di un'intelligenza artificiale (Anthropic, OpenAI o Google), quella vede solo il tuo messaggio e il tuo mestiere, mai il tuo nome né la tua mail; quella risposta la approva sempre una persona. Quando Nova ti risponde subito nella chat, lo fa con un modello di intelligenza artificiale che gira su Cloudflare (Workers AI): anche lui vede solo il messaggio e il mestiere, e Cloudflare non usa i messaggi per addestrare modelli. Quello che Nova non sa lo passa a chi mi costruisce. I video presi da Instagram, YouTube o TikTok si caricano solo se li tocchi: da quel momento valgono le regole e i cookie di quella piattaforma. Se scrivi dalla sezione Investitori, chiedi un preventivo, l'invito a Clio o un sopralluogo, nome, azienda e mail si conservano solo con la tua spunta e servono solo a risponderti; non arrivano mai a un'intelligenza artificiale. Il link di un sopralluogo invece sì: la pagina pubblica che indichi la legge anche un'intelligenza artificiale, per scriverti cosa ne pensa. Le risposte per mail partono tramite Brevo (servizio di invio, Unione Europea); la bozza la scrive un'intelligenza artificiale di Anthropic che vede solo il tuo messaggio, e prima di partire la legge e la approva una persona.</p>
     <p>La storia va avanti su Instagram: <a href="https://www.instagram.com/jjoe_boy93">@jjoe_boy93</a></p>
   </footer>
 </div>
@@ -944,13 +945,30 @@ $("senza").addEventListener("click", ()=>manda(false));
 // perche' la domanda vale»). Il messaggio va alla porta (/parla), arriva a
 // chi mi costruisce, e la risposta approvata torna qui: la pagina la chiede
 // alla porta (/risposte) all'apertura e ogni 30 secondi per 10 minuti.
-function bolla(chi, testo, attesa){ const b=document.createElement("div"); b.className="bolla "+chi; b.textContent=testo;
+// 2/10, JJ: le risposte «che portano al secondo fine del servizio bottega».
+// Una risposta di Nova puo' portare un'azione: il pulsante apre la Bottega al
+// punto giusto, con la richiesta gia' scritta (che la persona puo' cambiare).
+const AZIONI={commissione:"Te lo costruisco: chiedi un preventivo →", sopralluogo:"Fammi fare un sopralluogo →", clio:"Scopri Clio →"};
+function apriBottega(a){
+  vaiA("bottega");
+  setTimeout(()=>{
+    if(a.servizio==="commissione"){
+      const b=[...$("cm-cosa").querySelectorAll(".scelta")].find(x=>x.textContent.trim()===a.tipo) || [...$("cm-cosa").querySelectorAll(".scelta")].find(x=>x.textContent.trim()==="Altro");
+      if(b) b.click();
+      if(a.bozza && !$("cm-descrizione").value.trim()){ $("cm-descrizione").value=a.bozza; $("cm-descrizione").dispatchEvent(new Event("input")); }
+      $("tcm").scrollIntoView({block:"start"});
+    } else ($(a.servizio)||$("p-bottega")).scrollIntoView({block:"start"});
+  }, 80);
+}
+function bolla(chi, testo, attesa, azione){ const b=document.createElement("div"); b.className="bolla "+chi; b.textContent=testo;
   if(attesa){ const x=document.createElement("small"); x.className="attesa"; x.textContent="ti rispondo appena posso"; b.appendChild(x); }
+  if(azione && AZIONI[azione.servizio]){ const p=document.createElement("button"); p.className="salto azione"; p.type="button";
+    p.textContent=AZIONI[azione.servizio]; p.addEventListener("click", ()=>apriBottega(azione)); b.appendChild(document.createElement("br")); b.appendChild(p); }
   $("chat").appendChild(b); $("chat").scrollTop=$("chat").scrollHeight;
   // come JARVIS: l'ultimo messaggio resta in vista sopra la casella
   if(document.body.classList.contains("con-nome") && document.body.dataset.scheda==="inizia") requestAnimationFrame(()=>window.scrollTo(0, document.body.scrollHeight));
   return b; }
-function ridisegnaChat(){ $("chat").innerHTML=""; (io.chat||[]).forEach(m=>bolla(m.ruolo, m.testo, m.ruolo==="tu" && m.attesa)); }
+function ridisegnaChat(){ $("chat").innerHTML=""; (io.chat||[]).forEach(m=>bolla(m.ruolo, m.testo, m.ruolo==="tu" && m.attesa, m.azione)); }
 let parlando=false;
 async function parla(testo, daDove){
   testo=(testo||"").trim(); if(!testo||parlando) return false;
@@ -965,8 +983,13 @@ async function parla(testo, daDove){
         ...(io.mail ? {contatto:{nome:io.tuo||"", societa:"", mail:io.mail, consenso:true}} : {})})});
     const d=await r.json().catch(()=>({}));
     if(!r.ok||!d.id) throw new Error(d.errore||("errore "+r.status));
-    io.chat=io.chat||[]; io.chat.push({ruolo:"tu", testo, id:d.id, attesa:true}); io.chat=io.chat.slice(-20); salva(); ridisegnaChat();
-    e.textContent = io.mail ? "Arrivato. Ti rispondo qui appena posso, e per mail quando serve." : "Arrivato. Ti rispondo qui, appena posso: la risposta compare da sola.";
+    io.chat=io.chat||[];
+    const s=d.subito;   // Nova ha gia' risposto (2/10)
+    io.chat.push({ruolo:"tu", testo, id:d.id, attesa:!s || !!s.passa});
+    if(s) io.chat.push({ruolo:"io", testo:s.testo, id:s.id, ...(s.azione?{azione:s.azione}:{})});
+    io.chat=io.chat.slice(-20); salva(); ridisegnaChat();
+    e.textContent = s ? (s.passa ? "Su questa ti risponde anche chi mi costruisce: la sua risposta compare qui da sola." : "")
+      : io.mail ? "Arrivato. Ti rispondo qui appena posso, e per mail quando serve." : "Arrivato. Ti rispondo qui, appena posso: la risposta compare da sola.";
     inizioAttesa();
     return true;
   }catch(err){ e.classList.add("errore"); e.textContent="Non è partito: "+err.message+". Riprova tra poco."; return false; }
@@ -979,8 +1002,9 @@ async function controllaRisposte(){
     const d=await r.json(); let nuove=0; io.chat=io.chat||[];
     (d.risposte||[]).forEach(x=>{
       if(io.chat.some(m=>m.ruolo==="io"&&m.id===x.id)) return;
-      const i=io.chat.findIndex(m=>m.ruolo==="tu"&&m.id===x.id);
-      const risp={ruolo:"io", testo:x.risposta, id:x.id};
+      // la risposta subito di Nova ha l'id della domanda con «-n»
+      const i=io.chat.findIndex(m=>m.ruolo==="tu"&&(m.id===x.id||m.id+"-n"===x.id));
+      const risp={ruolo:"io", testo:x.risposta, id:x.id, ...(x.azione?{azione:x.azione}:{})};
       if(i>=0){ io.chat[i].attesa=false; io.chat.splice(i+1,0,risp); }
       else io.chat.push({ruolo:"tu", testo:x.domanda, id:x.id, attesa:false}, risp);
       nuove++;
@@ -990,6 +1014,11 @@ async function controllaRisposte(){
   }catch(_){ return 0; }
 }
 $("manda-chat").addEventListener("click", ()=>{ const t=$("scrivi").value; $("scrivi").value=""; parla(t,"chat"); });
+// Con Nova accesa la frase «non rispondo in automatico» sarebbe falsa: si
+// chiede alla porta come stanno le cose, e si dice quella vera.
+if(INVIO) fetch(INVIO.replace("/risposta","/nova")).then(r=>r.ok?r.json():{}).then(d=>{ if(!d.acceso) return;
+  $("spiega-chat").innerHTML='Ti rispondo subito: quando una cosa non la so, o mi chiedi un prezzo o una data, la passo a chi mi costruisce e la sua risposta compare qui da sola. Se mi lasci la mail nel <a href="#profilo">Profilo</a>, arriva anche lì.';
+}).catch(()=>{});
 
 // ══ I VIDEO ══ due fonti. (1) I link dei social che JJ manda al bot di
 // JJA-VIS (/video <link> <titolo>): la porta li da' a GET /video. Il lettore
