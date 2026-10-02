@@ -278,7 +278,7 @@ async def main():
         coperto=await pg2.evaluate("(()=>{window.scrollTo(0,0);const t=document.querySelector('.testa').getBoundingClientRect().bottom;const p=document.querySelector('.pannello.attivo .etichetta');return p.getBoundingClientRect().top<t})()")
         ok(not coperto, "la testata non copre il primo pannello")
         print("── Nova è una chat, come JARVIS (29 settembre)")
-        await pg2.evaluate("localStorage.setItem(CHIAVE, JSON.stringify({nome:'Nova',tema:'tech',id:'x1',tuo:'Jacopo',inviato:true,mestiere:'Corriere o autista',tempo:'Preventivi, conti, fatture',chat:[{ruolo:'tu',testo:'Come mi potresti aiutare?'},{ruolo:'io',testo:'Ultima risposta di prova'}]}))")
+        await pg2.evaluate("localStorage.setItem(CHIAVE, JSON.stringify({nome:'Nova',tema:'tech',id:'x1',tuo:'Jacopo',inviato:true,mestiere:'Corriere o autista',tempo:'Preventivi, conti, fatture',chat:[{ruolo:'tu',testo:'Come mi potresti aiutare?'},{ruolo:'io',testo:'Ultima risposta di prova',nuovo:true}]}))")
         await pg2.goto(BASE+"#inizia"); await pg2.reload(); await pg2.wait_for_timeout(700)
         c=await pg2.evaluate("""(()=>{const b=document.querySelector('#barra-chat').getBoundingClientRect(), n=document.querySelector('.schede').getBoundingClientRect();
           const bolle=[...document.querySelectorAll('#chat .bolla')], u=bolle[bolle.length-1].getBoundingClientRect();
@@ -308,7 +308,9 @@ async def main():
            and await pg2.evaluate("[...document.querySelectorAll('#cm-cosa .scelta')].find(x=>x.getAttribute('aria-pressed')==='true').textContent.trim()")=="Strumento web",
            "il pulsante apre la Bottega su «Costruiscimi qualcosa», col tipo scelto e la richiesta già scritta")
         await pg2.reload(); await pg2.wait_for_timeout(500)
-        ok(await pg2.evaluate("document.querySelectorAll('#chat .azione').length")==1, "ricaricando, la risposta e il pulsante restano")
+        # 2/10, JJ: letta e rientrato, la chat è pulita; la conversazione va nelle precedenti, col suo pulsante
+        ok(await pg2.evaluate("document.querySelectorAll('#chat .bolla').length")==0 and await pg2.evaluate("document.querySelectorAll('#vecchie-elenco .azione').length")==1,
+           "ricaricando, la chat è pulita e la risposta col pulsante è nelle conversazioni precedenti")
         NOVA["acceso"]=False
         await pg2.goto(BASE+"#inizia"); await pg2.reload(); await pg2.wait_for_timeout(500)
         ok("Non rispondo in automatico" in await pg2.inner_text("#spiega-chat"), "con Nova spenta resta la frase di prima")

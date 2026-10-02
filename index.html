@@ -144,6 +144,20 @@ footer b{color:var(--testo)}
 .bolla.tu{align-self:flex-end;background:var(--utente);border-color:var(--accento)}
 .bolla .azione{background:none;border:0;border-bottom:1px solid var(--accento);padding:0 0 3px;margin-top:10px;cursor:pointer;font-size:14px;text-align:left;white-space:normal}
 .bolla.pensa{opacity:.7;font-style:italic}
+/* ══ LE CONVERSAZIONI PRECEDENTI — 2 ottobre ══ JJ: «quando apro è pulita col nuovo saluto,
+   ma c'è una parte dove restano i thread precedenti». La chat si riapre pulita se tutto è
+   stato letto; se c'è una risposta da leggere o una domanda in attesa, si riapre com'era. */
+.vecchie{margin:10px 0 0;border:1px solid var(--bordo)}
+.vecchie[hidden]{display:none}
+.vecchie>summary{cursor:pointer;padding:10px 12px;font-size:15px;color:var(--tenue);list-style:none}
+.vecchie>summary::-webkit-details-marker{display:none}
+.vecchie>summary::before{content:"▸ ";color:var(--accento)}
+.vecchie[open]>summary::before{content:"▾ "}
+.vecchia{border-top:1px solid var(--bordo)}
+.vecchia>summary{cursor:pointer;padding:9px 12px;font-size:15px;list-style:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.vecchia>summary::-webkit-details-marker{display:none}
+.vecchia>summary small{color:var(--tenue);margin-right:6px}
+.vecchia .chat{max-height:none;overflow:visible;padding:0 10px 10px;margin:4px 0 0}
 .bolla .attesa{display:block;font-size:13px;color:var(--tenue);margin-top:4px;font-style:italic}
 /* ══ LE SCHEDE ══ 26 settembre, JJ: «dinamico, scorri tra sezioni dedicate».
    Una barra in basso come un'app, e il dito che scorre a destra e a sinistra. */
@@ -432,6 +446,7 @@ body.con-nome[data-scheda="inizia"] #esito-chat{margin:6px 0 0}
   <section class="etichetta" id="parla" aria-labelledby="tp">
     <h2 id="tp" style="font-size:28px">Parla con <span class="chi">JJA-VIS</span></h2>
     <p class="piccolo spiega-chat" id="spiega-chat">Chiedimi quello che vuoi, sul tuo lavoro o su di me. Non rispondo in automatico: ogni risposta la scelgo con chi mi costruisce, e compare qui da sola. Se mi lasci la mail nel <a href="#profilo-mail">Profilo</a>, quando serve arriva anche lì.</p>
+    <details id="vecchie" class="vecchie" hidden><summary id="vecchie-titolo">Conversazioni precedenti</summary><div id="vecchie-elenco"></div></details>
     <div id="chat" class="chat" aria-live="polite"></div>
     <div class="barra-chat" id="barra-chat">
       <label for="scrivi" class="nascosto">Scrivimi</label>
@@ -976,7 +991,39 @@ function bolla(chi, testo, attesa, azione){ const b=document.createElement("div"
   // come JARVIS: l'ultimo messaggio resta in vista sopra la casella
   if(document.body.classList.contains("con-nome") && document.body.dataset.scheda==="inizia") requestAnimationFrame(()=>window.scrollTo(0, document.body.scrollHeight));
   return b; }
-function ridisegnaChat(){ $("chat").innerHTML=""; (io.chat||[]).forEach(m=>bolla(m.ruolo, m.testo, m.ruolo==="tu" && m.attesa, m.azione)); }
+function ridisegnaChat(){ $("chat").innerHTML=""; (io.chat||[]).forEach(m=>bolla(m.ruolo, m.testo, m.ruolo==="tu" && m.attesa, m.azione));
+  if((io.chat||[]).length && !io.chatDa){ io.chatDa=Date.now(); salva(); }
+  segnaLette(); }
+// «Letta» vuol dire mostrata: pagina davanti agli occhi, scheda della chat, nome dato.
+const chatInVista=()=>!document.hidden && document.body.dataset.scheda==="inizia" && document.body.classList.contains("con-nome");
+function segnaLette(){ if(!chatInVista()) return; let n=0; (io.chat||[]).forEach(m=>{ if(m.nuovo){ delete m.nuovo; n++; } }); if(n) salva(); }
+document.addEventListener("visibilitychange", segnaLette);
+const daLeggere=()=>(io.chat||[]).some(m=>m.attesa||m.nuovo);
+// All'apertura: se non resta niente da leggere, la conversazione va nelle precedenti e la chat riparte pulita.
+function apertura(){
+  io.thread=io.thread||[];
+  if((io.chat||[]).length && !daLeggere()){
+    io.thread.unshift({quando:io.chatDa||Date.now(), messaggi:io.chat}); io.thread=io.thread.slice(0,20);
+    io.chat=[]; delete io.chatDa; salva();
+  }
+  disegnaVecchie();
+}
+function disegnaVecchie(){
+  const t=io.thread||[], casa=$("vecchie-elenco"); casa.textContent="";
+  $("vecchie").hidden=!t.length; $("vecchie-titolo").textContent=`Conversazioni precedenti (${t.length})`;
+  t.forEach(c=>{ const d=document.createElement("details"); d.className="vecchia";
+    const sm=document.createElement("summary"), q=document.createElement("small");
+    q.textContent=new Date(c.quando).toLocaleDateString("it-IT",{day:"numeric",month:"long"});
+    const primo=(c.messaggi.find(m=>m.ruolo==="tu")||c.messaggi[0]||{}).testo||"";
+    sm.append(q, primo.slice(0,70)); d.appendChild(sm);
+    const ch=document.createElement("div"); ch.className="chat";
+    c.messaggi.forEach(m=>{ const b=document.createElement("div"); b.className="bolla "+m.ruolo; b.textContent=m.testo;
+      // il pulsante verso la Bottega resta anche nelle conversazioni chiuse
+      if(m.azione && AZIONI[m.azione.servizio]){ const x=document.createElement("button"); x.className="salto azione"; x.type="button";
+        x.textContent=AZIONI[m.azione.servizio]; x.addEventListener("click", ()=>apriBottega(m.azione)); b.append(document.createElement("br"), x); }
+      ch.appendChild(b); });
+    d.appendChild(ch); casa.appendChild(d); });
+}
 let parlando=false;
 async function parla(testo, daDove){
   testo=(testo||"").trim(); if(!testo||parlando) return false;
@@ -1008,11 +1055,13 @@ async function controllaRisposte(){
   try{
     const r=await fetch(INVIO.replace("/risposta","/risposte")+"?chi="+io.id); if(!r.ok) return 0;
     const d=await r.json(); let nuove=0; io.chat=io.chat||[];
+    // la porta rimanda tutte le risposte, anche quelle di conversazioni già chiuse: quelle non tornano
+    const archiviate=new Set((io.thread||[]).flatMap(c=>c.messaggi).filter(m=>m.ruolo==="io").map(m=>m.id));
     (d.risposte||[]).forEach(x=>{
-      if(io.chat.some(m=>m.ruolo==="io"&&m.id===x.id)) return;
+      if(archiviate.has(x.id) || io.chat.some(m=>m.ruolo==="io"&&m.id===x.id)) return;
       // la risposta subito di Nova ha l'id della domanda con «-n»
       const i=io.chat.findIndex(m=>m.ruolo==="tu"&&(m.id===x.id||m.id+"-n"===x.id));
-      const risp={ruolo:"io", testo:x.risposta, id:x.id, ...(x.azione?{azione:x.azione}:{})};
+      const risp={ruolo:"io", testo:x.risposta, id:x.id, nuovo:true, ...(x.azione?{azione:x.azione}:{})};
       if(i>=0){ io.chat[i].attesa=false; io.chat.splice(i+1,0,risp); }
       else io.chat.push({ruolo:"tu", testo:x.domanda, id:x.id, attesa:false}, risp);
       nuove++;
@@ -1303,6 +1352,7 @@ $("avanti-o3").addEventListener("click", ()=>{ io.tuo=$("tuo-nome").value.trim()
 $("salta-o3").addEventListener("click", ()=>{ io.tuo=""; salva(); benvenuto(false); apri("benvenuto"); });
 // la chat si ridisegna qui, dopo che «io» e' stato letto dal telefono:
 // prima, «io» non esiste ancora e lo script si fermerebbe.
+apertura();
 ridisegnaChat();
 controllaRisposte().then(n=>{ if(n && $("benvenuto").classList.contains("aperta")){
   $("saluto2").textContent += n>1 ? ` Ti ho risposto a ${n} messaggi: li trovi nella chat qui sotto.` : " Ti ho risposto: lo trovi nella chat qui sotto."; } });
@@ -1350,7 +1400,7 @@ function vaiA(nome, verso, bersaglio){
     const pn=$("p-"+nome); void pn.offsetWidth; pn.classList.add(v>0?"da-destra":"da-sinistra"); }
   centraScheda(nome, !!prima);
   schedaAttiva=nome; document.body.dataset.scheda=nome;
-  if(nome==="inizia") $("s-inizia").classList.remove("nuovo");
+  if(nome==="inizia"){ $("s-inizia").classList.remove("nuovo"); requestAnimationFrame(segnaLette); }
   aggiornaProfilo();
   if(bersaglio) requestAnimationFrame(()=>bersaglio.scrollIntoView({block:"start"}));
   else if(nome==="inizia" && io.nome && (io.chat||[]).length) requestAnimationFrame(()=>window.scrollTo(0, document.body.scrollHeight));
