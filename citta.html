@@ -1325,7 +1325,7 @@ async function costruisci(){
 
   // ── tu, e chi passeggia ──
   // si entra in piazza, a sud dell'albero, guardando la Torre: dove l'ha voluto JJ (foto del 3/10)
-  const PARTENZA={x:0,z:12};
+  const PARTENZA={x:0,z:18};
   let tu=avatar(citta); S.add(tu); tu.position.set(PARTENZA.x,0,PARTENZA.z); tu.rotation.y=Math.PI;
   function rivestiTu(){ const p=tu.position.clone(), r=tu.rotation.y; S.remove(tu); tu=avatar(citta); tu.position.copy(p); tu.rotation.y=r; S.add(tu); }
   rivesti=rivestiTu;
@@ -1586,7 +1586,7 @@ async function costruisci(){
     dentro.tappe=tappe.map(q=>new THREE.Vector3(q.x,0,q.z)); dentro.meta=dentro.tappe.shift(); dentro.metaId=k; dentro.fermoDa=0; dentro.distPrima=Infinity;
   }
 
-  const stato={yaw:0,pitch:0.2,dist:8,jx:0,jy:0,tasti:{},meta:null,metaId:null,fermoDa:0,modo:"cammina",spin:0,salti:0};
+  const stato={yaw:0,pitch:0.14,dist:8,jx:0,jy:0,tasti:{},meta:null,metaId:null,fermoDa:0,modo:"cammina",spin:0,salti:0};
   scena.vaiVerso=id=>percorso(id);
   scena.salti=()=>stato.salti;
   // per il collaudo: girare lo sguardo, e sapere se una cosa si vede

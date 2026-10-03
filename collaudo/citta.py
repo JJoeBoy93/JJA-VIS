@@ -143,7 +143,7 @@ async def main():
         prova("la scena non è vuota (colori diversi nel disegno)", px > 25, f"{px} colori")
         prova("i numeri veri dalla porta in testata", "4.639" in await p.inner_text("#numeri"))
         prova("il primo giro parte dalla Sartoria", "Sartoria" in await p.inner_text("#giro"))
-        prova("si entra in piazza, a sud dell'albero (dove l'ha voluto JJ), e non dentro niente", await p.evaluate("window.CITTA.dove()") == {"x": 0, "z": 12} and not await p.evaluate("window.CITTA.nelMuro()"))
+        prova("si entra in piazza, a sud dell'albero (dove l'ha voluto JJ), e non dentro niente", await p.evaluate("window.CITTA.dove()") == {"x": 0, "z": 18} and not await p.evaluate("window.CITTA.nelMuro()"))
         m = await p.evaluate("window.CITTA.misure()")
         storti = {k: v for k, v in m["tetti"].items() if v["angoli"] != 4 or abs(v["largo"] - v["w"] * 1.08) > 0.05 or abs(v["profondo"] - v["d"] * 1.08) > 0.05}
         prova("i tetti a falde sono dritti: la base è il rettangolo del palazzo, con quattro angoli veri", len(m["tetti"]) == m["falde"] >= 4 and "ristorante" in m["tetti"] and not storti, storti or m["tetti"])
