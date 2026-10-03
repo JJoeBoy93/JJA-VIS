@@ -143,6 +143,7 @@ async def main():
         prova("la scena non è vuota (colori diversi nel disegno)", px > 25, f"{px} colori")
         prova("i numeri veri dalla porta in testata", "4.639" in await p.inner_text("#numeri"))
         prova("il primo giro parte dalla Sartoria", "Sartoria" in await p.inner_text("#giro"))
+        prova("si entra in piazza, a sud dell'albero (dove l'ha voluto JJ), e non dentro niente", await p.evaluate("window.CITTA.dove()") == {"x": 0, "z": 12} and not await p.evaluate("window.CITTA.nelMuro()"))
         m = await p.evaluate("window.CITTA.misure()")
         storti = {k: v for k, v in m["tetti"].items() if v["angoli"] != 4 or abs(v["largo"] - v["w"] * 1.08) > 0.05 or abs(v["profondo"] - v["d"] * 1.08) > 0.05}
         prova("i tetti a falde sono dritti: la base è il rettangolo del palazzo, con quattro angoli veri", len(m["tetti"]) == m["falde"] >= 4 and "ristorante" in m["tetti"] and not storti, storti or m["tetti"])
@@ -327,6 +328,17 @@ async def main():
         prova("dentro, contro il muro di fondo ci si ferma", not await p.evaluate("window.CITTA.nelMuroDentro()"), dopo)
         await foto(p, "17-bottega-camminata")
         await p.click("#esci-stanza"); await p.wait_for_timeout(400)
+
+        # 3g. tre andature (JJ, 3/10): dipende da quanto si spinge il cerchio
+        j = await p.query_selector("#joy"); bb = await j.bounding_box()
+        cx, cy = bb["x"] + bb["width"] / 2, bb["y"] + bb["height"] / 2; raggio = bb["width"] / 2
+        visti = []
+        for quanto in (0.25, 0.65, 0.98):
+            await p.mouse.move(cx, cy); await p.mouse.down(); await p.mouse.move(cx, cy - raggio * quanto, steps=3)
+            await p.wait_for_timeout(300); visti.append(await p.evaluate("window.CITTA.andatura()")); await p.mouse.up(); await p.wait_for_timeout(200)
+        prova("tre andature: piano, medio, veloce a seconda di quanto si spinge il cerchio", visti == ["piano", "medio", "veloce"], visti)
+        cv = await p.evaluate("[window.CITTA.curvaVerticale(2), window.CITTA.curvaVerticale(25)]")
+        prova("lo sguardo in verticale è meno sensibile sui movimenti piccoli (curva, non retta)", cv[0] < 0.004 * 2 * 0.5 and cv[1] <= 0.004 * 25, cv)
 
         # 4. camminare col cerchio sposta davvero, e i palazzi non si attraversano:
         # davanti alla Borsa si spinge avanti, contro la facciata, per tre secondi

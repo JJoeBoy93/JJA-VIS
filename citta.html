@@ -1324,7 +1324,9 @@ async function costruisci(){
     chiome.instanceColor.needsUpdate=true; S.add(tronchi,chiome); }
 
   // ── tu, e chi passeggia ──
-  let tu=avatar(citta); S.add(tu); tu.position.set(0,0,52); tu.rotation.y=Math.PI;
+  // si entra in piazza, a sud dell'albero, guardando la Torre: dove l'ha voluto JJ (foto del 3/10)
+  const PARTENZA={x:0,z:12};
+  let tu=avatar(citta); S.add(tu); tu.position.set(PARTENZA.x,0,PARTENZA.z); tu.rotation.y=Math.PI;
   function rivestiTu(){ const p=tu.position.clone(), r=tu.rotation.y; S.remove(tu); tu=avatar(citta); tu.position.copy(p); tu.rotation.y=r; S.add(tu); }
   rivesti=rivestiTu;
   const passanti=[]; const vv=Object.keys(VESTITI);
@@ -1584,7 +1586,7 @@ async function costruisci(){
     dentro.tappe=tappe.map(q=>new THREE.Vector3(q.x,0,q.z)); dentro.meta=dentro.tappe.shift(); dentro.metaId=k; dentro.fermoDa=0; dentro.distPrima=Infinity;
   }
 
-  const stato={yaw:0,pitch:0.38,dist:8,jx:0,jy:0,tasti:{},meta:null,metaId:null,fermoDa:0,modo:"cammina",spin:0,salti:0};
+  const stato={yaw:0,pitch:0.2,dist:8,jx:0,jy:0,tasti:{},meta:null,metaId:null,fermoDa:0,modo:"cammina",spin:0,salti:0};
   scena.vaiVerso=id=>percorso(id);
   scena.salti=()=>stato.salti;
   // per il collaudo: girare lo sguardo, e sapere se una cosa si vede
@@ -1631,6 +1633,15 @@ async function costruisci(){
   scena.saltiDentro=()=>dentro.salti;
   scena.modo=m=>{ stato.modo=m; };
 
+  // JJ, 3/10: «diminuire la sensibilità della visuale in verticale, come se fosse esponenziale nella curva invece
+  // di lineare». Prima ogni pixel valeva 0,004 rad. Ora un movimento piccolo vale meno della metà (2 px: 0,0035 invece
+  // di 0,008) e uno deciso quasi quanto prima (25 px: 0,08 invece di 0,1): si aggiusta lo sguardo senza che scappi
+  const curvaVerticale=d=>Math.sign(d)*0.0016*Math.abs(d)*(1+Math.abs(d)/25);
+  // JJ, 3/10: tre andature a seconda di quanto si spinge il cerchio. Fuori m/s, dentro le stanze più corte
+  const ANDATURE=[["piano",0.45,1.8,1.2],["medio",0.85,3.6,2.3],["veloce",Infinity,6.0,3.6]];
+  const andatura=l=>ANDATURE.find(a=>l<a[1]);
+  scena.andatura=()=>{ const l=Math.min(1,Math.hypot(stato.jx,stato.jy)); return l>0.05?andatura(l)[0]:"fermo"; };
+  scena.curvaVerticale=curvaVerticale;
   // il cerchio per camminare
   const joy=$("joy"), pomo=$("pomo"); let joyId=null;
   const muoviJoy=e=>{ const r=joy.getBoundingClientRect(); let x=(e.clientX-r.left-r.width/2)/(r.width/2), y=(e.clientY-r.top-r.height/2)/(r.height/2);
@@ -1643,7 +1654,7 @@ async function costruisci(){
   const sguardi=new Map(); const ray=new THREE.Raycaster(), v2=new THREE.Vector2();
   tela3d.addEventListener("pointerdown",e=>{ sguardi.set(e.pointerId,{x:e.clientX,y:e.clientY,x0:e.clientX,y0:e.clientY,t:performance.now()}); try{ tela3d.setPointerCapture(e.pointerId); }catch(_){} });
   tela3d.addEventListener("pointermove",e=>{ const s=sguardi.get(e.pointerId); if(!s) return;
-    if(!cartaAperta){ stato.yaw-=(e.clientX-s.x)*0.0065; if(!attiva) stato.pitch=Math.min(1.3,Math.max(-0.22,stato.pitch+(e.clientY-s.y)*0.004)); }
+    if(!cartaAperta){ stato.yaw-=(e.clientX-s.x)*0.0065; if(!attiva) stato.pitch=Math.min(1.3,Math.max(-0.22,stato.pitch+curvaVerticale(e.clientY-s.y))); }
     s.x=e.clientX; s.y=e.clientY;
     if(Math.hypot(e.clientX-s.x0,e.clientY-s.y0)>12) nascondiAiuto(); });
   const fineSguardo=e=>{ const s=sguardi.get(e.pointerId); sguardi.delete(e.pointerId); if(!s || e.type==="pointercancel") return;
@@ -1689,7 +1700,7 @@ async function costruisci(){
     let [mx,my]=ingresso(); const fx=-Math.sin(stato.yaw), fz=-Math.cos(stato.yaw);
     let vx=fx*(-my)+(-fz)*mx, vz=fz*(-my)+fx*mx, vel=0;
     const specchio=cartaAperta==="specchio";
-    if(!cartaAperta && (Math.abs(mx)>0.05||Math.abs(my)>0.05)){ const l=Math.hypot(vx,vz); vel=3.4*Math.min(1,l); vx/=l; vz/=l; dentro.meta=null; }
+    if(!cartaAperta && (Math.abs(mx)>0.05||Math.abs(my)>0.05)){ const l=Math.hypot(vx,vz); vel=andatura(Math.min(1,l))[3]; vx/=l; vz/=l; dentro.meta=null; }
     else if(!cartaAperta && dentro.meta){ const r=versoTappa(tuStanza,dentro,dt,4.2,()=>{ const c=R.cose[dentro.metaId]; tuStanza.rotation.y=Math.atan2(c.x-tuStanza.position.x,c.z-tuStanza.position.z); apriCosa(dentro.metaId); });
       if(r){ [vx,vz,vel]=r; const ya=Math.atan2(-vx,-vz); let dy=ya-stato.yaw; dy=Math.atan2(Math.sin(dy),Math.cos(dy)); stato.yaw+=dy*Math.min(1,dt*2.5); } }
     if(vel>0){ tuStanza.position.x+=vx*vel*dt; tuStanza.position.z+=vz*vel*dt; spingiDentro(tuStanza.position,0.4);
@@ -1732,7 +1743,7 @@ async function costruisci(){
     const fx=-Math.sin(stato.yaw), fz=-Math.cos(stato.yaw);
     let vx=fx*(-my)+(-fz)*mx, vz=fz*(-my)+fx*mx; let vel=0;
     const libero=!fogliAperto || fogliAperto==="vai";
-    if((Math.abs(mx)>0.05||Math.abs(my)>0.05) && libero){ const l=Math.hypot(vx,vz); vel=5.2*Math.min(1,l); vx/=l; vz/=l; stato.meta=null; }
+    if((Math.abs(mx)>0.05||Math.abs(my)>0.05) && libero){ const l=Math.hypot(vx,vz); vel=andatura(Math.min(1,l))[2]; vx/=l; vz/=l; stato.meta=null; }
     else if(stato.meta && libero){ const r=versoTappa(tu,stato,dt,7.5,()=>{ const P=porte[stato.metaId]; tu.rotation.y=P.guarda; apriFoglio(P.id); });
       if(r){ [vx,vz,vel]=r; // la telecamera gira dolce dietro a dove vai
         const ya=Math.atan2(-vx,-vz); let dy=ya-stato.yaw; dy=Math.atan2(Math.sin(dy),Math.cos(dy)); stato.yaw+=dy*Math.min(1,dt*2.2); } }
