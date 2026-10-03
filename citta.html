@@ -927,12 +927,17 @@ function avatar(st){
       // Due falde davanti, la schiena, e i fianchi solo sotto l'anca (sopra ci sono le braccia) (JJ, 3/10)
       const B=0xf7f7f7, alto=1.62, orlo=0.45;
       tessuti.push(add(tessuto([
-        {x0:-0.29,x1:-0.07,y0:orlo,y1:alto,z0:0.165,z1:0.185,lato:"davanti"},
-        {x0:0.07,x1:0.29,y0:orlo,y1:alto,z0:0.165,z1:0.185,lato:"davanti"},
-        {x0:-0.29,x1:0.29,y0:orlo,y1:alto,z0:-0.185,z1:-0.165,lato:"dietro"},
-        {x0:-0.295,x1:-0.275,y0:orlo,y1:ANCA,z0:-0.165,z1:0.165,lato:"fianco"},
-        {x0:0.275,x1:0.295,y0:orlo,y1:ANCA,z0:-0.165,z1:0.165,lato:"fianco"}],B),0,0,0));
-      braccia.forEach(b=>{ b.children[0].material=mat(B); });
+        {x0:-0.30,x1:-0.07,y0:orlo,y1:alto,z0:0.165,z1:0.185,lato:"davanti"},
+        {x0:0.07,x1:0.30,y0:orlo,y1:alto,z0:0.165,z1:0.185,lato:"davanti"},
+        {x0:-0.30,x1:0.30,y0:orlo,y1:alto,z0:-0.185,z1:-0.165,lato:"dietro"},
+        // i fianchi, dall'orlo alle spalle: le braccia si spostano di 2 cm in fuori per lasciargli posto
+        {x0:-0.30,x1:-0.28,y0:orlo,y1:alto,z0:-0.165,z1:0.165,lato:"fianco"},
+        {x0:0.28,x1:0.30,y0:orlo,y1:alto,z0:-0.165,z1:0.165,lato:"fianco"},
+        // le spalle, con il buco per il collo
+        {x0:-0.30,x1:-0.085,y0:alto,y1:alto+0.03,z0:-0.185,z1:0.185,lato:"spalla"},
+        {x0:0.085,x1:0.30,y0:alto,y1:alto+0.03,z0:-0.185,z1:0.185,lato:"spalla"},
+        {x0:-0.085,x1:0.085,y0:alto,y1:alto+0.03,z0:-0.185,z1:-0.09,lato:"spalla"}],B),0,0,0));
+      braccia.forEach((b,i)=>{ b.children[0].material=mat(B); b.position.x=0.39*(i?1:-1); });
       const t=new THREE.Mesh(new THREE.TorusGeometry(0.12,0.018,6,16),mat(0x333333)); add(t,0,1.42,0.17); break; }
     case "ufficio":{ add(scatola(0.16,0.22,0.02,0xffffff),0,1.5,0.165); add(scatola(0.07,0.42,0.025,0xb3262e),0,1.3,0.17); break; }
     case "studio":{ add(scatola(0.42,0.5,0.2,0x2b3a4a),0,1.25,-0.26); break; }
@@ -1712,7 +1717,12 @@ async function costruisci(){
             if(y0<p.y0+0.01 || y0>=ANCA) continue; const zz=deforma(v.x,y0,zi,a,-a)[1]; provati++;
             if(p.lato==="davanti" ? v.z>zz+0.005 : v.z<zz-0.005) fuori++; } } }
       const aperto=!T.pannelli.some(p=>p.lato==="davanti" && p.x0<=0 && p.x1>=0);
-      r[k]={pezzi:u.tessuti.length, latiGiusti, provati, fuori, aperto, daSpalleA:[+yMax.toFixed(2),+yMin.toFixed(2)]}; }
+      // copre le spalle e i fianchi, dall'orlo fino in cima (JJ, 4/10: «manca tutto il pezzo sulle spalle e sui fianchi»)
+      const fianchi=T.pannelli.filter(p=>p.lato==="fianco"), spalle=T.pannelli.filter(p=>p.lato==="spalla");
+      const copre={fianchi:fianchi.length===2 && fianchi.every(p=>p.y0<=yMin+1e-6 && p.y1>=1.55), spalle:spalle.some(p=>p.x1<0)&&spalle.some(p=>p.x0>0)&&spalle.every(p=>p.y0>=1.55)};
+      // e le braccia non ci passano dentro: il lato interno del braccio è più in fuori del fianco
+      const braccio=Math.min(...u.braccia.map(b=>Math.abs(b.position.x)-0.085)), fuoriFianco=Math.max(0,...fianchi.map(p=>Math.max(Math.abs(p.x0),Math.abs(p.x1))));
+      r[k]={pezzi:u.tessuti.length, latiGiusti, provati, fuori, aperto, daSpalleA:[+yMax.toFixed(2),+yMin.toFixed(2)], copre, bracciaFuori:braccio>fuoriFianco+0.001}; }
     return r; };
   scena.lotti=()=>Object.values(porte).filter(P=>P.id==="lotto").length;
   scena.dove=()=>({x:tu.position.x,z:tu.position.z});

@@ -154,7 +154,9 @@ async def main():
         prova("nessun pezzo di vestito sta fermo dove si muovono le gambe (strisce JJA-VIS, camice, grembiule: si piegano con le gambe)", await p.evaluate("window.CITTA.pezziSulleGambe()") == [], await p.evaluate("window.CITTA.pezziSulleGambe()"))
         st = await p.evaluate("window.CITTA.stoffa()")
         prova("camice e grembiule: un pezzo solo, ogni lato va col piede del suo lato, e nessun punto della gamba esce dalla stoffa", all(v["pezzi"] == 1 and v["latiGiusti"] and v["provati"] > 20 and v["fuori"] == 0 for v in st.values()), st)
-        prova("il camice è aperto davanti e va dalle spalle al ginocchio, in un pezzo (JJ: «sembra una maglietta e dei pantaloncini»)", st["sanita"]["aperto"] and st["sanita"]["daSpalleA"][0] >= 1.55 and st["sanita"]["daSpalleA"][1] <= 0.5, st["sanita"])
+        prova("il camice è aperto davanti, va dalle spalle al ginocchio, copre spalle e fianchi, e le braccia non ci passano dentro (JJ: «manca tutto il pezzo sulle spalle e sui fianchi»)",
+              st["sanita"]["aperto"] and st["sanita"]["daSpalleA"][0] >= 1.55 and st["sanita"]["daSpalleA"][1] <= 0.5
+              and st["sanita"]["copre"] == {"fianchi": True, "spalle": True} and st["sanita"]["bracciaFuori"], st["sanita"])
         aq = await p.evaluate("window.CITTA.anelloQuadrato()")
         prova("il secondo anello è quadrato: quattro lati dritti che si chiudono", aq["lati"] == 4 and aq["coprono"], aq)
         prova("intorno, i quartieri: isolati di palazzi fra le vie", m["isolati"] >= 40, m["isolati"])
