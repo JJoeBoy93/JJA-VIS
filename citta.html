@@ -931,7 +931,9 @@ function avatar(st){
       add(scatola(0.57,0.05,0.33,0x00B4D8,true),0,1.42,0); break; }
     case "jjavis":{ for(const x of [-0.18,0.18]) add(scatola(0.03,0.66,0.33,0x00B4D8,true),x,1.25,0);
       add(scatola(0.12,0.12,0.02,0xffd60a,true),0,1.38,0.17);
-      for(const s of [-1,1]) add(scatola(0.03,0.8,0.25,0x00B4D8,true),0.15*s+0.11*s,0.5,0); break; }
+      // le strisce dei pantaloni stanno SULLE GAMBE, non sul corpo: se no restano dritte mentre la gamba si muove
+      // e sembra che l'omino ne abbia quattro (JJ, 3/10)
+      gambe.forEach((gb,i)=>{ const st=scatola(0.03,0.8,0.25,0x00B4D8,true); st.position.set(0.11*(i?1:-1),-0.4,0); gb.add(st); }); break; }
   }
   if(!cappello){ const c=palla(0.255,capelli); c.scale.set(1,0.62,1); c.position.set(0,1.98,-0.02); g.add(c); }
   g.userData.gambe=gambe; g.userData.braccia=braccia; g.userData.fase=Math.random()*6;
@@ -1620,6 +1622,12 @@ async function costruisci(){
     return male; };
   scena.anelloQuadrato=()=>{ const lati=tratti.filter(t=>Math.abs(t.c)===Q); return {lati:lati.length, coprono:lati.every(t=>t.a<=-Q && t.b>=Q)}; };
   scena.sfera=()=>({tema:TEMA, colori:SFERA.map(c=>c.toString(16).padStart(6,"0"))});
+  // per il collaudo: pezzi di vestito appesi al corpo ma che stanno dove ci sono le gambe (restano fermi quando camminano)
+  scena.pezziSulleGambe=()=>{ const male=[]; const box=new THREE.Box3();
+    for(const k of Object.keys(VESTITI)){ const av=avatar({vestito:k}); const u=av.userData; av.updateMatrixWorld(true);
+      av.children.forEach(c=>{ if(u.gambe.includes(c)||u.braccia.includes(c)) return; box.setFromObject(c);
+        if(box.min.y<0.6 && box.max.y<1.0 && box.max.x-box.min.x<0.35) male.push([k,+box.min.x.toFixed(2),+box.min.y.toFixed(2)]); }); }
+    return male; };
   scena.lotti=()=>Object.values(porte).filter(P=>P.id==="lotto").length;
   scena.dove=()=>({x:tu.position.x,z:tu.position.z});
   scena.nelMuro=()=>solidi.some(s=>dentroUno(tu.position.x,tu.position.z,s));
