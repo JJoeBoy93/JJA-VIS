@@ -889,7 +889,7 @@ function avatar(st){
   const v=VESTITI[st.vestito]||VESTITI.altro;
   const maglia=(typeof st.colore==="number")?st.colore:v.maglia;
   const pelle=PELLI[st.pelle??1]; const capelli=0x2b1d14;
-  const g=new THREE.Group(); const gambe=[], braccia=[];
+  const g=new THREE.Group(); const gambe=[], braccia=[], tessuti=[];
   for(const s of [-1,1]){
     const p=new THREE.Group(); p.position.set(0.15*s,0.9,0);
     const l=scatola(0.22,0.82,0.24,st.vestito==="artigiano"&&typeof st.colore==="number"?maglia:v.pantaloni); l.position.y=-0.41; p.add(l);
@@ -914,16 +914,15 @@ function avatar(st){
       add(scatola(0.34,0.03,0.2,maglia),0,2.01,0.24);
       add(scatola(0.46,0.34,0.34,0xc8a165),0,1.12,0.42);
       braccia.forEach(b=>{ b.rotation.x=-1.05; }); g.userData.ferme=true; break; }
-    // grembiule e camice: la parte sotto l'anca è divisa in due e sta SULLE GAMBE, così si piega con loro
-    // invece di farsi attraversare (JJ, 3/10: «le gambe attraversano i vestiti»)
-    case "negozio":{ add(scatola(0.5,0.58,0.04,0x2f8f5b),0,1.19,0.18);
-      gambe.forEach((gb,i)=>{ const s=i?1:-1, p=scatola(0.25,0.3,0.04,0x2f8f5b); p.position.set(-0.025*s,-0.14,0.18); gb.add(p); }); break; }
+    // grembiule e camice: UN pezzo solo, di stoffa, che si piega con le gambe (tessuto + pieghe): sotto l'anca
+    // ogni punto segue la gamba del suo lato, e in mezzo fa da ponte fra le due (JJ, 3/10: «non devono spezzarsi,
+    // sono lo stesso oggetto, ma devono piegarsi come fa il tessuto»)
+    case "negozio":{ tessuti.push(add(tessuto(0.5,0.85,0.04,0x2f8f5b,1.475,0.18),0,0,0)); break; }
     case "artigiano":{ cappello=true;
       const e=palla(0.27,0xffc21a); e.scale.y=0.7; add(e,0,2.02,0);
       add(cilindro(0.33,0.33,0.03,0xffc21a,14),0,1.98,0.02);
       add(scatola(0.6,0.1,0.36,0x5a3b22),0,0.93,0); break; }
-    case "sanita":{ add(scatola(0.58,0.1,0.34,0xf7f7f7),0,0.92,0);
-      gambe.forEach((gb,i)=>{ const s=i?1:-1, p=scatola(0.29,0.42,0.34,0xf7f7f7); p.position.set(-0.005*s,-0.24,0); gb.add(p); });
+    case "sanita":{ tessuti.push(add(tessuto(0.58,0.52,0.34,0xf7f7f7,0.97,0),0,0,0));
       const t=new THREE.Mesh(new THREE.TorusGeometry(0.12,0.018,6,16),mat(0x333333)); add(t,0,1.42,0.17); break; }
     case "ufficio":{ add(scatola(0.16,0.22,0.02,0xffffff),0,1.5,0.165); add(scatola(0.07,0.42,0.025,0xb3262e),0,1.3,0.17); break; }
     case "studio":{ add(scatola(0.42,0.5,0.2,0x2b3a4a),0,1.25,-0.26); break; }
@@ -940,15 +939,40 @@ function avatar(st){
       gambe.forEach((gb,i)=>{ const st=scatola(0.03,0.8,0.25,0x00B4D8,true); st.position.set(0.11*(i?1:-1),-0.4,0); gb.add(st); }); break; }
   }
   if(!cappello){ const c=palla(0.255,capelli); c.scale.set(1,0.62,1); c.position.set(0,1.98,-0.02); g.add(c); }
-  g.userData.gambe=gambe; g.userData.braccia=braccia; g.userData.fase=Math.random()*6;
+  g.userData.gambe=gambe; g.userData.braccia=braccia; g.userData.tessuti=tessuti; g.userData.fase=Math.random()*6;
   return g;
+}
+// Stoffa: una scatola con più divisioni, che parte da «alto» e scende di h. Ne teniamo la forma di riposo.
+const ANCA=0.9;
+function tessuto(w,h,d,colore,alto,z){
+  const geo=new THREE.BoxGeometry(w,h,d,8,6,1); geo.translate(0,alto-h/2,z);
+  const m=new THREE.Mesh(geo,mat(colore)); m.userData.tessuto={riposo:geo.attributes.position.array.slice(),w}; return m;
+}
+// Piega la stoffa con le gambe: ogni punto sotto l'anca ruota attorno all'anca come la gamba del suo lato,
+// di più quanto più è in basso; in mezzo il giro è una media fra le due gambe, così la stoffa si tende e non si strappa.
+function pieghe(av){
+  const u=av.userData; if(!u.tessuti||!u.tessuti.length) return;
+  const aS=u.gambe[0].rotation.x, aD=u.gambe[1].rotation.x;   // gambe[0] è a sinistra (x<0)
+  for(const m of u.tessuti){
+    const t=m.userData.tessuto, P=m.geometry.attributes.position, A=P.array, R=t.riposo;
+    for(let i=0;i<A.length;i+=3){
+      const x=R[i], y=R[i+1], z=R[i+2];
+      if(y>=ANCA){ A[i+1]=y; A[i+2]=z; continue; }
+      const giu=Math.min(1,(ANCA-y)/0.35);
+      let lato=Math.min(1,Math.max(0,(x/(t.w/2)+1)/2)); lato=lato*lato*(3-2*lato);
+      const a=giu*((1-lato)*aS+lato*aD), dy=y-ANCA, c=Math.cos(a), s=Math.sin(a);
+      A[i+1]=ANCA+dy*c-z*s; A[i+2]=dy*s+z*c;
+    }
+    P.needsUpdate=true; m.geometry.computeVertexNormals(); m.geometry.computeBoundingSphere();
+  }
 }
 function cammina(av, passo){
   const u=av.userData; u.fase+=passo; const a=Math.sin(u.fase)*0.6*Math.min(1,passo*20);
   u.gambe[0].rotation.x=a; u.gambe[1].rotation.x=-a;
   if(!u.ferme){ u.braccia[0].rotation.x=-a*0.8; if(!u.alzato) u.braccia[1].rotation.x=a*0.8; }
+  pieghe(av);
 }
-function fermo(av){ const u=av.userData; u.gambe.forEach(g=>g.rotation.x*=0.8); if(!u.ferme){ u.braccia[0].rotation.x*=0.8; if(!u.alzato) u.braccia[1].rotation.x*=0.8; } }
+function fermo(av){ const u=av.userData; u.gambe.forEach(g=>g.rotation.x*=0.8); if(!u.ferme){ u.braccia[0].rotation.x*=0.8; if(!u.alzato) u.braccia[1].rotation.x*=0.8; } pieghe(av); }
 
 // ── insegne e facciate, disegnate nel telefono ──
 const INSEGNE=new Map();
@@ -1629,9 +1653,21 @@ async function costruisci(){
   // per il collaudo: pezzi di vestito appesi al corpo che scendono sotto l'anca (0,9): restano fermi e le gambe li attraversano
   scena.pezziSulleGambe=()=>{ const male=[]; const box=new THREE.Box3();
     for(const k of Object.keys(VESTITI)){ const av=avatar({vestito:k}); const u=av.userData; av.updateMatrixWorld(true);
-      av.children.forEach(c=>{ if(u.gambe.includes(c)||u.braccia.includes(c)) return; box.setFromObject(c);
+      av.children.forEach(c=>{ if(u.gambe.includes(c)||u.braccia.includes(c)||c.userData.tessuto) return; box.setFromObject(c);
         if(box.min.y<0.85) male.push([k,+box.min.x.toFixed(2),+box.min.y.toFixed(2)]); }); }
     return male; };
+  // per il collaudo: camice e grembiule sono UN pezzo, e con le gambe aperte l'orlo segue la gamba del suo lato
+  scena.stoffa=()=>{ const r={};
+    for(const k of ["sanita","negozio"]){ const av=avatar({vestito:k}), u=av.userData, m=u.tessuti[0];
+      u.gambe[0].rotation.x=0.5; u.gambe[1].rotation.x=-0.5; pieghe(av);
+      // dove vanno i piedi: la gamba ruotata di +0,5 porta il piede indietro (−z), quella a −0,5 avanti
+      const piede=gb=>{ const v=new THREE.Vector3(0,-0.85,0); gb.updateMatrix(); return v.applyMatrix4(gb.matrix).z; };
+      const A=m.geometry.attributes.position.array, R=m.userData.tessuto.riposo; let sin=0, des=0, minY=Infinity;
+      for(let i=0;i<A.length;i+=3){ if(R[i+1]<minY) minY=R[i+1]; }
+      for(let i=0;i<A.length;i+=3){ if(R[i+1]>minY+1e-6) continue; const dz=A[i+2]-R[i+2];
+        if(R[i]<-0.2 && Math.abs(dz)>Math.abs(sin)) sin=dz; if(R[i]>0.2 && Math.abs(dz)>Math.abs(des)) des=dz; }
+      r[k]={pezzi:u.tessuti.length, orloSinistro:+sin.toFixed(2), piedeSinistro:+piede(u.gambe[0]).toFixed(2), orloDestro:+des.toFixed(2), piedeDestro:+piede(u.gambe[1]).toFixed(2)}; }
+    return r; };
   scena.lotti=()=>Object.values(porte).filter(P=>P.id==="lotto").length;
   scena.dove=()=>({x:tu.position.x,z:tu.position.z});
   scena.nelMuro=()=>solidi.some(s=>dentroUno(tu.position.x,tu.position.z,s));

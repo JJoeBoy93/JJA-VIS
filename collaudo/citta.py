@@ -152,6 +152,10 @@ async def main():
         prova("nessun palazzo, lotto, lampione o albero sta sulla strada", await p.evaluate("window.CITTA.sullaStrada()") == [], await p.evaluate("window.CITTA.sullaStrada()"))
         prova("le vie che il cammino segue non passano dentro niente (il furgone stava sull'anello)", await p.evaluate("window.CITTA.stradeLibere()") == [], await p.evaluate("window.CITTA.stradeLibere()"))
         prova("nessun pezzo di vestito sta fermo dove si muovono le gambe (strisce JJA-VIS, camice, grembiule: si piegano con le gambe)", await p.evaluate("window.CITTA.pezziSulleGambe()") == [], await p.evaluate("window.CITTA.pezziSulleGambe()"))
+        st = await p.evaluate("window.CITTA.stoffa()")
+        prova("camice e grembiule sono un pezzo solo di stoffa che si piega: con le gambe aperte l'orlo di ogni lato va dalla parte del suo piede",
+              all(v["pezzi"] == 1 and abs(v["orloSinistro"]) > 0.05 and abs(v["orloDestro"]) > 0.05
+                  and v["orloSinistro"] * v["piedeSinistro"] > 0 and v["orloDestro"] * v["piedeDestro"] > 0 for v in st.values()), st)
         aq = await p.evaluate("window.CITTA.anelloQuadrato()")
         prova("il secondo anello è quadrato: quattro lati dritti che si chiudono", aq["lati"] == 4 and aq["coprono"], aq)
         prova("intorno, i quartieri: isolati di palazzi fra le vie", m["isolati"] >= 40, m["isolati"])
