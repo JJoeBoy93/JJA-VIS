@@ -293,7 +293,7 @@ const VESTITI={
   corriere: {nome:"Corriere",   maglia:0x2f5d8c, pantaloni:0x1d2735, scarpe:0x111111},
   negozio:  {nome:"Bottega",    maglia:0xf2f2f2, pantaloni:0x2b2f38, scarpe:0x3b2a1e},
   artigiano:{nome:"Cantiere",   maglia:0xe07a1f, pantaloni:0xe07a1f, scarpe:0x3b2a1e},
-  sanita:   {nome:"Camice",     maglia:0xf7f7f7, pantaloni:0x5fb3b3, scarpe:0xeeeeee},
+  sanita:   {nome:"Camice",     maglia:0x3f8f7a, pantaloni:0x3f8f7a, scarpe:0xeeeeee},   // sotto, la divisa verde; sopra, il camice bianco aperto
   ufficio:  {nome:"Giacca e cravatta", maglia:0x2a2f3a, pantaloni:0x2a2f3a, scarpe:0x111111},
   studio:   {nome:"Felpa e zaino", maglia:0x6a4fb5, pantaloni:0x34507a, scarpe:0xdddddd},
   guida:    {nome:"Guida",      maglia:0xc8392f, pantaloni:0xcbb48a, scarpe:0x3b2a1e},
@@ -917,12 +917,22 @@ function avatar(st){
     // grembiule e camice: UN pezzo solo, di stoffa, che si piega con le gambe (tessuto + pieghe): sotto l'anca
     // ogni punto segue la gamba del suo lato, e in mezzo fa da ponte fra le due (JJ, 3/10: «non devono spezzarsi,
     // sono lo stesso oggetto, ma devono piegarsi come fa il tessuto»)
-    case "negozio":{ tessuti.push(add(tessuto(0.5,0.85,0.04,0x2f8f5b,1.475,0.18),0,0,0)); break; }
+    case "negozio":{ tessuti.push(add(tessuto([{x0:-0.25,x1:0.25,y0:0.625,y1:1.475,z0:0.16,z1:0.2,lato:"davanti"}],0x2f8f5b),0,0,0)); break; }
     case "artigiano":{ cappello=true;
       const e=palla(0.27,0xffc21a); e.scale.y=0.7; add(e,0,2.02,0);
       add(cilindro(0.33,0.33,0.03,0xffc21a,14),0,1.98,0.02);
       add(scatola(0.6,0.1,0.36,0x5a3b22),0,0.93,0); break; }
-    case "sanita":{ tessuti.push(add(tessuto(0.58,0.52,0.34,0xf7f7f7,0.97,0),0,0,0));
+    case "sanita":{
+      // il camice: UN pezzo dalle spalle al ginocchio, aperto davanti (si vede la divisa verde), con le maniche bianche.
+      // Due falde davanti, la schiena, e i fianchi solo sotto l'anca (sopra ci sono le braccia) (JJ, 3/10)
+      const B=0xf7f7f7, alto=1.62, orlo=0.45;
+      tessuti.push(add(tessuto([
+        {x0:-0.29,x1:-0.07,y0:orlo,y1:alto,z0:0.165,z1:0.185,lato:"davanti"},
+        {x0:0.07,x1:0.29,y0:orlo,y1:alto,z0:0.165,z1:0.185,lato:"davanti"},
+        {x0:-0.29,x1:0.29,y0:orlo,y1:alto,z0:-0.185,z1:-0.165,lato:"dietro"},
+        {x0:-0.295,x1:-0.275,y0:orlo,y1:ANCA,z0:-0.165,z1:0.165,lato:"fianco"},
+        {x0:0.275,x1:0.295,y0:orlo,y1:ANCA,z0:-0.165,z1:0.165,lato:"fianco"}],B),0,0,0));
+      braccia.forEach(b=>{ b.children[0].material=mat(B); });
       const t=new THREE.Mesh(new THREE.TorusGeometry(0.12,0.018,6,16),mat(0x333333)); add(t,0,1.42,0.17); break; }
     case "ufficio":{ add(scatola(0.16,0.22,0.02,0xffffff),0,1.5,0.165); add(scatola(0.07,0.42,0.025,0xb3262e),0,1.3,0.17); break; }
     case "studio":{ add(scatola(0.42,0.5,0.2,0x2b3a4a),0,1.25,-0.26); break; }
@@ -944,14 +954,22 @@ function avatar(st){
 }
 // Stoffa: una scatola con più divisioni, che parte da «alto» e scende di h. Ne teniamo la forma di riposo.
 const ANCA=0.9;
-function tessuto(w,h,d,colore,alto,z){
-  // in larghezza: i bordi, i fianchi delle gambe e la striscia in mezzo (dove la stoffa si tende fra le due)
-  const xs=[-w/2,-0.27,-0.04,-PONTE/2,0,PONTE/2,0.04,0.27,w/2].filter(v=>Math.abs(v)<=w/2+1e-9).sort((p,q)=>p-q);
-  const geo=new THREE.BoxGeometry(w,h,d,xs.length-1,8,1); geo.translate(0,alto-h/2,z);
-  // mette le colonne di punti dove servono (BoxGeometry le fa equidistanti)
-  { const P=geo.attributes.position.array, passi=xs.length-1;
-    for(let i=0;i<P.length;i+=3){ const k=Math.round((P[i]+w/2)/(w/passi)); if(k>=0&&k<=passi && Math.abs(P[i]-(-w/2+k*w/passi))<1e-6) P[i]=xs[k]; } }
-  const m=new THREE.Mesh(geo,mat(colore)); m.userData.tessuto={riposo:geo.attributes.position.array.slice(),w}; return m;
+// Un pannello di stoffa: x0..x1, y0..y1, z0..z1, con le colonne di punti in larghezza dove servono (i fianchi
+// delle gambe e la striscia in mezzo, dove la stoffa si tende fra le due) e una riga ogni 10 cm in altezza.
+function pannello(x0,x1,y0,y1,z0,z1){
+  const xs=[x0,x1,-0.27,-0.04,-PONTE/2,0,PONTE/2,0.04,0.27].filter(v=>v>=x0-1e-9&&v<=x1+1e-9).sort((p,q)=>p-q).filter((v,k,a)=>!k||v-a[k-1]>1e-6);
+  const ny=Math.max(1,Math.round((y1-y0)/0.1)), nx=xs.length-1;
+  const g=new THREE.BoxGeometry(1,1,1,nx,ny,1).toNonIndexed(), P=g.attributes.position.array;
+  for(let i=0;i<P.length;i+=3){ const k=Math.round((P[i]+0.5)*nx); P[i]=xs[k]; P[i+1]=y0+(P[i+1]+0.5)*(y1-y0); P[i+2]=z0+(P[i+2]+0.5)*(z1-z0); }
+  return g;
+}
+// La stoffa: uno o più pannelli UNITI in una sola forma (un pezzo solo, che si piega tutto insieme).
+// pannelli: [{x0,x1,y0,y1,z0,z1,lato}] — lato «davanti» o «dietro» dice dove sta la gamba (per il collaudo)
+function tessuto(pannelli,colore){
+  const pezzi=pannelli.map(p=>pannello(p.x0,p.x1,p.y0,p.y1,p.z0,p.z1)), n=pezzi.reduce((t,g)=>t+g.attributes.position.count,0);
+  const pos=new Float32Array(n*3); let o=0; pezzi.forEach(g=>{ pos.set(g.attributes.position.array,o); o+=g.attributes.position.array.length; g.dispose(); });
+  const geo=new THREE.BufferGeometry(); geo.setAttribute("position",new THREE.BufferAttribute(pos,3)); geo.computeVertexNormals();
+  const m=new THREE.Mesh(geo,mat(colore)); m.userData.tessuto={riposo:pos.slice(),pannelli}; return m;
 }
 // Piega la stoffa con le gambe, come un tessuto (JJ, 3/10: «un grembiule si piega dove si piega la gamba,
 // idem per il camice: se muovo la gamba destra in avanti e la sinistra indietro, un lato va avanti, l'altro va
@@ -960,18 +978,19 @@ function tessuto(w,h,d,colore,alto,z){
 // dentro); solo nella striscia fra le due gambe (|x| < 6 cm) passa morbido dall'una all'altra, e lì la stoffa
 // si tende. Sotto l'anca il giro cresce con la distanza dall'anca, pieno a 20 cm.
 const PONTE=0.06;
+// dove va un punto di stoffa (x, y, z a riposo) con la gamba sinistra a aS e la destra a aD: [y, z]
+function deforma(x,y,z,aS,aD){
+  if(y>=ANCA) return [y,z];
+  let t=Math.min(1,Math.max(0,(x+PONTE)/(2*PONTE))); t=t*t*(3-2*t);
+  const giu=Math.min(1,(ANCA-y)/0.2), a=giu*((1-t)*aS+t*aD), dy=y-ANCA, c=Math.cos(a), s=Math.sin(a);
+  return [ANCA+dy*c-z*s, dy*s+z*c];
+}
 function pieghe(av){
   const u=av.userData; if(!u.tessuti||!u.tessuti.length) return;
   const aS=u.gambe[0].rotation.x, aD=u.gambe[1].rotation.x;   // gambe[0] è a sinistra (x<0)
   for(const m of u.tessuti){
     const P=m.geometry.attributes.position, A=P.array, R=m.userData.tessuto.riposo;
-    for(let i=0;i<A.length;i+=3){
-      const x=R[i], y=R[i+1], z=R[i+2];
-      if(y>=ANCA){ A[i+1]=y; A[i+2]=z; continue; }
-      let t=Math.min(1,Math.max(0,(x+PONTE)/(2*PONTE))); t=t*t*(3-2*t);
-      const giu=Math.min(1,(ANCA-y)/0.2), a=giu*((1-t)*aS+t*aD), dy=y-ANCA, c=Math.cos(a), s=Math.sin(a);
-      A[i+1]=ANCA+dy*c-z*s; A[i+2]=dy*s+z*c;
-    }
+    for(let i=0;i<A.length;i+=3){ const [y,z]=deforma(R[i],R[i+1],R[i+2],aS,aD); A[i+1]=y; A[i+2]=z; }
     P.needsUpdate=true; m.geometry.computeVertexNormals(); m.geometry.computeBoundingSphere();
   }
 }
@@ -1670,28 +1689,30 @@ async function costruisci(){
   // nessun punto della gamba esce dalla stoffa: davanti alla faccia davanti, o dietro alla faccia dietro (camice)
   // per il collaudo: camice e grembiule sono UN pezzo; ogni lato va dalla parte del piede del suo lato
   // (il sinistro col sinistro, il destro col destro); e nessun punto delle gambe esce dalla stoffa
+  // per il collaudo: camice e grembiule sono UN pezzo; ogni lato va dalla parte del piede del suo lato; nessun
+  // punto delle gambe esce dalla stoffa (davanti alle falde, dietro alla schiena); il camice è aperto e lungo
   scena.stoffa=()=>{ const r={};
-    for(const k of ["sanita","negozio"]){ let fuori=0, provati=0, latiGiusti=true; const av=avatar({vestito:k}), u=av.userData, m=u.tessuti[0], R=m.userData.tessuto.riposo;
-      const zs=[...new Set([...Array(R.length/3).keys()].map(n=>R[3*n+2]))].sort((a,b)=>a-b);
-      const zDav=k==="sanita"?zs[zs.length-1]:zs[0], zDie=k==="sanita"?zs[0]:null;
-      const colonne=[...new Set([...Array(R.length/3).keys()].map(n=>R[3*n]))].sort((a,b)=>a-b);
-      const faccia=(A,xr,zr)=>{ const p=[]; for(let i=0;i<R.length;i+=3) if(Math.abs(R[i]-xr)<1e-6 && Math.abs(R[i+2]-zr)<1e-6) p.push([A[i+1],A[i+2]]); return p.sort((a,b)=>a[0]-b[0]); };
-      const zA=(p,y)=>{ for(let i=1;i<p.length;i++) if(p[i][0]>=y){ const [y0,z0]=p[i-1],[y1,z1]=p[i]; return z0+(z1-z0)*(y-y0)/((y1-y0)||1); } return null; };
-      const piede=gb=>new THREE.Vector3(0,-0.85,0).applyMatrix4(gb.matrix).z;
+    for(const k of ["sanita","negozio"]){ let fuori=0, provati=0, latiGiusti=true; const av=avatar({vestito:k}), u=av.userData, m=u.tessuti[0], T=m.userData.tessuto, R=T.riposo;
+      const yMin=Math.min(...T.pannelli.map(p=>p.y0)), yMax=Math.max(...T.pannelli.map(p=>p.y1));
       for(const a of [0.6,0.3,-0.3,-0.6]){
         u.gambe[0].rotation.x=a; u.gambe[1].rotation.x=-a; u.gambe.forEach(g=>g.updateMatrix()); pieghe(av);
         const A=m.geometry.attributes.position.array;
-        // l'orlo ai due bordi va dalla parte del piede del suo lato
-        for(const [xr,gb] of [[colonne[0],u.gambe[0]],[colonne[colonne.length-1],u.gambe[1]]]){
-          const f=faccia(A,xr,zDav), orlo=f[0][1]-zDav; if(orlo*piede(gb)<=0 || Math.abs(orlo)<0.05) latiGiusti=false; }
-        // ogni punto della gamba (fianchi e centro, davanti e dietro) resta dentro la faccia della colonna più vicina
-        for(const gb of u.gambe){
-          for(const ly of [-0.05,-0.15,-0.25,-0.35,-0.45]) for(const lx of [-0.1,0,0.1]) for(const lz of [0.12,-0.12]){
-            const v=new THREE.Vector3(lx,ly,lz).applyMatrix4(gb.matrix);
-            const xr=colonne.reduce((b,c)=>Math.abs(c-v.x)<Math.abs(b-v.x)?c:b);
-            if(lz>0){ const f=faccia(A,xr,zDav); if(v.y<f[0][0]+0.01) continue; const zf=zA(f,v.y); if(zf===null) continue; provati++; if(v.z>zf+0.005) fuori++; }
-            else if(zDie!==null){ const f=faccia(A,xr,zDie); if(v.y<f[0][0]+0.01) continue; const zd=zA(f,v.y); if(zd===null) continue; provati++; if(v.z<zd-0.005) fuori++; } } } }
-      r[k]={pezzi:u.tessuti.length, latiGiusti, provati, fuori}; }
+        // l'orlo al bordo sinistro e al destro, davanti: va dalla parte del piede del suo lato
+        for(const [lato,gb] of [[-1,u.gambe[0]],[1,u.gambe[1]]]){
+          let best=-1; for(let i=0;i<R.length;i+=3){ if(Math.abs(R[i+1]-yMin)>1e-6 || R[i+2]<0.1) continue; if(best<0 || R[i]*lato>R[best]*lato) best=i; }
+          const orlo=A[best+2]-R[best+2], piede=new THREE.Vector3(0,-0.85,0).applyMatrix4(gb.matrix).z;
+          if(orlo*piede<=0 || Math.abs(orlo)<0.05) latiGiusti=false; }
+        // ogni punto della gamba resta dietro le falde (dove ci sono) e davanti alla schiena
+        for(const gb of u.gambe) for(const ly of [-0.05,-0.15,-0.25,-0.35,-0.45]) for(const lx of [-0.1,0,0.1]) for(const lz of [0.12,-0.12]){
+          const v=new THREE.Vector3(lx,ly,lz).applyMatrix4(gb.matrix);
+          for(const p of T.pannelli){ if(p.lato!=="davanti" && p.lato!=="dietro") continue; if(v.x<p.x0||v.x>p.x1) continue;
+            if((p.lato==="davanti")!==(lz>0)) continue;
+            const zi=p.lato==="davanti"?p.z0:p.z1; let y0=v.y;
+            for(let it=0;it<8;it++){ const [yy]=deforma(v.x,y0,zi,a,-a); y0+=v.y-yy; }
+            if(y0<p.y0+0.01 || y0>=ANCA) continue; const zz=deforma(v.x,y0,zi,a,-a)[1]; provati++;
+            if(p.lato==="davanti" ? v.z>zz+0.005 : v.z<zz-0.005) fuori++; } } }
+      const aperto=!T.pannelli.some(p=>p.lato==="davanti" && p.x0<=0 && p.x1>=0);
+      r[k]={pezzi:u.tessuti.length, latiGiusti, provati, fuori, aperto, daSpalleA:[+yMax.toFixed(2),+yMin.toFixed(2)]}; }
     return r; };
   scena.lotti=()=>Object.values(porte).filter(P=>P.id==="lotto").length;
   scena.dove=()=>({x:tu.position.x,z:tu.position.z});
