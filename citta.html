@@ -914,12 +914,16 @@ function avatar(st){
       add(scatola(0.34,0.03,0.2,maglia),0,2.01,0.24);
       add(scatola(0.46,0.34,0.34,0xc8a165),0,1.12,0.42);
       braccia.forEach(b=>{ b.rotation.x=-1.05; }); g.userData.ferme=true; break; }
-    case "negozio":{ add(scatola(0.5,0.85,0.04,0x2f8f5b),0,1.05,0.18); break; }
+    // grembiule e camice: la parte sotto l'anca è divisa in due e sta SULLE GAMBE, così si piega con loro
+    // invece di farsi attraversare (JJ, 3/10: «le gambe attraversano i vestiti»)
+    case "negozio":{ add(scatola(0.5,0.58,0.04,0x2f8f5b),0,1.19,0.18);
+      gambe.forEach((gb,i)=>{ const s=i?1:-1, p=scatola(0.25,0.3,0.04,0x2f8f5b); p.position.set(-0.025*s,-0.14,0.18); gb.add(p); }); break; }
     case "artigiano":{ cappello=true;
       const e=palla(0.27,0xffc21a); e.scale.y=0.7; add(e,0,2.02,0);
       add(cilindro(0.33,0.33,0.03,0xffc21a,14),0,1.98,0.02);
       add(scatola(0.6,0.1,0.36,0x5a3b22),0,0.93,0); break; }
-    case "sanita":{ add(scatola(0.58,0.5,0.34,0xf7f7f7),0,0.72,0);
+    case "sanita":{ add(scatola(0.58,0.1,0.34,0xf7f7f7),0,0.92,0);
+      gambe.forEach((gb,i)=>{ const s=i?1:-1, p=scatola(0.29,0.42,0.34,0xf7f7f7); p.position.set(-0.005*s,-0.24,0); gb.add(p); });
       const t=new THREE.Mesh(new THREE.TorusGeometry(0.12,0.018,6,16),mat(0x333333)); add(t,0,1.42,0.17); break; }
     case "ufficio":{ add(scatola(0.16,0.22,0.02,0xffffff),0,1.5,0.165); add(scatola(0.07,0.42,0.025,0xb3262e),0,1.3,0.17); break; }
     case "studio":{ add(scatola(0.42,0.5,0.2,0x2b3a4a),0,1.25,-0.26); break; }
@@ -1622,11 +1626,11 @@ async function costruisci(){
     return male; };
   scena.anelloQuadrato=()=>{ const lati=tratti.filter(t=>Math.abs(t.c)===Q); return {lati:lati.length, coprono:lati.every(t=>t.a<=-Q && t.b>=Q)}; };
   scena.sfera=()=>({tema:TEMA, colori:SFERA.map(c=>c.toString(16).padStart(6,"0"))});
-  // per il collaudo: pezzi di vestito appesi al corpo ma che stanno dove ci sono le gambe (restano fermi quando camminano)
+  // per il collaudo: pezzi di vestito appesi al corpo che scendono sotto l'anca (0,9): restano fermi e le gambe li attraversano
   scena.pezziSulleGambe=()=>{ const male=[]; const box=new THREE.Box3();
     for(const k of Object.keys(VESTITI)){ const av=avatar({vestito:k}); const u=av.userData; av.updateMatrixWorld(true);
       av.children.forEach(c=>{ if(u.gambe.includes(c)||u.braccia.includes(c)) return; box.setFromObject(c);
-        if(box.min.y<0.6 && box.max.y<1.0 && box.max.x-box.min.x<0.35) male.push([k,+box.min.x.toFixed(2),+box.min.y.toFixed(2)]); }); }
+        if(box.min.y<0.85) male.push([k,+box.min.x.toFixed(2),+box.min.y.toFixed(2)]); }); }
     return male; };
   scena.lotti=()=>Object.values(porte).filter(P=>P.id==="lotto").length;
   scena.dove=()=>({x:tu.position.x,z:tu.position.z});

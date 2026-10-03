@@ -151,7 +151,7 @@ async def main():
         prova("Torre: il logo JJA-VIS in cima, sui quattro lati", m["logoTorre"] == 4, m["logoTorre"])
         prova("nessun palazzo, lotto, lampione o albero sta sulla strada", await p.evaluate("window.CITTA.sullaStrada()") == [], await p.evaluate("window.CITTA.sullaStrada()"))
         prova("le vie che il cammino segue non passano dentro niente (il furgone stava sull'anello)", await p.evaluate("window.CITTA.stradeLibere()") == [], await p.evaluate("window.CITTA.stradeLibere()"))
-        prova("nessun pezzo di vestito sta fermo dove si muovono le gambe (le strisce JJA-VIS facevano «quattro gambe»)", await p.evaluate("window.CITTA.pezziSulleGambe()") == [], await p.evaluate("window.CITTA.pezziSulleGambe()"))
+        prova("nessun pezzo di vestito sta fermo dove si muovono le gambe (strisce JJA-VIS, camice, grembiule: si piegano con le gambe)", await p.evaluate("window.CITTA.pezziSulleGambe()") == [], await p.evaluate("window.CITTA.pezziSulleGambe()"))
         aq = await p.evaluate("window.CITTA.anelloQuadrato()")
         prova("il secondo anello è quadrato: quattro lati dritti che si chiudono", aq["lati"] == 4 and aq["coprono"], aq)
         prova("intorno, i quartieri: isolati di palazzi fra le vie", m["isolati"] >= 40, m["isolati"])
