@@ -25,6 +25,7 @@ def prova(nome, ok, dettaglio=""):
     prove.append((nome, bool(ok)))
     print(("  ok  " if ok else "  NO  ") + nome + (f" — {dettaglio}" if dettaglio and not ok else ""))
 
+parlate = []     # i messaggi arrivati alla porta finta da /parla
 richieste = []   # tutto quello che la pagina chiede: il ristorante non deve chiedere niente a nessuno
 async def instrada(route):
     u = route.request.url
@@ -39,6 +40,13 @@ async def instrada(route):
     if u.startswith(PORTA + "/video"):
         return await route.fulfill(body=json.dumps({"video": [{"url": "https://www.instagram.com/reel/PROVA1/", "titolo": "Il giro del mattino", "piattaforma": "instagram"},
                                                                {"url": "javascript:alert(1)", "titolo": "trappola", "piattaforma": "instagram"}]}),
+                                   content_type="application/json", headers={"Access-Control-Allow-Origin": "https://jjoeboy93.github.io"})
+    if u.startswith(PORTA + "/parla"):   # Nova risponde subito e la passa anche a chi la costruisce
+        parlate.append(json.loads(route.request.post_data or "{}"))
+        return await route.fulfill(body=json.dumps({"id": "q1", "subito": {"testo": "Ciao! Su questa ti risponde anche chi mi costruisce.", "id": "q1-n", "passa": True}}),
+                                   content_type="application/json", headers={"Access-Control-Allow-Origin": "https://jjoeboy93.github.io"})
+    if u.startswith(PORTA + "/risposte"):
+        return await route.fulfill(body=json.dumps({"risposte": [{"id": "q1", "domanda": "Ciao dalla città", "risposta": "Risposta vera di chi mi costruisce"}] if parlate else []}),
                                    content_type="application/json", headers={"Access-Control-Allow-Origin": "https://jjoeboy93.github.io"})
     if u.startswith(PORTA + "/vetrina"):
         return await route.fulfill(body=json.dumps({"attrezzi": 42, "canzoni": 4639}), content_type="application/json",
@@ -114,6 +122,14 @@ async def main():
         copia = json.loads("{" + citta[i + len("const TEMPO_PER_MESTIERE={"):j].strip().rstrip(",") + "}")
         prova("TEMPO_PER_MESTIERE della città = PER_MESTIERE della pagina", copia == tempi_della_pagina())
 
+        # 0b. i quattro aspetti: i colori della città sono quelli della pagina
+        pagina = open(os.path.join(CASA, "index.html"), encoding="utf-8").read(); diversi = []
+        for t in ("calmo", "deciso", "naturale"):
+            vp = dict(re.findall(r"--([a-z0-9]+):(#[0-9A-Fa-f]{6})", re.search(r':root\[data-tema="%s"\]\{([^}]*)' % t, pagina).group(1)))
+            vc = dict(re.findall(r"--([a-z0-9]+):(#[0-9A-Fa-f]{6})", re.search(r':root\[data-tema="%s"\]\{([^}]*)' % t, citta).group(1)))
+            diversi += [(t, k, vc[k], vp.get(k)) for k in vc if vp.get(k) != vc[k]]
+        prova("i colori dei quattro aspetti sono quelli della pagina, parola per parola", not diversi, diversi)
+
         # 1. si accende: niente errori, il caricamento se ne va, la scena disegna qualcosa
         ctx, p, err = await nuova(b, profilo={"nome": "Ettore", "mestiere": "Guida turistica"})
         await p.goto(BASE + "citta.html")
@@ -145,7 +161,11 @@ async def main():
         f = await foglio(p)
         prova("Sartoria: si cammina fino alla porta e si apre la stanza", f["aperto"])
         prova("dentro la Sartoria si vede l'interno in 3D (colori nella fascia alta)", await colori_in_alto(p) > 20)
-        prova("il mestiere della pagina è già scelto", await p.evaluate("[...document.querySelectorAll('#stanza .scelta')].some(b=>b.textContent==='Guida turistica'&&b.getAttribute('aria-pressed')==='true')"))
+        # JJ, 3/10: il lavoro detto nella pagina non si richiede
+        prova("il lavoro detto nella pagina non si richiede: è scritto, e i mestieri non ci sono", "Guida turistica" in await p.inner_text("#mestiere-detto")
+              and not await p.evaluate("[...document.querySelectorAll('#stanza .scelta')].some(b=>b.textContent==='Sanità')"))
+        await p.click("#stanza button:has-text('Cambia')"); await p.wait_for_timeout(300)
+        prova("con «Cambia» i mestieri tornano, col suo già scelto", await p.evaluate("[...document.querySelectorAll('#stanza .scelta')].some(b=>b.textContent==='Guida turistica'&&b.getAttribute('aria-pressed')==='true')"))
         st = await p.evaluate("JSON.parse(localStorage.getItem('jjavis-citta')||'{}')")
         prova("senza scegliere, il vestito è quello del mestiere", st.get("vestito") == "guida", st)
         await p.wait_for_timeout(900); await foto(p, "02-sartoria-guida")
@@ -182,7 +202,24 @@ async def main():
                     if await p.evaluate("window.CITTA.nelMuroDentro()"): senza_salti.append((n, k, "nel muro"))
                 if await p.evaluate("window.CITTA.saltiDentro()") != s0: senza_salti.append((n, "salti", await p.evaluate("window.CITTA.saltiDentro()") - s0))
                 await p.click("#chiudi-carta"); await p.wait_for_timeout(300); f = await foglio(p)   # di nuovo la scheda intera
-            if n == "Reception": prova("la Reception saluta col nome dato nella pagina", "Ettore" in f["testo"], f["testo"][:80])
+            if n == "Reception":
+                prova("la Reception saluta col nome dato nella pagina", "Ettore" in f["testo"], f["testo"][:80])
+                await p.click("#stanza button:has-text('Parla con Ettore')"); await p.wait_for_timeout(400)
+                prova("«Parla con Ettore» apre la chat in città, non la pagina", await p.is_visible("#nova") and p.url.endswith("citta.html")
+                      and await p.inner_text("#nova-titolo") == "Ettore", p.url)
+                await p.fill("#nova-scrivi", "Ciao dalla città"); await p.click("#nova-manda")
+                await p.wait_for_function("document.querySelectorAll('#nova .bolla').length>=2", timeout=15000)
+                io_ = await p.evaluate("JSON.parse(localStorage.getItem('jjavis-io')||'{}')")
+                prova("il messaggio va alla stessa porta della pagina, come chat, con chi e nome", parlate and parlate[-1].get("da_dove") == "chat" and parlate[-1].get("chi") and parlate[-1].get("nome_assistente") == "Ettore", parlate[-1:] )
+                prova("la conversazione è quella della pagina (jjavis-io.chat) e il resto del profilo non si tocca", [m["ruolo"] for m in io_.get("chat", [])] == ["tu", "io"]
+                      and io_["chat"][0]["attesa"] and io_.get("nome") == "Ettore" and io_.get("mestiere") == "Guida turistica", io_)
+                await foto(p, "18-nova-in-citta")
+                await p.click("#chiudi-nova"); await p.wait_for_timeout(300)
+                await p.click("#apri-nova-stanza"); await p.wait_for_function("document.querySelectorAll('#nova .bolla').length>=3", timeout=15000)
+                io_ = await p.evaluate("JSON.parse(localStorage.getItem('jjavis-io')||'{}')")
+                prova("la risposta di chi mi costruisce arriva in città, e una volta vista non resta «nuova»", [m["ruolo"] for m in io_["chat"]] == ["tu", "io", "io"]
+                      and not io_["chat"][0]["attesa"] and not any(m.get("nuovo") for m in io_["chat"]), io_["chat"])
+                await p.click("#chiudi-nova"); await p.wait_for_timeout(300)
             if n == "Bottega":
                 await foto(p, "04-bottega")
                 prima = await p.evaluate("(document.querySelector('#stanza .prodotto h3')||{}).textContent")
@@ -314,6 +351,17 @@ async def main():
         await vai(p, "Reception")
         prova("senza nome, la Reception manda a darne uno", "Dai un nome" in (await foglio(p))["testo"])
         prova("nessun errore JavaScript (ritorno)", not err, err[:3])
+        await ctx.close()
+
+        # 5b. l'aspetto scelto nella pagina colora la città e la sfera (JJ, 3/10)
+        ctx, p, err = await nuova(b, profilo={"nome": "Ada", "tema": "naturale"})
+        await p.goto(BASE + "citta.html")
+        await p.wait_for_function("window.CITTA && window.CITTA.pronta && window.CITTA.fotogrammi()>3", timeout=60000)
+        sf = await p.evaluate("window.CITTA.sfera()")
+        prova("aspetto «naturale»: la città e la sfera prendono i suoi colori", sf == {"tema": "naturale", "colori": ["34d399", "059669", "fbbf24"]}
+              and await p.evaluate("getComputedStyle(document.documentElement).getPropertyValue('--accento').trim()") == "#34D399", sf)
+        await foto(p, "19-aspetto-naturale")
+        prova("nessun errore JavaScript (aspetto)", not err, err[:3])
         await ctx.close()
 
         # 6. senza WebGL: la città diventa un elenco e funziona lo stesso

@@ -18,6 +18,11 @@
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#020B18}}
 :root[data-theme="dark"]{--bg:#020B18}
+/* I QUATTRO ASPETTI della pagina (index.html), solo i colori: l'aspetto scelto nella pagina
+   colora anche la città, le sfere comprese (JJ, 3/10). Copia sorvegliata: collaudo/citta.py la confronta */
+:root[data-tema="calmo"]{--bg:#0B0B1A;--panel:#12122A;--bordo:#2A2A55;--accento:#8B8CF8;--accento2:#6366F1;--testo:#E6E6FF;--tenue:#A5A6E0;--utente:#1C1C45;--oro:#F0ABFC;--input:#0D0D22}
+:root[data-tema="deciso"]{--bg:#0E0E0E;--panel:#181818;--bordo:#2E2E2E;--accento:#FF5A1F;--accento2:#C2410C;--testo:#F4F4F4;--tenue:#B8B8B8;--utente:#2A1A12;--oro:#FFC53D;--input:#111111}
+:root[data-tema="naturale"]{--bg:#08130E;--panel:#0E1C16;--bordo:#21402F;--accento:#34D399;--accento2:#059669;--testo:#E7F5EC;--tenue:#9CC9AE;--utente:#123526;--oro:#FBBF24;--input:#0A1712}
 *,*::before,*::after{box-sizing:border-box}
 html,body{margin:0;height:100%;background:var(--bg);color:var(--testo);font:500 16px/1.4 var(--f-testo);
   overflow:hidden;overscroll-behavior:none;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
@@ -33,6 +38,7 @@ a{color:var(--accento)}
 .hud{position:fixed;left:0;right:0;top:0;z-index:5;pointer-events:none;
   padding:calc(env(safe-area-inset-top,0px) + 10px) 12px 0;display:flex;gap:8px;align-items:flex-start;justify-content:space-between}
 .hud>*{pointer-events:auto}
+.pulsanti-hud{display:flex;flex-direction:column;align-items:flex-end;gap:8px}
 #cartello{padding:9px 13px 10px;max-width:calc(100% - 110px)}
 .titolo{font:800 19px/1.1 var(--f-titoli);letter-spacing:.03em;text-shadow:0 0 14px color-mix(in srgb,var(--accento) 50%,transparent)}
 .sotto{font:400 12px/1.35 var(--f-mono);color:var(--tenue);margin-top:4px}
@@ -137,6 +143,33 @@ body.in-stanza.con-carta #joy,body.in-stanza.con-carta #entra{opacity:0;pointer-
 #stanza:not(.con-carta) #stanza-carta{display:none}
 #stanza:not(.con-carta) .stanza-vista{display:none}
 .stanza-barra .spazio{flex:1}
+/* la barra in alto è piena: le etichette delle cose non ci passano dietro */
+.stanza-barra{background:color-mix(in srgb,var(--bg) 88%,transparent);border-bottom:1px solid var(--bordo)}
+/* Nova in città: la stessa chat della pagina, senza uscire */
+.apri-nova{position:relative}
+.apri-nova .nuovo{position:absolute;top:-5px;right:-5px;width:12px;height:12px;border-radius:50%;background:var(--oro);box-shadow:0 0 8px var(--oro)}
+.apri-nova .nuovo[hidden]{display:none}
+#nova{position:fixed;left:0;right:0;bottom:0;top:22vh;z-index:40;display:flex;flex-direction:column;padding:14px 14px calc(env(safe-area-inset-bottom,0px) + 12px);
+  border-bottom:0;background:var(--panel);-webkit-user-select:text;user-select:text}
+#nova[hidden]{display:none}
+#nova .testa-nova{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+#nova .testa-nova b{font:800 22px/1.1 var(--f-titoli);flex:1}
+#nova .testa-nova small{display:block;font:400 12px/1.3 var(--f-mono);color:var(--tenue);letter-spacing:.06em}
+#chiudi-nova{width:42px;height:42px;font:400 26px/1 var(--f-testo);color:var(--testo);background:transparent;border:1px solid var(--bordo);cursor:pointer}
+#nova-chat{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column;gap:8px;padding:4px 2px;touch-action:pan-y}
+#nova .bolla{max-width:86%;padding:10px 12px;font-size:16px;line-height:1.45;border:1px solid var(--bordo);white-space:pre-wrap}
+#nova .bolla.tu{align-self:flex-end;background:var(--utente,#0D2A3E)}
+#nova .bolla.io{align-self:flex-start;background:color-mix(in srgb,var(--accento) 7%,transparent)}
+#nova .bolla small.attesa{display:block;margin-top:5px;font:400 12px/1.2 var(--f-mono);color:var(--tenue)}
+#nova .bolla a{display:inline-block;margin-top:8px;font-weight:700}
+#nova .vuota{color:var(--tenue);font-size:15px;line-height:1.45}
+#nova .scrivi{display:flex;gap:8px;margin-top:10px}
+#nova textarea{flex:1;min-height:48px;max-height:120px;resize:none;font:500 16px/1.35 var(--f-testo);color:var(--testo);background:var(--input);border:1px solid var(--bordo);padding:12px}
+#nova .manda{font:800 16px/1 var(--f-titoli);color:var(--bg);background:var(--accento);border:0;padding:0 18px;cursor:pointer}
+#nova .manda:disabled{opacity:.5}
+#esito-nova{font-size:14px;color:var(--tenue);margin-top:6px;min-height:1em}
+#esito-nova.errore{color:#ff8080}
+body.con-nova #joy,body.con-nova #entra,body.con-nova #vai{opacity:0;pointer-events:none}
 #chiudi-carta{position:sticky;top:0;float:right;margin:-6px -4px 0 8px;width:42px;height:42px;font:400 26px/1 var(--f-testo);color:var(--testo);
   background:var(--panel);border:1px solid var(--bordo);cursor:pointer;z-index:2}
 .menu-voce{display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--bordo);padding:10px 0}
@@ -181,7 +214,8 @@ body.in-stanza.con-carta #joy,body.in-stanza.con-carta #entra{opacity:0;pointer-
     <div class="sotto" id="numeri">il tuo assistente, in carne e palazzi</div>
     <button id="giro" type="button" aria-label="Il tuo primo giro"></button>
   </div>
-  <a class="pulsante" href="index.html" id="esci">← La pagina</a>
+  <div class="pulsanti-hud"><button class="pulsante apri-nova" type="button" id="apri-nova">💬 <span class="nome-nova">Nova</span><i class="nuovo" hidden></i></button>
+  <a class="pulsante" href="index.html" id="esci">← La pagina</a></div>
 </div>
 
 <div id="joy" aria-hidden="true"><div id="pomo"></div></div>
@@ -195,9 +229,16 @@ body.in-stanza.con-carta #joy,body.in-stanza.con-carta #entra{opacity:0;pointer-
 </section>
 
 <section id="stanza" hidden aria-hidden="true" role="dialog" aria-labelledby="stanza-titolo">
-  <div class="stanza-barra"><button id="esci-stanza" class="pulsante" type="button">← Esci</button><span id="stanza-nome"></span><span class="spazio"></span><button id="apri-scheda" class="pulsante" type="button">📋 Scheda</button></div>
+  <div class="stanza-barra"><button id="esci-stanza" class="pulsante" type="button">← Esci</button><span id="stanza-nome"></span><span class="spazio"></span><button class="pulsante apri-nova" type="button" id="apri-nova-stanza" aria-label="Parla col tuo assistente">💬<i class="nuovo" hidden></i></button><button id="apri-scheda" class="pulsante" type="button">📋 Scheda</button></div>
   <div class="stanza-vista" aria-hidden="true"></div>
   <div id="stanza-carta" class="cornice"><button id="chiudi-carta" type="button" aria-label="Chiudi e cammina">×</button><div class="dentro" id="stanza-dentro"></div></div>
+</section>
+
+<section id="nova" class="cornice" hidden role="dialog" aria-labelledby="nova-titolo">
+  <div class="testa-nova"><div style="flex:1"><b id="nova-titolo">Nova</b><small>la stessa chat della pagina</small></div><button id="chiudi-nova" type="button" aria-label="Chiudi la chat">×</button></div>
+  <div id="nova-chat" aria-live="polite"></div>
+  <div class="scrivi"><textarea id="nova-scrivi" rows="2" placeholder="Scrivimi…" aria-label="Il tuo messaggio"></textarea><button class="manda" id="nova-manda" type="button">Invia</button></div>
+  <div id="esito-nova" role="status"></div>
 </section>
 
 <div id="carica" role="status" aria-live="polite">
@@ -234,6 +275,10 @@ const PORTA="https://jjavis-porta.19-jjardito93.workers.dev";
 
 // Il profilo della pagina (nome dell'assistente, mestiere): lo si LEGGE soltanto.
 let io={}; try{ io=JSON.parse(localStorage.getItem("jjavis-io")||"{}")||{}; }catch(_){ io={}; }
+// L'aspetto scelto nella pagina colora anche la città e le sfere (JJ, 3/10): [maglia, sfera, anello]
+const TEMI={tech:[0x00B4D8,0x0077B6,0xFFD60A],calmo:[0x8B8CF8,0x6366F1,0xF0ABFC],deciso:[0xFF5A1F,0xC2410C,0xFFC53D],naturale:[0x34D399,0x059669,0xFBBF24]};
+const TEMA=TEMI[io.tema]?io.tema:"tech", SFERA=TEMI[TEMA];
+if(TEMA!=="tech") document.documentElement.setAttribute("data-tema",TEMA);
 // Quello della città sta in una chiave sua, in questo telefono e basta.
 const CHIAVE="jjavis-citta";
 let citta={}; try{ citta=JSON.parse(localStorage.getItem(CHIAVE)||"{}")||{}; }catch(_){ citta={}; }
@@ -486,7 +531,7 @@ const LUOGHI={
         "Il nome che mi dai resta nel tuo telefono.",
         "Il mestiere e le risposte servono solo a capire cosa costruire: non vanno a nessun altro.",
         "Il tuo avatar, i tuoi vestiti e il tuo test di forma della città restano in questo telefono: non li mando a nessuno."]))]}],
-    fine(){ const n=nomeAssistente(); return [AZIONI(vai(PAGINA+"#inizia", n?`Parla con ${n}`:"Dai un nome al tuo assistente"))]; }},
+    fine(){ const n=nomeAssistente(); return [AZIONI(parlaQui(`Parla con ${n}`,""))]; }},
   sartoria:{nome:"Sartoria",ic:"🧵",breve:"vesti il tuo avatar",
     testa:()=>TESTA("Il tuo avatar","Sartoria","Dimmi che lavoro fai: serve a me, per capire cosa costruirti. Poi vestiti come vuoi: non deve per forza essere la divisa del tuo lavoro."),
     parti:()=>[
@@ -522,7 +567,7 @@ const LUOGHI={
           "Occhi e orecchie: guardo le foto, cerco sul web e ti lascio le fonti da toccare. Mi scrivi anche da Telegram."]))]},
       {id:"tutti",nome:"Per chiunque",dentro:()=>[BLOCCO(H3("Per chiunque"), P("Chiunque, ovunque nasca e qualunque lavoro faccia, ha diritto al suo assistente personale. Il corriere di Milano, il farmacista di Tokyo, l'agricoltore del Brasile, il meccanico del Cairo. Parto dal lavoro che conosco meglio, la consegna, e da lì vado verso tutti.")),
         NOTA("Come sono fatto dentro non lo racconto: sono mesi di lavoro, notte dopo notte. Cosa so fare sì.")]}],
-    fine:()=>[AZIONI(vai(PAGINA+"#inizia","Comincia"), vai(PAGINA+"#sa-fare","Cosa so fare, nella pagina",true))]},
+    fine:()=>[AZIONI(parlaQui(`Parla con ${nomeAssistente()}`,""), vai(PAGINA+"#sa-fare","Cosa so fare, nella pagina",true))]},
   cinema:{nome:"Cinema",ic:"🎬",breve:"guardami al lavoro",
     testa:()=>TESTA("In sala","Cinema","Guardami al lavoro: video veri, dal telefono e dal furgone di chi mi costruisce. Nessun montaggio che non sia mio."),
     parti:()=>[{id:"schermo",nome:"Lo schermo",dentro(){
@@ -535,7 +580,7 @@ const LUOGHI={
       {id:"biglietteria",nome:"La biglietteria",dentro:()=>[BLOCCO(H3("Il biglietto"),
         P("Qui si entra gratis. Ogni video è un pezzo di lavoro vero: il giro del mattino, il codice della notte, quello che va storto e come si sistema."),
         P("Se vuoi un video su una cosa precisa, chiedilo: le domande arrivano a chi mi costruisce."),
-        AZIONI(vai(PAGINA+"#inizia","Chiedi un video")))]}],
+        AZIONI(parlaQui("Chiedi un video","Vorrei un video su ")))]}],
     fine:()=>[AZIONI(vai(PAGINA+"#sa-fare","Guardali nella pagina",true))]},
   voci:{nome:"Piazza delle voci",ic:"🗳",breve:"dimmi cosa ti fa perdere tempo",
     testa:()=>TESTA("Qui si decide cosa costruire","Piazza delle voci","Non decido da solo cosa costruire. Lo decide chi passa di qui: cosa ti fa perdere tempo nel tuo lavoro, e quanto varrebbe toglierlo."),
@@ -577,7 +622,7 @@ const LUOGHI={
       {id:"cab2",nome:"Cabinato 2",dentro:()=>[BLOCCO(CARTE([["Cabinato 2","libero","Quello che chiedete in tanti."]]))]},
       {id:"chi",nome:"Chi li fa",dentro:()=>[BLOCCO(H3("Chi li fa"), P("Chi mi costruisce è creatore ufficiale di isole di Fortnite. Le isole su commissione le trovi alla Forgia.")),
         NOTA("A cosa vorresti giocare? Dimmelo nella chat: le idee più chieste diventano il prossimo cabinato.")]}],
-    fine:()=>[AZIONI(vai(PAGINA+"#inizia","Dimmi a cosa vorresti giocare"))]},
+    fine:()=>[AZIONI(parlaQui("Dimmi a cosa vorresti giocare","Mi piacerebbe giocare a "))]},
   ristorante:{nome:"Ristorante",ic:"🍝",breve:"alla cassa: il menù, scegli e paghi",
     testa:()=>TESTA(QUARTIERI.est,"Ristorante","Vai alla cassa: c'è il menù. Scegli, e arrivi al conto. Oggi è la vetrina di come funzionerà: il menù è d'esempio, il pagamento non è acceso e nessun ordine parte."),
     parti:()=>[
@@ -619,13 +664,18 @@ const parteDi=(L,k)=>L.parti().find(p=>p.id===k);
 function schedaCosa(L,p){ return [el("p",{class:"eti",testo:L.nome}), el("h2",{id:"stanza-titolo",testo:p.nome}), ...p.dentro(), ...(L.fine?L.fine():[])].filter(Boolean); }
 
 // La Sartoria, allo specchio: il mestiere serve a me, il vestito è tuo.
+let mestiereDaCambiare=false;
 function specchio(){
   const out=[];
   const rifai=()=>{ salva(); rivesti(); ridisegnaCarta(); };
   const mest=el("div",{class:"scelte",role:"group","aria-label":"Che lavoro fai"});
   MESTIERI.forEach(([m])=>{ const b=el("button",{class:"scelta",type:"button","aria-pressed":String(citta.mestiere===m),testo:m});
     b.addEventListener("click",()=>{ citta.mestiere=m; if(!citta.vestitoScelto) citta.vestito=vestitoDi(m); rifai(); }); mest.appendChild(b); });
-  out.push(el("div",{class:"sezione",testo:"Che lavoro fai?"}), mest);
+  // JJ, 3/10: «se ho già detto che lavoro faccio non c'è bisogno che lo devo scegliere ancora»
+  if(io.mestiere && citta.mestiere===io.mestiere && !mestiereDaCambiare){
+    const cambia=bottone("Cambia",()=>{ mestiereDaCambiare=true; ridisegnaCarta(); },true);
+    out.push(el("div",{class:"sezione",testo:"Il tuo lavoro"}), el("p",{id:"mestiere-detto",testo:`${io.mestiere}: me l'hai già detto nella pagina.`}), AZIONI(cambia));
+  } else out.push(el("div",{class:"sezione",testo:"Che lavoro fai?"}), mest);
   const vest=el("div",{class:"scelte",role:"group","aria-label":"Come ti vesti"});
   Object.entries(VESTITI).forEach(([k,v])=>{ const b=el("button",{class:"scelta",type:"button","aria-pressed":String(citta.vestito===k),testo:v.nome});
     b.addEventListener("click",()=>{ citta.vestito=k; citta.vestitoScelto=true; rifai(); }); vest.appendChild(b); });
@@ -641,6 +691,87 @@ function specchio(){
   out.push(el("div",{class:"sezione",testo:"Pelle"}), pel);
   return out;
 }
+
+// ── Nova in città (JJ, 3/10: «i pulsanti che ti fanno tornare in chat fuori dalla città, delle chat con Nova
+// nella città che fa la stessa cosa ma dentro lì»). È LA STESSA chat della pagina: stessa porta (POST /parla,
+// GET /risposte), stessa conversazione in jjavis-io.chat, così una risposta arrivata qui si ritrova nella pagina
+// e viceversa. Della chiave della pagina la città scrive solo chat, chatDa e id (se manca, come lo fa la pagina):
+// ogni scrittura rilegge la chiave fresca prima, per non cancellare quello che la pagina ha scritto nel frattempo.
+const AZIONI_CHAT={commissione:["Te lo costruisco: chiedi un preventivo →","#costruisci"], sopralluogo:["Fammi fare un sopralluogo →","#sopralluogo"], clio:["Scopri Clio →","#clio"]};
+const leggiIo=()=>{ try{ return JSON.parse(localStorage.getItem("jjavis-io")||"{}")||{}; }catch(_){ return {}; } };
+function scriviIo(cambia){ const fresco=leggiIo(); cambia(fresco); try{ localStorage.setItem("jjavis-io",JSON.stringify(fresco)); }catch(_){} io=fresco; }
+let novaAperta=false, novaParla=false, novaGiro=null, novaDa=0;
+const novaAttesa=()=>(io.chat||[]).some(m=>m.ruolo==="tu"&&m.attesa);
+function segnaNovita(){ const c=(io.chat||[]).some(m=>m.nuovo); document.querySelectorAll(".apri-nova .nuovo").forEach(x=>x.hidden=!c); }
+function nomiNova(){ const n=nomeAssistente()||"Nova"; document.querySelectorAll(".nome-nova").forEach(x=>x.textContent=n); $("nova-titolo").textContent=n; }
+function disegnaNova(){
+  const c=$("nova-chat"); c.textContent="";
+  if(!nomeAssistente()){ c.append(el("p",{class:"vuota",testo:"Prima dai un nome al tuo assistente: si fa nella pagina, in un minuto. Poi parlate anche da qui."}), AZIONI(vai(PAGINA+"#inizia","Dai un nome al tuo assistente")));
+    $("nova-scrivi").disabled=true; $("nova-manda").disabled=true; return; }
+  $("nova-scrivi").disabled=false; $("nova-manda").disabled=novaParla;
+  const ch=io.chat||[];
+  if(!ch.length) c.append(el("p",{class:"vuota",testo:`Scrivi a ${nomeAssistente()}. Quello che non sa lo passa a chi lo costruisce, e la risposta compare qui da sola.`}));
+  ch.forEach(m=>{ const b=el("div",{class:"bolla "+(m.ruolo==="tu"?"tu":"io"),testo:m.testo});
+    if(m.ruolo==="tu"&&m.attesa) b.append(el("small",{class:"attesa",testo:"ti rispondo appena posso"}));
+    if(m.azione&&AZIONI_CHAT[m.azione.servizio]){ b.append(el("br")); b.append(vai(PAGINA+AZIONI_CHAT[m.azione.servizio][1],AZIONI_CHAT[m.azione.servizio][0])); }
+    c.append(b); });
+  c.scrollTop=c.scrollHeight;
+  // mostrata = letta, come nella pagina
+  if(ch.some(m=>m.nuovo)) scriviIo(f=>{ (f.chat||[]).forEach(m=>{ delete m.nuovo; }); if((f.chat||[]).length && !f.chatDa) f.chatDa=Date.now(); });
+  segnaNovita();
+}
+function apriNova(spunto){
+  io=leggiIo(); novaAperta=true; nomiNova(); $("nova").hidden=false; document.body.classList.add("con-nova");
+  if(spunto && !$("nova-scrivi").value) $("nova-scrivi").value=spunto;
+  disegnaNova(); if(novaAttesa()) controllaNova().then(giroNova);
+}
+function chiudiNova(){ novaAperta=false; $("nova").hidden=true; document.body.classList.remove("con-nova"); }
+async function mandaNova(){
+  const testo=$("nova-scrivi").value.trim(), e=$("esito-nova"); if(!testo||novaParla) return;
+  e.className=""; e.textContent=""; novaParla=true; $("nova-manda").disabled=true;
+  try{
+    if(!leggiIo().id) scriviIo(f=>{ f.id=[...crypto.getRandomValues(new Uint8Array(8))].map(x=>x.toString(16).padStart(2,"0")).join(""); });
+    io=leggiIo();
+    const r=await fetch(PORTA+"/parla",{method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({chi:io.id, nome_assistente:io.nome||"", tema:io.tema||"tech", tuo:io.tuo||"", da_dove:"chat",
+        profilo:{mestiere:io.mestiere||"", tempo:io.tempo||"", conosciute:io.conosciute||{}}, testo,
+        ...(io.mail ? {contatto:{nome:io.tuo||"", societa:"", mail:io.mail, consenso:true}} : {})})});
+    const d=await r.json().catch(()=>({}));
+    if(!r.ok||!d.id) throw new Error(d.errore||("errore "+r.status));
+    const sub=d.subito;   // Nova ha già risposto
+    scriviIo(f=>{ f.chat=f.chat||[]; f.chat.push({ruolo:"tu", testo, id:d.id, attesa:!sub || !!sub.passa});
+      if(sub) f.chat.push({ruolo:"io", testo:sub.testo, id:sub.id, ...(sub.azione?{azione:sub.azione}:{})});
+      f.chat=f.chat.slice(-20); if(!f.chatDa) f.chatDa=Date.now(); });
+    $("nova-scrivi").value="";
+    e.textContent = sub ? (sub.passa ? "Su questa ti risponde anche chi mi costruisce: la risposta compare qui da sola." : "") : "Arrivato. Ti rispondo qui appena posso: la risposta compare da sola.";
+    novaDa=Date.now(); giroNova();
+  }catch(err){ e.className="errore"; e.textContent="Non è partito: "+err.message+". Riprova tra poco."; }
+  finally{ novaParla=false; disegnaNova(); }
+}
+// le risposte: stessa regola della pagina (quelle di conversazioni già archiviate non tornano)
+async function controllaNova(){
+  io=leggiIo(); if(!io.id) return 0;
+  try{
+    const r=await fetch(PORTA+"/risposte?chi="+encodeURIComponent(io.id)); if(!r.ok) return 0;
+    const d=await r.json(); let nuove=0;
+    scriviIo(f=>{ f.chat=f.chat||[];
+      const archiviate=new Set((f.thread||[]).flatMap(c=>c.messaggi||[]).filter(m=>m.ruolo==="io").map(m=>m.id));
+      (d.risposte||[]).forEach(x=>{
+        if(archiviate.has(x.id) || f.chat.some(m=>m.ruolo==="io"&&m.id===x.id)) return;
+        const i=f.chat.findIndex(m=>m.ruolo==="tu"&&(m.id===x.id||m.id+"-n"===x.id));
+        const risp={ruolo:"io", testo:x.risposta, id:x.id, nuovo:true, ...(x.azione?{azione:x.azione}:{})};
+        if(i>=0){ f.chat[i].attesa=false; f.chat.splice(i+1,0,risp); } else f.chat.push({ruolo:"tu", testo:x.domanda, id:x.id, attesa:false}, risp);
+        nuove++; });
+      if(nuove) f.chat=f.chat.slice(-20); });
+    if(nuove){ if(novaAperta) disegnaNova(); else segnaNovita(); }
+    return nuove;
+  }catch(_){ return 0; }
+}
+function giroNova(){ clearTimeout(novaGiro); if(!novaAttesa()) return;
+  const ogni=Date.now()-novaDa<10*60e3?20e3:60e3;
+  novaGiro=setTimeout(async()=>{ if(!document.hidden) await controllaNova(); giroNova(); }, ogni); }
+// un pulsante «parla» dentro le stanze: apre la chat qui, con uno spunto già scritto (si può cancellare)
+const parlaQui=(testo,spunto,seconda)=>nomeAssistente() ? bottone(testo,()=>apriNova(spunto),seconda) : vai(PAGINA+"#inizia","Dai un nome al tuo assistente",seconda);
 
 // ── aprire e chiudere: la stanza (si cammina), la carta (una cosa, o la scheda intera) ──
 let stanzaAperta=null, cartaAperta=null;   // cartaAperta: "scheda" oppure l'id di una cosa
@@ -687,6 +818,13 @@ function esciStanza(){
 $("esci-stanza").addEventListener("click", esciStanza);
 $("apri-scheda").addEventListener("click", ()=>mostraCarta("scheda"));
 $("chiudi-carta").addEventListener("click", chiudiCarta);
+["apri-nova","apri-nova-stanza"].forEach(id=>$(id).addEventListener("click",()=>apriNova("")));
+$("chiudi-nova").addEventListener("click", chiudiNova);
+$("nova-manda").addEventListener("click", mandaNova);
+nomiNova(); segnaNovita();
+// una risposta arrivata mentre la città era chiusa: si guarda all'apertura, se c'è una domanda in attesa
+if(novaAttesa()){ novaDa=Date.now(); controllaNova().then(giroNova); }
+document.addEventListener("visibilitychange",()=>{ if(!document.hidden && novaAttesa()) controllaNova().then(giroNova); });
 const apriFoglio=apriStanza;   // il nome vecchio, per chi entra dalla porta o dal giro
 
 // il foglio, adesso, serve solo per «Vai a…»
@@ -1060,9 +1198,10 @@ async function costruisci(){
         lg.position.set(Math.sin(a)*r, P.h-1.6, Math.cos(a)*r); lg.rotation.y=a; lg.name="logo-torre"; g.add(lg); }
       // il globo di JARVIS in cima alla torre: si vede da tutta la città
       const globo=new THREE.Group(); globo.position.set(0,P.h+6,0); g.add(globo);
-      globo.add(new THREE.Mesh(new THREE.IcosahedronGeometry(3.4,2), new THREE.MeshBasicMaterial({color:0x00B4D8,wireframe:true,transparent:true,opacity:.8})));
-      globo.add(new THREE.Mesh(new THREE.SphereGeometry(2.6,24,16), new THREE.MeshBasicMaterial({color:0x0077B6,transparent:true,opacity:.35})));
-      const an=new THREE.Mesh(new THREE.TorusGeometry(4.3,0.08,6,64), new THREE.MeshBasicMaterial({color:0xFFD60A})); an.rotation.x=1.2; globo.add(an);
+      // la sfera ha i colori dell'aspetto scelto nella pagina (JJ, 3/10)
+      globo.add(new THREE.Mesh(new THREE.IcosahedronGeometry(3.4,2), new THREE.MeshBasicMaterial({color:SFERA[0],wireframe:true,transparent:true,opacity:.8})));
+      globo.add(new THREE.Mesh(new THREE.SphereGeometry(2.6,24,16), new THREE.MeshBasicMaterial({color:SFERA[1],transparent:true,opacity:.35})));
+      const an=new THREE.Mesh(new THREE.TorusGeometry(4.3,0.08,6,64), new THREE.MeshBasicMaterial({color:SFERA[2]})); an.rotation.x=1.2; globo.add(an);
       const ant=cilindro(0.15,0.25,3,0x0D3A5C,8); ant.position.y=P.h+1.5; g.add(ant);
       scena._globo=globo;
     }
@@ -1220,9 +1359,9 @@ async function costruisci(){
     return S2;
   }
   const ologlobo=(r)=>{ const g=new THREE.Group();
-    g.add(new THREE.Mesh(new THREE.IcosahedronGeometry(r,2), new THREE.MeshBasicMaterial({color:0x00B4D8,wireframe:true,transparent:true,opacity:.85})));
-    g.add(new THREE.Mesh(new THREE.SphereGeometry(r*0.78,20,14), new THREE.MeshBasicMaterial({color:0x0077B6,transparent:true,opacity:.35})));
-    const a=new THREE.Mesh(new THREE.TorusGeometry(r*1.25,0.03,6,48), new THREE.MeshBasicMaterial({color:0xFFD60A})); a.rotation.x=1.2; g.add(a);
+    g.add(new THREE.Mesh(new THREE.IcosahedronGeometry(r,2), new THREE.MeshBasicMaterial({color:SFERA[0],wireframe:true,transparent:true,opacity:.85})));
+    g.add(new THREE.Mesh(new THREE.SphereGeometry(r*0.78,20,14), new THREE.MeshBasicMaterial({color:SFERA[1],transparent:true,opacity:.35})));
+    const a=new THREE.Mesh(new THREE.TorusGeometry(r*1.25,0.03,6,48), new THREE.MeshBasicMaterial({color:SFERA[2]})); a.rotation.x=1.2; g.add(a);
     g.userData.gira=true; return g; };
   const schermo=(w,h,c,testo)=>{ const cv=tela(512,Math.round(512*h/w)), x=cv.getContext("2d"); x.fillStyle="#04121f"; x.fillRect(0,0,cv.width,cv.height);
     x.fillStyle=c; x.globalAlpha=.25; x.fillRect(0,0,cv.width,cv.height); x.globalAlpha=1;
@@ -1478,6 +1617,7 @@ async function costruisci(){
       for(let i=0;i<=n;i++){ const x=A.x+(B.x-A.x)*i/n, z=A.z+(B.z-A.z)*i/n; if(solidi.some(o=>dentroUno(x,z,o,0.45))){ male.push([Math.round(x*10)/10,Math.round(z*10)/10]); break; } } }
     return male; };
   scena.anelloQuadrato=()=>{ const lati=tratti.filter(t=>Math.abs(t.c)===Q); return {lati:lati.length, coprono:lati.every(t=>t.a<=-Q && t.b>=Q)}; };
+  scena.sfera=()=>({tema:TEMA, colori:SFERA.map(c=>c.toString(16).padStart(6,"0"))});
   scena.lotti=()=>Object.values(porte).filter(P=>P.id==="lotto").length;
   scena.dove=()=>({x:tu.position.x,z:tu.position.z});
   scena.nelMuro=()=>solidi.some(s=>dentroUno(tu.position.x,tu.position.z,s));
