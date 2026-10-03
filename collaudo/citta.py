@@ -25,8 +25,10 @@ def prova(nome, ok, dettaglio=""):
     prove.append((nome, bool(ok)))
     print(("  ok  " if ok else "  NO  ") + nome + (f" — {dettaglio}" if dettaglio and not ok else ""))
 
+richieste = []   # tutto quello che la pagina chiede: il ristorante non deve chiedere niente a nessuno
 async def instrada(route):
     u = route.request.url
+    richieste.append(u)
     if u.startswith(BASE):
         nome = u[len(BASE):].split("#")[0].split("?")[0] or "index.html"
         f = os.path.join(CASA, nome)
@@ -63,7 +65,10 @@ async def foto(p, nome):
         await p.screenshot(path=os.path.join(FOTO, nome + ".png"))
 
 async def foglio(p):
-    """la stanza aperta: titolo, link, testo"""
+    """la stanza aperta: titolo, link, testo. Dentro un palazzo la carta è chiusa finché
+    non si tocca una cosa: qui si apre la scheda intera, che ha tutto."""
+    if await p.evaluate("!document.getElementById('stanza').hidden && !document.getElementById('stanza').classList.contains('con-carta')"):
+        await p.click("#apri-scheda"); await p.wait_for_timeout(300)
     return await p.evaluate("""()=>({aperto:!document.getElementById('stanza').hidden && document.getElementById('stanza').classList.contains('aperta'),
       titolo:(document.getElementById('stanza-titolo')||{}).textContent||'',
       link:[...document.querySelectorAll('#stanza a')].map(a=>a.getAttribute('href')),
@@ -83,8 +88,21 @@ def tempi_della_pagina():
 async def vai(p, nome, attesa=120000):
     await p.click("#vai")
     await p.click(f'#foglio .elenco-vai button:has-text({json.dumps(nome)})')
-    await p.wait_for_function(f"!document.getElementById('stanza').hidden && (document.getElementById('stanza-titolo')||{{}}).textContent==={json.dumps(nome)}", timeout=attesa)
+    await arrivato(p, nome, attesa)
+
+async def arrivato(p, nome, attesa=120000):
+    """si è dentro il palazzo (si cammina) o davanti al luogo all'aperto (la scheda è già aperta)"""
+    await p.wait_for_function(f"!document.getElementById('stanza').hidden && document.getElementById('stanza-nome').textContent==={json.dumps(nome)}"
+                              " && (window.CITTA.cose().length>0 || document.getElementById('stanza').classList.contains('con-carta'))", timeout=attesa)
     await p.wait_for_timeout(600)
+
+async def usa(p, cosa, nome, attesa=60000):
+    """dentro il palazzo: si cammina fino alla cosa e la sua carta si apre col suo nome"""
+    if await p.evaluate("document.getElementById('stanza').classList.contains('con-carta')"):
+        await p.click("#chiudi-carta"); await p.wait_for_timeout(300)
+    await p.evaluate(f"window.CITTA.usa({json.dumps(cosa)})")
+    await p.wait_for_function(f"document.getElementById('stanza').classList.contains('con-carta') && (document.getElementById('stanza-titolo')||{{}}).textContent==={json.dumps(nome)}", timeout=attesa)
+    await p.wait_for_timeout(400)
 
 async def main():
     async with async_playwright() as pw:
@@ -111,13 +129,19 @@ async def main():
         prova("il primo giro parte dalla Sartoria", "Sartoria" in await p.inner_text("#giro"))
         m = await p.evaluate("window.CITTA.misure()")
         storti = {k: v for k, v in m["tetti"].items() if v["angoli"] != 4 or abs(v["largo"] - v["w"] * 1.08) > 0.05 or abs(v["profondo"] - v["d"] * 1.08) > 0.05}
-        prova("i tetti a falde sono dritti: la base è il rettangolo del palazzo, con quattro angoli veri", len(m["tetti"]) == 3 and not storti, storti or m["tetti"])
+        prova("i tetti a falde sono dritti: la base è il rettangolo del palazzo, con quattro angoli veri", len(m["tetti"]) == m["falde"] >= 4 and "ristorante" in m["tetti"] and not storti, storti or m["tetti"])
         prova("Borsa: l'insegna sta davanti alle colonne", m["borsa"]["davantiColonne"] is not None and m["borsa"]["davantiColonne"] > m["borsa"]["colonne"], m["borsa"])
         prova("Torre: il logo JJA-VIS in cima, sui quattro lati", m["logoTorre"] == 4, m["logoTorre"])
+        prova("nessun palazzo, lotto, lampione o albero sta sulla strada", await p.evaluate("window.CITTA.sullaStrada()") == [], await p.evaluate("window.CITTA.sullaStrada()"))
+        prova("le vie che il cammino segue non passano dentro niente (il furgone stava sull'anello)", await p.evaluate("window.CITTA.stradeLibere()") == [], await p.evaluate("window.CITTA.stradeLibere()"))
+        aq = await p.evaluate("window.CITTA.anelloQuadrato()")
+        prova("il secondo anello è quadrato: quattro lati dritti che si chiudono", aq["lati"] == 4 and aq["coprono"], aq)
+        prova("intorno, i quartieri: isolati di palazzi fra le vie", m["isolati"] >= 40, m["isolati"])
         await foto(p, "01-ingresso")
 
         # 2. il mestiere della pagina arriva in Sartoria, il vestito segue ma resta libero
         await vai(p, "Sartoria")
+        await usa(p, "specchio", "Lo specchio")
         f = await foglio(p)
         prova("Sartoria: si cammina fino alla porta e si apre la stanza", f["aperto"])
         prova("dentro la Sartoria si vede l'interno in 3D (colori nella fascia alta)", await colori_in_alto(p) > 20)
@@ -134,11 +158,12 @@ async def main():
         prova("la pelle si salva", st.get("pelle") == 3, st)
         await p.wait_for_timeout(900); await foto(p, "03-sartoria-creator")
         await p.click("#stanza button:has-text('Fatto')")
-        prova("Fatto riporta in piazza", not (await foglio(p))["aperto"])
+        prova("Fatto riporta in piazza", await p.evaluate("document.getElementById('stanza-nome').textContent===''||!document.getElementById('stanza').classList.contains('aperta')"))
         prova("il giro segna la Sartoria", await p.evaluate("document.querySelectorAll('#giro .f.fatta').length===1"))
 
         # 3. ogni luogo: si apre e ogni link interno porta a un id vero della pagina
-        nomi = ["Reception", "Bottega", "La Forgia", "La Torre", "L'Albero della Vita", "Piazza delle voci", "Cinema", "Borsa", "Athena Trasporti", "Lotto libero", "Sala giochi"]
+        nomi = ["Reception", "Bottega", "La Forgia", "La Torre", "L'Albero della Vita", "Piazza delle voci", "Cinema", "Borsa", "Athena Trasporti", "Lotto libero", "Sala giochi", "Ristorante", "Palestra"]
+        senza_salti = []
         rotti = []
         for n in nomi:
             await vai(p, n)
@@ -148,6 +173,15 @@ async def main():
                     k = h.split("#", 1)[1]
                     if k not in SCHEDE and k not in ID_PAGINA: rotti.append((n, h))
                 elif not h.startswith("https://jjoeboy93.github.io/") and not (n == "Cinema" and re.match(r"https://(www\.)?(instagram\.com|youtube\.com|youtu\.be|tiktok\.com)/", h)): rotti.append((n, h))
+            parti = await p.evaluate("window.CITTA.parti()")
+            if parti:
+                prova(f"{n}: dentro ci sono le cose del palazzo", len(parti) >= 2 and sorted(k for k, _ in parti) == sorted(await p.evaluate("window.CITTA.cose()")), parti)
+                s0 = await p.evaluate("window.CITTA.saltiDentro()")
+                for k, nome_cosa in parti:
+                    await usa(p, k, nome_cosa)
+                    if await p.evaluate("window.CITTA.nelMuroDentro()"): senza_salti.append((n, k, "nel muro"))
+                if await p.evaluate("window.CITTA.saltiDentro()") != s0: senza_salti.append((n, "salti", await p.evaluate("window.CITTA.saltiDentro()") - s0))
+                await p.click("#chiudi-carta"); await p.wait_for_timeout(300); f = await foglio(p)   # di nuovo la scheda intera
             if n == "Reception": prova("la Reception saluta col nome dato nella pagina", "Ettore" in f["testo"], f["testo"][:80])
             if n == "Bottega":
                 await foto(p, "04-bottega")
@@ -176,6 +210,7 @@ async def main():
             await p.click("#esci-stanza")
             await p.wait_for_timeout(400)
         prova("tutti i link dei palazzi portano a un posto che esiste", not rotti, rotti)
+        prova("dentro ogni palazzo si arriva a ogni cosa camminando: niente salti, niente muri", not senza_salti, senza_salti)
         prova("il giro è chiuso dopo Sartoria, Reception e Bottega", "Giro chiuso" in await p.inner_text("#giro"))
         await p.wait_for_timeout(500); await foto(p, "05-dopo-il-giro")
 
@@ -203,6 +238,58 @@ async def main():
         prova("con lo sguardo alzato si vede la cima della torre (prima no)", (not prima) and dopo, (prima, dopo))
         await p.evaluate(f"window.CITTA.guarda({yaw},1.3)"); await p.wait_for_timeout(2500); await foto(p, "13-dall-alto")
         await p.evaluate(f"window.CITTA.guarda({yaw},0.38)"); await p.wait_for_timeout(800)
+
+        # 3d. il Ristorante: alla cassa il menù, si sceglie, si arriva al conto, e il pagamento dice che non è acceso
+        await vai(p, "Ristorante")
+        await usa(p, "cassa", "La cassa")
+        for voce, volte in (("margherita", 2), ("caffe", 1)):
+            for _ in range(volte):
+                await p.click(f'#stanza .menu-voce[data-voce="{voce}"] button[aria-label^="Aggiungi"]'); await p.wait_for_timeout(150)
+        tot = await p.inner_text("#totale-ordine")
+        prova("alla cassa: 2 Margherita e 1 Caffè fanno 15,20 €", tot.replace("\u00a0", " ") == "15,20 €", tot)
+        await foto(p, "14-ristorante-cassa")
+        await p.click("#stanza button:has-text('Vai al conto')"); await p.wait_for_timeout(300)
+        conto = await p.inner_text("#stanza-dentro")
+        prova("il conto ha le righe giuste", "2 × Margherita" in conto and "1 × Caffè" in conto, conto[:200])
+        await p.click("#stanza .scelta:has-text('A domicilio')")
+        prima = len(richieste)
+        await p.click("#stanza button:has-text('Paga')"); await p.wait_for_timeout(1500)
+        partite = [u for u in richieste[prima:] if not u.startswith(BASE) and "fonts." not in u]
+        prova("pagare dice chiaro che il pagamento non è acceso", await p.is_visible("#pagamento-spento") and "nessun soldo si è mosso" in await p.inner_text("#pagamento-spento"))
+        prova("pagando non parte nessuna richiesta: nessun ordine, nessun soldo", not partite, partite)
+        await foto(p, "15-ristorante-pagato")
+        await p.click("#esci-stanza"); await p.wait_for_timeout(400)
+
+        # 3e. la Palestra: il test di forma dà un livello, si salva nel telefono, e gli esercizi sono del livello
+        await vai(p, "Palestra")
+        await usa(p, "bilancia", "La bilancia")
+        prova("il test non si chiude a metà (Calcola spento finché mancano risposte)", await p.is_disabled("#stanza button:has-text('Calcola il mio livello')"))
+        for d, v in ((0, 2), (1, 1), (2, 2), (3, 1)):   # 6 punti → intermedio
+            await p.click(f'#stanza .scelta[data-domanda="{d}"][data-valore="{v}"]'); await p.wait_for_timeout(150)
+        await p.click("#stanza button:has-text('Calcola il mio livello')"); await p.wait_for_timeout(400)
+        st = await p.evaluate("JSON.parse(localStorage.getItem('jjavis-citta')||'{}')")
+        prova("il livello si calcola e resta nel telefono (6 punti → intermedio)", (st.get("forma") or {}).get("livello") == "intermedio" and st["forma"]["punti"] == 6, st.get("forma"))
+        prova("il test dice che è una stima, non una misura", "stima" in await p.inner_text("#stanza-dentro"))
+        await p.click("#stanza button:has-text('I miei esercizi')"); await p.wait_for_timeout(400)
+        prova("gli esercizi sono quelli del mio livello", await p.evaluate("(document.getElementById('elenco-esercizi')||{dataset:{}}).dataset.livello") == "intermedio"
+              and await p.evaluate("document.getElementById('stanza-titolo').textContent") == "Gli esercizi")
+        await foto(p, "16-palestra-esercizi")
+        await p.click("#stanza .scelta:has-text('Avanzato')"); await p.wait_for_timeout(300)
+        prova("si può guardare anche un altro livello", "Burpee" in await p.inner_text("#elenco-esercizi"))
+        await p.click("#esci-stanza"); await p.wait_for_timeout(400)
+
+        # 3f. dentro si cammina col cerchio, e i muri e i mobili non si attraversano
+        await vai(p, "Bottega")
+        prima = await p.evaluate("window.CITTA.doveDentro()")
+        j = await p.query_selector("#joy"); bb = await j.bounding_box()
+        cx, cy = bb["x"] + bb["width"] / 2, bb["y"] + bb["height"] / 2
+        await p.mouse.move(cx, cy); await p.mouse.down(); await p.mouse.move(cx, cy - 50, steps=4)
+        await p.wait_for_timeout(5000); await p.mouse.up()
+        dopo = await p.evaluate("window.CITTA.doveDentro()")
+        prova("dentro, il cerchio fa camminare", abs(dopo["x"] - prima["x"]) + abs(dopo["z"] - prima["z"]) > 1, (prima, dopo))
+        prova("dentro, contro il muro di fondo ci si ferma", not await p.evaluate("window.CITTA.nelMuroDentro()"), dopo)
+        await foto(p, "17-bottega-camminata")
+        await p.click("#esci-stanza"); await p.wait_for_timeout(400)
 
         # 4. camminare col cerchio sposta davvero, e i palazzi non si attraversano:
         # davanti alla Borsa si spinge avanti, contro la facciata, per tre secondi

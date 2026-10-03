@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <title>La città di JJA-VIS</title>
-<meta name="description" content="Entra nella città di JJA-VIS: la reception, la bottega coi prodotti già pronti, la sartoria per vestire il tuo avatar.">
+<meta name="description" content="Entra nella città di JJA-VIS: la piazza, i quartieri, la reception, la bottega coi prodotti già pronti, il ristorante, la palestra, la sartoria per vestire il tuo avatar.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@700;800&family=DM+Mono&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
@@ -99,7 +99,7 @@ body.in-sartoria #foglio{max-height:56vh} /* sopra si deve vedere l'avatar inter
 #stanza[hidden]{display:none}
 .stanza-barra{pointer-events:auto;display:flex;align-items:center;gap:10px;padding:calc(env(safe-area-inset-top,0px) + 10px) 12px 6px}
 #stanza-nome{font:400 12px/1.2 var(--f-mono);letter-spacing:.14em;text-transform:uppercase;color:var(--tenue);text-shadow:0 1px 4px #000}
-.stanza-vista{flex:0 0 30vh}
+.stanza-vista{flex:0 0 34vh}
 #stanza-carta{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;pointer-events:auto;padding:18px 16px calc(env(safe-area-inset-bottom,0px) + 28px);
   border-bottom:0;transform:translateY(30px);opacity:0;transition:transform .28s ease-out,opacity .28s;-webkit-user-select:text;user-select:text;touch-action:pan-y;
   background:color-mix(in srgb,var(--panel) 96%,transparent)}
@@ -131,7 +131,25 @@ body.in-sartoria #foglio{max-height:56vh} /* sopra si deve vedere l'avatar inter
 .video{display:block;border:1px solid var(--bordo);padding:11px 12px;text-decoration:none;color:var(--testo)}
 .video b{display:block;font-weight:700}
 .video span{display:block;font:400 13px/1.3 var(--f-mono);color:var(--accento);margin-top:4px}
-body.in-stanza .hud,body.in-stanza #joy,body.in-stanza #vai,body.in-stanza #entra,body.in-stanza #aiuto{opacity:0;pointer-events:none}
+/* dentro si cammina: restano il cerchio e «Usa»; quando sale la carta, spariscono anche loro */
+body.in-stanza .hud,body.in-stanza #vai,body.in-stanza #aiuto{opacity:0;pointer-events:none}
+body.in-stanza.con-carta #joy,body.in-stanza.con-carta #entra{opacity:0;pointer-events:none}
+#stanza:not(.con-carta) #stanza-carta{display:none}
+#stanza:not(.con-carta) .stanza-vista{display:none}
+.stanza-barra .spazio{flex:1}
+#chiudi-carta{position:sticky;top:0;float:right;margin:-6px -4px 0 8px;width:42px;height:42px;font:400 26px/1 var(--f-testo);color:var(--testo);
+  background:var(--panel);border:1px solid var(--bordo);cursor:pointer;z-index:2}
+.menu-voce{display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--bordo);padding:10px 0}
+.menu-voce .nome{flex:1;font-size:16px;line-height:1.3}
+.menu-voce .prezzo{font:400 14px/1 var(--f-mono);color:var(--tenue);min-width:62px;text-align:right}
+.qta{display:flex;align-items:center;gap:6px}
+.qta button{width:36px;height:36px;font:700 20px/1 var(--f-testo);color:var(--testo);background:none;border:1px solid var(--bordo);cursor:pointer}
+.qta b{min-width:20px;text-align:center;font:700 16px/1 var(--f-mono)}
+.totale{display:flex;justify-content:space-between;align-items:baseline;font:800 22px/1.2 var(--f-titoli);margin:14px 0 10px}
+.vai-pagina:disabled{opacity:.4;cursor:default}
+.avviso{border:1px solid var(--oro);padding:12px 13px;margin:6px 0 12px;background:color-mix(in srgb,var(--oro) 8%,transparent)}
+.domanda{margin:0 0 14px}
+.domanda p{font-weight:700;margin:0 0 8px!important}
 
 /* l'ingresso */
 #carica{position:fixed;inset:0;z-index:30;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;
@@ -169,7 +187,7 @@ body.in-stanza .hud,body.in-stanza #joy,body.in-stanza #vai,body.in-stanza #entr
 <div id="joy" aria-hidden="true"><div id="pomo"></div></div>
 <button id="vai" class="pulsante" type="button">☰ Vai a…</button>
 <button id="entra" type="button" hidden></button>
-<div id="aiuto" class="cornice">Muoviti col cerchio · trascina per guardarti intorno · tocca un palazzo per andarci</div>
+<div id="aiuto" class="cornice">Muoviti col cerchio · trascina per guardarti intorno · tocca un palazzo per andarci. Dentro, tocca le cose</div>
 
 <section id="foglio" class="cornice" role="dialog" aria-modal="false" aria-labelledby="foglio-titolo" aria-hidden="true">
   <button id="chiudi" type="button" aria-label="Chiudi">×</button>
@@ -177,9 +195,9 @@ body.in-stanza .hud,body.in-stanza #joy,body.in-stanza #vai,body.in-stanza #entr
 </section>
 
 <section id="stanza" hidden aria-hidden="true" role="dialog" aria-labelledby="stanza-titolo">
-  <div class="stanza-barra"><button id="esci-stanza" class="pulsante" type="button">← Esci in piazza</button><span id="stanza-nome"></span></div>
+  <div class="stanza-barra"><button id="esci-stanza" class="pulsante" type="button">← Esci</button><span id="stanza-nome"></span><span class="spazio"></span><button id="apri-scheda" class="pulsante" type="button">📋 Scheda</button></div>
   <div class="stanza-vista" aria-hidden="true"></div>
-  <div id="stanza-carta" class="cornice"><div class="dentro" id="stanza-dentro"></div></div>
+  <div id="stanza-carta" class="cornice"><button id="chiudi-carta" type="button" aria-label="Chiudi e cammina">×</button><div class="dentro" id="stanza-dentro"></div></div>
 </section>
 
 <div id="carica" role="status" aria-live="polite">
@@ -204,6 +222,9 @@ import * as THREE from "./lib/three.module.min.js";
 // «non voglio la piazzetta, voglio una piccola città: la reception, la bottega
 // con i prodotti già fatti, e tutti gli elementi inerenti». Più la Sartoria:
 // «una skin per ogni professione… ma non devono per forza vestirsi come il lavoro».
+// 3 ottobre, JJ: «un'armonia di forme: la piazza tonda, poi una città con le vie
+// e i palazzi a quartieri; il secondo anello quadrato… il ristorante… la palestra…
+// dentro i palazzi ci cammini, ci sono le cose inerenti, ci clicchi e corrisponde una cosa».
 // Ogni palazzo porta alla scheda che esiste già in index.html: qui non si
 // duplica nessun modulo, si cammina fino alla porta giusta.
 
@@ -246,15 +267,24 @@ const PRODOTTI={
   clio:{titolo:"Clio",eti:"Già pronto · per le guide turistiche",testo:"Parli una volta sola, nella tua lingua: ogni visitatore ti legge nella sua, sul suo telefono, mentre parli. Si entra con un invito personale.",link:PAGINA+"#clio",azione:"Chiedi l'invito"},
   sopralluogo:{titolo:"Sopralluogo",eti:"Gratis · per chi ha un'attività",testo:"Lasciami il link del tuo sito o del tuo profilo: ti scrivo per mail cosa funziona, cosa no e da dove partirei.",link:PAGINA+"#sopralluogo",azione:"Fammi il sopralluogo"},
   sumisura:{titolo:"Su misura",eti:"Su commissione, adesso",testo:"Pagine e siti per la tua attività, piccoli strumenti web (calcolatori, preventivi, listini, prenotazioni), bot Telegram, isole di Fortnite.",link:PAGINA+"#costruisci",azione:"Chiedi un preventivo"},
-  athena:{titolo:"Il sito di Athena Trasporti",eti:"Già fatto",testo:"Una ditta di trasporti appena nata, a Limbiate: cinque schede comode dal telefono, il furgone che percorre la strada, il preventivo che parte su WhatsApp.",link:"https://jjoeboy93.github.io/athena-trasporti/",azione:"Guardalo",fuori:true},
+  athena:{titolo:"Il sito di Athena Trasporti",breve:"Athena Trasporti",eti:"Già fatto",testo:"Una ditta di trasporti appena nata, a Limbiate: cinque schede comode dal telefono, il furgone che percorre la strada, il preventivo che parte su WhatsApp.",link:"https://jjoeboy93.github.io/athena-trasporti/",azione:"Guardalo",fuori:true},
 };
 const ORDINE={guida:["clio","sopralluogo","sumisura","athena"], corriere:["athena","sumisura","sopralluogo","clio"],
   creator:["sumisura","sopralluogo","athena","clio"]};
 const PER_TE={guida:"clio"};
 
-// ── il primo giro: tre fermate, come un giro di consegne ──
-// le strade radiali, in gradi (0 è il viale d'ingresso): i varchi fra i palazzi abbastanza larghi
+// ══ LA PIANTA ══ — la piazza è tonda, il secondo anello è quadrato ed è la prima via
+// della griglia dei quartieri. Misure in metri; x verso est, z verso sud (l'ingresso).
+const C1=23.75;                  // l'anello tondo intorno alla piazza (strada 22–25,5)
+const MEZZA=1.75;                // mezza larghezza di ogni via
+const Q=39.75;                   // l'anello quadrato: la mezzeria delle sue vie (strada 38–41,5)
+const VIE=[-86.75,-63.25,-Q,0,Q,63.25,86.75];   // le vie della griglia, in x e in z
+const BORDO=92;                  // qui finisce la città
+// le strade radiali, in gradi (0 è il viale d'ingresso, a sud): i varchi fra i palazzi della piazza abbastanza larghi
 const STRADE=[0,40,74,109,250,286,320];
+const QUARTIERI={sud:"Viale delle Botteghe", est:"Quartiere del Gusto", ovest:"Quartiere dello Sport", nord:"Quartiere dei Mestieri"};
+
+// ── il primo giro: tre fermate, come un giro di consegne ──
 const FERMATE=[["sartoria","Sartoria"],["reception","Reception"],["bottega","Bottega"]];
 function disegnaGiro(){
   const g=$("giro"); g.textContent="";
@@ -273,28 +303,30 @@ function segnaFermata(id){
   citta.giro[id]=true; salva(); disegnaGiro();
 }
 
-// ══ IL FOGLIO: cosa c'è dentro ogni palazzo ══
 function el(tag, attr={}, ...figli){
   const e=document.createElement(tag);
   for(const [k,v] of Object.entries(attr)){ if(k==="class") e.className=v; else if(k==="testo") e.textContent=v; else e.setAttribute(k,v); }
   figli.forEach(f=>{ if(f!=null) e.append(f); }); return e;
 }
 const vai=(href,testo,seconda,fuori)=>{ const a=el("a",{class:"vai-pagina"+(seconda?" seconda":""),href,testo}); if(fuori){ a.target="_blank"; a.rel="noopener"; } return a; };
+const bottone=(testo,fa,seconda)=>{ const b=el("button",{class:"vai-pagina"+(seconda?" seconda":""),type:"button",testo}); b.addEventListener("click",fa); return b; };
 const nomeAssistente=()=>(typeof io.nome==="string" && io.nome.trim()) ? io.nome.trim().slice(0,24) : "";
 
-// ══ LE STANZE ══ — 2 ottobre, JJ: «entra in un palazzo, si deve aprire una
-// stanza con la scheda approfondita veramente, non solo la scheda come nella
-// pagina». Sopra l'interno del palazzo in 3D, sotto la scheda lunga. Solo cose
-// vere: ogni fatto qui sotto sta già nella pagina o nel vault. I moduli (le
-// richieste) restano uno solo, nella pagina: i pulsanti portano lì.
+// ══ LE STANZE ══ — 2 ottobre, JJ: «entra in un palazzo, si deve aprire una stanza con
+// la scheda approfondita veramente». 3 ottobre: «dentro ci cammini, ci sono le cose
+// inerenti e ci clicchi». Ogni luogo è fatto di PARTI: ogni parte è una cosa nella
+// stanza (la tocchi e si apre lei sola) e un pezzo della scheda intera (📋), che è
+// le parti una dopo l'altra. Il testo sta in un posto solo. Solo cose vere: ogni fatto
+// qui sotto sta già nella pagina o nel vault. I moduli restano uno solo, nella pagina.
 const H3=t=>el("h3",{testo:t});
 const P=t=>el("p",{testo:t});
 const NOTA=t=>el("p",{class:"piccolo",testo:t});
 const LISTA=arr=>el("ul",{class:"lista"}, ...arr.map(t=>el("li",{testo:t})));
 const PASSI=arr=>el("ol",{class:"passi"}, ...arr.map(t=>el("li",{testo:t})));
 const FATTI=arr=>el("div",{class:"fatti"}, ...arr.map(([n,l])=>el("div",{class:"fatto"}, el("b",{testo:n}), el("span",{testo:l}))));
-const AZIONI=(...a)=>el("div",{class:"azioni"}, ...a);
+const AZIONI=(...a)=>el("div",{class:"azioni"}, ...a.filter(Boolean));
 const BLOCCO=(...figli)=>el("section",{class:"blocco"}, ...figli);
+const CARTE=arr=>el("div",{class:"carte"}, ...arr.map(([b,e,s])=>el("div",{class:"carta"}, el("b",{testo:b}), e?el("em",{testo:e}):null, el("span",{testo:s}))));
 const TESTA=(eti,titolo,intro)=>[el("p",{class:"eti",testo:eti}), el("h2",{id:"stanza-titolo",testo:titolo}), intro?el("p",{class:"intro",testo:intro}):null];
 
 // Copiate da PER_MESTIERE (tempo) di index.html: collaudo/citta.py è rosso se divergono.
@@ -337,135 +369,259 @@ const DENTRO={
   athena:[()=>H3("Cosa c'è dentro"), ()=>LISTA(["Cinque schede, una per schermo: Home, Servizi, Mezzi, Preventivo, Contatti.","Il furgone che percorre la strada mentre scorri.","Il preventivo arriva alla ditta; se per qualche motivo non arriva, parte su WhatsApp.","Il tasto per consigliarla a un amico, e il profilo Instagram della ditta."])],
 };
 
+// ── il Ristorante: alla cassa c'è il menù, scegli e paghi ──
+// Il menù è d'ESEMPIO e il pagamento NON è acceso: lo dice, e nessuna richiesta parte.
+// Quando un ristorante vero prende il suo palazzo, il menù è il suo e i soldi vanno a lui.
+const MENU=[
+  ["Primi",[["spaghetti","Spaghetti al pomodoro",800],["lasagna","Lasagna al forno",1000]]],
+  ["Pizze",[["margherita","Margherita",700],["diavola","Diavola",850]]],
+  ["Secondi",[["cotoletta","Cotoletta con patatine",1200],["burger","Hamburger con patatine",1000]]],
+  ["Dolci",[["tiramisu","Tiramisù",500]]],
+  ["Bevande",[["acqua","Acqua naturale 0,5 l",150],["bibita","Bibita in lattina",250],["caffe","Caffè",120]]],
+];
+const VOCI=Object.fromEntries(MENU.flatMap(([,v])=>v.map(([k,n,c])=>[k,{nome:n,cent:c}])));
+const euro=c=>(c/100).toLocaleString("it-IT",{style:"currency",currency:"EUR"});
+const ordine={righe:{}, fase:"menu", modo:"ritiro"};
+const totaleOrdine=()=>Object.entries(ordine.righe).reduce((t,[k,q])=>t+(VOCI[k]?VOCI[k].cent*q:0),0);
+function cassa(){
+  const out=[]; const rifai=()=>ridisegnaCarta();
+  if(ordine.fase==="menu"){
+    out.push(el("div",{class:"avviso"}, el("b",{testo:"Menù d'esempio. "}), document.createTextNode("Puoi scegliere e arrivare al conto: il pagamento non è ancora acceso, e nessun ordine parte.")));
+    for(const [sezione,voci] of MENU){
+      out.push(el("div",{class:"sezione",testo:sezione}));
+      for(const [k,n,c] of voci){ const q=ordine.righe[k]||0;
+        const meno=el("button",{type:"button","aria-label":"Togli "+n,testo:"−"}), piu=el("button",{type:"button","aria-label":"Aggiungi "+n,testo:"+"});
+        meno.addEventListener("click",()=>{ if(ordine.righe[k]>0){ ordine.righe[k]--; if(!ordine.righe[k]) delete ordine.righe[k]; } rifai(); });
+        piu.addEventListener("click",()=>{ ordine.righe[k]=Math.min(20,(ordine.righe[k]||0)+1); rifai(); });
+        out.push(el("div",{class:"menu-voce","data-voce":k}, el("span",{class:"nome",testo:n}), el("span",{class:"prezzo",testo:euro(c)}), el("span",{class:"qta"}, meno, el("b",{testo:String(q)}), piu))); } }
+    const tot=totaleOrdine();
+    out.push(el("div",{class:"totale"}, el("span",{testo:"Totale"}), el("span",{id:"totale-ordine",testo:euro(tot)})));
+    const conto=bottone("Vai al conto",()=>{ ordine.fase="conto"; rifai(); }); if(!tot) conto.disabled=true;
+    out.push(AZIONI(conto));
+  } else if(ordine.fase==="conto"){
+    out.push(el("div",{class:"sezione",testo:"Il tuo conto"}));
+    for(const [k,q] of Object.entries(ordine.righe)) out.push(el("div",{class:"menu-voce"}, el("span",{class:"nome",testo:`${q} × ${VOCI[k].nome}`}), el("span",{class:"prezzo",testo:euro(VOCI[k].cent*q)})));
+    out.push(el("div",{class:"totale"}, el("span",{testo:"Totale"}), el("span",{id:"totale-ordine",testo:euro(totaleOrdine())})));
+    const modi=el("div",{class:"scelte",role:"group","aria-label":"Come lo vuoi"});
+    [["ritiro","Lo ritiro io"],["domicilio","A domicilio"]].forEach(([k,t])=>{ const b=el("button",{class:"scelta",type:"button","aria-pressed":String(ordine.modo===k),testo:t});
+      b.addEventListener("click",()=>{ ordine.modo=k; rifai(); }); modi.append(b); });
+    out.push(el("div",{class:"sezione",testo:"Come lo vuoi?"}), modi);
+    out.push(AZIONI(bottone("Paga "+euro(totaleOrdine()),()=>{ ordine.fase="pagato"; rifai(); }), bottone("Cambia l'ordine",()=>{ ordine.fase="menu"; rifai(); },true)));
+  } else {
+    out.push(el("div",{class:"avviso",id:"pagamento-spento"}, el("b",{testo:"Il pagamento non è ancora acceso. "}),
+      document.createTextNode("Nessun ordine è partito e nessun soldo si è mosso: questo è il giro che farai quando il ristorante della città sarà un ristorante vero.")));
+    out.push(P("Funzionerà così: scegli dal menù del ristorante, paghi qui, e l'ordine arriva a lui, da ritirare o a domicilio. I soldi vanno al ristorante."));
+    out.push(AZIONI(bottone("Torna al menù",()=>{ ordine.righe={}; ordine.fase="menu"; rifai(); },true)));
+  }
+  return out;
+}
+
+// ── la Palestra: il test di forma e gli esercizi per livello ──
+// Il livello è una stima dalle risposte, non una misura: lo dice. Resta nel telefono.
+const LIVELLI={principiante:"Principiante",intermedio:"Intermedio",avanzato:"Avanzato"};
+const TEST_FORMA=[
+  ["Quanti piegamenti riesci a fare di fila?",["Nessuno o quasi","Da 1 a 10","Da 11 a 25","Più di 25"]],
+  ["Quanto resisti in plank?",["Meno di 20 secondi","Da 20 secondi a 1 minuto","Da 1 a 2 minuti","Più di 2 minuti"]],
+  ["Quante volte a settimana ti muovi almeno 30 minuti?",["Mai o quasi","1 o 2","3 o 4","5 o più"]],
+  ["Due piani di scale a passo svelto:",["Arrivo col fiatone","Un po' di fiatone","Niente fiatone","Potrei rifarli di corsa"]],
+];
+const livelloDa=punti=>punti<=4?"principiante":punti<=8?"intermedio":"avanzato";
+const ESERCIZI={
+  principiante:[["Squat alla sedia","3 × 8","Ti siedi e ti rialzi senza usare le mani, piano."],["Piegamenti al muro","3 × 8","Mani al muro all'altezza delle spalle, il corpo dritto."],
+    ["Ponte per i glutei","3 × 10","Sdraiato, piedi a terra: sollevi il bacino e scendi lento."],["Plank sulle ginocchia","3 × 15 secondi","Avambracci a terra, la schiena dritta dalle ginocchia alla testa."],["Marcia sul posto","3 × 1 minuto","Ginocchia alte, braccia che seguono."]],
+  intermedio:[["Squat","3 × 15","Piedi larghi come le spalle, scendi come per sederti."],["Piegamenti sulle ginocchia","3 × 10","Il corpo dritto dalle ginocchia alla testa."],
+    ["Affondi alternati","3 × 10 per gamba","Un passo lungo avanti, il ginocchio dietro scende verso terra."],["Plank","3 × 30 secondi","Avambracci e punte dei piedi, il corpo dritto."],["Jumping jack","3 × 30 secondi","Salti aprendo gambe e braccia insieme."]],
+  avanzato:[["Squat saltati","4 × 12","Scendi in squat e salti, atterri morbido."],["Piegamenti","4 × 15","Mani sotto le spalle, il petto sfiora terra."],
+    ["Affondi camminati","4 × 12 per gamba","Affondo dopo affondo, avanzando."],["Plank","4 × 1 minuto","Il corpo dritto, il respiro regolare."],["Burpee","4 × 10","Squat, mani a terra, piedi indietro, piegamento, salto."],["Mountain climber","4 × 30 secondi","In posizione di piegamento, porti le ginocchia al petto a turno."]],
+};
+const testForma={risposte:[]};
+let livelloMostrato=null;
+function provaForma(){
+  const out=[]; const rifai=()=>ridisegnaCarta();
+  if(citta.forma && !testForma.rifai){
+    out.push(FATTI([[LIVELLI[citta.forma.livello],"il tuo livello, dalle tue risposte"],[citta.forma.punti+" / 12","il punteggio del test"]]));
+    out.push(NOTA(`Fatto il ${citta.forma.data.split("-").reverse().join("/")}. È una stima dalle tue risposte, non una misura.`));
+    out.push(AZIONI(bottone("I miei esercizi",()=>{ livelloMostrato=citta.forma.livello; apriCosa("esercizi"); }), bottone("Rifai il test",()=>{ testForma.rifai=true; testForma.risposte=[]; rifai(); },true)));
+    return out;
+  }
+  out.push(P("Quattro domande. Rispondi com'è oggi, non come vorresti: il livello serve a darti gli esercizi giusti."));
+  TEST_FORMA.forEach(([d,scelte],i)=>{ const g=el("div",{class:"scelte",role:"group","aria-label":d});
+    scelte.forEach((t,v)=>{ const b=el("button",{class:"scelta",type:"button","aria-pressed":String(testForma.risposte[i]===v),testo:t,"data-domanda":String(i),"data-valore":String(v)});
+      b.addEventListener("click",()=>{ testForma.risposte[i]=v; rifai(); }); g.append(b); });
+    out.push(el("div",{class:"domanda"}, P(`${i+1}. ${d}`), g)); });
+  const tutte=TEST_FORMA.every((_,i)=>Number.isInteger(testForma.risposte[i]));
+  const fine=bottone("Calcola il mio livello",()=>{
+    const punti=testForma.risposte.reduce((a,b)=>a+b,0), d=new Date();
+    citta.forma={livello:livelloDa(punti), punti, data:`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`};
+    salva(); testForma.rifai=false; testForma.risposte=[]; livelloMostrato=citta.forma.livello; rifai(); });
+  if(!tutte) fine.disabled=true;
+  out.push(AZIONI(fine));
+  return out;
+}
+function esercizi(){
+  const liv=livelloMostrato||(citta.forma&&citta.forma.livello)||"principiante";
+  const out=[];
+  const g=el("div",{class:"scelte",role:"group","aria-label":"Livello"});
+  Object.entries(LIVELLI).forEach(([k,t])=>{ const b=el("button",{class:"scelta",type:"button","aria-pressed":String(liv===k),testo:t+(citta.forma&&citta.forma.livello===k?" · il tuo":"")});
+    b.addEventListener("click",()=>{ livelloMostrato=k; ridisegnaCarta(); }); g.append(b); });
+  out.push(g);
+  if(!citta.forma) out.push(NOTA("Non hai ancora fatto il test di forma: ti mostro il livello Principiante. Il test è alla bilancia."));
+  out.push(el("div",{class:"carte",id:"elenco-esercizi","data-livello":liv}, ...ESERCIZI[liv].map(([n,dose,come])=>el("div",{class:"carta"}, el("b",{testo:n}), el("em",{testo:dose}), el("span",{testo:come})))));
+  out.push(NOTA("Riposa un minuto fra una serie e l'altra. Due o tre volte a settimana, a giorni alterni."));
+  return out;
+}
+
 const LUOGHI={
-  reception:{nome:"Reception",ic:"🛎",breve:"dai un nome al tuo assistente",stanza(){
-    const n=nomeAssistente();
-    return [...TESTA("La porta d'ingresso","Reception", n?`Bentornato. ${n} ti aspetta: è il tuo, con il nome che gli hai dato tu.`:"Benvenuto in città. Qui nasce il tuo assistente personale: un minuto, e comincio a imparare te."),
-      BLOCCO(H3("Cosa succede quando entri"), PASSI([
+  reception:{nome:"Reception",ic:"🛎",breve:"dai un nome al tuo assistente",
+    testa(){ const n=nomeAssistente(); return TESTA("La porta d'ingresso","Reception", n?`Bentornato. ${n} ti aspetta: è il tuo, con il nome che gli hai dato tu.`:"Benvenuto in città. Qui nasce il tuo assistente personale: un minuto, e comincio a imparare te."); },
+    parti:()=>[
+      {id:"banco",nome:"Il banco",dentro:()=>[BLOCCO(H3("Cosa succede quando entri"), PASSI([
         "Mi dai un nome. Chi mi costruisce me ne ha dato uno suo: tu scegli il tuo.",
         "Scegli come vedermi.",
         "Mi dici che lavoro fai, e cosa ti fa perdere tempo. Le domande cambiano col mestiere: il corriere non perde tempo come il farmacista.",
-        "Da lì ti mostro quello che c'è già per te, e quello che mi chiedi diventa il lavoro di chi mi costruisce."])),
-      BLOCCO(H3("La chat"), P("Nella pagina mi scrivi in una chat. Quello che non so lo passo a chi mi costruisce, che ti risponde di persona.")),
-      BLOCCO(H3("I tuoi dati"), LISTA([
+        "Da lì ti mostro quello che c'è già per te, e quello che mi chiedi diventa il lavoro di chi mi costruisce."]))]},
+      {id:"chat",nome:"Il salottino",dentro:()=>[BLOCCO(H3("La chat"), P("Nella pagina mi scrivi in una chat. Quello che non so lo passo a chi mi costruisce, che ti risponde di persona."))]},
+      {id:"dati",nome:"I tuoi dati",dentro:()=>[BLOCCO(H3("I tuoi dati"), LISTA([
         "La pagina non usa cookie e non traccia nessuno.",
         "Il nome che mi dai resta nel tuo telefono.",
         "Il mestiere e le risposte servono solo a capire cosa costruire: non vanno a nessun altro.",
-        "Il tuo avatar e i tuoi vestiti della città restano in questo telefono: non li mando a nessuno."])),
-      AZIONI(vai(PAGINA+"#inizia", n?`Parla con ${n}`:"Dai un nome al tuo assistente"))];
-  }},
-  sartoria:{nome:"Sartoria",ic:"🧵",breve:"vesti il tuo avatar",stanza(){ return sartoria(); }},
-  bottega:{nome:"Bottega",ic:"🛍",breve:"quello che puoi avere già adesso",stanza(){
-    const v=vestitoDi(citta.mestiere);
-    const ordine=ORDINE[v]||["sopralluogo","sumisura","athena","clio"];
-    return [...TESTA("I prodotti di JJA-VIS","Bottega","Quello che puoi avere già adesso, senza aspettare l'app. Un prodotto pronto per un mestiere, un sopralluogo gratis, i lavori su misura. Man mano che le mie funzioni diventano pronte per tutti, arrivano qui."),
-      citta.mestiere?NOTA(`In ordine per il tuo mestiere: ${citta.mestiere}. Lo cambi in Sartoria.`):NOTA("Dimmi il tuo mestiere in Sartoria, e te li metto in ordine."),
-      ...ordine.map(k=>bloccoProdotto(k, PER_TE[v]===k))];
-  }},
-  forgia:{nome:"La Forgia",ic:"🔨",breve:"costruiscimi qualcosa su misura",stanza(){ return [
-    ...TESTA("Su commissione, adesso","La Forgia","Qui si lavora su misura. Queste cose non aspettano l'app: le realizza chi mi costruisce, adesso."),
-    BLOCCO(H3("Cosa si forgia"),
-      el("div",{class:"carte"},
-        el("div",{class:"carta"}, el("b",{testo:"Pagine e siti"}), el("span",{testo:"Il sito della tua attività, pensato per il telefono prima che per il computer."})),
-        el("div",{class:"carta"}, el("b",{testo:"Strumenti web"}), el("span",{testo:"Un calcolatore, un preventivo, un listino, le prenotazioni: una cosa sola che fa bene il suo lavoro."})),
-        el("div",{class:"carta"}, el("b",{testo:"Bot Telegram"}), el("span",{testo:"Risponde ai tuoi clienti mentre tu lavori."})),
-        el("div",{class:"carta"}, el("b",{testo:"Isole di Fortnite"}), el("span",{testo:"Da chi ne è creatore ufficiale."})))),
-    BLOCCO(H3("Come si lavora"), PASSI([
-      "Mi racconti cosa deve fare, per quando, e un esempio che ti piace.",
-      "Ricevi il preventivo per mail.",
-      "Si costruisce, e prima di andare online passa dai controlli: cosa carica, quanto pesa, come si vede su un telefono vero."])),
-    BLOCCO(H3("Il primo lavoro uscito da qui"), P("Il sito di Athena Trasporti, una ditta di trasporti appena nata: cinque schede comode dal telefono e il preventivo che arriva alla ditta."),
-      AZIONI(vai(PRODOTTI.athena.link,"Guardalo",true,true))),
-    AZIONI(vai(PAGINA+"#costruisci","Chiedi un preventivo"))]; }},
-  torre:{nome:"La Torre",ic:"🌐",breve:"chi sono e cosa so fare",stanza(){ return [
-    ...TESTA("In cima c'è il globo","La Torre","Sono JJA-VIS, un sistema personale intelligente. Non rispondo: anticipo. Non archivio: imparo. Non servo il settore: servo la persona."),
-    BLOCCO(H3("Imparo te"), P("Un assistente professionale conosce un lavoro. Io imparo chi sei: le tue abitudini, le tue giornate, quello che ti preoccupa e quello che vuoi. Il lavoro è solo una parte di te. Più mi usi, più divento tuo. Uguale per tutti, diverso per ognuno.")),
-    BLOCCO(H3("Da dove nasco"), P("Chi mi costruisce ha molte vite insieme: una ditta di trasporti, il furgone da corriere ogni mattina, il codice la notte, le isole di Fortnite di cui è creatore ufficiale. Cercava qualcosa che lo aiutasse in tutte. Non l'ha trovato, e ha deciso di costruirlo.")),
-    BLOCCO(H3("Cosa so già fare, oggi"), P("Su un telefono solo: quello di chi mi costruisce, ogni giorno sul furgone."),
-      FATTI([[VETRINA.attrezzi?String(VETRINA.attrezzi):"40+","attrezzi"],["8.385","numeri civici di un paese, uno per uno"],["18","zone di consegna"],[VETRINA.canzoni?VETRINA.canzoni.toLocaleString("it-IT"):"4.639","canzoni che riconosco, imparate ascoltando la radio"]]),
-      LISTA(["In macchina: sono una sorgente di Android Auto, con sei radio preselezionate. Mi parli mentre guidi, anche con la musica accesa.",
-        "Al lavoro: metti un pacco nel giro e la giornata parte; a sera la chiudo io, e non la chiudo se resta qualcosa da fare.",
-        "La tua giornata: sveglie, appuntamenti, compleanni; la mattina ti dico cosa ti aspetta. Se dici «mia figlia», so di chi parli.",
-        "Occhi e orecchie: guardo le foto, cerco sul web e ti lascio le fonti da toccare. Mi scrivi anche da Telegram."])),
-    BLOCCO(H3("Per chiunque"), P("Chiunque, ovunque nasca e qualunque lavoro faccia, ha diritto al suo assistente personale. Il corriere di Milano, il farmacista di Tokyo, l'agricoltore del Brasile, il meccanico del Cairo. Parto dal lavoro che conosco meglio, la consegna, e da lì vado verso tutti.")),
-    NOTA("Come sono fatto dentro non lo racconto: sono mesi di lavoro, notte dopo notte. Cosa so fare sì."),
-    AZIONI(vai(PAGINA+"#inizia","Comincia"), vai(PAGINA+"#sa-fare","Cosa so fare, nella pagina",true))]; }},
-  cinema:{nome:"Cinema",ic:"🎬",breve:"guardami al lavoro",stanza(){
-    const elenco=el("div",{class:"elenco-video"});
-    const riempi=()=>{ elenco.textContent="";
-      if(VIDEO===null){ elenco.append(NOTA("Prendo l'elenco dei video…")); return; }
-      if(!VIDEO.length){ elenco.append(NOTA("Non riesco a prendere l'elenco dei video in questo momento: li trovi nella pagina.")); return; }
-      VIDEO.forEach(v=>{ const a=el("a",{class:"video",href:v.url,target:"_blank",rel:"noopener"}, el("b",{testo:v.titolo||"Un video"}), el("span",{testo:`Guardalo su ${({instagram:"Instagram",youtube:"YouTube",tiktok:"TikTok"})[v.piattaforma]||v.piattaforma} ↗`})); elenco.append(a); }); };
-    if(VIDEO===null) fetch(PORTA+"/video").then(r=>r.ok?r.json():{video:[]}).then(d=>{ VIDEO=(d.video||[]).filter(v=>v && /^https:\/\//.test(v.url||"")); }).catch(()=>{ VIDEO=[]; }).then(()=>{ if(stanzaAperta==="cinema") riempi(); });
-    riempi();
-    return [...TESTA("In sala","Cinema","Guardami al lavoro: video veri, dal telefono e dal furgone di chi mi costruisce. Nessun montaggio che non sia mio."),
-      BLOCCO(H3("In programmazione"), elenco),
-      NOTA("I video si aprono sulla loro piattaforma: da lì valgono le sue regole e i suoi cookie."),
-      AZIONI(vai(PAGINA+"#sa-fare","Guardali nella pagina",true))];
-  }},
-  voci:{nome:"Piazza delle voci",ic:"🗳",breve:"dimmi cosa ti fa perdere tempo",stanza(){
-    const m=citta.mestiere && TEMPO_PER_MESTIERE[citta.mestiere] ? citta.mestiere : null;
-    return [...TESTA("Qui si decide cosa costruire","Piazza delle voci","Non decido da solo cosa costruire. Lo decide chi passa di qui: cosa ti fa perdere tempo nel tuo lavoro, e quanto varrebbe toglierlo."),
-      BLOCCO(H3("Come funziona"), PASSI([
-        "Mi dici che lavoro fai.",
-        "Scegli cosa ti fa perdere più tempo, da una lista fatta per il tuo mestiere.",
-        "Mi dici quanto tempo, e quanto pagheresti al mese per non perderlo più.",
-        "Le risposte arrivano a chi mi costruisce: quello che chiedono in tanti diventa il prossimo lavoro."])),
-      BLOCCO(H3(m?`Le domande per chi fa: ${m}`:"Ogni mestiere ha le sue domande"),
-        m?LISTA(TEMPO_PER_MESTIERE[m]):P("Il corriere perde tempo col giro del mattino, il negozio con le scorte, l'artigiano coi preventivi, chi lavora in sanità con le note e i referti. Dimmi il tuo mestiere in Sartoria e qui ti mostro le tue."),
-        m?NOTA("Sono le stesse scelte che trovi nella pagina."):null),
-      BLOCCO(H3("I numeri"), P("Nella pagina c'è una scheda con tutti i miei numeri in un posto solo: quelli misurati e quelli stimati, ognuno detto per quello che è. Un numero stimato non deve poter sembrare misurato.")),
-      AZIONI(vai(PAGINA+"#inizia","Rispondi alle domande"), vai(PAGINA+"#numeri","Guarda i numeri",true))];
-  }},
-  borsa:{nome:"Borsa",ic:"📈",breve:"investi in JJA-VIS",stanza(){ return [
-    ...TESTA("Per chi vuole investire","Borsa","Un assistente personale che impara la persona. Parte dal lavoro che conosco meglio: la consegna dell'ultimo miglio."),
-    BLOCCO(H3("Il problema"), P("Ogni mattina, in ogni deposito, il corriere riceve i pacchi in ordine sparso e costruisce il giro a mano: legge l'indirizzo, lo cerca sul telefono, torna al pacco. Un'ora se il giro lo conosce, due o più se è nuovo. Ogni giorno."),
-      FATTI([["2 ore","perse al giorno su un giro nuovo"],["30 €","al giorno per corriere, a 15 €/ora"],["180.000 €","l'anno per una filiale di 20 corrieri"],["36 mln €","l'anno su una rete di 200 filiali"]]),
-      NOTA("Stime di chi fa questo lavoro, non ancora misure: quanto tempo faccio risparmiare lo sto misurando sul furgone, e i numeri misurati sostituiranno questi.")),
-    BLOCCO(H3("La soluzione, in tre livelli"),
-      el("div",{class:"carte"},
-        el("div",{class:"carta"}, el("b",{testo:"JJA-VIS Free"}), el("em",{testo:"chiunque"}), el("span",{testo:"L'assistente personale a voce, per qualsiasi mestiere e in qualsiasi lingua. Gratis: è la porta d'ingresso."})),
-        el("div",{class:"carta"}, el("b",{testo:"JJA-VIS Pro"}), el("em",{testo:"corrieri e piccoli trasportatori"}), el("span",{testo:"Legge le lettere di vettura con la fotocamera e costruisce il giro più corto, fino a 150 fermate. Trova i carichi di ritorno nelle borse carichi. Abbonamento mensile."})),
-        el("div",{class:"carta"}, el("b",{testo:"Enterprise"}), el("em",{testo:"filiali e aziende"}), el("span",{testo:"I bancali si costruiscono già in ordine di consegna: l'ordine non si recupera a valle, si costruisce a monte. Contratto annuale legato al risparmio documentato."})))),
-    BLOCCO(H3("Perché io"), P("Chi mi costruisce è titolare di una ditta di trasporti e corriere attivo, con licenza internazionale superiore. Il problema lo vive ogni mattina. Le grandi aziende di tecnologia non lo conoscono da dentro.")),
-    BLOCCO(H3("A che punto siamo"), P("Validazione sul campo in corso: l'app è in uso ogni giorno sul furgone del fondatore. Poi l'app pubblica gratuita; poi l'abbonamento per i corrieri, i cui ricavi finanziano il livello dopo; poi un progetto pilota con una filiale.")),
-    NOTA("Il piano completo — architettura, tempi, conti — lo mando dopo un primo contatto, con un accordo di riservatezza."),
-    AZIONI(vai(PAGINA+"#investitori","Scrivimi"))]; }},
-  athena:{nome:"Athena Trasporti",ic:"🚚",breve:"il primo palazzo di un'attività",stanza(){ return [
-    ...TESTA("Consegne · urgenze · sgomberi","Athena Trasporti","La ditta di trasporti di chi mi costruisce, a Limbiate. È qui che ho imparato il mestiere."),
-    BLOCCO(H3("Cosa ho imparato sul suo furgone"), FATTI([["8.385","numeri civici di un paese, uno per uno"],["18","zone di consegna"]]), P("Con i sensi di marcia. Ogni mattina il furgone esce, e ogni sera so qualcosa in più.")),
-    BLOCCO(H3("Il suo sito"), P("È il primo lavoro uscito dalla Forgia: una ditta appena nata, un sito che si usa col pollice."), ...DENTRO.athena.map(f=>f())),
-    AZIONI(vai(PRODOTTI.athena.link,"Guarda il sito",false,true), vai(PAGINA+"#costruisci","Uno così per te",true))]; }},
-  giochi:{nome:"Sala giochi",ic:"🕹",breve:"i giochi di chi mi costruisce",stanza(){ return [
-    ...TESTA("Si apre presto","Sala giochi","Qui arrivano i giochi che crea chi mi costruisce, uno per cabinato."),
-    BLOCCO(H3("I cabinati"), el("div",{class:"carte"},
-      el("div",{class:"carta"}, el("b",{testo:"Cabinato 1"}), el("em",{testo:"in costruzione"}), el("span",{testo:"Il primo gioco. Ne parlerò quando si potrà giocare."})),
-      el("div",{class:"carta"}, el("b",{testo:"Cabinato 2"}), el("em",{testo:"libero"}), el("span",{testo:"Quello che chiedete in tanti."})))),
-    BLOCCO(H3("Chi li fa"), P("Chi mi costruisce è creatore ufficiale di isole di Fortnite. Le isole su commissione le trovi alla Forgia.")),
-    NOTA("A cosa vorresti giocare? Dimmelo nella chat: le idee più chieste diventano il prossimo cabinato."),
-    AZIONI(vai(PAGINA+"#inizia","Dimmi a cosa vorresti giocare"))]; }},
-  lotto:{nome:"Lotto libero",ic:"🏗",breve:"qui c'è posto per la tua attività",stanza(){ return [
-    ...TESTA("Terreno edificabile","Lotto libero","Questo spazio aspetta un'attività. Il sito che la Forgia costruisce per te avrà il suo palazzo qui in città, come Athena Trasporti: chi passa lo vede, e ci entra."),
-    BLOCCO(H3("Come si comincia"), PASSI(["Mi racconti la tua attività e cosa ti serve.","Ricevi il preventivo per mail.","Si costruisce."])),
-    AZIONI(vai(PAGINA+"#costruisci","Costruiamolo"), vai(PRODOTTI.athena.link,"Un lavoro già fatto",true,true))]; }},
-  albero:{nome:"L'Albero della Vita",ic:"🌳",breve:"il cuore della città",stanza(){
-    const n=nomeAssistente();
-    return [...TESTA("Al centro della città","L'Albero della Vita","È il cuore del progetto. Ogni JJA-VIS che lo sceglie diventa un nodo dell'albero: non perde niente di suo, si arricchisce."),
-      BLOCCO(H3("Cosa passa, e cosa no"), LISTA([
+        "Il tuo avatar, i tuoi vestiti e il tuo test di forma della città restano in questo telefono: non li mando a nessuno."]))]}],
+    fine(){ const n=nomeAssistente(); return [AZIONI(vai(PAGINA+"#inizia", n?`Parla con ${n}`:"Dai un nome al tuo assistente"))]; }},
+  sartoria:{nome:"Sartoria",ic:"🧵",breve:"vesti il tuo avatar",
+    testa:()=>TESTA("Il tuo avatar","Sartoria","Dimmi che lavoro fai: serve a me, per capire cosa costruirti. Poi vestiti come vuoi: non deve per forza essere la divisa del tuo lavoro."),
+    parti:()=>[
+      {id:"specchio",nome:"Lo specchio",dentro:()=>specchio()},
+      {id:"manichini",nome:"I manichini",dentro:()=>[BLOCCO(H3("Perché ti chiedo il mestiere"), P("Ogni mestiere perde tempo in modo diverso: il corriere col giro del mattino, il negozio con le scorte, l'artigiano coi preventivi. Le domande della pagina cambiano col mestiere, e in Bottega i prodotti si mettono in ordine per te."))]}],
+    fine(){ const az=AZIONI(bottone("Fatto, torno in città",esciStanza)); if(citta.mestiere && !io.inviato) az.append(vai(PAGINA+"#inizia","Le domande del mio mestiere",true));
+      return [az, NOTA("Resta in questo telefono: non lo mando a nessuno.")]; }},
+  bottega:{nome:"Bottega",ic:"🛍",breve:"quello che puoi avere già adesso",
+    testa:()=>[...TESTA("I prodotti di JJA-VIS","Bottega","Quello che puoi avere già adesso, senza aspettare l'app. Un prodotto pronto per un mestiere, un sopralluogo gratis, i lavori su misura. Man mano che le mie funzioni diventano pronte per tutti, arrivano qui."),
+      citta.mestiere?NOTA(`In ordine per il tuo mestiere: ${citta.mestiere}. Lo cambi in Sartoria.`):NOTA("Dimmi il tuo mestiere in Sartoria, e te li metto in ordine.")],
+    parti(){ const v=vestitoDi(citta.mestiere); const ordine=ORDINE[v]||["sopralluogo","sumisura","athena","clio"];
+      return ordine.map(k=>({id:k,nome:PRODOTTI[k].titolo,breve:PRODOTTI[k].breve,dentro:()=>[bloccoProdotto(k, PER_TE[v]===k)]})); }},
+  forgia:{nome:"La Forgia",ic:"🔨",breve:"costruiscimi qualcosa su misura",
+    testa:()=>TESTA("Su commissione, adesso","La Forgia","Qui si lavora su misura. Queste cose non aspettano l'app: le realizza chi mi costruisce, adesso."),
+    parti:()=>[
+      {id:"incudine",nome:"L'incudine",dentro:()=>[BLOCCO(H3("Cosa si forgia"), CARTE([["Pagine e siti","","Il sito della tua attività, pensato per il telefono prima che per il computer."],["Strumenti web","","Un calcolatore, un preventivo, un listino, le prenotazioni: una cosa sola che fa bene il suo lavoro."],["Bot Telegram","","Risponde ai tuoi clienti mentre tu lavori."],["Isole di Fortnite","","Da chi ne è creatore ufficiale."]]))]},
+      {id:"banco",nome:"Il banco di lavoro",dentro:()=>[BLOCCO(H3("Come si lavora"), PASSI([
+        "Mi racconti cosa deve fare, per quando, e un esempio che ti piace.",
+        "Ricevi il preventivo per mail.",
+        "Si costruisce, e prima di andare online passa dai controlli: cosa carica, quanto pesa, come si vede su un telefono vero."]))]},
+      {id:"lavoro",nome:"Il primo lavoro",dentro:()=>[BLOCCO(H3("Il primo lavoro uscito da qui"), P("Il sito di Athena Trasporti, una ditta di trasporti appena nata: cinque schede comode dal telefono e il preventivo che arriva alla ditta."), AZIONI(vai(PRODOTTI.athena.link,"Guardalo",true,true)))]}],
+    fine:()=>[AZIONI(vai(PAGINA+"#costruisci","Chiedi un preventivo"))]},
+  torre:{nome:"La Torre",ic:"🌐",breve:"chi sono e cosa so fare",
+    testa:()=>TESTA("In cima c'è il globo","La Torre","Sono JJA-VIS, un sistema personale intelligente. Non rispondo: anticipo. Non archivio: imparo. Non servo il settore: servo la persona."),
+    parti:()=>[
+      {id:"globo",nome:"Il globo",dentro:()=>[BLOCCO(H3("Imparo te"), P("Un assistente professionale conosce un lavoro. Io imparo chi sei: le tue abitudini, le tue giornate, quello che ti preoccupa e quello che vuoi. Il lavoro è solo una parte di te. Più mi usi, più divento tuo. Uguale per tutti, diverso per ognuno.")),
+        BLOCCO(H3("Da dove nasco"), P("Chi mi costruisce ha molte vite insieme: una ditta di trasporti, il furgone da corriere ogni mattina, il codice la notte, le isole di Fortnite di cui è creatore ufficiale. Cercava qualcosa che lo aiutasse in tutte. Non l'ha trovato, e ha deciso di costruirlo."))]},
+      {id:"sa",nome:"Cosa so fare",dentro:()=>[BLOCCO(H3("Cosa so già fare, oggi"), P("Su un telefono solo: quello di chi mi costruisce, ogni giorno sul furgone."),
+        FATTI([[VETRINA.attrezzi?String(VETRINA.attrezzi):"40+","attrezzi"],["8.385","numeri civici di un paese, uno per uno"],["18","zone di consegna"],[VETRINA.canzoni?VETRINA.canzoni.toLocaleString("it-IT"):"4.639","canzoni che riconosco, imparate ascoltando la radio"]]),
+        LISTA(["In macchina: sono una sorgente di Android Auto, con sei radio preselezionate. Mi parli mentre guidi, anche con la musica accesa.",
+          "Al lavoro: metti un pacco nel giro e la giornata parte; a sera la chiudo io, e non la chiudo se resta qualcosa da fare.",
+          "La tua giornata: sveglie, appuntamenti, compleanni; la mattina ti dico cosa ti aspetta. Se dici «mia figlia», so di chi parli.",
+          "Occhi e orecchie: guardo le foto, cerco sul web e ti lascio le fonti da toccare. Mi scrivi anche da Telegram."]))]},
+      {id:"tutti",nome:"Per chiunque",dentro:()=>[BLOCCO(H3("Per chiunque"), P("Chiunque, ovunque nasca e qualunque lavoro faccia, ha diritto al suo assistente personale. Il corriere di Milano, il farmacista di Tokyo, l'agricoltore del Brasile, il meccanico del Cairo. Parto dal lavoro che conosco meglio, la consegna, e da lì vado verso tutti.")),
+        NOTA("Come sono fatto dentro non lo racconto: sono mesi di lavoro, notte dopo notte. Cosa so fare sì.")]}],
+    fine:()=>[AZIONI(vai(PAGINA+"#inizia","Comincia"), vai(PAGINA+"#sa-fare","Cosa so fare, nella pagina",true))]},
+  cinema:{nome:"Cinema",ic:"🎬",breve:"guardami al lavoro",
+    testa:()=>TESTA("In sala","Cinema","Guardami al lavoro: video veri, dal telefono e dal furgone di chi mi costruisce. Nessun montaggio che non sia mio."),
+    parti:()=>[{id:"schermo",nome:"Lo schermo",dentro(){
+      const elenco=el("div",{class:"elenco-video"});
+      if(VIDEO===null){ elenco.append(NOTA("Prendo l'elenco dei video…"));
+        if(!cinemaChiesto){ cinemaChiesto=true; fetch(PORTA+"/video").then(r=>r.ok?r.json():{video:[]}).then(d=>{ VIDEO=(d.video||[]).filter(v=>v && /^https:\/\//.test(v.url||"")); }).catch(()=>{ VIDEO=[]; }).then(()=>{ if(stanzaAperta==="cinema") ridisegnaCarta(); }); } }
+      else if(!VIDEO.length) elenco.append(NOTA("Non riesco a prendere l'elenco dei video in questo momento: li trovi nella pagina."));
+      else VIDEO.forEach(v=>elenco.append(el("a",{class:"video",href:v.url,target:"_blank",rel:"noopener"}, el("b",{testo:v.titolo||"Un video"}), el("span",{testo:`Guardalo su ${({instagram:"Instagram",youtube:"YouTube",tiktok:"TikTok"})[v.piattaforma]||v.piattaforma} ↗`}))));
+      return [BLOCCO(H3("In programmazione"), elenco), NOTA("I video si aprono sulla loro piattaforma: da lì valgono le sue regole e i suoi cookie.")]; }},
+      {id:"biglietteria",nome:"La biglietteria",dentro:()=>[BLOCCO(H3("Il biglietto"),
+        P("Qui si entra gratis. Ogni video è un pezzo di lavoro vero: il giro del mattino, il codice della notte, quello che va storto e come si sistema."),
+        P("Se vuoi un video su una cosa precisa, chiedilo: le domande arrivano a chi mi costruisce."),
+        AZIONI(vai(PAGINA+"#inizia","Chiedi un video")))]}],
+    fine:()=>[AZIONI(vai(PAGINA+"#sa-fare","Guardali nella pagina",true))]},
+  voci:{nome:"Piazza delle voci",ic:"🗳",breve:"dimmi cosa ti fa perdere tempo",
+    testa:()=>TESTA("Qui si decide cosa costruire","Piazza delle voci","Non decido da solo cosa costruire. Lo decide chi passa di qui: cosa ti fa perdere tempo nel tuo lavoro, e quanto varrebbe toglierlo."),
+    parti:()=>[
+      {id:"urna",nome:"L'urna",dentro(){ const m=citta.mestiere && TEMPO_PER_MESTIERE[citta.mestiere] ? citta.mestiere : null;
+        return [BLOCCO(H3("Come funziona"), PASSI([
+          "Mi dici che lavoro fai.",
+          "Scegli cosa ti fa perdere più tempo, da una lista fatta per il tuo mestiere.",
+          "Mi dici quanto tempo, e quanto pagheresti al mese per non perderlo più.",
+          "Le risposte arrivano a chi mi costruisce: quello che chiedono in tanti diventa il prossimo lavoro."])),
+          BLOCCO(H3(m?`Le domande per chi fa: ${m}`:"Ogni mestiere ha le sue domande"),
+            m?LISTA(TEMPO_PER_MESTIERE[m]):P("Il corriere perde tempo col giro del mattino, il negozio con le scorte, l'artigiano coi preventivi, chi lavora in sanità con le note e i referti. Dimmi il tuo mestiere in Sartoria e qui ti mostro le tue."),
+            m?NOTA("Sono le stesse scelte che trovi nella pagina."):null)]; }},
+      {id:"tabellone",nome:"Il tabellone",dentro:()=>[BLOCCO(H3("I numeri"), P("Nella pagina c'è una scheda con tutti i miei numeri in un posto solo: quelli misurati e quelli stimati, ognuno detto per quello che è. Un numero stimato non deve poter sembrare misurato."))]}],
+    fine:()=>[AZIONI(vai(PAGINA+"#inizia","Rispondi alle domande"), vai(PAGINA+"#numeri","Guarda i numeri",true))]},
+  borsa:{nome:"Borsa",ic:"📈",breve:"investi in JJA-VIS",
+    testa:()=>TESTA("Per chi vuole investire","Borsa","Un assistente personale che impara la persona. Parte dal lavoro che conosco meglio: la consegna dell'ultimo miglio."),
+    parti:()=>[
+      {id:"lavagna",nome:"La lavagna",dentro:()=>[BLOCCO(H3("Il problema"), P("Ogni mattina, in ogni deposito, il corriere riceve i pacchi in ordine sparso e costruisce il giro a mano: legge l'indirizzo, lo cerca sul telefono, torna al pacco. Un'ora se il giro lo conosce, due o più se è nuovo. Ogni giorno."),
+        FATTI([["2 ore","perse al giorno su un giro nuovo"],["30 €","al giorno per corriere, a 15 €/ora"],["180.000 €","l'anno per una filiale di 20 corrieri"],["36 mln €","l'anno su una rete di 200 filiali"]]),
+        NOTA("Stime di chi fa questo lavoro, non ancora misure: quanto tempo faccio risparmiare lo sto misurando sul furgone, e i numeri misurati sostituiranno questi."))]},
+      {id:"tavoli",nome:"I tre tavoli",dentro:()=>[BLOCCO(H3("La soluzione, in tre livelli"), CARTE([
+        ["JJA-VIS Free","chiunque","L'assistente personale a voce, per qualsiasi mestiere e in qualsiasi lingua. Gratis: è la porta d'ingresso."],
+        ["JJA-VIS Pro","corrieri e piccoli trasportatori","Legge le lettere di vettura con la fotocamera e costruisce il giro più corto, fino a 150 fermate. Trova i carichi di ritorno nelle borse carichi. Abbonamento mensile."],
+        ["Enterprise","filiali e aziende","I bancali si costruiscono già in ordine di consegna: l'ordine non si recupera a valle, si costruisce a monte. Contratto annuale legato al risparmio documentato."]]))]},
+      {id:"bacheca",nome:"La bacheca",dentro:()=>[BLOCCO(H3("Perché io"), P("Chi mi costruisce è titolare di una ditta di trasporti e corriere attivo, con licenza internazionale superiore. Il problema lo vive ogni mattina. Le grandi aziende di tecnologia non lo conoscono da dentro.")),
+        BLOCCO(H3("A che punto siamo"), P("Validazione sul campo in corso: l'app è in uso ogni giorno sul furgone del fondatore. Poi l'app pubblica gratuita; poi l'abbonamento per i corrieri, i cui ricavi finanziano il livello dopo; poi un progetto pilota con una filiale."))]}],
+    fine:()=>[NOTA("Il piano completo — architettura, tempi, conti — lo mando dopo un primo contatto, con un accordo di riservatezza."), AZIONI(vai(PAGINA+"#investitori","Scrivimi"))]},
+  athena:{nome:"Athena Trasporti",ic:"🚚",breve:"il primo palazzo di un'attività",
+    testa:()=>TESTA("Consegne · urgenze · sgomberi","Athena Trasporti","La ditta di trasporti di chi mi costruisce, a Limbiate. È qui che ho imparato il mestiere."),
+    parti:()=>[
+      {id:"scaffali",nome:"Gli scaffali",dentro:()=>[BLOCCO(H3("Cosa ho imparato sul suo furgone"), FATTI([["8.385","numeri civici di un paese, uno per uno"],["18","zone di consegna"]]), P("Con i sensi di marcia. Ogni mattina il furgone esce, e ogni sera so qualcosa in più."))]},
+      {id:"sito",nome:"Il suo sito",dentro:()=>[BLOCCO(H3("Il suo sito"), P("È il primo lavoro uscito dalla Forgia: una ditta appena nata, un sito che si usa col pollice."), ...DENTRO.athena.map(f=>f()))]}],
+    fine:()=>[AZIONI(vai(PRODOTTI.athena.link,"Guarda il sito",false,true), vai(PAGINA+"#costruisci","Uno così per te",true))]},
+  giochi:{nome:"Sala giochi",ic:"🕹",breve:"i giochi di chi mi costruisce",
+    testa:()=>TESTA("Si apre presto","Sala giochi","Qui arrivano i giochi che crea chi mi costruisce, uno per cabinato."),
+    parti:()=>[
+      {id:"cab1",nome:"Cabinato 1",dentro:()=>[BLOCCO(CARTE([["Cabinato 1","in costruzione","Il primo gioco. Ne parlerò quando si potrà giocare."]]))]},
+      {id:"cab2",nome:"Cabinato 2",dentro:()=>[BLOCCO(CARTE([["Cabinato 2","libero","Quello che chiedete in tanti."]]))]},
+      {id:"chi",nome:"Chi li fa",dentro:()=>[BLOCCO(H3("Chi li fa"), P("Chi mi costruisce è creatore ufficiale di isole di Fortnite. Le isole su commissione le trovi alla Forgia.")),
+        NOTA("A cosa vorresti giocare? Dimmelo nella chat: le idee più chieste diventano il prossimo cabinato.")]}],
+    fine:()=>[AZIONI(vai(PAGINA+"#inizia","Dimmi a cosa vorresti giocare"))]},
+  ristorante:{nome:"Ristorante",ic:"🍝",breve:"alla cassa: il menù, scegli e paghi",
+    testa:()=>TESTA(QUARTIERI.est,"Ristorante","Vai alla cassa: c'è il menù. Scegli, e arrivi al conto. Oggi è la vetrina di come funzionerà: il menù è d'esempio, il pagamento non è acceso e nessun ordine parte."),
+    parti:()=>[
+      {id:"cassa",nome:"La cassa",dentro:()=>[BLOCCO(H3("Il menù"), ...cassa())]},
+      {id:"cucina",nome:"La cucina",dentro:()=>[BLOCCO(H3("Da dove arriva il cibo"), P("Qui si collegano i servizi per ordinare. Il ristorante vero che prende il suo palazzo in città ci mette il suo menù: si ordina dalla sua cassa, e i soldi vanno a lui."),
+        NOTA("Quali servizi collegare e come si paga è ancora da decidere: finché non è deciso, la cassa lo dice."))]}],
+    fine:()=>[AZIONI(vai(PAGINA+"#costruisci","Hai un locale? Il tuo menù qui",true))]},
+  palestra:{nome:"Palestra",ic:"🏋",breve:"il tuo stato di forma",
+    testa:()=>TESTA(QUARTIERI.ovest,"Palestra","Il tuo stato di forma ed esercizi per tre livelli. Sali sulla bilancia: quattro domande, e ti do gli esercizi giusti per te."),
+    parti:()=>[
+      {id:"bilancia",nome:"La bilancia",dentro:()=>[BLOCCO(H3("Il test di forma"), ...provaForma())]},
+      {id:"esercizi",nome:"Gli esercizi",dentro:()=>[BLOCCO(H3("Gli esercizi"), ...esercizi())]},
+      {id:"bacheca",nome:"Prima di cominciare",dentro:()=>[BLOCCO(H3("Prima di cominciare"), LISTA([
+        "Scaldati cinque minuti: marcia sul posto, giri delle braccia.",
+        "Se senti dolore, fermati. Fatica sì, dolore no.",
+        "Se hai problemi di salute o non ti alleni da tanto, senti prima il tuo medico."]),
+        NOTA("Il livello è una stima dalle tue risposte, non una misura. Resta in questo telefono: non lo mando a nessuno."))]}],
+    fine:()=>[]},
+  lotto:{nome:"Lotto libero",ic:"🏗",breve:"qui c'è posto per la tua attività",esterno:true,
+    testa:()=>TESTA("Terreno edificabile","Lotto libero","Questo spazio aspetta un'attività. Il sito che la Forgia costruisce per te avrà il suo palazzo qui in città, come Athena Trasporti: chi passa lo vede, e ci entra."),
+    parti:()=>[{id:"come",nome:"Come si comincia",dentro:()=>[BLOCCO(H3("Come si comincia"), PASSI(["Mi racconti la tua attività e cosa ti serve.","Ricevi il preventivo per mail.","Si costruisce."]))]}],
+    fine:()=>[AZIONI(vai(PAGINA+"#costruisci","Costruiamolo"), vai(PRODOTTI.athena.link,"Un lavoro già fatto",true,true))]},
+  albero:{nome:"L'Albero della Vita",ic:"🌳",breve:"il cuore della città",esterno:true,
+    testa:()=>TESTA("Al centro della città","L'Albero della Vita","È il cuore del progetto. Ogni JJA-VIS che lo sceglie diventa un nodo dell'albero: non perde niente di suo, si arricchisce."),
+    parti:()=>[
+      {id:"passa",nome:"Cosa passa",dentro:()=>[BLOCCO(H3("Cosa passa, e cosa no"), LISTA([
         "Passa quello che gli assistenti hanno capito. Non passano mai i dati di chi li usa.",
         "Nessuno vede i dati di nessun altro.",
         "Ci si collega solo con il consenso esplicito di entrambi.",
-        "I dati sulla salute, sui soldi e quelli più personali non entrano mai nell'albero."])),
-      BLOCCO(H3("Un esempio"), P("Una cliente cerca un paio di scarpe nere numero 43. Il suo assistente sa che un negozio ne ha ancora un paio, perché lo sa l'assistente della commessa. Lei riceve l'indicazione, la commessa sa che sta arrivando. Nessun dato è passato di mano: è passata un'informazione utile.")),
-      BLOCCO(H3("A che punto è"), P("È un progetto: arriva con l'app. Oggi le foglie sono la promessa."), NOTA(n?`La foglia d'oro è quella di ${n}.`:"Quando dai un nome al tuo assistente, una foglia d'oro diventa la sua.")),
-      AZIONI(vai(PAGINA+"#chi-sono","Chi sono, nella pagina",true))];
-  }},
+        "I dati sulla salute, sui soldi e quelli più personali non entrano mai nell'albero."]))]},
+      {id:"esempio",nome:"Un esempio",dentro:()=>[BLOCCO(H3("Un esempio"), P("Una cliente cerca un paio di scarpe nere numero 43. Il suo assistente sa che un negozio ne ha ancora un paio, perché lo sa l'assistente della commessa. Lei riceve l'indicazione, la commessa sa che sta arrivando. Nessun dato è passato di mano: è passata un'informazione utile."))]},
+      {id:"punto",nome:"A che punto è",dentro(){ const n=nomeAssistente(); return [BLOCCO(H3("A che punto è"), P("È un progetto: arriva con l'app. Oggi le foglie sono la promessa."), NOTA(n?`La foglia d'oro è quella di ${n}.`:"Quando dai un nome al tuo assistente, una foglia d'oro diventa la sua."))]; }}],
+    fine:()=>[AZIONI(vai(PAGINA+"#chi-sono","Chi sono, nella pagina",true))]},
 };
+const ELENCO=["reception","sartoria","bottega","forgia","torre","albero","giochi","voci","cinema","borsa","athena","ristorante","palestra","lotto"];
+let cinemaChiesto=false;
+const schedaIntera=L=>[...L.testa(), ...L.parti().flatMap(p=>p.dentro()), ...(L.fine?L.fine():[])].filter(Boolean);
+const parteDi=(L,k)=>L.parti().find(p=>p.id===k);
+function schedaCosa(L,p){ return [el("p",{class:"eti",testo:L.nome}), el("h2",{id:"stanza-titolo",testo:p.nome}), ...p.dentro(), ...(L.fine?L.fine():[])].filter(Boolean); }
 
-// La Sartoria: il mestiere serve a me, il vestito è tuo.
-function sartoria(){
-  const out=[...TESTA("Il tuo avatar","Sartoria","Dimmi che lavoro fai: serve a me, per capire cosa costruirti. Poi vestiti come vuoi: non deve per forza essere la divisa del tuo lavoro.")];
-  const rifai=()=>{ salva(); rivesti(); apriStanza("sartoria",true); };
+// La Sartoria, allo specchio: il mestiere serve a me, il vestito è tuo.
+function specchio(){
+  const out=[];
+  const rifai=()=>{ salva(); rivesti(); ridisegnaCarta(); };
   const mest=el("div",{class:"scelte",role:"group","aria-label":"Che lavoro fai"});
   MESTIERI.forEach(([m])=>{ const b=el("button",{class:"scelta",type:"button","aria-pressed":String(citta.mestiere===m),testo:m});
     b.addEventListener("click",()=>{ citta.mestiere=m; if(!citta.vestitoScelto) citta.vestito=vestitoDi(m); rifai(); }); mest.appendChild(b); });
@@ -483,36 +639,54 @@ function sartoria(){
   PELLI.forEach((t,i)=>{ const b=el("button",{class:"tinta",type:"button","aria-label":"tono della pelle "+(i+1),"aria-pressed":String(citta.pelle===i)});
     b.style.background="#"+t.toString(16).padStart(6,"0"); b.addEventListener("click",()=>{ citta.pelle=i; rifai(); }); pel.appendChild(b); });
   out.push(el("div",{class:"sezione",testo:"Pelle"}), pel);
-  out.push(BLOCCO(H3("Perché ti chiedo il mestiere"), P("Ogni mestiere perde tempo in modo diverso: il corriere col giro del mattino, il negozio con le scorte, l'artigiano coi preventivi. Le domande della pagina cambiano col mestiere, e in Bottega i prodotti si mettono in ordine per te.")));
-  const fatto=el("button",{class:"vai-pagina",type:"button",testo:"Fatto, torno in piazza"}); fatto.addEventListener("click",esciStanza);
-  const az=AZIONI(fatto); if(citta.mestiere && !io.inviato) az.append(vai(PAGINA+"#inizia","Le domande del mio mestiere",true));
-  out.push(az, NOTA("Resta in questo telefono: non lo mando a nessuno."));
   return out;
 }
 
-let stanzaAperta=null;
-function apriStanza(id, resta){
+// ── aprire e chiudere: la stanza (si cammina), la carta (una cosa, o la scheda intera) ──
+let stanzaAperta=null, cartaAperta=null;   // cartaAperta: "scheda" oppure l'id di una cosa
+function ridisegnaCarta(){
+  if(!stanzaAperta || !cartaAperta) return;
+  const L=LUOGHI[stanzaAperta]; const c=$("stanza-carta"), su=c.scrollTop;
+  const d=$("stanza-dentro"); d.textContent="";
+  const pezzi=cartaAperta==="scheda"?schedaIntera(L):schedaCosa(L,parteDi(L,cartaAperta)||{nome:"",dentro:()=>[]});
+  pezzi.forEach(x=>d.appendChild(x));
+  c.scrollTop=su;
+}
+function mostraCarta(cosa){
+  cartaAperta=cosa; $("stanza").classList.add("con-carta"); document.body.classList.add("con-carta");
+  $("stanza-carta").scrollTop=0; ridisegnaCarta(); $("stanza-carta").scrollTop=0;
+  if(scena.pronta) scena.carta(cosa);
+}
+function chiudiCarta(){
+  if(LUOGHI[stanzaAperta]?.esterno || !scena.pronta){ esciStanza(); return; }   // all'aperto e senza 3D la carta è la stanza
+  cartaAperta=null; $("stanza").classList.remove("con-carta"); document.body.classList.remove("con-carta");
+  if(scena.pronta) scena.carta(null);
+}
+const apriCosa=k=>{ if(stanzaAperta) mostraCarta(k); };
+function apriStanza(id){
   const L=LUOGHI[id]; if(!L) return;
   chiudiFoglio();
-  const c=$("stanza-carta"), su=c.scrollTop;
-  const d=$("stanza-dentro"); d.textContent=""; L.stanza().forEach(x=>{ if(x) d.appendChild(x); });
   $("stanza-nome").textContent=L.nome;
   const st=$("stanza"); st.hidden=false; st.setAttribute("aria-hidden","false");
   requestAnimationFrame(()=>st.classList.add("aperta"));
-  c.scrollTop=resta?su:0;
   document.body.classList.add("in-stanza");
-  stanzaAperta=id; segnaFermata(id); $("entra").hidden=true;
-  if(scena.pronta && !resta) scena.entra(id);
+  stanzaAperta=id; segnaFermata(id);
+  $("apri-scheda").hidden=!!L.esterno || !scena.pronta;
+  if(scena.pronta) scena.entra(id);
+  if(L.esterno || !scena.pronta) mostraCarta("scheda");   // all'aperto e senza 3D: subito la scheda
+  else { cartaAperta=null; st.classList.remove("con-carta"); document.body.classList.remove("con-carta"); }
 }
 function esciStanza(){
   if(!stanzaAperta) return;
-  const st=$("stanza"); st.classList.remove("aperta"); st.setAttribute("aria-hidden","true");
+  const st=$("stanza"); st.classList.remove("aperta","con-carta"); st.setAttribute("aria-hidden","true");
   setTimeout(()=>{ if(!stanzaAperta) st.hidden=true; }, 260);
-  document.body.classList.remove("in-stanza"); stanzaAperta=null;
+  document.body.classList.remove("in-stanza","con-carta"); stanzaAperta=null; cartaAperta=null;
   if(scena.pronta) scena.esci();
   if(FERMATE.every(f=>citta.giro[f[0]]) && !citta.giroVisto) setTimeout(()=>{ citta.giroVisto=true; salva(); }, 6000);
 }
 $("esci-stanza").addEventListener("click", esciStanza);
+$("apri-scheda").addEventListener("click", ()=>mostraCarta("scheda"));
+$("chiudi-carta").addEventListener("click", chiudiCarta);
 const apriFoglio=apriStanza;   // il nome vecchio, per chi entra dalla porta o dal giro
 
 // il foglio, adesso, serve solo per «Vai a…»
@@ -522,11 +696,11 @@ function chiudiFoglio(){
   fogliAperto=null; document.body.classList.remove("con-foglio");
 }
 $("chiudi").addEventListener("click", chiudiFoglio);
-document.addEventListener("keydown", e=>{ if(e.key==="Escape"){ if(stanzaAperta) esciStanza(); else chiudiFoglio(); } });
+document.addEventListener("keydown", e=>{ if(e.key==="Escape"){ if(cartaAperta) chiudiCarta(); else if(stanzaAperta) esciStanza(); else chiudiFoglio(); } });
 
 function elencoLuoghi(casa, alTocco){
   casa.textContent="";
-  ["reception","sartoria","bottega","forgia","torre","albero","giochi","voci","cinema","borsa","athena","lotto"].forEach(id=>{
+  ELENCO.forEach(id=>{
     const L=LUOGHI[id];
     const b=el("button",{type:"button"}, el("span",{class:"ic",testo:L.ic}), el("span",{}, L.nome, el("small",{testo:L.breve})));
     b.addEventListener("click",()=>alTocco(id)); casa.appendChild(b);
@@ -560,7 +734,7 @@ fetch(PORTA+"/vetrina").then(r=>r.ok?r.json():{}).then(v=>{
 disegnaGiro();
 
 // ══ LA SCENA ══
-const scena={pronta:false, modo(){}, vaiVerso(){}};
+const scena={pronta:false, modo(){}, vaiVerso(){}, carta(){}};
 window.CITTA=scena;
 
 const MAT=new Map();
@@ -680,6 +854,28 @@ function facciata(w,h,{muro="#c9b9a0",porta=false,vetrine=0,serranda=false,vetro
   return {map:tex(c),emi:tex(e)};
 }
 
+
+// le etichette sopra le cose, dentro le stanze: sempre rivolte a chi guarda
+const ETICHETTE=new Map();
+function etichetta(testo){
+  if(!ETICHETTE.has(testo)){ const c=tela(512,128), x=c.getContext("2d");
+    x.fillStyle="rgba(2,11,24,.88)"; x.fillRect(0,0,512,128); x.strokeStyle="#FFD60A"; x.lineWidth=5; x.strokeRect(3,3,506,122);
+    let f=64; x.font=`800 ${f}px Archivo, sans-serif`; while(x.measureText(testo).width>470 && f>28){ f-=4; x.font=`800 ${f}px Archivo, sans-serif`; }
+    x.fillStyle="#CAF0F8"; x.textAlign="center"; x.textBaseline="middle"; x.fillText(testo,256,68);
+    ETICHETTE.set(testo, new THREE.SpriteMaterial({map:tex(c),transparent:true})); }
+  const s=new THREE.Sprite(ETICHETTE.get(testo)); s.scale.set(1.9,0.475,1); return s;
+}
+// tanti rettangoli piatti in un disegno solo (le strade): [cx, cz, largo, lungo, angolo]
+function rettangoli(lista, y, colore, emi){
+  const pos=[];
+  for(const [cx,cz,w,l,a=0] of lista){ const c=Math.cos(a), s=Math.sin(a);
+    const P=(lx,lz)=>[cx+lx*c+lz*s, y, cz-lx*s+lz*c];
+    const A=P(-w/2,-l/2),B=P(w/2,-l/2),C=P(w/2,l/2),D=P(-w/2,l/2);
+    pos.push(...A,...B,...C, ...A,...C,...D); }
+  const g=new THREE.BufferGeometry(); g.setAttribute("position",new THREE.Float32BufferAttribute(pos,3)); g.computeVertexNormals();
+  return new THREE.Mesh(g, emi? new THREE.MeshBasicMaterial({color:colore,side:THREE.DoubleSide}) : new THREE.MeshLambertMaterial({color:colore,side:THREE.DoubleSide}));
+}
+
 // ══ COSTRUZIONE ══
 async function costruisci(){
   const tela3d=$("scena");
@@ -695,8 +891,8 @@ async function costruisci(){
 
   const S=new THREE.Scene();
   S.background=new THREE.Color(0x061428);
-  S.fog=new THREE.Fog(0x061428, 60, 170);
-  const cam=new THREE.PerspectiveCamera(innerHeight>innerWidth?68:58, innerWidth/innerHeight, 0.1, 400);
+  S.fog=new THREE.Fog(0x061428, 70, 210);
+  const cam=new THREE.PerspectiveCamera(innerHeight>innerWidth?68:58, innerWidth/innerHeight, 0.1, 420);
 
   S.add(new THREE.HemisphereLight(0xdde8ff, 0x2a2622, 1.7));
   const luna=new THREE.DirectionalLight(0xfff1dc, 1.4); luna.position.set(-30,60,25); S.add(luna);
@@ -705,41 +901,53 @@ async function costruisci(){
   { const c=tela(4,256), x=c.getContext("2d"), gr=x.createLinearGradient(0,0,0,256);
     gr.addColorStop(0,"#01060f"); gr.addColorStop(0.55,"#071a33"); gr.addColorStop(0.8,"#16324f"); gr.addColorStop(1,"#3a2a3f");
     x.fillStyle=gr; x.fillRect(0,0,4,256);
-    const cielo=new THREE.Mesh(new THREE.SphereGeometry(300,24,16), new THREE.MeshBasicMaterial({map:tex(c),side:THREE.BackSide,fog:false}));
-    S.add(cielo);
-    const p=[]; for(let i=0;i<700;i++){ const t=Math.random()*Math.PI*2, f=Math.random()*1.25; p.push(Math.cos(t)*Math.cos(f)*280, Math.sin(f)*280+10, Math.sin(t)*Math.cos(f)*280); }
+    S.add(new THREE.Mesh(new THREE.SphereGeometry(320,24,16), new THREE.MeshBasicMaterial({map:tex(c),side:THREE.BackSide,fog:false})));
+    const p=[]; for(let i=0;i<700;i++){ const t=Math.random()*Math.PI*2, f=Math.random()*1.25; p.push(Math.cos(t)*Math.cos(f)*300, Math.sin(f)*300+10, Math.sin(t)*Math.cos(f)*300); }
     const sg=new THREE.BufferGeometry(); sg.setAttribute("position", new THREE.Float32BufferAttribute(p,3));
     S.add(new THREE.Points(sg, new THREE.PointsMaterial({color:0xcaf0f8,size:1.6,sizeAttenuation:false,fog:false}))); }
 
-  // il suolo: prato scuro, la piazza con la griglia della pagina, l'anello di strada, il viale d'ingresso
-  { const prato=new THREE.Mesh(new THREE.PlaneGeometry(400,400), mat(0x10261c)); prato.rotation.x=-Math.PI/2; S.add(prato); }
+  // ── il suolo: prato, la piazza tonda con la griglia della pagina, l'anello tondo ──
+  { const prato=new THREE.Mesh(new THREE.PlaneGeometry(460,460), mat(0x10261c)); prato.rotation.x=-Math.PI/2; S.add(prato); }
   { const c=tela(256,256), x=c.getContext("2d"); x.fillStyle="#0c2236"; x.fillRect(0,0,256,256);
     x.strokeStyle="rgba(0,180,216,.35)"; x.lineWidth=2; for(let i=0;i<=256;i+=64){ x.beginPath(); x.moveTo(i,0); x.lineTo(i,256); x.stroke(); x.beginPath(); x.moveTo(0,i); x.lineTo(256,i); x.stroke(); }
     x.fillStyle="rgba(255,255,255,.03)"; for(let i=0;i<256;i+=32) for(let j=0;j<256;j+=32) if((i+j)%64===0) x.fillRect(i,j,32,32);
     const t=tex(c); t.wrapS=t.wrapT=THREE.RepeatWrapping; t.repeat.set(12,12);
     const piazza=new THREE.Mesh(new THREE.CircleGeometry(22,72), new THREE.MeshLambertMaterial({map:t}));
-    piazza.rotation.x=-Math.PI/2; piazza.position.y=0.02; S.add(piazza);
-    const t2=t.clone(); t2.repeat.set(2,7); t2.needsUpdate=true;
-    t2.repeat.set(2,11);
-    const viale=new THREE.Mesh(new THREE.PlaneGeometry(7,44), new THREE.MeshLambertMaterial({map:t2}));
-    viale.rotation.x=-Math.PI/2; viale.position.set(0,0.015,47.5); S.add(viale); }
+    piazza.rotation.x=-Math.PI/2; piazza.position.y=0.02; S.add(piazza); }
   { const anello=new THREE.Mesh(new THREE.RingGeometry(22,25.5,72), mat(0x161c27)); anello.rotation.x=-Math.PI/2; anello.position.y=0.01; S.add(anello);
     const bordo=new THREE.Mesh(new THREE.RingGeometry(21.85,22.05,72), mat(0x00B4D8,true)); bordo.rotation.x=-Math.PI/2; bordo.position.y=0.03; S.add(bordo); }
 
-  // ══ GLI ANELLI — 2 ottobre, JJ: «espandi aprendo altre strade e altri anelli intorno alla piazza» ══
-  // anello 1 (22–25,5) intorno alla piazza; i palazzi a 31; anello 2 (38–41,5); i lotti a 48; anello 3 (55–58,5).
-  // Le strade radiali passano solo nei varchi fra i palazzi larghi almeno 3,4 m al bordo della piazza.
-  for(const [r0,r1] of [[38,41.5],[55,58.5]]){ const a=new THREE.Mesh(new THREE.RingGeometry(r0,r1,96), mat(0x161c27)); a.rotation.x=-Math.PI/2; a.position.y=0.012; S.add(a);
-    for(const r of [r0+0.1,r1-0.1]){ const b=new THREE.Mesh(new THREE.RingGeometry(r-0.06,r+0.06,96), mat(0x0D3A5C,true)); b.rotation.x=-Math.PI/2; b.position.y=0.02; S.add(b); } }
-  for(const ang of STRADE){ if(ang===0) continue; const a=ang*Math.PI/180, g=new THREE.Group(); g.position.set(Math.sin(a)*40.25,0,Math.cos(a)*40.25); g.rotation.y=a;
-    const st=new THREE.Mesh(new THREE.PlaneGeometry(3.4,29.5), mat(0x161c27)); st.rotation.x=-Math.PI/2; st.position.y=0.014; g.add(st);
-    const lin=new THREE.Mesh(new THREE.PlaneGeometry(0.12,29.5), mat(0x00B4D8,true)); lin.rotation.x=-Math.PI/2; lin.position.y=0.02; g.add(lin); S.add(g); }
-  const solidi=[];      // cosa non si attraversa: {x,z,r,w,d} ruotati, oppure cerchi
+  // ══ LE VIE ══ — 3 ottobre, JJ: «il secondo anello dovrebbe essere quadrato, non tondo come la piazza».
+  // L'anello quadrato sono le vie x=±Q e z=±Q della griglia: fuori di lì, i quartieri a isolati.
+  // Le vie x=0 e z=0 esistono solo fuori dal quadrato (dentro c'è la piazza).
+  const tratti=[];   // {v:true se va lungo z, c: la coordinata fissa, a, b: da–a}
+  for(const c of VIE){ const pezzi=c===0?[[Q,VIE[6]],[VIE[0],-Q]]:[[VIE[0],VIE[6]]];
+    for(const [a,b] of pezzi){ tratti.push({v:true,c,a,b}); tratti.push({v:false,c,a,b}); } }
+  const radiali=STRADE.map(g=>{ const a=g*Math.PI/180, s=Math.sin(a), co=Math.cos(a), m=Math.max(Math.abs(s),Math.abs(co));
+    return {g, s, co, fine:Q/m, dentro:(Q-MEZZA)/m}; });   // fine: dove tocca la mezzeria del quadrato
+  { const asfalto=[], righe=[];
+    for(const t of tratti){ const l=t.b-t.a+2*MEZZA, m=(t.a+t.b)/2;
+      if(t.v){ asfalto.push([t.c,m,2*MEZZA,l,0]); righe.push([t.c,m,0.12,l,0]); }
+      else { asfalto.push([m,t.c,2*MEZZA,l,Math.PI/2]); righe.push([m,t.c,0.12,l,Math.PI/2]); } }
+    for(const R of radiali){ const r0=25.3, r1=R.dentro+0.4, rc=(r0+r1)/2, a=R.g*Math.PI/180;
+      asfalto.push([R.s*rc,R.co*rc,3.4,r1-r0,a]); righe.push([R.s*rc,R.co*rc,0.12,r1-r0,a]); }
+    S.add(rettangoli(asfalto,0.012,0x161c27)); S.add(rettangoli(righe,0.02,0x0D3A5C,true)); }
+  // è sulla strada? (per il collaudo: nessun palazzo, lotto o albero ci deve stare sopra)
+  function suStrada(x,z){
+    const r=Math.hypot(x,z); if(r>22 && r<25.5) return "anello tondo";
+    for(const t of tratti){ const [lun,tra]=t.v?[z,x]:[x,z]; if(Math.abs(tra-t.c)<MEZZA && lun>t.a-MEZZA && lun<t.b+MEZZA) return (t.v?"via x=":"via z=")+t.c; }
+    for(const R of radiali){ const lun=x*R.s+z*R.co, tra=Math.abs(x*R.co-z*R.s); if(tra<1.7 && lun>25.5 && lun<R.dentro) return "radiale "+R.g; }
+    return null;
+  }
+
+  const solidi=[];      // cosa non si attraversa: {x,z,rot,w,d} ruotati, oppure cerchi
+  const ingombri=[];    // tutto quello che occupa suolo, per il collaudo delle strade
   const toccabili=[];   // cosa si tocca col dito: mesh → id del luogo
   const porte={};       // dove ci si ferma davanti a ogni luogo
   const muri=[];        // per non far entrare la telecamera nei palazzi
+  const occupa=(x,z,rot,w,d,nome)=>ingombri.push({x,z,rot,w,d,nome});
 
-  // ── i palazzi: sull'anello, la facciata verso l'albero ──
+  // ── i palazzi intorno alla piazza: sull'anello, la facciata verso l'albero ──
   const R=31;
   const PALAZZI=[
     {id:"reception",ang:-22,w:11,d:7,h:6,muro:"#1b3a57",vetro:true,tetto:"piano",titolo:"RECEPTION",sotto:"qui nasce il tuo assistente"},
@@ -748,32 +956,39 @@ async function costruisci(){
     {id:"voci",     ang:92, w:11,d:9,h:9,muro:"#b5654a",porta:true,tetto:"piano",titolo:"PIAZZA DELLE VOCI",sotto:"cosa ti fa perdere tempo?",orologio:true},
     {id:"cinema",   ang:126,w:11,d:9,h:8,muro:"#3b2a4f",porta:true,tetto:"piano",titolo:"CINEMA",sotto:"guardami al lavoro",colore:"#FFD60A"},
     {id:"giochi",   ang:154,w:10,d:9,h:8,muro:"#24123a",porta:true,tetto:"piano",titolo:"SALA GIOCHI",sotto:"i giochi di chi mi costruisce",colore:"#ff4fd8",neon:true},
-    {id:"torre",    ang:180,w:9, d:9,h:30,muro:"#0f2d47",porta:true,tetto:"piano",titolo:"LA TORRE",sotto:"chi sono · cosa so fare",luce:0.85,r:34},
+    {id:"torre",    ang:180,w:9, d:9,h:30,muro:"#0f2d47",porta:true,tetto:"piano",titolo:"LA TORRE",sotto:"chi sono · cosa so fare",luce:0.85,r:33.4},
     {id:"lotto",    ang:206,w:9, d:8,h:0,titolo:"LOTTO LIBERO",sotto:"la tua attività, qui"},
     {id:"forgia",   ang:234,w:11,d:9,h:7,muro:"#4a3b33",porta:true,tetto:"falde",titolo:"LA FORGIA",sotto:"su misura, adesso",camino:true},
     {id:"bottega",  ang:268,w:13,d:9,h:7,muro:"#e3cfa8",vetrine:1,tetto:"falde",titolo:"BOTTEGA",sotto:"i prodotti di JJA-VIS",tenda:true},
-    {id:"athena",   ang:302,w:11,d:10,h:6,muro:"#9aa3ad",serranda:true,tetto:"piano",titolo:"ATHENA TRASPORTI",sotto:"consegne · urgenze · sgomberi",furgone:true},
+    {id:"athena",   ang:302,w:11,d:10,h:6,r:34,muro:"#9aa3ad",serranda:true,tetto:"piano",titolo:"ATHENA TRASPORTI",sotto:"consegne · urgenze · sgomberi",furgone:true},
   ];
-  // i lotti dell'anello 2: uno ogni 18°, lontani almeno 10° dalle strade. Ognuno aspetta un'attività.
-  for(let k=0;k<20;k++){ const ang=k*18+9; if(STRADE.some(s=>Math.abs(((ang-s+540)%360)-180)<10)) continue;
-    PALAZZI.push({id:"lotto",ang,w:9,d:8,h:0,r:48,titolo:"LOTTO LIBERO",sotto:"la tua attività, qui"}); }
-  let seme=1, lottiN=0; const centri={};
+  for(const P of PALAZZI){ const a=P.ang*Math.PI/180, r=P.r||R; P.x=Math.sin(a)*r; P.z=Math.cos(a)*r; P.rot=Math.atan2(-P.x,-P.z); P.passo=2.4; P.dentroPiazza=true; }
+  // ── i quartieri: ogni palazzo fuori dal quadrato dà la facciata a una via ──
+  // la facciata sta a 1 m dal bordo dell'isolato; la porta 1,6 m più in là, sul bordo della via
+  const ISOLATI=[[-85,-65],[-61.5,-41.5],[-38,-MEZZA],[MEZZA,38],[41.5,61.5],[65,85]];
+  const fronte=(bordo,verso,d)=>bordo+verso*(1+d/2);   // il centro di un palazzo profondo d, che guarda verso «verso»
+  // Viale delle Botteghe (sud) e Quartiere dei Mestieri (nord): i lotti in fila lungo il viale x=0
+  for(const [z0,z1] of [ISOLATI[4],ISOLATI[5],ISOLATI[1],ISOLATI[0]]) for(const lato of [-1,1]) for(const k of [5.25,14.75]){
+    PALAZZI.push({id:"lotto",w:8.5,d:8,h:0,titolo:"LOTTO LIBERO",sotto:"la tua attività, qui",x:lato*fronte(MEZZA,1,8),z:z0+k,rot:lato>0?-Math.PI/2:Math.PI/2,passo:1.6}); }
+  // il Ristorante (Quartiere del Gusto, est) e la Palestra (Quartiere dello Sport, ovest), sull'anello quadrato
+  PALAZZI.push({id:"ristorante",w:12,d:10,h:8,muro:"#7a3b2a",porta:true,vetrine:1,tetto:"falde",titolo:"RISTORANTE",sotto:"alla cassa: il menù",colore:"#FFD60A",x:fronte(41.5,1,10),z:14,rot:-Math.PI/2,passo:1.6,ristorante:true});
+  PALAZZI.push({id:"palestra",w:12,d:10,h:8,muro:"#1f3a4a",vetro:true,tetto:"piano",titolo:"PALESTRA",sotto:"il tuo stato di forma",colore:"#2ECC71",x:-fronte(41.5,1,10),z:14,rot:Math.PI/2,passo:1.6,palestra:true});
+
+  let seme=1, lottiN=0;
   for(const P of PALAZZI){
-    const a=P.ang*Math.PI/180, r=P.r||R;
-    const px=Math.sin(a)*r, pz=Math.cos(a)*r; if(!centri[P.id]) centri[P.id]={x:px,z:pz};
-    const g=new THREE.Group(); g.position.set(px,0,pz);
-    const dx=-px/r, dz=-pz/r; g.rotation.y=Math.atan2(dx,dz);
-    S.add(g);
-    const fronte=new THREE.Vector3(px+dx*(P.d/2+2.4),0,pz+dz*(P.d/2+2.4));
+    const px=P.x, pz=P.z;
+    const g=new THREE.Group(); g.position.set(px,0,pz); g.rotation.y=P.rot; S.add(g);
+    const fx=Math.sin(P.rot), fz=Math.cos(P.rot);   // verso dove guarda la facciata
     const chiave=P.id==="lotto"?`lotto${lottiN++}`:P.id;
-    porte[chiave]={id:P.id, x:fronte.x, z:fronte.z, guarda:Math.atan2(-dx,-dz), cx:px, cz:pz};
+    porte[chiave]={id:P.id, x:px+fx*(P.d/2+P.passo), z:pz+fz*(P.d/2+P.passo), guarda:Math.atan2(-fx,-fz), cx:px, cz:pz};
+    occupa(px,pz,P.rot,P.w,P.d,chiave);
 
     if(P.id==="lotto"){
       // un lotto: recinto basso, la sagoma di un palazzo che ancora non c'è, il cartello
       const sag=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(P.w,7,P.d)), new THREE.LineBasicMaterial({color:0x00B4D8,transparent:true,opacity:.55}));
       sag.position.y=3.5; g.add(sag);
       const base=new THREE.Mesh(new THREE.PlaneGeometry(P.w,P.d), mat(0x2a2218)); base.rotation.x=-Math.PI/2; base.position.y=0.03; g.add(base);
-      for(const [fx,fz,fw,fd] of [[0,-P.d/2,P.w,0.08],[-P.w/2,0,0.08,P.d],[P.w/2,0,0.08,P.d]]){ const f=scatola(fw,0.6,fd,0x8a7a60); f.position.set(fx,0.3,fz); g.add(f); }
+      for(const [lx,lz,lw,ld] of [[0,-P.d/2,P.w,0.08],[-P.w/2,0,0.08,P.d],[P.w/2,0,0.08,P.d]]){ const f=scatola(lw,0.6,ld,0x8a7a60); f.position.set(lx,0.3,lz); g.add(f); }
       const palo=cilindro(0.07,0.07,2.6,0x8a7a60,6); palo.position.set(0,1.3,P.d/2-0.3); g.add(palo);
       const ins=insegna(P.titolo,P.sotto,3.6,"#FFD60A"); ins.position.set(0,2.4,P.d/2-0.22); g.add(ins);
       const tocco=new THREE.Mesh(new THREE.BoxGeometry(P.w,7,P.d), new THREE.MeshBasicMaterial({visible:false})); tocco.position.y=3.5; g.add(tocco);
@@ -788,7 +1003,7 @@ async function costruisci(){
     const corpo=new THREE.Mesh(new THREE.BoxGeometry(P.w,P.h,P.d), [M(lato),M(lato),tetto,tetto,M(fr),M(retro)]);
     corpo.position.y=P.h/2; g.add(corpo); toccabili.push([corpo,chiave]); muri.push(corpo);
     if(P.vetro){ const cornice=scatola(P.w+0.3,0.5,P.d+0.3,0x0D3A5C); cornice.position.y=P.h+0.25; g.add(cornice);
-      const lin=scatola(P.w+0.32,0.08,0.08,0x00B4D8,true); lin.position.set(0,P.h+0.5,P.d/2+0.15); g.add(lin); }
+      const lin=scatola(P.w+0.32,0.08,0.08,P.palestra?0x2ECC71:0x00B4D8,true); lin.position.set(0,P.h+0.5,P.d/2+0.15); g.add(lin); }
     if(P.tetto==="falde"){
       // 2 ottobre, JJ: «Sartoria, Bottega e Forgia hanno i tetti storti». Three scala PRIMA di ruotare:
       // allungare una piramide a rombo e poi girarla la deforma. La rotazione va nella forma, prima della scala.
@@ -800,12 +1015,20 @@ async function costruisci(){
     const ins=insegna(P.titolo,P.sotto,Math.min(P.w*0.85,8),P.colore);
     ins.position.set(0, P.id==="torre"?4.4:Math.min(P.h-1.2,4.3), P.d/2+0.06); g.add(ins);
 
-    if(P.tenda){ const c=tela(64,16), x=c.getContext("2d"); for(let i=0;i<8;i++){ x.fillStyle=i%2?"#0D3A5C":"#00B4D8"; x.fillRect(i*8,0,8,16); }
+    if(P.tenda||P.ristorante){ const c=tela(64,16), x=c.getContext("2d"); for(let i=0;i<8;i++){ x.fillStyle=P.ristorante?(i%2?"#f4ecd6":"#b3262e"):(i%2?"#0D3A5C":"#00B4D8"); x.fillRect(i*8,0,8,16); }
       const tenda=new THREE.Mesh(new THREE.BoxGeometry(P.w*0.95,0.08,1.8), new THREE.MeshLambertMaterial({map:tex(c)}));
-      tenda.position.set(0,3.0,P.d/2+0.85); tenda.rotation.x=0.28; g.add(tenda);
-      // in vetrina, i prodotti
-      ["CLIO","SOPRALLUOGO","SU MISURA"].forEach((n,i)=>{ const v=insegna(n,"",2.2,"#FFD60A"); v.position.set((i-1)*2.6-0.0,1.15,P.d/2+0.4); v.rotation.x=-0.15;
+      tenda.position.set(0,3.0,P.d/2+0.85); tenda.rotation.x=0.28; g.add(tenda); }
+    if(P.tenda){ // in vetrina, i prodotti
+      ["CLIO","SOPRALLUOGO","SU MISURA"].forEach((n,i)=>{ const v=insegna(n,"",2.2,"#FFD60A"); v.position.set((i-1)*2.6,1.15,P.d/2+0.4); v.rotation.x=-0.15;
         const sup=scatola(2.3,0.08,0.5,0x5a3b22); sup.position.set((i-1)*2.6,0.85,P.d/2+0.45); g.add(sup, v); }); }
+    if(P.ristorante){ // le lanterne e la lavagna del menù accanto alla porta
+      for(const s of [-1,1]){ const l=palla(0.22,0xffc46b,true,8); l.position.set(s*3.4,3.7,P.d/2+0.5); g.add(l); }
+      const lav=insegna("MENÙ","primi · pizze · dolci",1.6,"#FFD60A"); lav.position.set(-4.4,1.4,P.d/2+0.08); g.add(lav);
+      const luce=new THREE.PointLight(0xffb35a, 30, 14, 2); luce.position.set(0,3,P.d/2+2); g.add(luce); }
+    if(P.palestra){ // un manubrio gigante sul tetto
+      const m=new THREE.Group(); m.position.set(0,P.h+1.6,0); g.add(m);
+      const sb=cilindro(0.18,0.18,7,0xcfd6dc,10); sb.rotation.z=Math.PI/2; m.add(sb);
+      for(const s of [-1,1]) for(const k of [0,0.6]){ const d=cilindro(1.1-k*0.5,1.1-k*0.5,0.5,0x2ECC71,16); d.rotation.z=Math.PI/2; d.position.x=s*(2.6+k); m.add(d); } }
     if(P.colonne){ for(let i=0;i<4;i++){ const c=cilindro(0.32,0.36,P.h-2,0xeee8da,12); c.position.set(-P.w/2+1.2+i*(P.w-2.4)/3,(P.h-2)/2,P.d/2+1.2); c.name="colonna"; g.add(c);
         solidi.push({cerchio:true,x:px+Math.cos(g.rotation.y)*c.position.x+Math.sin(g.rotation.y)*c.position.z, z:pz-Math.sin(g.rotation.y)*c.position.x+Math.cos(g.rotation.y)*c.position.z, r:0.45}); }
       // 2 ottobre, JJ: «la Borsa ha i pilastri che vanno davanti al cartello». L'insegna sale sulla trabeazione, davanti alle colonne
@@ -826,7 +1049,7 @@ async function costruisci(){
     }
     if(P.neon){ for(const [y,c] of [[P.h-0.4,0xff4fd8],[P.h-0.8,0x00B4D8]]){ const l=scatola(P.w+0.1,0.12,0.12,c,true); l.position.set(0,y,P.d/2+0.08); g.add(l); }
       for(const s of [-1,1]){ const l=scatola(0.12,P.h-0.5,0.12,0xff4fd8,true); l.position.set(s*(P.w/2+0.02),(P.h-0.5)/2,P.d/2+0.08); g.add(l); }
-      const cab=[0xff4fd8,0x00B4D8,0xFFD60A]; cab.forEach((c,i)=>{ const m=scatola(0.8,1.8,0.7,0x15161a); m.position.set(-2.6+i*2.6+(i===1?0:0),0.9,P.d/2+1.2);
+      const cab=[0xff4fd8,0x00B4D8,0xFFD60A]; cab.forEach((c,i)=>{ const m=scatola(0.8,1.8,0.7,0x15161a); m.position.set(-2.6+i*2.6,0.9,P.d/2+1.2);
         if(i===1) return; const sc=scatola(0.6,0.45,0.05,c,true); sc.position.set(m.position.x,1.35,P.d/2+1.56); g.add(m,sc);
         solidi.push({cerchio:true,x:px+Math.cos(g.rotation.y)*m.position.x+Math.sin(g.rotation.y)*m.position.z,z:pz-Math.sin(g.rotation.y)*m.position.x+Math.cos(g.rotation.y)*m.position.z,r:0.6}); }); }
     if(P.id==="cinema"){ const mq=scatola(P.w*0.9,0.3,2,0x1a1024); mq.position.set(0,3.1,P.d/2+1); g.add(mq);
@@ -845,25 +1068,60 @@ async function costruisci(){
     }
     if(P.furgone){
       // un furgone bianco davanti al deposito, con la scritta della ditta
-      const f=new THREE.Group(); f.position.set(-3.2,0,P.d/2+3.6); f.rotation.y=Math.PI/2*0.9; g.add(f);
+      // parcheggiato lungo la facciata, a sinistra della serranda: fra il deposito e l'anello tondo, non sopra la strada
+      const f=new THREE.Group(); f.position.set(-3.5,0,P.d/2+1.8); f.rotation.y=Math.PI/2; g.add(f);
       const cass=scatola(2.1,2.3,4.2,0xf2f4f6); cass.position.set(0,1.55,-0.6); f.add(cass);
       const cab=scatola(2.0,1.5,1.6,0xf2f4f6); cab.position.set(0,1.15,2.3); f.add(cab);
       const vetro=scatola(1.9,0.7,0.05,0x1b2a3a); vetro.position.set(0,1.55,3.1); vetro.rotation.x=-0.35; f.add(vetro);
       for(const [wx,wz] of [[-1,-2],[1,-2],[-1,2.1],[1,2.1]]){ const r=cilindro(0.42,0.42,0.3,0x151515,14); r.rotation.z=Math.PI/2; r.position.set(wx*1.0,0.42,wz); f.add(r); }
       for(const s of [-1,1]){ const sc=insegna("ATHENA TRASPORTI","",3.6); sc.position.set(1.06*s,1.7,-0.6); sc.rotation.y=s*Math.PI/2; f.add(sc); }
       const fari=scatola(1.7,0.18,0.05,0xfff3c4,true); fari.position.set(0,0.9,3.12); f.add(fari);
-      const fw=new THREE.Vector3(); f.getWorldPosition(fw);
-      solidi.push({cerchio:true,x:fw.x,z:fw.z,r:2.6});
-      // dove si sta davanti, non sopra al furgone
-      porte[chiave].x=px+dx*(P.d/2+2.2)+dz*2.4; porte[chiave].z=pz+dz*(P.d/2+2.2)-dx*2.4;
+      // l'ingombro: un rettangolo nel verso del palazzo (il furgone va da x −6,2 a −0,4, z da d/2+0,75 a d/2+2,85)
+      g.updateMatrixWorld(true); const mondo=(lx,lz)=>new THREE.Vector3(lx,0,lz).applyMatrix4(g.matrixWorld);
+      const fc=mondo(-3.3,P.d/2+1.8); solidi.push({x:fc.x,z:fc.z,rot:P.rot,w:5.9,d:2.2}); occupa(fc.x,fc.z,P.rot,5.9,2.2,"furgone");
+      // dove si sta davanti: davanti alla serranda, a destra del furgone
+      const pd=mondo(1.6,P.d/2+2.2); porte[chiave].x=pd.x; porte[chiave].z=pd.z;
     }
-    solidi.push({x:px,z:pz,rot:g.rotation.y,w:P.w+(P.colonne?0:0),d:P.d+(P.colonne?0.2:0)});
+    solidi.push({x:px,z:pz,rot:P.rot,w:P.w,d:P.d+(P.colonne?0.2:0)});
   }
 
+  // ── le porte dei quartieri: l'arco d'ingresso a sud, quello dei Mestieri a nord, i cartelli a est e ovest ──
+  const arco=(z,fuori,dentro,verso)=>{ for(const s of [-1,1]){ const p=scatola(0.6,6,0.6,0x0D3A5C); p.position.set(2.3*s,3,z); S.add(p); solidi.push({cerchio:true,x:2.3*s,z,r:0.45}); occupa(2.3*s,z,0,0.6,0.6,"arco"); }
+    const a=insegna(fuori[0],fuori[1],5.2); a.position.set(0,6.4,z+0.02*verso); a.rotation.y=verso>0?0:Math.PI; S.add(a);
+    const b=insegna(dentro[0],dentro[1],5.2); b.position.set(0,6.4,z-0.02*verso); b.rotation.y=verso>0?Math.PI:0; S.add(b); };
+  arco(42.3,["LA CITTÀ DI JJA-VIS","benvenuto, entra pure"],["VIALE DELLE BOTTEGHE","i lotti delle attività"],1);
+  arco(-42.3,["QUARTIERE DEI MESTIERI","i lotti delle attività"],["LA PIAZZA","l'albero della vita"],-1);
+  for(const [lato,nome,sotto] of [[1,QUARTIERI.est,"ristorante"],[-1,QUARTIERI.ovest,"palestra"]]){
+    const g=new THREE.Group(); g.position.set(lato*43.4,0,4.2); g.rotation.y=-lato*Math.PI/2; S.add(g);
+    const p=cilindro(0.08,0.08,3.2,0x8a7a60,6); p.position.y=1.6; g.add(p);
+    const c=insegna(nome.toUpperCase(),sotto,3.4); c.position.set(0,3.2,0.1); g.add(c); solidi.push({cerchio:true,x:lato*43.4,z:4.2,r:0.3}); occupa(lato*43.4,4.2,0,0.3,0.3,"cartello"); }
+
+  // ── gli isolati: i palazzi dei quartieri, tutti con le finestre accese ──
+  // Disegnati in blocco (un disegno per altezza), così il telefono regge anche cento palazzi.
+  { const ALTEZZE=[6,9,12,15], TINTE_MURO=[0xd8cbb5,0xbfb3a3,0xa9b7c4,0xc9a48f,0x9fb3a0,0xd1c1d6], pezzi=ALTEZZE.map(()=>[]);
+    let h=7; const rnd=()=>((h=(h*9301+49297)%233280)/233280);
+    const libero=(x,z)=>!ingombri.some(o=>{ const c=Math.cos(o.rot), s=Math.sin(o.rot), rx=x-o.x, rz=z-o.z;
+      return Math.abs(rx*c-rz*s)<o.w/2+5 && Math.abs(rx*s+rz*c)<o.d/2+5; });
+    for(const IX of ISOLATI) for(const IZ of ISOLATI){
+      if(Math.abs(IX[0])<=38 && Math.abs(IX[1])<=38 && Math.abs(IZ[0])<=38 && Math.abs(IZ[1])<=38) continue;   // dentro il quadrato: la piazza
+      const W=IX[1]-IX[0], D=IZ[1]-IZ[0], nx=Math.max(1,Math.floor((W-2+2)/10)), nz=Math.max(1,Math.floor((D-2+2)/10));
+      const x0=IX[0]+(W-(nx*8+(nx-1)*2))/2+4, z0=IZ[0]+(D-(nz*8+(nz-1)*2))/2+4;
+      for(let i=0;i<nx;i++) for(let j=0;j<nz;j++){ const x=x0+i*10, z=z0+j*10; if(!libero(x,z)) continue;
+        const k=Math.floor(rnd()*ALTEZZE.length); pezzi[k].push([x,z,TINTE_MURO[Math.floor(rnd()*TINTE_MURO.length)]]); } }
+    const m4=new THREE.Matrix4(), col=new THREE.Color(); let n=0;
+    ALTEZZE.forEach((alto,k)=>{ if(!pezzi[k].length) return;
+      const t=facciata(8,alto,{muro:"#e9e4dc",luce:0.55,seme:40+k});
+      const M=new THREE.MeshLambertMaterial({map:t.map,emissiveMap:t.emi,emissive:0xffffff,emissiveIntensity:0.9}), T=mat(0x2b2f36);
+      const im=new THREE.InstancedMesh(new THREE.BoxGeometry(8,alto,8),[M,M,T,T,M,M],pezzi[k].length);
+      pezzi[k].forEach(([x,z,c],i)=>{ m4.makeTranslation(x,alto/2,z); im.setMatrixAt(i,m4); col.setHex(c); im.setColorAt(i,col);
+        solidi.push({x,z,rot:0,w:8,d:8}); occupa(x,z,0,8,8,"isolato"); n++; });
+      im.instanceMatrix.needsUpdate=true; im.instanceColor.needsUpdate=true; S.add(im); muri.push(im); });
+    scena._isolati=n; }
+
   // i manichini della Sartoria: tre vestiti in vetrina, fuori
-  { const P=PALAZZI[1], a=P.ang*Math.PI/180, px=Math.sin(a)*R, pz=Math.cos(a)*R, dx=-px/R, dz=-pz/R;
+  { const P=PALAZZI[1], px=P.x, pz=P.z, dx=Math.sin(P.rot), dz=Math.cos(P.rot);
     ["guida","artigiano","creator"].forEach((v,i)=>{ const m=avatar({vestito:v,pelle:[0,2,4][i]});
-      const off=(i-1)*2.4; m.position.set(px+dx*(P.d/2+1.0)+(-dz)*off, 0.25, pz+dz*(P.d/2+1.0)+dx*off); m.rotation.y=Math.atan2(dx,dz);
+      const off=(i-1)*2.4; m.position.set(px+dx*(P.d/2+1.0)+(-dz)*off, 0.25, pz+dz*(P.d/2+1.0)+dx*off); m.rotation.y=P.rot;
       const ped=cilindro(0.45,0.5,0.25,0x0D3A5C,14); ped.position.set(m.position.x,0.125,m.position.z); S.add(ped, m); toccabili.push([m,"sartoria"]); solidi.push({cerchio:true,x:m.position.x,z:m.position.z,r:0.5}); }); }
 
   // ── l'Albero della Vita, al centro ──
@@ -895,38 +1153,53 @@ async function costruisci(){
     solidi.push({cerchio:true,x:0,z:0,r:2.2});
     porte.albero={id:"albero",x:0,z:4.8,guarda:Math.PI};
   }
-  // panchine intorno all'albero, lampioni intorno alla piazza, alberi fuori
+  // panchine intorno all'albero
   for(let i=0;i<4;i++){ const a=i/4*Math.PI*2+Math.PI/4, b=new THREE.Group(); b.position.set(Math.sin(a)*6.5,0,Math.cos(a)*6.5); b.rotation.y=a+Math.PI;
     const s=scatola(2.2,0.1,0.6,0x6b4a2e); s.position.y=0.5; const sc=scatola(2.2,0.6,0.1,0x6b4a2e); sc.position.set(0,0.85,-0.28);
     for(const x of [-0.9,0.9]){ const z=scatola(0.08,0.5,0.5,0x222222); z.position.set(x,0.25,0); b.add(z); } b.add(s,sc); S.add(b); }
-  for(let i=0;i<12;i++){ const a=i/12*Math.PI*2+0.13; if(Math.abs(Math.sin(a))<0.12 && Math.cos(a)>0) continue;
-    const x=Math.sin(a)*20.8, z=Math.cos(a)*20.8; const p=cilindro(0.07,0.1,4.2,0x1c2a38,6); p.position.set(x,2.1,z);
-    const l=palla(0.26,0xffe7b0,true,8); l.position.set(x,4.3,z); S.add(p,l); solidi.push({cerchio:true,x,z,r:0.3}); }
-  for(let i=0;i<52;i++){ const a=i/52*Math.PI*2+0.07, r=64+(i*13%11); const x=Math.sin(a)*r, z=Math.cos(a)*r; if(Math.abs(x)<6 && z>0) continue;
-    const t=cilindro(0.2,0.3,1.6,0x3b2a1e,6); t.position.set(x,0.8,z); const c=new THREE.Mesh(new THREE.ConeGeometry(1.6+(i%3)*0.4,4+(i%4),7), mat([0x1f4a33,0x245a3a,0x1a3d2b][i%3])); c.position.set(x,3.4+(i%4)/2,z); S.add(t,c); }
-  // il cancello d'ingresso
-  { for(const s of [-1,1]){ const p=scatola(0.8,6,0.8,0x0D3A5C); p.position.set(4.5*s,3,61); S.add(p); solidi.push({cerchio:true,x:4.5*s,z:61,r:0.7}); }
-    const arco=insegna("JJA-VIS","la città",8); arco.position.set(0,6.4,60.98); arco.rotation.y=Math.PI; S.add(arco);
-    const arco2=insegna("LA CITTÀ DI JJA-VIS","benvenuto, entra pure",8); arco2.position.set(0,6.4,61.02); S.add(arco2); }
-  // lampioni lungo l'anello 2
-  for(let i=0;i<24;i++){ const a=i/24*Math.PI*2+0.13; if(STRADE.some(s=>Math.abs(((a*180/Math.PI-s+540)%360)-180)<5)) continue;
-    const x=Math.sin(a)*37.4, z=Math.cos(a)*37.4; const p=cilindro(0.07,0.1,4.2,0x1c2a38,6); p.position.set(x,2.1,z);
-    const l=palla(0.26,0xffe7b0,true,8); l.position.set(x,4.3,z); S.add(p,l); solidi.push({cerchio:true,x,z,r:0.3}); }
+
+  // ── lampioni e alberi, disegnati in blocco ──
+  { const lamp=[];
+    for(let i=0;i<12;i++){ const a=i/12*Math.PI*2+0.13; if(Math.abs(Math.sin(a))<0.12 && Math.cos(a)>0) continue; lamp.push([Math.sin(a)*20.8, Math.cos(a)*20.8]); }
+    // lungo il quadrato, dal lato della piazza, lontano dalle radiali e dai viali
+    for(let t=-34;t<=34;t+=8.5) for(const [x,z] of [[t,37.3],[t,-37.3],[37.3,t],[-37.3,t]]){
+      if(Math.abs(t)<3.5) continue; if(radiali.some(R=>Math.abs(x*R.co-z*R.s)<3 && x*R.s+z*R.co>0)) continue; lamp.push([x,z]); }
+    // agli incroci dei quartieri, sull'angolo
+    for(const vx of VIE) for(const vz of VIE){ if(Math.abs(vx)<=Q && Math.abs(vz)<=Q) continue; const x=vx+2.25, z=vz+2.25; if(suStrada(x,z)) continue; lamp.push([x,z]); }
+    const pali=new THREE.InstancedMesh(new THREE.CylinderGeometry(0.07,0.1,4.2,6), mat(0x1c2a38), lamp.length);
+    const luci=new THREE.InstancedMesh(new THREE.SphereGeometry(0.26,8,6), mat(0xffe7b0,true), lamp.length);
+    const m4=new THREE.Matrix4();
+    lamp.forEach(([x,z],i)=>{ m4.makeTranslation(x,2.1,z); pali.setMatrixAt(i,m4); m4.makeTranslation(x,4.3,z); luci.setMatrixAt(i,m4); solidi.push({cerchio:true,x,z,r:0.3,lampione:true}); });
+    S.add(pali,luci);
+    // gli alberi: i giardini negli angoli fra il tondo e il quadrato, e il bosco fuori città
+    const alberi=[];
+    for(let x=-34;x<=34;x+=4.5) for(let z=-34;z<=34;z+=4.5){ const r=Math.hypot(x,z); if(r<39) continue;
+      if(radiali.some(R=>Math.abs(x*R.co-z*R.s)<3.6 && x*R.s+z*R.co>0)) continue; alberi.push([x,z,1]); }
+    for(let i=0;i<90;i++){ const a=i/90*Math.PI*2+0.05, r=104+(i*13%14); const m=Math.max(Math.abs(Math.sin(a)),Math.abs(Math.cos(a))); alberi.push([Math.sin(a)*r/m*0.92,Math.cos(a)*r/m*0.92,0]); }
+    const tronchi=new THREE.InstancedMesh(new THREE.CylinderGeometry(0.2,0.3,1.6,6), mat(0x3b2a1e), alberi.length);
+    const chiome=new THREE.InstancedMesh(new THREE.ConeGeometry(1.8,4.6,7), new THREE.MeshLambertMaterial({color:0xffffff}), alberi.length);
+    const col=new THREE.Color();
+    alberi.forEach(([x,z,giardino],i)=>{ const s=0.8+((i*7)%5)/10; m4.makeTranslation(x,0.8,z); tronchi.setMatrixAt(i,m4);
+      m4.makeScale(s,s,s).setPosition(x,1.6+2.3*s,z); chiome.setMatrixAt(i,m4); col.setHex([0x1f4a33,0x245a3a,0x1a3d2b][i%3]); chiome.setColorAt(i,col);
+      if(giardino){ solidi.push({cerchio:true,x,z,r:0.5}); occupa(x,z,0,0.6,0.6,"albero del giardino"); } });
+    chiome.instanceColor.needsUpdate=true; S.add(tronchi,chiome); }
 
   // ── tu, e chi passeggia ──
-  let tu=avatar(citta); S.add(tu); tu.position.set(0,0,64); tu.rotation.y=Math.PI;
+  let tu=avatar(citta); S.add(tu); tu.position.set(0,0,52); tu.rotation.y=Math.PI;
   function rivestiTu(){ const p=tu.position.clone(), r=tu.rotation.y; S.remove(tu); tu=avatar(citta); tu.position.copy(p); tu.rotation.y=r; S.add(tu); }
   rivesti=rivestiTu;
   const passanti=[]; const vv=Object.keys(VESTITI);
   for(let i=0;i<7;i++){ const p=avatar({vestito:vv[(i*3+1)%vv.length],pelle:i%5,colore:i===2?0x8E44AD:undefined});
     const a=i/7*Math.PI*2; p.position.set(Math.sin(a)*12,0,Math.cos(a)*12); S.add(p); passanti.push({m:p,meta:null,attesa:Math.random()*3}); }
 
-  // ══ GLI INTERNI ══ — ogni palazzo ha la sua stanza, costruita la prima
-  // volta che ci si entra e poi tenuta. L'albero e il lotto sono all'aperto:
-  // la telecamera ci gira intorno nella città stessa.
-  const camStanza=new THREE.PerspectiveCamera(56, innerWidth/innerHeight, 0.1, 300);
+  // ══ GLI INTERNI ══ — ogni palazzo ha la sua stanza, costruita la prima volta che ci si entra.
+  // 3 ottobre, JJ: «dentro i palazzi quando entri ci cammini, ci sono le cose inerenti al palazzo,
+  // ci clicchi e corrisponde una cosa». Ogni cosa ha un segno giallo e il suo nome sopra;
+  // davanti c'è il suo «posto»: ci arrivi a piedi, e si apre lei. L'albero e il lotto sono all'aperto.
+  const camStanza=new THREE.PerspectiveCamera(70, innerWidth/innerHeight, 0.1, 300);
   const interni={}; let attiva=null, tuStanza=null, tStanza=0;
-  const LARGO=14, PROFONDO=12, ALTO=5;
+  const LARGO=14, PROFONDO=12, ALTO=5, HUB={x:0,z:1.2}, ENTRATA={x:0,z:3.0};
+  const dentro={meta:null,tappe:[],metaId:null,fermoDa:0,distPrima:Infinity,salti:0};
   function guscio(muro, pavimento=0x0c2236){
     const S2=new THREE.Scene(); S2.background=new THREE.Color(0x030b16);
     const pareti=new THREE.MeshLambertMaterial({color:muro, side:THREE.BackSide});
@@ -939,11 +1212,13 @@ async function costruisci(){
     S2.add(new THREE.HemisphereLight(0xfff4e6, 0x30333a, 1.5));
     const lamp=new THREE.PointLight(0xffe7c4, 60, 22, 2); lamp.position.set(0,ALTO-0.4,0); S2.add(lamp);
     const striscia=scatola(LARGO-1,0.06,0.3,0xfff1d6,true); striscia.position.set(0,ALTO-0.05,-1); S2.add(striscia);
-    for(const z of [-PROFONDO/2+0.05]){ const z2=scatola(LARGO,0.12,0.06,0x00B4D8,true); z2.position.set(0,0.06,z); S2.add(z2); }
+    const z2=scatola(LARGO,0.12,0.06,0x00B4D8,true); z2.position.set(0,0.06,-PROFONDO/2+0.05); S2.add(z2);
+    // la porta da cui sei entrato: ci torni e si esce
+    const porta=scatola(1.8,2.6,0.06,0x06121f); porta.position.set(0,1.3,PROFONDO/2-0.04); S2.add(porta);
+    for(const [x,y,w,h] of [[-0.95,1.3,0.1,2.7],[0.95,1.3,0.1,2.7],[0,2.65,2,0.1]]){ const f=scatola(w,h,0.08,0x00B4D8,true); f.position.set(x,y,PROFONDO/2-0.06); S2.add(f); }
+    const usc=insegna("USCITA","torni in città",2.4); usc.position.set(0,3.3,PROFONDO/2-0.07); usc.rotation.y=Math.PI; S2.add(usc);
     return S2;
   }
-  const metti=(S2,m,x,y,z,ry=0)=>{ m.position.set(x,y,z); m.rotation.y=ry; S2.add(m); return m; };
-  const muroInsegna=(S2,t,s,w=7,y=3.4)=>metti(S2,insegna(t,s,w),0,y,-PROFONDO/2+0.08);
   const ologlobo=(r)=>{ const g=new THREE.Group();
     g.add(new THREE.Mesh(new THREE.IcosahedronGeometry(r,2), new THREE.MeshBasicMaterial({color:0x00B4D8,wireframe:true,transparent:true,opacity:.85})));
     g.add(new THREE.Mesh(new THREE.SphereGeometry(r*0.78,20,14), new THREE.MeshBasicMaterial({color:0x0077B6,transparent:true,opacity:.35})));
@@ -956,101 +1231,194 @@ async function costruisci(){
     return new THREE.Mesh(new THREE.PlaneGeometry(w,h), new THREE.MeshBasicMaterial({map:tex(cv)})); };
   const tavolo=(w,d,c=0x3a2a1e)=>{ const g=new THREE.Group(); const p=scatola(w,0.08,d,c); p.position.y=0.95; g.add(p);
     for(const sx of [-1,1]) for(const sz of [-1,1]){ const g2=scatola(0.07,0.95,0.07,0x222222); g2.position.set(sx*(w/2-0.1),0.475,sz*(d/2-0.1)); g.add(g2); } return g; };
+  // sulle pareti: sinistra x=−7, destra x=+7, fondo z=−6 (la porta è a z=+6)
+  const aParete=(m,lato,z,y)=>{ m.position.set(lato*(LARGO/2-0.08),y,z); m.rotation.y=-lato*Math.PI/2; return m; };
 
   const ARREDI={
-    reception(S2){ muroInsegna(S2,"RECEPTION","qui nasce il tuo assistente");
-      const banco=scatola(5,1.1,1,0x0D2A3E); metti(S2,banco,0,0.55,-2.6); metti(S2,scatola(5.02,0.06,1.02,0x00B4D8,true),0,1.12,-2.6);
-      metti(S2,ologlobo(0.75),0,2.2,-2.6);
-      for(const s of [-1,1]){ const d=scatola(2.6,0.45,0.9,0x2a3f57); metti(S2,d,s*4.6,0.25,1.5,s*Math.PI/2); const sch=scatola(2.6,0.7,0.2,0x2a3f57); metti(S2,sch,s*5.05,0.7,1.5,s*Math.PI/2); }
-      metti(S2,new THREE.Mesh(new THREE.CylinderGeometry(1.4,1.4,0.02,32),mat(0x00B4D8,true)),0,0.02,0); },
-    sartoria(S2){ muroInsegna(S2,"SARTORIA","vestiti come vuoi");
-      ["corriere","negozio","sanita","ufficio"].forEach((v,i)=>{ const m=avatar({vestito:v,pelle:i%5}); metti(S2,cilindro(0.45,0.5,0.25,0x0D3A5C,14),-4.5+i*3,0.125,-4); metti(S2,m,-4.5+i*3,0.25,-4); });
-      const spec=new THREE.Mesh(new THREE.PlaneGeometry(2.2,3.2), new THREE.MeshBasicMaterial({color:0x9fe9ff,transparent:true,opacity:.35})); metti(S2,spec,-LARGO/2+0.06,1.9,1,Math.PI/2);
-      metti(S2,cilindro(0.04,0.04,3,0x888888,8),5.2,1.9,1.5).rotation.x=Math.PI/2;
-      [0xe63946,0x2f8f5b,0xffd60a,0x6a4fb5,0x2f5d8c].forEach((c,i)=>metti(S2,scatola(0.5,0.9,0.12,c),5.2,1.35,0.3+i*0.55)); },
-    bottega(S2){ muroInsegna(S2,"BOTTEGA","i prodotti di JJA-VIS");
-      for(const s of [-1,1]){ for(let r=0;r<3;r++){ metti(S2,scatola(4,0.08,0.7,0x5a3b22),s*4.4,0.8+r*0.9,-5.5);
-        for(let k=0;k<5;k++) metti(S2,scatola(0.5,0.55,0.45,[0x00B4D8,0xFFD60A,0xe63946,0x2ECC71,0xf2f2f2][(k+r)%5]),s*4.4-1.6+k*0.8,1.12+r*0.9,-5.5); } }
-      ["CLIO","SOPRALLUOGO","SU MISURA","ATHENA"].forEach((n,i)=>{ const x=-4.2+i*2.8; metti(S2,scatola(1.6,0.9,0.9,0x3a2a1e),x,0.45,-1.6);
-        const ins=insegna(n,"",2.2,"#FFD60A"); metti(S2,ins,x,1.5,-1.6); ins.rotation.x=-0.2; }); },
-    forgia(S2){ muroInsegna(S2,"LA FORGIA","su misura, adesso");
-      metti(S2,scatola(1.4,0.6,0.7,0x2a2a2a),-3.5,0.85,-2.5); metti(S2,scatola(0.7,0.55,0.6,0x2a2a2a),-3.5,0.28,-2.5);
-      const fuoco=scatola(2,0.9,1.4,0x3a302b); metti(S2,fuoco,-5,0.45,-4.4); metti(S2,scatola(1.6,0.2,1,0xff7a1a,true),-5,0.95,-4.4);
+    reception(S2,h){ h.insegnaFondo("RECEPTION","qui nasce il tuo assistente");
+      const banco=scatola(5,1.1,1,0x0D2A3E); h.metti(banco,0,0.55,-2.6); h.metti(scatola(5.02,0.06,1.02,0x00B4D8,true),0,1.12,-2.6); h.solido(0,-2.6,5,1);
+      h.metti(ologlobo(0.75),0,2.2,-2.6);
+      h.cosa("banco",[banco],0,-2.6,{x:0,z:-1.4},3.4);
+      for(const s of [-1,1]){ const d=scatola(2.6,0.45,0.9,0x2a3f57); h.metti(d,s*5.0,0.25,1.5,s*Math.PI/2); const sch=scatola(2.6,0.7,0.2,0x2a3f57); h.metti(sch,s*5.45,0.7,1.5,s*Math.PI/2);
+        h.solido(s*5.15,1.5,1.2,2.6); h.cosa(s<0?"chat":"dati",[d,sch],s*5.1,1.5,{x:s*3.9,z:1.5},1.9); }
+      h.metti(new THREE.Mesh(new THREE.CylinderGeometry(1.4,1.4,0.02,32),mat(0x00B4D8,true)),0,0.02,0); },
+    sartoria(S2,h){ h.insegnaFondo("SARTORIA","vestiti come vuoi");
+      const man=[]; ["corriere","negozio","sanita","ufficio"].forEach((v,i)=>{ const m=avatar({vestito:v,pelle:i%5}); const x=-4.5+i*3; h.metti(cilindro(0.45,0.5,0.25,0x0D3A5C,14),x,0.125,-4); h.metti(m,x,0.25,-4); man.push(m); h.tondo(x,-4,0.55); });
+      h.cosa("manichini",man,0,-4,{x:0,z:-2.5},2.9);
+      const spec=new THREE.Mesh(new THREE.PlaneGeometry(2.2,3.2), new THREE.MeshBasicMaterial({color:0x9fe9ff,transparent:true,opacity:.35})); S2.add(aParete(spec,-1,1,1.9));
+      const corn=scatola(0.06,3.4,2.4,0xFFD60A,true); corn.position.set(-LARGO/2+0.04,1.9,1); S2.add(corn);
+      h.cosa("specchio",[spec,corn],-6.7,1,{x:-5.2,z:1},3.8);
+      h.metti(cilindro(0.04,0.04,3,0x888888,8),5.2,1.9,1.5).rotation.x=Math.PI/2;
+      [0xe63946,0x2f8f5b,0xffd60a,0x6a4fb5,0x2f5d8c].forEach((c,i)=>h.metti(scatola(0.5,0.9,0.12,c),5.2,1.35,0.3+i*0.55)); h.solido(5.2,1.5,0.7,3.2); },
+    bottega(S2,h){ h.insegnaFondo("BOTTEGA","i prodotti di JJA-VIS");
+      for(const s of [-1,1]){ for(let r=0;r<3;r++){ h.metti(scatola(4,0.08,0.7,0x5a3b22),s*4.4,0.8+r*0.9,-5.5);
+        for(let k=0;k<5;k++) h.metti(scatola(0.5,0.55,0.45,[0x00B4D8,0xFFD60A,0xe63946,0x2ECC71,0xf2f2f2][(k+r)%5]),s*4.4-1.6+k*0.8,1.12+r*0.9,-5.5); } h.solido(s*4.4,-5.5,4,0.8); }
+      const tuo=PER_TE[vestitoDi(citta.mestiere)];
+      [["clio","CLIO"],["sopralluogo","SOPRALLUOGO"],["sumisura","SU MISURA"],["athena","ATHENA"]].forEach(([k,n],i)=>{ const x=-4.2+i*2.8;
+        const banco=scatola(1.6,0.9,0.9,k===tuo?0x6b5a1e:0x3a2a1e); h.metti(banco,x,0.45,-1.6); h.solido(x,-1.6,1.6,0.9);
+        const ins=insegna(n,"",2.2,"#FFD60A"); h.metti(ins,x,1.5,-1.6); ins.rotation.x=-0.2;
+        h.cosa(k,[banco,ins],x,-1.6,{x,z:-0.35},2.5); }); },
+    forgia(S2,h){ h.insegnaFondo("LA FORGIA","su misura, adesso");
+      const i1=scatola(1.4,0.6,0.7,0x2a2a2a), i2=scatola(0.7,0.55,0.6,0x2a2a2a); h.metti(i1,-3.5,0.85,-2.5); h.metti(i2,-3.5,0.28,-2.5); h.solido(-3.5,-2.5,1.4,0.7);
+      h.cosa("incudine",[i1,i2],-3.5,-2.5,{x:-3.5,z:-1.2},2.1);
+      const fuoco=scatola(2,0.9,1.4,0x3a302b); h.metti(fuoco,-5,0.45,-4.4); h.metti(scatola(1.6,0.2,1,0xff7a1a,true),-5,0.95,-4.4); h.solido(-5,-4.4,2,1.4);
       const f=new THREE.PointLight(0xff7a1a,50,12,2); f.position.set(-5,1.6,-4); S2.add(f);
-      metti(S2,tavolo(3.4,1.2),3.4,0,-3.4);
-      for(const [x,c,t] of [[2.6,"#00B4D8","</>"],[4.2,"#FFD60A","SITO"]]){ metti(S2,schermo(1.3,0.8,c,t),x,1.55,-3.7); metti(S2,scatola(0.08,0.4,0.08,0x222222),x,1.15,-3.75); } },
-    torre(S2){ muroInsegna(S2,"LA TORRE","chi sono · cosa so fare");
-      const g=metti(S2,ologlobo(1.2),0,1.7,-1.5); metti(S2,new THREE.Mesh(new THREE.RingGeometry(1.7,1.9,48),mat(0x00B4D8,true)),0,0.03,-1.5).rotation.x=-Math.PI/2;
+      const tav=tavolo(3.4,1.2); h.metti(tav,3.4,0,-3.4); h.solido(3.4,-3.4,3.4,1.2); const sch=[];
+      for(const [x,c,t] of [[2.6,"#00B4D8","</>"],[4.2,"#FFD60A","SITO"]]){ const s=schermo(1.3,0.8,c,t); h.metti(s,x,1.55,-3.7); sch.push(s); h.metti(scatola(0.08,0.4,0.08,0x222222),x,1.15,-3.75); }
+      h.cosa("banco",[tav,...sch],3.4,-3.4,{x:3.4,z:-2.1},2.5);
+      const lav=aParete(schermo(2.4,1.4,"#FFD60A","ATHENA"),1,1.5,2.0); S2.add(lav); h.cosa("lavoro",[lav],6.6,1.5,{x:5.3,z:1.5},3.3); },
+    torre(S2,h){ h.insegnaFondo("LA TORRE","chi sono · cosa so fare");
+      const g=h.metti(ologlobo(1.2),0,1.7,-1.5); h.metti(new THREE.Mesh(new THREE.RingGeometry(1.7,1.9,48),mat(0x00B4D8,true)),0,0.03,-1.5).rotation.x=-Math.PI/2; h.tondo(0,-1.5,1.3);
+      h.cosa("globo",[g],0,-1.5,{x:0,z:0.7},3.5);
       for(const s of [-1,1]){ const v=facciata(PROFONDO,ALTO,{muro:"#0f2d47",luce:0.85,seme:s>0?7:9}); const m=new THREE.Mesh(new THREE.PlaneGeometry(PROFONDO-0.2,ALTO-0.2),new THREE.MeshBasicMaterial({map:v.emi}));
-        metti(S2,m,s*(LARGO/2-0.06),ALTO/2,0,-s*Math.PI/2); } },
-    cinema(S2){ metti(S2,schermo(9,3.6,"#00B4D8","GUARDAMI AL LAVORO"),0,2.5,-PROFONDO/2+0.08);
-      for(let r=0;r<4;r++) for(let k=0;k<7;k++){ const x=-4.5+k*1.5, z=-1+r*1.4; metti(S2,scatola(1.1,0.5,0.8,0x8a1f2c),x,0.25+r*0.15,z); metti(S2,scatola(1.1,0.8,0.15,0x8a1f2c),x,0.7+r*0.15,z+0.38); } },
-    voci(S2){ muroInsegna(S2,"PIAZZA DELLE VOCI","cosa vi fa perdere tempo?");
-      for(let r=0;r<3;r++) for(let k=0;k<7;k++){ const a=(k-3)*0.32, R=3.2+r*1.3; metti(S2,scatola(1.1,0.45,0.6,0x6b4a2e),Math.sin(a)*R,0.23+r*0.25,-1.5+Math.cos(a)*R,a); }
-      metti(S2,cilindro(0.5,0.6,1.1,0x0D3A5C,12),0,0.55,-3.2); metti(S2,ologlobo(0.4),0,1.7,-3.2); },
-    borsa(S2){ metti(S2,schermo(12,1.1,"#2ECC71","JJA-VIS FREE  ·  PRO  ·  ENTERPRISE"),0,3.6,-PROFONDO/2+0.08);
-      muroInsegna(S2,"BORSA","per chi vuole investire",5,2.2);
-      for(let k=0;k<3;k++){ metti(S2,tavolo(2.4,1),-4+k*4,0,0.8); metti(S2,schermo(1,0.6,"#2ECC71",["Free","Pro","Ent."][k]),-4+k*4,1.45,0.6); } },
-    athena(S2){ muroInsegna(S2,"ATHENA TRASPORTI","consegne · urgenze · sgomberi");
-      for(const s of [-1,1]) for(let r=0;r<3;r++){ metti(S2,scatola(0.12,3.2,1.2,0xe07a1f),s*4.2-1.6,1.6,-4.6); metti(S2,scatola(0.12,3.2,1.2,0xe07a1f),s*4.2+1.6,1.6,-4.6);
-        metti(S2,scatola(3.4,0.08,1.2,0x7d8794),s*4.2,0.5+r*1.05,-4.6);
-        for(let k=0;k<4;k++) metti(S2,scatola(0.7,0.55+((k+r)%2)*0.2,0.8,0xc8a165),s*4.2-1.2+k*0.8,0.85+r*1.05,-4.6); }
-      metti(S2,scatola(1.2,0.15,1.2,0x8a6a40),0,0.08,-1); for(let k=0;k<5;k++) metti(S2,scatola(0.5,0.4,0.5,0xc8a165),-0.25+(k%2)*0.5,0.36+Math.floor(k/2)*0.4,-1+(k%2?0.2:-0.2)); },
-    giochi(S2){ muroInsegna(S2,"SALA GIOCHI","si apre presto");
-      [[-5,0xff4fd8],[-2.5,0x00B4D8],[2.5,0xFFD60A],[5,0x2ECC71]].forEach(([x,c],i)=>{ metti(S2,scatola(1.2,2.2,0.9,0x15161a),x,1.1,-5);
-        const sc=schermo(0.9,0.7,"#"+c.toString(16).padStart(6,"0"),i===0?"1":i===1?"2":"?"); metti(S2,sc,x,1.55,-4.54); metti(S2,scatola(1.21,0.12,0.12,c,true),x,2.25,-4.55); });
-      for(const s of [-1,1]) metti(S2,scatola(0.1,0.1,PROFONDO-1,0xff4fd8,true),s*(LARGO/2-0.1),ALTO-0.4,0); },
+        h.metti(m,s*(LARGO/2-0.06),ALTO/2,0,-s*Math.PI/2); }
+      const sa=aParete(schermo(2.6,1.4,"#00B4D8","COSA SO FARE"),1,1.5,2.0); sa.position.x-=0.1; S2.add(sa); h.cosa("sa",[sa],6.6,1.5,{x:5.3,z:1.5},3.3);
+      const tt=aParete(schermo(2.6,1.4,"#FFD60A","PER CHIUNQUE"),-1,1.5,2.0); tt.position.x+=0.1; S2.add(tt); h.cosa("tutti",[tt],-6.6,1.5,{x:-5.3,z:1.5},3.3); },
+    cinema(S2,h){ const sc=schermo(9,3.6,"#00B4D8","GUARDAMI AL LAVORO"); h.metti(sc,0,2.5,-PROFONDO/2+0.08);
+      h.cosa("schermo",[sc],0,-5.6,{x:0,z:-3.4},4.75);
+      for(const s of [-1,1]){ for(let r=0;r<4;r++) for(let k=0;k<3;k++){ const x=s*(2.8+k*1.4), z=-1+r*1.4; h.metti(scatola(1.1,0.5,0.8,0x8a1f2c),x,0.25+r*0.15,z); h.metti(scatola(1.1,0.8,0.15,0x8a1f2c),x,0.7+r*0.15,z+0.38); }
+        h.solido(s*4.2,1.3,4.2,5.4); }
+      // la biglietteria, accanto alla porta: ci si arriva dal corridoio, fra le poltrone e la porta
+      const bb=scatola(1.4,1.1,0.8,0x3b2a4f); h.metti(bb,-3.0,0.55,5.0); h.metti(scatola(1.42,0.06,0.82,0xFFD60A,true),-3.0,1.12,5.0); h.solido(-3.0,5.0,1.4,0.8);
+      const cartello=schermo(1.6,0.6,"#FFD60A","BIGLIETTI"); h.metti(cartello,-3.0,2.0,5.38,Math.PI);
+      h.cosa("biglietteria",[bb,cartello],-3.0,5.0,{x:-1.8,z:4.6},2.6); },
+    voci(S2,h){ h.insegnaFondo("PIAZZA DELLE VOCI","cosa vi fa perdere tempo?");
+      const pod=cilindro(0.5,0.6,1.1,0x0D3A5C,12), gl=ologlobo(0.4); h.metti(pod,0,0.55,-3.4); h.metti(gl,0,1.7,-3.4); h.tondo(0,-3.4,0.7);
+      h.cosa("urna",[pod,gl],0,-3.4,{x:0,z:-2.0},2.6);
+      for(const s of [-1,1]) for(const z of [-2.2,0.2]){ const b=scatola(2.2,0.45,0.6,0x6b4a2e); h.metti(b,s*5,0.23,z,Math.PI/2); h.solido(s*5,z,0.6,2.2); }
+      const tab=aParete(schermo(2.6,1.5,"#FFD60A","I NUMERI"),-1,2.8,2.2); S2.add(tab); h.cosa("tabellone",[tab],-6.6,2.8,{x:-5.3,z:2.8},3.4); },
+    borsa(S2,h){ h.metti(schermo(12,1.1,"#2ECC71","JJA-VIS FREE  ·  PRO  ·  ENTERPRISE"),0,4.1,-PROFONDO/2+0.08);
+      h.insegnaFondo("BORSA","per chi vuole investire",5,2.6);
+      const tav=[]; for(let k=0;k<3;k++){ const t=tavolo(2.4,1); h.metti(t,-4+k*4,0,-2.4); const s=schermo(1,0.6,"#2ECC71",["Free","Pro","Ent."][k]); h.metti(s,-4+k*4,1.45,-2.6); tav.push(t,s); h.solido(-4+k*4,-2.4,2.4,1); }
+      h.cosa("tavoli",tav,0,-2.4,{x:0,z:-1.0},2.5);
+      const lav=aParete(schermo(2.6,1.5,"#2ECC71","IL PROBLEMA"),-1,1.5,2.0); S2.add(lav); h.cosa("lavagna",[lav],-6.6,1.5,{x:-5.3,z:1.5},3.3);
+      const bac=aParete(schermo(2.6,1.5,"#00B4D8","PERCHÉ IO"),1,1.5,2.0); S2.add(bac); h.cosa("bacheca",[bac],6.6,1.5,{x:5.3,z:1.5},3.3); },
+    athena(S2,h){ h.insegnaFondo("ATHENA TRASPORTI","consegne · urgenze · sgomberi");
+      const sc=[]; for(const s of [-1,1]){ for(let r=0;r<3;r++){ for(const dx of [-1.6,1.6]){ const m=scatola(0.12,3.2,1.2,0xe07a1f); h.metti(m,s*4.2+dx,1.6,-4.6); sc.push(m); }
+        h.metti(scatola(3.4,0.08,1.2,0x7d8794),s*4.2,0.5+r*1.05,-4.6);
+        for(let k=0;k<4;k++){ const b=scatola(0.7,0.55+((k+r)%2)*0.2,0.8,0xc8a165); h.metti(b,s*4.2-1.2+k*0.8,0.85+r*1.05,-4.6); sc.push(b); } } h.solido(s*4.2,-4.6,3.6,1.2); }
+      h.cosa("scaffali",sc,-4.2,-4.6,{x:-4.2,z:-3.2},3.7);
+      h.metti(scatola(1.2,0.15,1.2,0x8a6a40),0,0.08,-1.6); for(let k=0;k<5;k++) h.metti(scatola(0.5,0.4,0.5,0xc8a165),-0.25+(k%2)*0.5,0.36+Math.floor(k/2)*0.4,-1.6+(k%2?0.2:-0.2)); h.solido(0,-1.6,1.4,1.4);
+      const sito=aParete(schermo(2.6,1.5,"#00B4D8","IL SITO"),1,1.5,2.0); S2.add(sito); h.cosa("sito",[sito],6.6,1.5,{x:5.3,z:1.5},3.3); },
+    giochi(S2,h){ h.insegnaFondo("SALA GIOCHI","si apre presto");
+      [[-5,0xff4fd8,"cab1","1"],[-2.5,0x00B4D8,"cab2","2"],[2.5,0xFFD60A,"chi","?"],[5,0x2ECC71,null,"?"]].forEach(([x,c,k,t])=>{ const m=scatola(1.2,2.2,0.9,0x15161a); h.metti(m,x,1.1,-5);
+        const sc=schermo(0.9,0.7,"#"+c.toString(16).padStart(6,"0"),t); h.metti(sc,x,1.55,-4.54); h.metti(scatola(1.21,0.12,0.12,c,true),x,2.25,-4.55); h.solido(x,-5,1.2,0.9);
+        if(k) h.cosa(k,[m,sc],x,-5,{x,z:-3.6},2.95); });
+      for(const s of [-1,1]) h.metti(scatola(0.1,0.1,PROFONDO-1,0xff4fd8,true),s*(LARGO/2-0.1),ALTO-0.4,0); },
+    ristorante(S2,h){ h.insegnaFondo("RISTORANTE","alla cassa: il menù",5,3.7);
+      const banco=scatola(3.2,1.1,1,0x5a2f22), piano=scatola(3.24,0.06,1.04,0xFFD60A,true), reg=scatola(0.5,0.35,0.4,0x15161a), tab=schermo(2.6,1.4,"#FFD60A","MENÙ");
+      h.metti(banco,4.3,0.55,-4.4); h.metti(piano,4.3,1.12,-4.4); h.metti(reg,3.6,1.33,-4.4); h.metti(tab,4.3,3.0,-PROFONDO/2+0.09); h.solido(4.3,-4.4,3.2,1);
+      h.cosa("cassa",[banco,reg,tab],4.3,-4.4,{x:4.3,z:-3.0},2.2);
+      const cu=schermo(2.6,1.4,"#ff7a1a","CUCINA"), pass=scatola(3,1,0.8,0x3a3f46); h.metti(cu,-4.3,2.4,-PROFONDO/2+0.09); h.metti(pass,-4.3,0.5,-5.5); h.solido(-4.3,-5.5,3,0.8);
+      const fuochi=new THREE.PointLight(0xff9a3a,25,8,2); fuochi.position.set(-4.3,1.8,-5); S2.add(fuochi);
+      h.cosa("cucina",[cu,pass],-4.3,-5.5,{x:-4.3,z:-3.9},3.5);
+      for(const s of [-1,1]) for(const z of [0.2,3.0]){ const x=s*4.6; const t=cilindro(0.6,0.6,0.06,0xf4ecd6,20); h.metti(t,x,0.95,z); h.metti(cilindro(0.06,0.06,0.95,0x222222,6),x,0.475,z);
+        for(const dz of [-0.85,0.85]){ h.metti(scatola(0.45,0.45,0.45,0x7a3b2a),x,0.23,z+dz); } h.metti(palla(0.07,0xffc46b,true,6),x,1.05,z); h.tondo(x,z,1.05); } },
+    palestra(S2,h){ h.insegnaFondo("PALESTRA","il tuo stato di forma",5,3.7);
+      const pedana=scatola(0.9,0.12,0.9,0xcfd6dc), col=scatola(0.12,1.3,0.12,0x2b2f36), sch=schermo(0.8,0.55,"#2ECC71","TEST");
+      h.metti(pedana,4.6,0.06,-4.6); h.metti(col,4.6,0.75,-5.0); h.metti(sch,4.6,1.5,-4.93); h.solido(4.6,-4.7,1.2,1.2);
+      h.cosa("bilancia",[pedana,col,sch],4.6,-4.7,{x:4.6,z:-3.1},2.5);
+      const tap=[]; for(const z of [-2.2,0,2.2]){ const t=scatola(1.8,0.04,1,[0x2ECC71,0x00B4D8,0xFFD60A][tap.length]); h.metti(t,-4.6,0.02,z); tap.push(t);
+        const kb=palla(0.2,0x15161a,false,8); h.metti(kb,-6.2,0.2,z); h.tondo(-6.2,z,0.3); }
+      h.cosa("esercizi",tap,-4.6,0,{x:-3.0,z:0},1.4);
+      const rast=scatola(4,0.8,0.8,0x2b2f36); h.metti(rast,0,0.4,-5.4); h.solido(0,-5.4,4,0.8);
+      for(let k=0;k<6;k++) for(const s of [-1,1]){ const d=cilindro(0.13,0.13,0.12,0x2ECC71,10); d.rotation.z=Math.PI/2; h.metti(d,-1.6+k*0.64+s*0.18,0.88,-5.4); }
+      const tapis=scatola(1,0.4,2.2,0x15161a); h.metti(tapis,5.6,0.2,-0.9); h.metti(scatola(0.9,1.2,0.1,0x2b2f36),5.6,0.9,-1.95); h.solido(5.6,-0.9,1,2.2);
+      const bac=aParete(schermo(2.6,1.5,"#2ECC71","PRIMA DI COMINCIARE"),1,1.8,2.0); S2.add(bac); h.cosa("bacheca",[bac],6.6,1.8,{x:5.3,z:1.8},3.3); },
   };
+  const COLORI_STANZA={torre:[0x0f2d47],cinema:[0x1a1024],giochi:[0x1c0d2e],forgia:[0x3a2f2a],ristorante:[0x5a3428,0x2a1a12],palestra:[0x1f2a33,0x111418]};
+  function costruisciStanza(id){
+    const [muro,pav]=COLORI_STANZA[id]||[0x26425c]; const S2=guscio(muro,pav);
+    const R={S:S2,id,cose:{},solidi:[],toccabili:[],segni:[]}; const L=LUOGHI[id];
+    const h={
+      metti:(m,x,y,z,ry=0)=>{ m.position.set(x,y,z); m.rotation.y=ry; S2.add(m); return m; },
+      insegnaFondo:(t,s,w=7,y=3.4)=>{ const m=insegna(t,s,w); m.position.set(0,y,-PROFONDO/2+0.08); S2.add(m); return m; },
+      solido:(x,z,w,d)=>R.solidi.push({x,z,rot:0,w,d}),
+      tondo:(x,z,r)=>R.solidi.push({cerchio:true,x,z,r}),
+      cosa:(k,mesh,x,z,posto,y=2.4)=>{ const p=parteDi(L,k); const nome=p?(p.breve||p.nome):k;
+        GEO.segno=GEO.segno||new THREE.OctahedronGeometry(0.16,0);
+        const segno=new THREE.Mesh(GEO.segno, mat(0xFFD60A,true)); segno.position.set(x,y,z); S2.add(segno);
+        const et=etichetta(nome); et.position.set(x,y+0.45,z); S2.add(et);
+        R.cose[k]={id:k,nome:p?p.nome:k,x,z,posto,segno,y}; R.segni.push(segno);
+        mesh.forEach(m=>R.toccabili.push([m,k])); R.toccabili.push([segno,k],[et,k]); },
+    };
+    (ARREDI[id]||(()=>{}))(S2,h);
+    return R;
+  }
   const ESTERNI={albero:{x:0,z:0,r:12,h:6,y:5}};
+  let yawFuori=0;
   scena.entra=id=>{
     tStanza=0;
-    if(id==="albero"||id==="lotto"){
+    if(LUOGHI[id].esterno){
       const L=porte[lottoVicino()]; const c=id==="albero"?ESTERNI.albero:{x:L.cx,z:L.cz,r:12,h:6,y:2};
       attiva={esterno:true,...c}; return;
     }
-    if(!interni[id]){ const S2=guscio(id==="torre"?0x0f2d47:id==="cinema"?0x1a1024:id==="giochi"?0x1c0d2e:id==="forgia"?0x3a2f2a:0x26425c); (ARREDI[id]||(()=>{}))(S2); interni[id]=S2; }
-    attiva={S:interni[id], sartoria:id==="sartoria"};
-    tuStanza=avatar(citta); tuStanza.position.set(attiva.sartoria?0:2.2,0,attiva.sartoria?1.4:1.6); tuStanza.rotation.y=attiva.sartoria?0:-0.5; attiva.S.add(tuStanza);
+    if(!interni[id]) interni[id]=costruisciStanza(id);
+    attiva=interni[id];
+    tuStanza=avatar(citta); tuStanza.position.set(ENTRATA.x,0,ENTRATA.z); tuStanza.rotation.y=Math.PI; attiva.S.add(tuStanza);
+    yawFuori=stato.yaw; stato.yaw=0; Object.assign(dentro,{meta:null,tappe:[],metaId:null,fermoDa:0,distPrima:Infinity,camSubito:true});
+    usoPrima=undefined; $("entra").hidden=true;   // il pulsante di fuori non resta acceso dentro
   };
-  scena.esci=()=>{ if(attiva && attiva.S && tuStanza) attiva.S.remove(tuStanza); tuStanza=null; attiva=null; };
+  scena.esci=()=>{ if(attiva && attiva.S && tuStanza){ attiva.S.remove(tuStanza); stato.yaw=yawFuori; } tuStanza=null; attiva=null; $("entra").hidden=true; vicinoPrima=null; };
+  scena.carta=cosa=>{ if(!attiva || attiva.esterno || !tuStanza) return; dentro.meta=null;
+    if(cosa==="specchio"){ const c=attiva.cose.specchio; tuStanza.position.set(c.posto.x,0,c.posto.z); } };
   const vecchioRivesti=rivesti;
   rivesti=()=>{ vecchioRivesti(); if(attiva && attiva.S && tuStanza){ const p=tuStanza.position.clone(), r=tuStanza.rotation.y; attiva.S.remove(tuStanza); tuStanza=avatar(citta); tuStanza.position.copy(p); tuStanza.rotation.y=r; attiva.S.add(tuStanza); } };
-  function disegnaStanza(dt){
-    tStanza+=dt; const H=innerHeight, W=innerWidth;
-    // il centro dell'immagine sale nella fascia alta, sopra la scheda
-    // la fascia alta è un terzo dello schermo: l'obiettivo si allarga perché ci stia la stanza intera
-    camStanza.fov=attiva.esterno?70:(attiva.sartoria?62:88); camStanza.aspect=W/H; camStanza.setViewOffset(W,H,0,0.34*H,W,H); camStanza.updateProjectionMatrix();
-    if(attiva.esterno){
-      const a=tStanza*0.18; camStanza.position.set(attiva.x+Math.sin(a)*attiva.r, attiva.h, attiva.z+Math.cos(a)*attiva.r); camStanza.lookAt(attiva.x,attiva.y,attiva.z);
-      if(scena._globo) scena._globo.rotation.y+=dt*0.35; if(scena._chioma) scena._chioma.rotation.y+=dt*0.04;
-      renderer.render(S,camStanza); return;
-    }
-    const a=Math.sin(tStanza*0.22)*0.45;
-    if(attiva.sartoria){ camStanza.position.set(Math.sin(a)*4.6,1.9,1.4+Math.cos(a)*4.6); camStanza.lookAt(0,1.55,1.4); if(tuStanza){ tuStanza.rotation.y=Math.sin(tStanza*0.7)*0.6; } }
-    else { camStanza.position.set(Math.sin(a)*2.5,2.6,5.5); camStanza.lookAt(0,1.7,-2.5); }
-    attiva.S.traverse(o=>{ if(o.userData.gira) o.rotation.y+=dt*0.4; });
-    renderer.render(attiva.S,camStanza);
-  }
 
-  // ── muoversi ──
-  const stato={yaw:0,pitch:0.38,dist:8,jx:0,jy:0,tasti:{},meta:null,metaId:null,fermoDa:0,ultimaPos:new THREE.Vector3(),modo:"cammina",spin:0};
-  function spingiFuori(p,raggio){
-    for(const s of solidi){
+  // ── urti: dentro e fuori, la stessa regola ──
+  function spingi(p,raggio,lista){
+    for(const s of lista){
       if(s.cerchio){ const dx=p.x-s.x, dz=p.z-s.z, d=Math.hypot(dx,dz), m=s.r+raggio; if(d<m && d>1e-4){ p.x=s.x+dx/d*m; p.z=s.z+dz/d*m; } continue; }
       const c=Math.cos(s.rot), sn=Math.sin(s.rot), rx=p.x-s.x, rz=p.z-s.z;
       const lx=rx*c-rz*sn, lz=rx*sn+rz*c; const hw=s.w/2+raggio, hd=s.d/2+raggio;
       if(Math.abs(lx)<hw && Math.abs(lz)<hd){ let nx=lx, nz=lz; if(hw-Math.abs(lx)<hd-Math.abs(lz)) nx=Math.sign(lx||1)*hw; else nz=Math.sign(lz||1)*hd;
         p.x=s.x+nx*c+nz*sn; p.z=s.z-nx*sn+nz*c; }
     }
-    const d=Math.hypot(p.x,p.z); if(d>67){ p.x*=67/d; p.z*=67/d; }
   }
-  // ── il percorso, a tappe: si cammina sulle strade, non attraverso i palazzi ──
-  // dentro (r<36): la piazza e le porte dei palazzi; fuori: l'anello 2, i lotti, il viale.
-  const polare=(g,r)=>({x:Math.sin(g*Math.PI/180)*r, z:Math.cos(g*Math.PI/180)*r});
-  const angolo=q=>((Math.atan2(q.x,q.z)*180/Math.PI)+360)%360;
-  const distAng=(a,b)=>Math.abs(((a-b+540)%360)-180);
-  const stradaVicina=g=>STRADE.reduce((m,s)=>distAng(s,g)<distAng(m,g)?s:m, STRADE[0]);
-  function arco(g0,g1,r,tappe){ let d=((g1-g0+540)%360)-180; const n=Math.ceil(Math.abs(d)/12); for(let i=1;i<=n;i++) tappe.push(polare(g0+d*i/n,r)); }
+  const dentroUno=(x,z,s,m=0)=>{ if(s.cerchio) return Math.hypot(x-s.x,z-s.z)<s.r+m;
+    const c=Math.cos(s.rot), sn=Math.sin(s.rot), rx=x-s.x, rz=z-s.z; return Math.abs(rx*c-rz*sn)<s.w/2+m && Math.abs(rx*sn+rz*c)<s.d/2+m; };
+  function spingiFuori(p,raggio){ spingi(p,raggio,solidi); p.x=Math.max(-BORDO,Math.min(BORDO,p.x)); p.z=Math.max(-BORDO,Math.min(BORDO,p.z)); }
+  function spingiDentro(p,raggio){ spingi(p,raggio,attiva.solidi); p.x=Math.max(-LARGO/2+raggio,Math.min(LARGO/2-raggio,p.x)); p.z=Math.max(-PROFONDO/2+raggio,Math.min(PROFONDO/2-raggio,p.z)); }
+
+  // ── il percorso fuori: si cammina sulle vie, con la strada più corta ──
+  // Le vie sono un grafo: gli incroci della griglia, l'anello tondo a passi di 12°, le radiali.
+  const nodi=[], vicini=[], chiaveNodo=new Map(), lati=[];
+  const nodo=(x,z)=>{ const k=Math.round(x*100)+","+Math.round(z*100); if(chiaveNodo.has(k)) return chiaveNodo.get(k);
+    nodi.push({x,z}); vicini.push([]); chiaveNodo.set(k,nodi.length-1); return nodi.length-1; };
+  const unisci=(a,b)=>{ if(a===b) return; const d=Math.hypot(nodi[a].x-nodi[b].x,nodi[a].z-nodi[b].z); vicini[a].push([b,d]); vicini[b].push([a,d]); lati.push([a,b]); };
+  { const fermi=tratti.map(()=>[]);
+    // gli incroci
+    tratti.forEach((t,i)=>{ if(!t.v) return; tratti.forEach((u,j)=>{ if(u.v) return;
+      if(u.c>=t.a-1e-6 && u.c<=t.b+1e-6 && t.c>=u.a-1e-6 && t.c<=u.b+1e-6){ const n=nodo(t.c,u.c); fermi[i].push([u.c,n]); fermi[j].push([t.c,n]); } }); });
+    // dove le radiali toccano il quadrato
+    const giro=new Set(); for(let g=0;g<360;g+=12) giro.add(g);
+    for(const R of radiali){ giro.add(R.g); const x=R.s*R.fine, z=R.co*R.fine, n=nodo(x,z);
+      tratti.forEach((t,i)=>{ const [lun,tra]=t.v?[z,x]:[x,z]; if(Math.abs(tra-t.c)<1e-6 && lun>=t.a-1e-6 && lun<=t.b+1e-6) fermi[i].push([lun,n]); });
+      R.nodoQ=n; }
+    fermi.forEach(f=>{ f.sort((a,b)=>a[0]-b[0]); for(let k=1;k<f.length;k++) unisci(f[k-1][1],f[k][1]); });
+    // l'anello tondo, con un nodo davanti a ogni palazzo della piazza
+    for(const P of PALAZZI) if(P.dentroPiazza) giro.add(((Math.atan2(P.x,P.z)*180/Math.PI)+360)%360);
+    const ang=[...giro].sort((a,b)=>a-b), tondo=ang.map(g=>nodo(Math.sin(g*Math.PI/180)*C1,Math.cos(g*Math.PI/180)*C1));
+    tondo.forEach((n,k)=>unisci(n,tondo[(k+1)%tondo.length]));
+    for(const R of radiali) unisci(tondo[ang.indexOf(R.g)], R.nodoQ); }
+  function accesso(p){ let best=null;
+    for(const [a,b] of lati){ const A=nodi[a], B=nodi[b], ux=B.x-A.x, uz=B.z-A.z, l2=ux*ux+uz*uz||1;
+      const t=Math.max(0,Math.min(1,((p.x-A.x)*ux+(p.z-A.z)*uz)/l2)), x=A.x+ux*t, z=A.z+uz*t, d=Math.hypot(p.x-x,p.z-z);
+      if(!best || d<best.d) best={a,b,x,z,d}; }
+    return best; }
+  function strada(pa,pb){   // le tappe sulle vie da pa a pb (Dijkstra, con due nodi in più per l'ingresso e l'uscita)
+    const A=accesso(pa), B=accesso(pb);
+    if((A.a===B.a&&A.b===B.b)||(A.a===B.b&&A.b===B.a)) return [{x:A.x,z:A.z},{x:B.x,z:B.z}];
+    const n=nodi.length, ia=n, ib=n+1, pos=i=>i===ia?A:i===ib?B:nodi[i];
+    const extra=new Map([[ia,[]],[ib,[]]]); const lega=(i,j)=>{ const d=Math.hypot(pos(i).x-pos(j).x,pos(i).z-pos(j).z); extra.get(i)?.push([j,d]); if(extra.has(j)) extra.get(j).push([i,d]); };
+    lega(ia,A.a); lega(ia,A.b); lega(ib,B.a); lega(ib,B.b);
+    const viciniDi=i=>i>=n?extra.get(i):[...vicini[i], ...(i===A.a||i===A.b?[[ia,Math.hypot(nodi[i].x-A.x,nodi[i].z-A.z)]]:[]), ...(i===B.a||i===B.b?[[ib,Math.hypot(nodi[i].x-B.x,nodi[i].z-B.z)]]:[])];
+    const dist=new Map([[ia,0]]), prima=new Map(), fatti=new Set();
+    while(true){ let u=null, du=Infinity; for(const [k,d] of dist) if(!fatti.has(k) && d<du){ du=d; u=k; }
+      if(u===null || u===ib) break; fatti.add(u);
+      for(const [v,w] of viciniDi(u)){ const nd=du+w; if(nd<(dist.get(v)??Infinity)){ dist.set(v,nd); prima.set(v,u); } } }
+    const via=[]; for(let k=ib; k!==undefined; k=prima.get(k)) via.unshift({x:pos(k).x,z:pos(k).z});
+    return via; }
   function giraAlbero(a,b,tappe){ const ux=b.x-a.x, uz=b.z-a.z, l2=ux*ux+uz*uz||1;
     const t=Math.max(0,Math.min(1,-(a.x*ux+a.z*uz)/l2)), cx=a.x+ux*t, cz=a.z+uz*t;
     if(Math.hypot(cx,cz)<3.8){ let nx=-uz, nz=ux; const nl=Math.hypot(nx,nz)||1; nx/=nl; nz/=nl;
@@ -1059,21 +1427,31 @@ async function costruisci(){
   function percorso(k){
     if(k==="lotto") k=lottoVicino();
     const P=porte[k]; if(!P) return;
-    const tappe=[]; const a={x:tu.position.x,z:tu.position.z}, b={x:P.x,z:P.z};
-    const fuoriA=Math.hypot(a.x,a.z)>36, fuoriB=Math.hypot(b.x,b.z)>36;
-    if(!fuoriA && !fuoriB){ giraAlbero(a,b,tappe); }
-    else if(fuoriA && fuoriB){ const ga=angolo(a), gb=angolo(b); tappe.push(polare(ga,39.75)); arco(ga,gb,39.75,tappe); }
-    else if(!fuoriA && fuoriB){ const gb=angolo(b), s=stradaVicina(gb); const p22=polare(s,21); giraAlbero(a,p22,tappe); tappe.push(p22, polare(s,39.75)); arco(s,gb,39.75,tappe); }
-    else { const ga=angolo(a), s=stradaVicina(ga); tappe.push(polare(ga,39.75)); arco(ga,s,39.75,tappe); const p21=polare(s,21); tappe.push(p21); giraAlbero(p21,b,tappe); }
+    const a={x:tu.position.x,z:tu.position.z}, b={x:P.x,z:P.z}; let tappe=[];
+    if(Math.hypot(a.x,a.z)<27 && Math.hypot(b.x,b.z)<27) giraAlbero(a,b,tappe);   // tutti e due in piazza: si attraversa
+    else { const v=strada(a,b); const primo=v[0], ultimo=v[v.length-1];
+      if(Math.hypot(a.x,a.z)<22) giraAlbero(a,primo,tappe);
+      tappe.push(...v); if(Math.hypot(b.x,b.z)<22) giraAlbero(ultimo,b,tappe); }
     tappe.push(b);
     stato.tappe=tappe.map(q=>new THREE.Vector3(q.x,0,q.z)); stato.meta=stato.tappe.shift(); stato.metaId=k; stato.fermoDa=0; stato.distPrima=Infinity;
   }
+  // ── il percorso dentro: dritto se si può, se no passando dal centro della stanza ──
+  function lineaLibera(a,b){ const l=Math.hypot(b.x-a.x,b.z-a.z), n=Math.ceil(l/0.2);
+    for(let i=1;i<n;i++){ const x=a.x+(b.x-a.x)*i/n, z=a.z+(b.z-a.z)*i/n; if(attiva.solidi.some(s=>dentroUno(x,z,s,0.38))) return false; } return true; }
+  function percorsoDentro(k){
+    const c=attiva&&attiva.cose&&attiva.cose[k]; if(!c) return;
+    const a={x:tuStanza.position.x,z:tuStanza.position.z};
+    const tappe=lineaLibera(a,c.posto)?[c.posto]:[HUB,c.posto];
+    dentro.tappe=tappe.map(q=>new THREE.Vector3(q.x,0,q.z)); dentro.meta=dentro.tappe.shift(); dentro.metaId=k; dentro.fermoDa=0; dentro.distPrima=Infinity;
+  }
+
+  const stato={yaw:0,pitch:0.38,dist:8,jx:0,jy:0,tasti:{},meta:null,metaId:null,fermoDa:0,modo:"cammina",spin:0,salti:0};
   scena.vaiVerso=id=>percorso(id);
-  stato.salti=0; scena.salti=()=>stato.salti;
+  scena.salti=()=>stato.salti;
   // per il collaudo: girare lo sguardo, e sapere se una cosa si vede
   scena.guarda=(yaw,pitch)=>{ stato.yaw=yaw; stato.pitch=pitch; };
   scena.vedo=nome=>{ const o=nome==="globo"?scena._globo:null; if(!o) return false; const v=new THREE.Vector3(); o.getWorldPosition(v); v.y+=3.5; v.project(cam); return v.z<1 && Math.abs(v.x)<=1 && v.y<=1 && v.y>=-1; };
-  scena.misure=()=>{ const out={tetti:{},borsa:null,logoTorre:0}; const b=new THREE.Box3(), v=new THREE.Vector3();
+  scena.misure=()=>{ const out={tetti:{},falde:PALAZZI.filter(P=>P.tetto==="falde").length,borsa:null,logoTorre:0,isolati:scena._isolati}; const v=new THREE.Vector3();
     S.traverse(o=>{
       if(o.name&&o.name.startsWith("tetto-")){ // la base del tetto come sta nel palazzo (rotazione e scala comprese): dev'essere un rettangolo dritto
         o.updateMatrix(); const pos=o.geometry.attributes.position, pts=[];
@@ -1088,33 +1466,55 @@ async function costruisci(){
     let cmax=-Infinity, ins=null; S.traverse(o=>{ if(o.name==="colonna"){ const p=o.position; cmax=Math.max(cmax,p.z+0.36); } if(o.name==="insegna-borsa") ins=o.position.z; });
     out.borsa={davantiColonne:ins, colonne:cmax};
     return out; };
+  // per il collaudo: niente sopra le vie. Si guardano gli angoli, i punti a metà dei lati e il centro di ogni ingombro
+  scena.sullaStrada=()=>{ const male=[];
+    for(const o of ingombri){ const c=Math.cos(o.rot), s=Math.sin(o.rot), w=o.w/2-0.05, d=o.d/2-0.05;
+      for(const [lx,lz] of [[0,0],[w,d],[w,-d],[-w,d],[-w,-d],[w,0],[-w,0],[0,d],[0,-d]]){ const x=o.x+lx*c+lz*s, z=o.z-lx*s+lz*c, q=suStrada(x,z);
+        if(q){ male.push([o.nome,q,Math.round(x*10)/10,Math.round(z*10)/10]); break; } } }
+    return male; };
+  // le vie del grafo (quelle che il cammino segue) non passano dentro niente di solido: un ostacolo non registrato fra gli ingombri si vede qui
+  scena.stradeLibere=()=>{ const male=[];
+    for(const [a,b] of lati){ const A=nodi[a], B=nodi[b], n=Math.ceil(Math.hypot(B.x-A.x,B.z-A.z)/0.5);
+      for(let i=0;i<=n;i++){ const x=A.x+(B.x-A.x)*i/n, z=A.z+(B.z-A.z)*i/n; if(solidi.some(o=>dentroUno(x,z,o,0.45))){ male.push([Math.round(x*10)/10,Math.round(z*10)/10]); break; } } }
+    return male; };
+  scena.anelloQuadrato=()=>{ const lati=tratti.filter(t=>Math.abs(t.c)===Q); return {lati:lati.length, coprono:lati.every(t=>t.a<=-Q && t.b>=Q)}; };
   scena.lotti=()=>Object.values(porte).filter(P=>P.id==="lotto").length;
-  scena.modo=m=>{ stato.modo=m; if(m==="sartoria"){ const d=Math.hypot(tu.position.x,tu.position.z)||1; stato.spinBase=Math.atan2(-tu.position.x/d,-tu.position.z/d); stato.spin=0; } };
   scena.dove=()=>({x:tu.position.x,z:tu.position.z});
-  scena.nelMuro=()=>solidi.some(s=>{ if(s.cerchio) return Math.hypot(tu.position.x-s.x,tu.position.z-s.z)<s.r;
-    const c=Math.cos(s.rot), sn=Math.sin(s.rot), rx=tu.position.x-s.x, rz=tu.position.z-s.z;
-    return Math.abs(rx*c-rz*sn)<s.w/2 && Math.abs(rx*sn+rz*c)<s.d/2; });
+  scena.nelMuro=()=>solidi.some(s=>dentroUno(tu.position.x,tu.position.z,s));
   scena.porte=porte;
+  // dentro le stanze
+  scena.cose=()=>attiva&&attiva.cose?Object.keys(attiva.cose):[];
+  scena.parti=()=>stanzaAperta&&!LUOGHI[stanzaAperta].esterno?LUOGHI[stanzaAperta].parti().map(p=>[p.id,p.nome]):[];
+  scena.usa=k=>percorsoDentro(k);
+  scena.doveDentro=()=>tuStanza?{x:tuStanza.position.x,z:tuStanza.position.z}:null;
+  scena.nelMuroDentro=()=>!!(tuStanza && attiva && attiva.solidi && (attiva.solidi.some(s=>dentroUno(tuStanza.position.x,tuStanza.position.z,s)) || Math.abs(tuStanza.position.x)>LARGO/2 || Math.abs(tuStanza.position.z)>PROFONDO/2));
+  scena.saltiDentro=()=>dentro.salti;
+  scena.modo=m=>{ stato.modo=m; };
 
   // il cerchio per camminare
   const joy=$("joy"), pomo=$("pomo"); let joyId=null;
   const muoviJoy=e=>{ const r=joy.getBoundingClientRect(); let x=(e.clientX-r.left-r.width/2)/(r.width/2), y=(e.clientY-r.top-r.height/2)/(r.height/2);
     const l=Math.hypot(x,y); if(l>1){ x/=l; y/=l; } stato.jx=x; stato.jy=y; pomo.style.transform=`translate(${x*36}px,${y*36}px)`; };
-  joy.addEventListener("pointerdown",e=>{ joyId=e.pointerId; joy.setPointerCapture(e.pointerId); muoviJoy(e); stato.meta=null; nascondiAiuto(); e.preventDefault(); });
+  joy.addEventListener("pointerdown",e=>{ joyId=e.pointerId; joy.setPointerCapture(e.pointerId); muoviJoy(e); stato.meta=null; dentro.meta=null; nascondiAiuto(); e.preventDefault(); });
   joy.addEventListener("pointermove",e=>{ if(e.pointerId===joyId) muoviJoy(e); });
   const lascia=e=>{ if(e.pointerId!==joyId) return; joyId=null; stato.jx=stato.jy=0; pomo.style.transform=""; };
   joy.addEventListener("pointerup",lascia); joy.addEventListener("pointercancel",lascia);
-  // trascinare per guardarsi intorno; un tocco breve su un palazzo ci porta davanti
+  // trascinare per guardarsi intorno; un tocco breve su un palazzo (o su una cosa, dentro) ci porta davanti
   const sguardi=new Map(); const ray=new THREE.Raycaster(), v2=new THREE.Vector2();
   tela3d.addEventListener("pointerdown",e=>{ sguardi.set(e.pointerId,{x:e.clientX,y:e.clientY,x0:e.clientX,y0:e.clientY,t:performance.now()}); try{ tela3d.setPointerCapture(e.pointerId); }catch(_){} });
   tela3d.addEventListener("pointermove",e=>{ const s=sguardi.get(e.pointerId); if(!s) return;
-    stato.yaw-=(e.clientX-s.x)*0.0065; stato.pitch=Math.min(1.3,Math.max(-0.22,stato.pitch+(e.clientY-s.y)*0.004)); s.x=e.clientX; s.y=e.clientY;
+    if(!cartaAperta){ stato.yaw-=(e.clientX-s.x)*0.0065; if(!attiva) stato.pitch=Math.min(1.3,Math.max(-0.22,stato.pitch+(e.clientY-s.y)*0.004)); }
+    s.x=e.clientX; s.y=e.clientY;
     if(Math.hypot(e.clientX-s.x0,e.clientY-s.y0)>12) nascondiAiuto(); });
   const fineSguardo=e=>{ const s=sguardi.get(e.pointerId); sguardi.delete(e.pointerId); if(!s || e.type==="pointercancel") return;
     if(Math.hypot(e.clientX-s.x0,e.clientY-s.y0)<10 && performance.now()-s.t<400){
-      if(stanzaAperta) return;
+      v2.set(e.clientX/innerWidth*2-1, -(e.clientY/innerHeight)*2+1);
+      if(stanzaAperta){ if(cartaAperta || !attiva || attiva.esterno) return;
+        ray.setFromCamera(v2,camStanza); const colpi=ray.intersectObjects(attiva.toccabili.map(t=>t[0]),true);
+        if(colpi.length){ const o=colpi[0].object; const t=attiva.toccabili.find(t=>t[0]===o||(t[0].getObjectById&&t[0].getObjectById(o.id))); if(t) percorsoDentro(t[1]); }
+        return; }
       if(fogliAperto){ chiudiFoglio(); return; }
-      v2.set(e.clientX/innerWidth*2-1, -(e.clientY/innerHeight)*2+1); ray.setFromCamera(v2,cam);
+      ray.setFromCamera(v2,cam);
       const colpi=ray.intersectObjects(toccabili.map(t=>t[0]),true);
       if(colpi.length){ let o=colpi[0].object; const t=toccabili.find(t=>t[0]===o||(t[0].getObjectById&&t[0].getObjectById(o.id))); if(t) percorso(t[1]); } } };
   tela3d.addEventListener("pointerup",fineSguardo); tela3d.addEventListener("pointercancel",fineSguardo);
@@ -1123,30 +1523,78 @@ async function costruisci(){
   let aiutoVia=false; function nascondiAiuto(){ if(aiutoVia) return; aiutoVia=true; $("aiuto").style.opacity="0"; setTimeout(()=>$("aiuto").hidden=true,700); }
   setTimeout(nascondiAiuto,9000);
 
-  $("entra").addEventListener("click",()=>{ const id=$("entra").dataset.id; if(id) apriFoglio(id); });
+  // il pulsante grande: fuori «Entra», dentro «Usa» o «Esci»
+  $("entra").addEventListener("click",()=>{ const b=$("entra");
+    if(stanzaAperta){ if(b.dataset.azione==="esci") esciStanza(); else if(b.dataset.cosa){ const c=attiva&&attiva.cose[b.dataset.cosa]; if(c&&tuStanza) tuStanza.rotation.y=Math.atan2(c.x-tuStanza.position.x,c.z-tuStanza.position.z); apriCosa(b.dataset.cosa); } return; }
+    const id=b.dataset.id; if(id) apriFoglio(id); });
 
   function ridimensiona(){ renderer.setSize(innerWidth,innerHeight,false); cam.aspect=innerWidth/innerHeight; cam.fov=innerHeight>innerWidth?68:58; cam.updateProjectionMatrix(); }
   addEventListener("resize",ridimensiona);
 
   const orologio=new THREE.Clock(); const dir=new THREE.Vector3(), bersaglio=new THREE.Vector3(), ideale=new THREE.Vector3();
-  let vicinoPrima=null;
+  let vicinoPrima=null, usoPrima=null;
+  const ingresso=()=>{ let mx=stato.jx, my=stato.jy; const T=stato.tasti;
+    if(T["w"]||T["arrowup"]) my=-1; if(T["s"]||T["arrowdown"]) my=1; if(T["a"]||T["arrowleft"]) mx=-1; if(T["d"]||T["arrowright"]) mx=1; return [mx,my]; };
+  // un passo verso la tappa: se in 0,8 s non ci si avvicina di 30 cm si salta alla tappa (e si conta)
+  function versoTappa(chi,st,dt,veloce,quandoArrivi){
+    const dx=st.meta.x-chi.position.x, dz=st.meta.z-chi.position.z, d=Math.hypot(dx,dz);
+    if(d<0.5 && st.tappe && st.tappe.length){ st.meta=st.tappe.shift(); st.distPrima=Infinity; return null; }
+    if(d<0.5){ st.meta=null; quandoArrivi(); return null; }
+    st.fermoDa+=dt; if(st.fermoDa>0.8){ if(st.distPrima-d<0.3){ chi.position.set(st.meta.x,0,st.meta.z); st.salti++; } st.distPrima=d; st.fermoDa=0; }
+    return [dx/d,dz/d,Math.min(veloce,d*3+1)];
+  }
+
+  function passoDentro(dt){
+    const R=attiva; tStanza+=dt; const H=innerHeight, W=innerWidth;
+    let [mx,my]=ingresso(); const fx=-Math.sin(stato.yaw), fz=-Math.cos(stato.yaw);
+    let vx=fx*(-my)+(-fz)*mx, vz=fz*(-my)+fx*mx, vel=0;
+    const specchio=cartaAperta==="specchio";
+    if(!cartaAperta && (Math.abs(mx)>0.05||Math.abs(my)>0.05)){ const l=Math.hypot(vx,vz); vel=3.4*Math.min(1,l); vx/=l; vz/=l; dentro.meta=null; }
+    else if(!cartaAperta && dentro.meta){ const r=versoTappa(tuStanza,dentro,dt,4.2,()=>{ const c=R.cose[dentro.metaId]; tuStanza.rotation.y=Math.atan2(c.x-tuStanza.position.x,c.z-tuStanza.position.z); apriCosa(dentro.metaId); });
+      if(r){ [vx,vz,vel]=r; const ya=Math.atan2(-vx,-vz); let dy=ya-stato.yaw; dy=Math.atan2(Math.sin(dy),Math.cos(dy)); stato.yaw+=dy*Math.min(1,dt*2.5); } }
+    if(vel>0){ tuStanza.position.x+=vx*vel*dt; tuStanza.position.z+=vz*vel*dt; spingiDentro(tuStanza.position,0.4);
+      const ry=Math.atan2(vx,vz); let dr=ry-tuStanza.rotation.y; dr=Math.atan2(Math.sin(dr),Math.cos(dr)); tuStanza.rotation.y+=dr*Math.min(1,dt*12); cammina(tuStanza,vel*dt*1.9); }
+    else fermo(tuStanza);
+    // vicino a una cosa, o alla porta?
+    let uso=null; const p=tuStanza.position;
+    if(p.z>PROFONDO/2-1.5 && Math.abs(p.x)<1.6) uso="esci";
+    else { let dm=1.6; for(const c of Object.values(R.cose)){ const d=Math.hypot(c.posto.x-p.x,c.posto.z-p.z); if(d<dm){ dm=d; uso=c.id; } } }
+    if(cartaAperta) uso=null;
+    if(uso!==usoPrima){ usoPrima=uso; const b=$("entra"); delete b.dataset.cosa; delete b.dataset.azione; delete b.dataset.id;
+      if(uso==="esci"){ b.dataset.azione="esci"; b.textContent="Esci · in città"; b.hidden=false; }
+      else if(uso){ b.dataset.cosa=uso; b.textContent="Usa · "+R.cose[uso].nome; b.hidden=false; } else b.hidden=true; }
+    // la telecamera: dietro di te; allo specchio, davanti
+    camStanza.fov=specchio?60:72; camStanza.aspect=W/H;
+    if(cartaAperta) camStanza.setViewOffset(W,H,0,0.34*H,W,H); else camStanza.clearViewOffset();
+    camStanza.updateProjectionMatrix();
+    if(specchio){ const a=Math.sin(tStanza*0.5)*0.35; ideale.set(p.x+Math.cos(a)*4.2,1.5,p.z+Math.sin(a)*4.2); camStanza.position.lerp(ideale,Math.min(1,dt*4));
+      tuStanza.rotation.y=Math.PI/2+Math.sin(tStanza*0.7)*0.6; camStanza.lookAt(p.x,1.1,p.z); }
+    else { // dietro e un po' sopra, e lo sguardo va avanti nella stanza, non sui piedi: si vedono le cose
+      const pt=0.36, cp=Math.cos(pt); ideale.set(p.x+Math.sin(stato.yaw)*cp*3.4, 1.4+Math.sin(pt)*3.4, p.z+Math.cos(stato.yaw)*cp*3.4);
+      ideale.x=Math.max(-LARGO/2+0.25,Math.min(LARGO/2-0.25,ideale.x)); ideale.z=Math.max(-PROFONDO/2+0.25,Math.min(PROFONDO/2-0.25,ideale.z)); ideale.y=Math.min(ALTO-0.3,ideale.y);
+      camStanza.position.lerp(ideale,dentro.camSubito?1:Math.min(1,dt*8)); dentro.camSubito=false;
+      camStanza.lookAt(p.x-Math.sin(stato.yaw)*2.6,1.2,p.z-Math.cos(stato.yaw)*2.6); }
+    R.S.traverse(o=>{ if(o.userData.gira) o.rotation.y+=dt*0.4; });
+    R.segni.forEach((s,i)=>{ s.rotation.y+=dt*1.5; s.position.y=Object.values(R.cose)[i].y+Math.sin(tStanza*2+i)*0.08; });
+    renderer.render(R.S,camStanza);
+  }
+
   function passo(){
     const dt=Math.min(orologio.getDelta(),0.2), t=orologio.elapsedTime; // anche a pochi fotogrammi si cammina alla velocità giusta
-    if(attiva){ disegnaStanza(dt); return; }
+    if(attiva && !attiva.esterno){ passoDentro(dt); return; }
+    if(attiva){ tStanza+=dt; const H=innerHeight, W=innerWidth;
+      camStanza.fov=70; camStanza.aspect=W/H; camStanza.setViewOffset(W,H,0,0.34*H,W,H); camStanza.updateProjectionMatrix();
+      const a=tStanza*0.18; camStanza.position.set(attiva.x+Math.sin(a)*attiva.r, attiva.h, attiva.z+Math.cos(a)*attiva.r); camStanza.lookAt(attiva.x,attiva.y,attiva.z);
+      if(scena._globo) scena._globo.rotation.y+=dt*0.35; if(scena._chioma) scena._chioma.rotation.y+=dt*0.04;
+      renderer.render(S,camStanza); return; }
     // input
-    let mx=stato.jx, my=stato.jy; const T=stato.tasti;
-    if(T["w"]||T["arrowup"]) my=-1; if(T["s"]||T["arrowdown"]) my=1; if(T["a"]||T["arrowleft"]) mx=-1; if(T["d"]||T["arrowright"]) mx=1;
+    let [mx,my]=ingresso();
     const fx=-Math.sin(stato.yaw), fz=-Math.cos(stato.yaw);
     let vx=fx*(-my)+(-fz)*mx, vz=fz*(-my)+fx*mx; let vel=0;
     const libero=!fogliAperto || fogliAperto==="vai";
-    if(stato.modo==="sartoria"){ vx=vz=0; }
-    else if((Math.abs(mx)>0.05||Math.abs(my)>0.05) && libero){ const l=Math.hypot(vx,vz); vel=5.2*Math.min(1,l); vx/=l; vz/=l; stato.meta=null; }
-    else if(stato.meta && libero){ const dx=stato.meta.x-tu.position.x, dz=stato.meta.z-tu.position.z, d=Math.hypot(dx,dz);
-      if(d<0.5 && stato.tappe && stato.tappe.length){ stato.meta=stato.tappe.shift(); stato.distPrima=Infinity; }
-      else if(d<0.5){ const P=porte[stato.metaId]; stato.meta=null; tu.rotation.y=P.guarda; apriFoglio(P.id); }
-      else { vx=dx/d; vz=dz/d; vel=Math.min(7.5,d*3+1);
-        stato.fermoDa+=dt; if(stato.fermoDa>0.8){ if(stato.distPrima-d<0.3){ tu.position.set(stato.meta.x,0,stato.meta.z); stato.salti++; } stato.distPrima=d; stato.fermoDa=0; } // incastrato: si salta alla tappa
-        // la telecamera gira dolce dietro a dove vai
+    if((Math.abs(mx)>0.05||Math.abs(my)>0.05) && libero){ const l=Math.hypot(vx,vz); vel=5.2*Math.min(1,l); vx/=l; vz/=l; stato.meta=null; }
+    else if(stato.meta && libero){ const r=versoTappa(tu,stato,dt,7.5,()=>{ const P=porte[stato.metaId]; tu.rotation.y=P.guarda; apriFoglio(P.id); });
+      if(r){ [vx,vz,vel]=r; // la telecamera gira dolce dietro a dove vai
         const ya=Math.atan2(-vx,-vz); let dy=ya-stato.yaw; dy=Math.atan2(Math.sin(dy),Math.cos(dy)); stato.yaw+=dy*Math.min(1,dt*2.2); } }
     if(vel>0){ tu.position.x+=vx*vel*dt; tu.position.z+=vz*vel*dt; spingiFuori(tu.position,0.45);
       const ry=Math.atan2(vx,vz); let dr=ry-tu.rotation.y; dr=Math.atan2(Math.sin(dr),Math.cos(dr)); tu.rotation.y+=dr*Math.min(1,dt*12); cammina(tu,vel*dt*1.9); }
@@ -1163,24 +1611,20 @@ async function costruisci(){
 
     // vicino a una porta?
     let vicino=null, dmin=3.3;
-    for(const [k,P] of Object.entries(porte)){ const d=Math.hypot(P.x-tu.position.x,P.z-tu.position.z); if(d<dmin){ dmin=d; vicino=P.id; } }
-    if(vicino!==vicinoPrima){ vicinoPrima=vicino; const b=$("entra");
-      if(vicino && !fogliAperto){ b.dataset.id=vicino; b.textContent=(vicino==="albero"?"Guarda · ":vicino==="lotto"?"Guarda · ":"Entra · ")+LUOGHI[vicino].nome; b.hidden=false; } else b.hidden=true; }
+    for(const P of Object.values(porte)){ const d=Math.hypot(P.x-tu.position.x,P.z-tu.position.z); if(d<dmin){ dmin=d; vicino=P.id; } }
+    if(vicino!==vicinoPrima){ vicinoPrima=vicino; usoPrima=null; const b=$("entra"); delete b.dataset.cosa; delete b.dataset.azione;
+      if(vicino && !fogliAperto){ b.dataset.id=vicino; b.textContent=(LUOGHI[vicino].esterno?"Guarda · ":"Entra · ")+LUOGHI[vicino].nome; b.hidden=false; } else b.hidden=true; }
     if(fogliAperto && !$("entra").hidden) $("entra").hidden=true;
     if(!fogliAperto && vicino && $("entra").hidden){ vicinoPrima=null; }
 
     // la telecamera
-    if(stato.modo==="sartoria"){ stato.spin+=dt*0.5; const a=stato.spinBase+Math.sin(stato.spin)*0.5;
-      ideale.set(tu.position.x+Math.sin(a)*5, 1.4, tu.position.z+Math.cos(a)*5);
-      tu.rotation.y=Math.atan2(ideale.x-tu.position.x,ideale.z-tu.position.z)+Math.sin(stato.spin*1.7)*0.6;
-      bersaglio.set(tu.position.x,-0.5,tu.position.z); } // il bersaglio sotto i piedi: l'avatar sale nella metà alta, sopra il foglio
-    else { const cp=Math.cos(stato.pitch); let dist=stato.dist+Math.max(0,stato.pitch-0.6)*22;  // più in alto, più lontano: la città dall'alto
+    { const cp=Math.cos(stato.pitch); let dist=stato.dist+Math.max(0,stato.pitch-0.6)*26;  // più in alto, più lontano: la città dall'alto
       // trascinando in su la telecamera scende e lo sguardo sale: si vede la cima della torre
       bersaglio.set(tu.position.x,1.6+Math.max(0,0.18-stato.pitch)*95,tu.position.z);
       dir.set(Math.sin(stato.yaw)*cp, Math.sin(stato.pitch), Math.cos(stato.yaw)*cp).normalize();
       const testa=new THREE.Vector3(tu.position.x,1.6,tu.position.z); ray.set(testa,dir); ray.far=dist; const muro=ray.intersectObjects(muri,false); if(muro.length) dist=Math.max(1.2,muro[0].distance-0.4);
       ideale.set(tu.position.x,1.6,tu.position.z).addScaledVector(dir,dist); if(ideale.y<0.5) ideale.y=0.5; ray.far=Infinity; }
-    cam.position.lerp(ideale, Math.min(1,dt*(stato.modo==="sartoria"?4:9))); cam.lookAt(bersaglio);
+    cam.position.lerp(ideale, Math.min(1,dt*9)); cam.lookAt(bersaglio);
 
     if(scena._globo){ scena._globo.rotation.y+=dt*0.35; scena._globo.position.y=36+Math.sin(t*0.8)*0.4; }
     if(scena._chioma){ scena._chioma.rotation.y+=dt*0.04; }
