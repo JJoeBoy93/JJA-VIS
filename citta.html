@@ -302,10 +302,18 @@ const VESTITI={
   jjavis:   {nome:"JJA-VIS",    maglia:0x0a1a2e, pantaloni:0x0a1a2e, scarpe:0x0a1a2e},
 };
 const PELLI=[0xf1d0b5,0xe0b48f,0xc68b5e,0x8d5a3b,0x5a3825];
+// Il tuo avatar si sceglie tutto, come nei Sims (JJ, 4/10): corpo, capelli e il loro colore, pelle, vestito,
+// colore della maglia e dei pantaloni.
+const CORPI=[["uomo","Uomo"],["donna","Donna"]];
+const CAPELLI=[["corti","Corti"],["lunghi","Lunghi"],["coda","Coda"],["rasati","Rasati"]];
+const COLORI_CAPELLI=[0x2b1d14,0x111111,0x6b4423,0xc9a66b,0x9b3d1f,0xa8a8a8];
 const TINTE=[null,0x00B4D8,0xE63946,0xFFD60A,0x2ECC71,0x8E44AD,0xF5F5F5,0x1B1B1B];
 const vestitoDi=m=>{ const t=MESTIERI.find(x=>x[0]===m); return t?t[1]:"altro"; };
 if(!citta.vestito) citta.vestito=citta.mestiere?vestitoDi(citta.mestiere):"altro";
 if(typeof citta.pelle!=="number") citta.pelle=1;
+if(!CORPI.some(c=>c[0]===citta.corpo)) citta.corpo="uomo";
+if(!CAPELLI.some(c=>c[0]===citta.capelli)) citta.capelli=citta.corpo==="donna"?"lunghi":"corti";
+if(typeof citta.capelliColore!=="number") citta.capelliColore=0;
 
 // ── la Bottega: quello che c'è davvero nella scheda Bottega della pagina ──
 const PRODOTTI={
@@ -536,7 +544,7 @@ const LUOGHI={
     testa:()=>TESTA("Il tuo avatar","Sartoria","Dimmi che lavoro fai: serve a me, per capire cosa costruirti. Poi vestiti come vuoi: non deve per forza essere la divisa del tuo lavoro."),
     parti:()=>[
       {id:"specchio",nome:"Lo specchio",dentro:()=>specchio()},
-      {id:"manichini",nome:"I manichini",dentro:()=>[BLOCCO(H3("Perché ti chiedo il mestiere"), P("Ogni mestiere perde tempo in modo diverso: il corriere col giro del mattino, il negozio con le scorte, l'artigiano coi preventivi. Le domande della pagina cambiano col mestiere, e in Bottega i prodotti si mettono in ordine per te."))]}],
+      {id:"manichini",nome:"I manichini",dentro:()=>manichini()}],
     fine(){ const az=AZIONI(bottone("Fatto, torno in città",esciStanza)); if(citta.mestiere && !io.inviato) az.append(vai(PAGINA+"#inizia","Le domande del mio mestiere",true));
       return [az, NOTA("Resta in questo telefono: non lo mando a nessuno.")]; }},
   bottega:{nome:"Bottega",ic:"🛍",breve:"quello che puoi avere già adesso",
@@ -663,6 +671,15 @@ const schedaIntera=L=>[...L.testa(), ...L.parti().flatMap(p=>p.dentro()), ...(L.
 const parteDi=(L,k)=>L.parti().find(p=>p.id===k);
 function schedaCosa(L,p){ return [el("p",{class:"eti",testo:L.nome}), el("h2",{id:"stanza-titolo",testo:p.nome}), ...p.dentro(), ...(L.fine?L.fine():[])].filter(Boolean); }
 
+// I manichini: si prova un vestito toccandolo (JJ, 4/10: se il mestiere l'hai già detto, spiegarlo è inutile).
+function manichini(){
+  const out=[], box=el("div",{class:"scelte",role:"group","aria-label":"Prova un vestito",id:"prova-vestito"});
+  Object.entries(VESTITI).forEach(([k,v])=>{ const b=el("button",{class:"scelta",type:"button","aria-pressed":String(citta.vestito===k),testo:v.nome});
+    b.addEventListener("click",()=>{ citta.vestito=k; citta.vestitoScelto=true; salva(); rivesti(); ridisegnaCarta(); }); box.appendChild(b); });
+  out.push(BLOCCO(H3("Prova un vestito"), P("Tocca un vestito e te lo metti addosso. Il colore della maglia e dei pantaloni, il corpo e i capelli si cambiano allo specchio."), box));
+  if(!(io.mestiere||citta.mestiere)) out.push(BLOCCO(H3("Perché ti chiedo il mestiere"), P("Ogni mestiere perde tempo in modo diverso: il corriere col giro del mattino, il negozio con le scorte, l'artigiano coi preventivi. Le domande della pagina cambiano col mestiere, e in Bottega i prodotti si mettono in ordine per te.")));
+  return out;
+}
 // La Sartoria, allo specchio: il mestiere serve a me, il vestito è tuo.
 let mestiereDaCambiare=false;
 function specchio(){
@@ -676,15 +693,27 @@ function specchio(){
     const cambia=bottone("Cambia",()=>{ mestiereDaCambiare=true; ridisegnaCarta(); },true);
     out.push(el("div",{class:"sezione",testo:"Il tuo lavoro"}), el("p",{id:"mestiere-detto",testo:`${io.mestiere}: me l'hai già detto nella pagina.`}), AZIONI(cambia));
   } else out.push(el("div",{class:"sezione",testo:"Che lavoro fai?"}), mest);
+  const scelte=(lista,chiave,etichetta,id)=>{ const box=el("div",{class:"scelte",role:"group","aria-label":etichetta,id});
+    lista.forEach(([k,n])=>{ const b=el("button",{class:"scelta",type:"button","aria-pressed":String(citta[chiave]===k),testo:n});
+      b.addEventListener("click",()=>{ citta[chiave]=k; if(chiave==="corpo" && !citta.capelliScelti) citta.capelli=k==="donna"?"lunghi":"corti"; if(chiave==="capelli") citta.capelliScelti=true; rifai(); }); box.appendChild(b); });
+    return box; };
+  out.push(el("div",{class:"sezione",testo:"Il corpo"}), scelte(CORPI,"corpo","il corpo","scelta-corpo"));
+  out.push(el("div",{class:"sezione",testo:"I capelli"}), scelte(CAPELLI,"capelli","i capelli","scelta-capelli"));
+  const cc=el("div",{class:"tinte",role:"group","aria-label":"colore dei capelli",id:"tinte-capelli"});
+  COLORI_CAPELLI.forEach((t,i)=>{ const b=el("button",{class:"tinta",type:"button","aria-label":"colore dei capelli "+(i+1),"aria-pressed":String(citta.capelliColore===i)});
+    b.style.background="#"+t.toString(16).padStart(6,"0"); b.addEventListener("click",()=>{ citta.capelliColore=i; rifai(); }); cc.appendChild(b); });
+  out.push(el("div",{class:"sezione",testo:"Colore dei capelli"}), cc);
   const vest=el("div",{class:"scelte",role:"group","aria-label":"Come ti vesti"});
   Object.entries(VESTITI).forEach(([k,v])=>{ const b=el("button",{class:"scelta",type:"button","aria-pressed":String(citta.vestito===k),testo:v.nome});
     b.addEventListener("click",()=>{ citta.vestito=k; citta.vestitoScelto=true; rifai(); }); vest.appendChild(b); });
   out.push(el("div",{class:"sezione",testo:"Come ti vesti?"}), vest);
-  const tin=el("div",{class:"tinte",role:"group","aria-label":"Colore"});
-  TINTE.forEach(t=>{ const b=el("button",{class:"tinta"+(t===null?" originale":""),type:"button","aria-label":t===null?"colore originale":"colore","aria-pressed":String((citta.colore??null)===t)});
-    if(t!==null) b.style.background="#"+t.toString(16).padStart(6,"0");
-    b.addEventListener("click",()=>{ citta.colore=t; rifai(); }); tin.appendChild(b); });
-  out.push(el("div",{class:"sezione",testo:"Colore"}), tin);
+  const tinte=(chiave,etichetta,id)=>{ const box=el("div",{class:"tinte",role:"group","aria-label":etichetta,id});
+    TINTE.forEach(t=>{ const b=el("button",{class:"tinta"+(t===null?" originale":""),type:"button","aria-label":t===null?etichetta+": originale":etichetta,"aria-pressed":String((citta[chiave]??null)===t)});
+      if(t!==null) b.style.background="#"+t.toString(16).padStart(6,"0");
+      b.addEventListener("click",()=>{ citta[chiave]=t; rifai(); }); box.appendChild(b); });
+    return box; };
+  out.push(el("div",{class:"sezione",testo:"Colore della maglia"}), tinte("colore","colore della maglia","tinte-maglia"));
+  out.push(el("div",{class:"sezione",testo:"Colore dei pantaloni"}), tinte("pantaloni","colore dei pantaloni","tinte-pantaloni"));
   const pel=el("div",{class:"tinte",role:"group","aria-label":"Pelle"});
   PELLI.forEach((t,i)=>{ const b=el("button",{class:"tinta",type:"button","aria-label":"tono della pelle "+(i+1),"aria-pressed":String(citta.pelle===i)});
     b.style.background="#"+t.toString(16).padStart(6,"0"); b.addEventListener("click",()=>{ citta.pelle=i; rifai(); }); pel.appendChild(b); });
@@ -880,32 +909,53 @@ const mat=(c,emi)=>{ const k=c+"|"+(emi||0); if(!MAT.has(k)) MAT.set(k, emi? new
 const GEO={};
 const scatola=(w,h,d,c,emi)=>{ const k=`b${w},${h},${d}`; GEO[k]=GEO[k]||new THREE.BoxGeometry(w,h,d); return new THREE.Mesh(GEO[k], mat(c,emi)); };
 const palla=(r,c,emi,seg=12)=>{ const k=`s${r},${seg}`; GEO[k]=GEO[k]||new THREE.SphereGeometry(r,seg,Math.max(6,seg*0.75|0)); return new THREE.Mesh(GEO[k], mat(c,emi)); };
+const capsula=(r,l,c,seg=10)=>{ const k=`k${r},${l},${seg}`; GEO[k]=GEO[k]||new THREE.CapsuleGeometry(r,l,4,seg); return new THREE.Mesh(GEO[k], mat(c)); };
 const cilindro=(rt,rb,h,c,seg=10,emi)=>{ const k=`c${rt},${rb},${h},${seg}`; GEO[k]=GEO[k]||new THREE.CylinderGeometry(rt,rb,h,seg); return new THREE.Mesh(GEO[k], mat(c,emi)); };
 const tela=(w,h)=>{ const c=document.createElement("canvas"); c.width=w; c.height=h; return c; };
 const tex=c=>{ const t=new THREE.CanvasTexture(c); t.colorSpace=THREE.SRGBColorSpace; t.anisotropy=2; return t; };
 
 // ── l'avatar: lo stesso per te, per i passanti e per i manichini ──
+// ── l'avatar: una persona, non un mattoncino (JJ, 4/10: «più forma umana, meno Minecraft, più skin Fortnite»).
+// Busto che si stringe in vita, bacino, spalle tonde, braccia e gambe arrotondate, collo, testa ovale con orecchie,
+// occhi, sopracciglia, naso e bocca. Le giunture restano dove le usano il passo e la stoffa: anche a 0,9 m (ANCA),
+// spalle a 1,55. Uomo o donna cambiano le proporzioni; i vestiti si appoggiano sopra.
 function avatar(st){
-  const v=VESTITI[st.vestito]||VESTITI.altro;
+  const v=VESTITI[st.vestito]||VESTITI.altro, donna=st.corpo==="donna";
   const maglia=(typeof st.colore==="number")?st.colore:v.maglia;
-  const pelle=PELLI[st.pelle??1]; const capelli=0x2b1d14;
+  const pant=(typeof st.pantaloni==="number")?st.pantaloni:(st.vestito==="artigiano"&&typeof st.colore==="number"?maglia:v.pantaloni);
+  const pelle=PELLI[st.pelle??1], capelli=COLORI_CAPELLI[st.capelliColore??0]??COLORI_CAPELLI[0];
+  const C=donna?{gx:0.12,gr:0.088,bx:0.31,br:0.064,top:0.25,vita:0.2,bacino:0.225,testa:0.21}
+               :{gx:0.14,gr:0.095,bx:0.34,br:0.07,top:0.28,vita:0.23,bacino:0.235,testa:0.22};
   const g=new THREE.Group(); const gambe=[], braccia=[], tessuti=[];
+  g.userData.corpo=donna?"donna":"uomo";
   for(const s of [-1,1]){
-    const p=new THREE.Group(); p.position.set(0.15*s,0.9,0);
-    const l=scatola(0.22,0.82,0.24,st.vestito==="artigiano"&&typeof st.colore==="number"?maglia:v.pantaloni); l.position.y=-0.41; p.add(l);
-    const sc=scatola(0.24,0.12,0.32,v.scarpe); sc.position.set(0,-0.85,0.04); p.add(sc);
+    const p=new THREE.Group(); p.position.set(C.gx*s,ANCA,0);
+    const l=capsula(C.gr,0.79-2*C.gr,pant); l.position.y=-0.42; p.add(l);
+    const sc=scatola(C.gr*2,0.1,0.3,v.scarpe); sc.position.set(0,-0.85,0.05); p.add(sc);
     g.add(p); gambe.push(p);
   }
-  const busto=scatola(0.56,0.7,0.32,maglia); busto.position.y=1.25; g.add(busto);
+  // il bacino (nei pantaloni) e il busto, ovali: larghi quanto sono e profondi poco più della metà
+  const bac=cilindro(C.bacino,C.bacino-0.01,0.14,pant,14); bac.scale.z=0.62; bac.position.y=0.95; g.add(bac);
+  const busto=cilindro(C.top,C.vita,0.62,maglia,16); busto.scale.z=0.57; busto.position.y=1.31; g.add(busto);
+  for(const s of [-1,1]){ const sp=palla(0.1,maglia); sp.scale.set(1,0.8,0.9); sp.position.set((C.top-0.04)*s,1.56,0); g.add(sp); }
   for(const s of [-1,1]){
-    const p=new THREE.Group(); p.position.set(0.37*s,1.55,0);
-    const a=scatola(0.17,0.6,0.2,maglia); a.position.y=-0.29; p.add(a);
-    const m=scatola(0.15,0.14,0.17,pelle); m.position.y=-0.66; p.add(m);
+    const p=new THREE.Group(); p.position.set(C.bx*s,1.55,0);
+    const a=capsula(C.br,0.54-2*C.br,maglia); a.position.y=-0.3; p.add(a);      // children[0]: la manica
+    const m=palla(C.br+0.005,pelle); m.position.y=-0.63; p.add(m);
     g.add(p); braccia.push(p);
   }
-  const collo=scatola(0.16,0.1,0.16,pelle); collo.position.y=1.64; g.add(collo);
-  const testa=palla(0.24,pelle); testa.position.y=1.88; g.add(testa);
-  for(const s of [-1,1]){ const o=scatola(0.05,0.06,0.02,0x111111); o.position.set(0.08*s,1.91,0.225); g.add(o); }
+  const collo=cilindro(0.07,0.08,0.12,pelle,10); collo.position.y=1.67; g.add(collo);
+  const testa=palla(C.testa,pelle,false,16); testa.scale.set(0.95,1.1,1); testa.position.y=1.9; g.add(testa);
+  const zf=C.testa*0.92;   // la faccia
+  for(const s of [-1,1]){
+    const o=palla(0.034,0xffffff); o.position.set(0.072*s,1.92,zf-0.012); g.add(o);
+    const pu=palla(0.019,0x1a1410); pu.position.set(0.072*s,1.92,zf+0.016); g.add(pu);
+    const ci=scatola(0.075,0.016,0.02,capelli); ci.position.set(0.075*s,1.975,zf-0.005); ci.rotation.z=donna?0.1*s:0.04*s; g.add(ci);
+    const or=palla(0.045,pelle); or.scale.set(0.55,1,0.8); or.position.set(C.testa*0.94*s,1.89,0); g.add(or);
+  }
+  const naso=palla(0.028,pelle); naso.scale.set(0.9,1.1,1); naso.position.set(0,1.87,zf+0.01); g.add(naso);
+  const bocca=scatola(0.075,0.014,0.012,donna?0xb4505a:0x7a3e33); bocca.position.set(0,1.805,zf-0.02); g.add(bocca);
+  g.userData.capelli={colore:capelli, tipo:st.capelli||(donna?"lunghi":"corti"), r:C.testa};
   let cappello=false;
   const add=(m,x,y,z)=>{ m.position.set(x,y,z); g.add(m); return m; };
   switch(st.vestito){
@@ -951,9 +1001,9 @@ function avatar(st){
       add(scatola(0.12,0.12,0.02,0xffd60a,true),0,1.38,0.17);
       // le strisce dei pantaloni stanno SULLE GAMBE, non sul corpo: se no restano dritte mentre la gamba si muove
       // e sembra che l'omino ne abbia quattro (JJ, 3/10)
-      gambe.forEach((gb,i)=>{ const st=scatola(0.03,0.8,0.25,0x00B4D8,true); st.position.set(0.11*(i?1:-1),-0.4,0); gb.add(st); }); break; }
+      gambe.forEach((gb,i)=>{ const st=scatola(0.025,0.66,0.12,0x00B4D8,true); st.position.set(0.09*(i?1:-1),-0.42,0); gb.add(st); }); break; }
   }
-  if(!cappello){ const c=palla(0.255,capelli); c.scale.set(1,0.62,1); c.position.set(0,1.98,-0.02); g.add(c); }
+  capigliatura(g, cappello);
   g.userData.gambe=gambe; g.userData.braccia=braccia; g.userData.tessuti=tessuti; g.userData.fase=Math.random()*6;
   return g;
 }
@@ -997,6 +1047,26 @@ function pieghe(av){
     const P=m.geometry.attributes.position, A=P.array, R=m.userData.tessuto.riposo;
     for(let i=0;i<A.length;i+=3){ const [y,z]=deforma(R[i],R[i+1],R[i+2],aS,aD); A[i+1]=y; A[i+2]=z; }
     P.needsUpdate=true; m.geometry.computeVertexNormals(); m.geometry.computeBoundingSphere();
+  }
+}
+// I capelli: una calotta sulla testa (se non c'è un cappello) e, per lunghi e coda, quello che scende dietro.
+function capigliatura(g, cappello){
+  const H=g.userData.capelli, c=H.colore, r=H.r;
+  if(!cappello && H.tipo!=="rasati"){
+    const k="cal"+r; GEO[k]=GEO[k]||new THREE.SphereGeometry(r*1.06,16,10,0,Math.PI*2,0,Math.PI*0.55);
+    const cal=new THREE.Mesh(GEO[k],mat(c)); cal.scale.set(0.97,1.12,1.04); cal.position.set(0,1.915,-0.012); cal.rotation.x=-0.18; g.add(cal);
+  }
+  if(H.tipo==="rasati" && !cappello){
+    const k="ras"+r; GEO[k]=GEO[k]||new THREE.SphereGeometry(r*1.015,16,10,0,Math.PI*2,0,Math.PI*0.5);
+    const cal=new THREE.Mesh(GEO[k],mat(c)); cal.scale.set(0.96,1.11,1.01); cal.position.set(0,1.9,-0.01); cal.rotation.x=-0.2; g.add(cal);
+  }
+  if(H.tipo==="lunghi"){
+    const d=scatola(0.4,0.46,0.1,c); d.position.set(0,1.74,-0.17); g.add(d);
+    for(const s of [-1,1]){ const l=scatola(0.07,0.36,0.2,c); l.position.set(0.19*s,1.8,-0.06); g.add(l); }
+  }
+  if(H.tipo==="coda"){
+    const n=palla(0.08,c); n.position.set(0,1.97,-0.24); g.add(n);
+    const t=capsula(0.05,0.22,c,8); t.position.set(0,1.8,-0.27); t.rotation.x=0.15; g.add(t);
   }
 }
 function cammina(av, passo){
@@ -1322,7 +1392,7 @@ async function costruisci(){
 
   // i manichini della Sartoria: tre vestiti in vetrina, fuori
   { const P=PALAZZI[1], px=P.x, pz=P.z, dx=Math.sin(P.rot), dz=Math.cos(P.rot);
-    ["guida","artigiano","creator"].forEach((v,i)=>{ const m=avatar({vestito:v,pelle:[0,2,4][i]});
+    ["guida","artigiano","creator"].forEach((v,i)=>{ const m=avatar({vestito:v,pelle:[0,2,4][i],corpo:i===1?"donna":"uomo",capelli:i===1?"coda":"corti"});
       const off=(i-1)*2.4; m.position.set(px+dx*(P.d/2+1.0)+(-dz)*off, 0.25, pz+dz*(P.d/2+1.0)+dx*off); m.rotation.y=P.rot;
       const ped=cilindro(0.45,0.5,0.25,0x0D3A5C,14); ped.position.set(m.position.x,0.125,m.position.z); S.add(ped, m); toccabili.push([m,"sartoria"]); solidi.push({cerchio:true,x:m.position.x,z:m.position.z,r:0.5}); }); }
 
@@ -1393,7 +1463,7 @@ async function costruisci(){
   function rivestiTu(){ const p=tu.position.clone(), r=tu.rotation.y; S.remove(tu); tu=avatar(citta); tu.position.copy(p); tu.rotation.y=r; S.add(tu); }
   rivesti=rivestiTu;
   const passanti=[]; const vv=Object.keys(VESTITI);
-  for(let i=0;i<7;i++){ const p=avatar({vestito:vv[(i*3+1)%vv.length],pelle:i%5,colore:i===2?0x8E44AD:undefined});
+  for(let i=0;i<7;i++){ const p=avatar({vestito:vv[(i*3+1)%vv.length],pelle:i%5,colore:i===2?0x8E44AD:undefined,corpo:i%2?"donna":"uomo",capelli:["corti","lunghi","rasati","coda"][i%4],capelliColore:i%COLORI_CAPELLI.length});
     const a=i/7*Math.PI*2; p.position.set(Math.sin(a)*12,0,Math.cos(a)*12); S.add(p); passanti.push({m:p,meta:null,attesa:Math.random()*3}); }
 
   // ══ GLI INTERNI ══ — ogni palazzo ha la sua stanza, costruita la prima volta che ci si entra.
@@ -1447,7 +1517,7 @@ async function costruisci(){
         h.solido(s*5.15,1.5,1.2,2.6); h.cosa(s<0?"chat":"dati",[d,sch],s*5.1,1.5,{x:s*3.9,z:1.5},1.9); }
       h.metti(new THREE.Mesh(new THREE.CylinderGeometry(1.4,1.4,0.02,32),mat(0x00B4D8,true)),0,0.02,0); },
     sartoria(S2,h){ h.insegnaFondo("SARTORIA","vestiti come vuoi");
-      const man=[]; ["corriere","negozio","sanita","ufficio"].forEach((v,i)=>{ const m=avatar({vestito:v,pelle:i%5}); const x=-4.5+i*3; h.metti(cilindro(0.45,0.5,0.25,0x0D3A5C,14),x,0.125,-4); h.metti(m,x,0.25,-4); man.push(m); h.tondo(x,-4,0.55); });
+      const man=[]; ["corriere","negozio","sanita","ufficio"].forEach((v,i)=>{ const m=avatar({vestito:v,pelle:i%5,corpo:i%2?"donna":"uomo",capelli:i%2?"lunghi":"corti",capelliColore:i}); const x=-4.5+i*3; h.metti(cilindro(0.45,0.5,0.25,0x0D3A5C,14),x,0.125,-4); h.metti(m,x,0.25,-4); man.push(m); h.tondo(x,-4,0.55); });
       h.cosa("manichini",man,0,-4,{x:0,z:-2.5},2.9);
       const spec=new THREE.Mesh(new THREE.PlaneGeometry(2.2,3.2), new THREE.MeshBasicMaterial({color:0x9fe9ff,transparent:true,opacity:.35})); S2.add(aParete(spec,-1,1,1.9));
       const corn=scatola(0.06,3.4,2.4,0xFFD60A,true); corn.position.set(-LARGO/2+0.04,1.9,1); S2.add(corn);
@@ -1723,6 +1793,15 @@ async function costruisci(){
       // e le braccia non ci passano dentro: il lato interno del braccio è più in fuori del fianco
       const braccio=Math.min(...u.braccia.map(b=>Math.abs(b.position.x)-0.085)), fuoriFianco=Math.max(0,...fianchi.map(p=>Math.max(Math.abs(p.x0),Math.abs(p.x1))));
       r[k]={pezzi:u.tessuti.length, latiGiusti, provati, fuori, aperto, daSpalleA:[+yMax.toFixed(2),+yMin.toFixed(2)], copre, bracciaFuori:braccio>fuoriFianco+0.001}; }
+    return r; };
+  // per il collaudo: il tuo avatar com'è adesso, e se gli avatar hanno forma di persona
+  scena.tuo=()=>({corpo:tu.userData.corpo, pantaloni:"#"+tu.userData.gambe[0].children[0].material.color.getHexString(), maglia:"#"+tu.children.find(c=>c.geometry&&c.geometry.type==="CylinderGeometry"&&c.position.y>1.2).material.color.getHexString(), capelli:tu.userData.capelli.tipo});
+  scena.formaUmana=()=>{ const r={}; for(const corpo of ["uomo","donna"]){ const av=avatar({vestito:"altro",corpo}), u=av.userData;
+      const tipo=m=>m&&m.geometry?m.geometry.type:null;
+      r[corpo]={gambe:u.gambe.map(gb=>tipo(gb.children[0])), braccia:u.braccia.map(b=>tipo(b.children[0])),
+        busto:tipo(av.children.find(c=>c.position.y>1.2&&c.position.y<1.4&&c.geometry)),
+        viso:av.children.filter(c=>c.position.y>1.78&&c.position.y<2&&c.position.z>0.12).length,
+        spalle:u.braccia.map(b=>+Math.abs(b.position.x).toFixed(2))[0]}; }
     return r; };
   scena.lotti=()=>Object.values(porte).filter(P=>P.id==="lotto").length;
   scena.dove=()=>({x:tu.position.x,z:tu.position.z});

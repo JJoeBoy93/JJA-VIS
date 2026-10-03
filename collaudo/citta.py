@@ -183,6 +183,29 @@ async def main():
         await p.click("#stanza .tinta[aria-label='tono della pelle 4']")
         st = await p.evaluate("JSON.parse(localStorage.getItem('jjavis-citta')||'{}')")
         prova("la pelle si salva", st.get("pelle") == 3, st)
+        # JJ, 4/10: l'avatar si sceglie tutto, come nei Sims — corpo, capelli, colore dei pantaloni
+        await p.click("#scelta-corpo .scelta:has-text('Donna')"); await p.wait_for_timeout(300)
+        await p.click("#scelta-capelli .scelta:has-text('Coda')"); await p.wait_for_timeout(300)
+        await p.click("#tinte-pantaloni .tinta:nth-child(3)"); await p.wait_for_timeout(300)
+        await p.click("#tinte-capelli .tinta:nth-child(4)"); await p.wait_for_timeout(300)
+        st = await p.evaluate("JSON.parse(localStorage.getItem('jjavis-citta')||'{}')"); tu_ = await p.evaluate("window.CITTA.tuo()")
+        prova("allo specchio si sceglie il corpo, i capelli, il loro colore e il colore dei pantaloni, e l'avatar cambia davvero",
+              st.get("corpo") == "donna" and st.get("capelli") == "coda" and st.get("capelliColore") == 3 and st.get("pantaloni") == 0xE63946
+              and tu_["corpo"] == "donna" and tu_["capelli"] == "coda" and tu_["pantaloni"] == "#e63946" and tu_["maglia"] != tu_["pantaloni"], [st, tu_])
+        fu = await p.evaluate("window.CITTA.formaUmana()")
+        prova("gli avatar hanno forma di persona: gambe e braccia tonde, busto che si stringe, una faccia (occhi, naso, bocca)",
+              all(v["gambe"] == ["CapsuleGeometry"] * 2 and v["braccia"] == ["CapsuleGeometry"] * 2 and v["busto"] == "CylinderGeometry" and v["viso"] >= 6 for v in fu.values())
+              and fu["donna"]["spalle"] < fu["uomo"]["spalle"], fu)
+        await p.wait_for_timeout(600); await foto(p, "03b-sartoria-donna")
+        # i manichini: se il mestiere è già detto, niente spiegazione; si prova un vestito
+        await usa(p, "manichini", "I manichini")
+        testo_m = await p.inner_text("#stanza-carta")
+        prova("ai manichini, col mestiere già detto, non si rispiega il mestiere: si prova un vestito", "Perché ti chiedo il mestiere" not in testo_m and "Prova un vestito" in testo_m, testo_m[:200])
+        await p.click("#prova-vestito .scelta:has-text('Camice')"); await p.wait_for_timeout(400)
+        st = await p.evaluate("JSON.parse(localStorage.getItem('jjavis-citta')||'{}')")
+        prova("toccando un vestito ai manichini te lo metti", st.get("vestito") == "sanita", st)
+        await p.click("#prova-vestito .scelta:has-text('Creator')"); await p.wait_for_timeout(300)
+        await usa(p, "specchio", "Lo specchio")
         await p.wait_for_timeout(900); await foto(p, "03-sartoria-creator")
         await p.click("#stanza button:has-text('Fatto')")
         prova("Fatto riporta in piazza", await p.evaluate("document.getElementById('stanza-nome').textContent===''||!document.getElementById('stanza').classList.contains('aperta')"))
