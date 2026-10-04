@@ -620,8 +620,7 @@ const LUOGHI={
     parti:()=>[
       {id:"banco-bar",nome:"Il bancone del bar",breve:"ordina la colazione",dentro:()=>colazione()},
       {id:"recensioni",nome:"La lavagna delle recensioni",dentro:()=>recensioni()},
-      {id:"tavolini",nome:"I tavolini",dentro:()=>[BLOCCO(H3("Due chiacchiere"), P("Qui ci si siede con gli altri. Per ora i clienti che vedi sono di passaggio: quando la città avrà gente vera collegata, ai tavolini ci si parlerà davvero."),
-        NOTA("Non ancora acceso: parlare con altre persone dentro la città ha bisogno di un posto dove passano i messaggi, e di qualcuno che lo tenga pulito."))]},
+      {id:"tavolini",nome:"I tavolini",dentro:()=>tavolini()},
       {id:"caffe",nome:"Offri un caffè",dentro:()=>offriCaffe()}]},
   voci:{nome:"Piazza delle voci",ic:"🗳",breve:"dimmi cosa ti fa perdere tempo",
     testa:()=>TESTA("Qui si decide cosa costruire","Piazza delle voci","Non decido da solo cosa costruire. Lo decide chi passa di qui: cosa ti fa perdere tempo nel tuo lavoro, e quanto varrebbe toglierlo."),
@@ -665,7 +664,7 @@ const LUOGHI={
         NOTA("A cosa vorresti giocare? Dimmelo nella chat: le idee più chieste diventano il prossimo cabinato.")]}],
     fine:()=>[AZIONI(parlaQui("Dimmi a cosa vorresti giocare","Mi piacerebbe giocare a "))]},
   ristorante:{nome:"Ristorante",ic:"🍝",breve:"alla cassa: il menù, scegli e paghi",
-    testa:()=>TESTA(QUARTIERI.est,"Ristorante","Vai alla cassa: c'è il menù. Scegli, e arrivi al conto. Oggi è la vetrina di come funzionerà: il menù è d'esempio, il pagamento non è acceso e nessun ordine parte."),
+    testa:()=>TESTA(QUARTIERI.est+" · in piazza","Ristorante","Vai alla cassa: c'è il menù. Scegli, e arrivi al conto. Oggi è la vetrina di come funzionerà: il menù è d'esempio, il pagamento non è acceso e nessun ordine parte."),
     parti:()=>[
       {id:"cassa",nome:"La cassa",dentro:()=>[BLOCCO(H3("Il menù"), ...cassa())]},
       {id:"cucina",nome:"La cucina",dentro:()=>[BLOCCO(H3("Da dove arriva il cibo"), P("Qui si collegano i servizi per ordinare. Il ristorante vero che prende il suo palazzo in città ci mette il suo menù: si ordina dalla sua cassa, e i soldi vanno a lui."),
@@ -863,6 +862,19 @@ function colazione(){
   BAR.forEach(([n,ic])=>{ const b=el("button",{class:"scelta",type:"button",testo:`${ic} ${n}`}); b.addEventListener("click",()=>{ colazioneMia.push(n); ridisegnaCarta(); }); box.appendChild(b); });
   const fatta=el("p",{id:"bar-ordine",class:"nota",testo:colazioneMia.length?`Al tuo tavolo: ${colazioneMia.join(", ")}. Buona colazione.`:"Scegli cosa prendi: è un gioco, qui non si paga."});
   return [BLOCCO(H3("La colazione"), box, fatta, colazioneMia.length?AZIONI(bottone("Ho finito",()=>{ colazioneMia.length=0; ridisegnaCarta(); },true)):null)];
+}
+// ai tavolini si parla con gli altri nella chat del canale Twitch di chi mi costruisce (JJoe_Boy93), moderata da
+// StreamElements (JJ, 4/10). Incorporata come dice Twitch (dev.twitch.tv/docs/embed/chat): iframe con «parent» = il
+// dominio della pagina, solo su https. Si apre solo se lo chiedi: dentro valgono le regole e i cookie di Twitch.
+const TWITCH="jjoe_boy93";
+let chatBarAperta=false;
+function tavolini(){
+  const out=[BLOCCO(H3("Due chiacchiere"), P("Ai tavolini ci si parla con gli altri: è la chat del canale Twitch di chi mi costruisce, e la tiene pulita StreamElements. Per leggere basta aprirla; per scrivere serve un account Twitch."))];
+  if(!chatBarAperta) out.push(AZIONI(bottone("Siediti e apri la chat",()=>{ chatBarAperta=true; ridisegnaCarta(); })), NOTA("Si apre la chat di Twitch: da lì valgono le sue regole e i suoi cookie."));
+  else { const f=el("iframe",{id:"chat-bar",title:"La chat del JJA-VIS Café, su Twitch",src:`https://www.twitch.tv/embed/${TWITCH}/chat?parent=${location.hostname}&darkpopout`,
+      sandbox:"allow-storage-access-by-user-activation allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox allow-modals"});
+    f.style.cssText="width:100%;height:60vh;border:1px solid var(--bordo);background:#0e0e10"; out.push(f, AZIONI(bottone("Chiudi la chat",()=>{ chatBarAperta=false; ridisegnaCarta(); },true))); }
+  return out;
 }
 let stelle=0;
 function recensioni(){
@@ -1463,7 +1475,8 @@ async function costruisci(){
     {id:"radio",ang:-22,w:11,d:7,h:6,muro:"#1b3a57",vetro:true,tetto:"piano",titolo:"RADIO",sotto:"accendi le tue stazioni",antenna:true},
     {id:"sartoria", ang:22, w:9, d:7,h:7,muro:"#c99a8a",vetrine:1,tetto:"falde",titolo:"SARTORIA",sotto:"vesti il tuo avatar"},
     // «investi» è nella Torre, al 2° piano (JJ, 4/10): al posto della Borsa un lotto libero
-    {id:"lotto",    ang:58, w:9, d:8,h:0,titolo:"LOTTO LIBERO",sotto:"la tua attività, qui"},
+    // il Ristorante accanto al JJA-VIS Café, nel lotto che era della Borsa (JJ, 4/10)
+    {id:"ristorante",ang:57,w:11,d:10,h:8,muro:"#7a3b2a",porta:true,vetrine:1,tetto:"falde",titolo:"RISTORANTE",sotto:"alla cassa: il menù",colore:"#FFD60A",ristorante:true},
     // la struttura della Piazza delle voci resta (JJ: «mi piace»), ma è un bar: il JJA-VIS Café (JJ, 4/10)
     {id:"cafe",     ang:92, w:11,d:9,h:9,muro:"#b5654a",porta:true,tetto:"piano",titolo:"JJA-VIS CAFÈ",sotto:"colazione · recensioni · due chiacchiere",orologio:true},
     {id:"cinema",   ang:126,w:11,d:9,h:8,muro:"#3b2a4f",porta:true,tetto:"piano",titolo:"CINEMA",sotto:"guardami al lavoro",colore:"#FFD60A"},
@@ -1484,7 +1497,8 @@ async function costruisci(){
   for(const [z0,z1] of [ISOLATI[4],ISOLATI[5],ISOLATI[1],ISOLATI[0]]) for(const lato of [-1,1]) for(const k of [5.25,14.75]){
     PALAZZI.push({id:"lotto",w:8.5,d:8,h:0,titolo:"LOTTO LIBERO",sotto:"la tua attività, qui",x:lato*fronte(MEZZA,1,8),z:z0+k,rot:lato>0?-Math.PI/2:Math.PI/2,passo:1.6}); }
   // il Ristorante (Quartiere del Gusto, est) e la Palestra (Quartiere dello Sport, ovest), sull'anello quadrato
-  PALAZZI.push({id:"ristorante",w:12,d:10,h:8,muro:"#7a3b2a",porta:true,vetrine:1,tetto:"falde",titolo:"RISTORANTE",sotto:"alla cassa: il menù",colore:"#FFD60A",x:fronte(41.5,1,10),z:14,rot:-Math.PI/2,passo:1.6,ristorante:true});
+  // dove c'era il Ristorante, sull'anello quadrato a est: un lotto libero
+  PALAZZI.push({id:"lotto",w:8.5,d:8,h:0,titolo:"LOTTO LIBERO",sotto:"la tua attività, qui",x:fronte(41.5,1,8),z:14,rot:-Math.PI/2,passo:1.6});
   PALAZZI.push({id:"palestra",w:12,d:10,h:8,muro:"#1f3a4a",vetro:true,tetto:"piano",titolo:"PALESTRA",sotto:"il tuo stato di forma",colore:"#2ECC71",x:-fronte(41.5,1,10),z:14,rot:Math.PI/2,passo:1.6,palestra:true});
 
   let seme=1, lottiN=0;
@@ -1626,10 +1640,12 @@ async function costruisci(){
     const b=insegna(dentro[0],dentro[1],5.2); b.position.set(0,6.4,z-0.02*verso); b.rotation.y=verso>0?Math.PI:0; S.add(b); };
   arco(42.3,["LA CITTÀ DI JJA-VIS","benvenuto, entra pure"],["VIALE DELLE BOTTEGHE","i lotti delle attività"],1);
   arco(-42.3,["QUARTIERE DEI MESTIERI","i lotti delle attività"],["LA PIAZZA","l'albero della vita"],-1);
-  for(const [lato,nome,sotto] of [[1,QUARTIERI.est,"ristorante"],[-1,QUARTIERI.ovest,"palestra"]]){
-    const g=new THREE.Group(); g.position.set(lato*43.4,0,4.2); g.rotation.y=-lato*Math.PI/2; S.add(g);
+  // i cartelli dei quartieri. Quello del Gusto sta in piazza, sul bordo, fra il JJA-VIS Café e il Ristorante (JJ, 4/10)
+  const aG=75*Math.PI/180, xG=Math.sin(aG)*21, zG=Math.cos(aG)*21;
+  for(const [x,z,ry,nome,sotto] of [[xG,zG,Math.atan2(-xG,-zG)+Math.PI,QUARTIERI.est,"café · ristorante"],[-43.4,4.2,Math.PI/2,QUARTIERI.ovest,"palestra"]]){
+    const g=new THREE.Group(); g.position.set(x,0,z); g.rotation.y=ry; S.add(g);
     const p=cilindro(0.08,0.08,3.2,0x8a7a60,6); p.position.y=1.6; g.add(p);
-    const c=insegna(nome.toUpperCase(),sotto,3.4); c.position.set(0,3.2,0.1); g.add(c); solidi.push({cerchio:true,x:lato*43.4,z:4.2,r:0.3}); occupa(lato*43.4,4.2,0,0.3,0.3,"cartello"); }
+    const c=insegna(nome.toUpperCase(),sotto,3.4); c.position.set(0,3.2,0.1); g.add(c); solidi.push({cerchio:true,x,z,r:0.3}); occupa(x,z,0,0.3,0.3,"cartello"); }
 
   // ── gli isolati: i palazzi dei quartieri, tutti con le finestre accese ──
   // Disegnati in blocco (un disegno per altezza), così il telefono regge anche cento palazzi.

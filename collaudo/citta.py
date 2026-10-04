@@ -158,6 +158,8 @@ async def main():
         prova("i tetti a falde sono dritti: la base è il rettangolo del palazzo, con quattro angoli veri", len(m["tetti"]) == m["falde"] >= 3 and "ristorante" in m["tetti"] and not storti, storti or m["tetti"])
         prova("Torre: il logo JJA-VIS in cima, sui quattro lati", m["logoTorre"] == 4, m["logoTorre"])
         prova("nessun palazzo, lotto, lampione o albero sta sulla strada", await p.evaluate("window.CITTA.sullaStrada()") == [], await p.evaluate("window.CITTA.sullaStrada()"))
+        rc = await p.evaluate("(()=>{ const P=window.CITTA.porte, r=P.ristorante, c=P.cafe; return {r:Math.hypot(r.cx,r.cz), d:Math.hypot(r.cx-c.cx,r.cz-c.cz)}; })()")
+        prova("il Ristorante sta in piazza, accanto al JJA-VIS Café (JJ, 4/10)", 29 < rc["r"] < 33 and rc["d"] < 20, rc)
         prova("le vie che il cammino segue non passano dentro niente (il furgone stava sull'anello)", await p.evaluate("window.CITTA.stradeLibere()") == [], await p.evaluate("window.CITTA.stradeLibere()"))
         prova("nessun pezzo di vestito sta fermo dove si muovono le gambe (strisce JJA-VIS, camice, grembiule: si piegano con le gambe)", await p.evaluate("window.CITTA.pezziSulleGambe()") == [], await p.evaluate("window.CITTA.pezziSulleGambe()"))
         st = await p.evaluate("window.CITTA.stoffa()")
@@ -380,6 +382,12 @@ async def main():
         await p.click("#rec-stelle .scelta >> nth=3"); await p.fill("#rec-testo", "Bella la radio"); await p.click("#rec-manda")
         await p.wait_for_function("document.getElementById('rec-esito').textContent.startsWith('Grazie')", timeout=15000)
         prova("la recensione parte e arriva a chi mi costruisce, con le stelle", any(x.get("testo", "").startswith("⭐ Recensione ★★★★: Bella la radio") for x in parlate))
+        await usa(p, "tavolini", "I tavolini")
+        prova("ai tavolini la chat non si apre da sola (è di Twitch, coi suoi cookie)", await p.evaluate("!document.getElementById('chat-bar')"))
+        await p.click("#stanza-carta button:has-text('Siediti e apri la chat')"); await p.wait_for_timeout(500)
+        src = await p.evaluate("(document.getElementById('chat-bar')||{}).src||''")
+        prova("aprendola, è la chat del canale Twitch JJoe_Boy93 incorporata come dice Twitch (parent = il dominio della pagina)", src.startswith("https://www.twitch.tv/embed/jjoe_boy93/chat?parent=jjoeboy93.github.io"), src)
+        await p.click("#stanza-carta button:has-text('Chiudi la chat')"); await p.wait_for_timeout(300)
         await usa(p, "caffe", "Offri un caffè")
         await p.wait_for_timeout(1500)
         tc = await p.inner_text("#stanza-carta")
@@ -505,6 +513,7 @@ async def main():
         prova("nessun errore JavaScript (accesa)", not err, err[:3])
         await ctx.close()
 
+        await ctx.close()   # una pagina 3D accesa in più rallenta la prossima fino a farla cadere oltre i 30 s
         # 5. di nuovo: il vestito è rimasto, il giro chiuso non si ripete per sempre
         ctx, p, err = await nuova(b, citta={"mestiere": "Sanità", "vestito": "sanita", "pelle": 0, "giro": {"sartoria": True, "reception": True, "bottega": True}, "giroVisto": True})
         await p.goto(BASE + "citta.html")
