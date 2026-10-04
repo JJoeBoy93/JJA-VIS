@@ -365,7 +365,9 @@ function el(tag, attr={}, ...figli){
   for(const [k,v] of Object.entries(attr)){ if(k==="class") e.className=v; else if(k==="testo") e.textContent=v; else e.setAttribute(k,v); }
   figli.forEach(f=>{ if(f!=null) e.append(f); }); return e;
 }
-const vai=(href,testo,seconda,fuori)=>{ const a=el("a",{class:"vai-pagina"+(seconda?" seconda":""),href,testo}); if(fuori){ a.target="_blank"; a.rel="noopener"; } return a; };
+// JJ, 4/10: «tutte le schede che portano fuori alla scheda devono sparire, resta solo Esci in alto, senò ogni volta che
+// schiacci qualcosa esci dalla città». Un collegamento alla pagina non si disegna più: dalla città si esce solo da «← La pagina».
+const vai=(href,testo,seconda,fuori)=>{ if(typeof href==="string" && href.startsWith(PAGINA)) return null; const a=el("a",{class:"vai-pagina"+(seconda?" seconda":""),href,testo}); if(fuori){ a.target="_blank"; a.rel="noopener"; } return a; };
 const bottone=(testo,fa,seconda)=>{ const b=el("button",{class:"vai-pagina"+(seconda?" seconda":""),type:"button",testo}); b.addEventListener("click",fa); return b; };
 const nomeAssistente=()=>(typeof io.nome==="string" && io.nome.trim()) ? io.nome.trim().slice(0,24) : "";
 
@@ -549,7 +551,7 @@ const LUOGHI={
     parti:()=>[
       {id:"specchio",nome:"Lo specchio",dentro:()=>specchio()},
       {id:"manichini",nome:"I manichini",dentro:()=>manichini()}],
-    fine(){ const az=AZIONI(bottone("Fatto, torno in città",esciStanza)); if(citta.mestiere && !io.inviato) az.append(vai(PAGINA+"#inizia","Le domande del mio mestiere",true));
+    fine(){ const az=AZIONI(bottone("Fatto, torno in città",esciStanza)); ;
       return [az, NOTA("Resta in questo telefono: non lo mando a nessuno.")]; }},
   bottega:{nome:"Bottega",ic:"🛍",breve:"quello che puoi avere già adesso",
     testa:()=>[...TESTA("I prodotti di JJA-VIS","Bottega","Quello che puoi avere già adesso, senza aspettare l'app. Un prodotto pronto per un mestiere, un sopralluogo gratis, i lavori su misura. Man mano che le mie funzioni diventano pronte per tutti, arrivano qui."),
@@ -571,7 +573,7 @@ const LUOGHI={
     parti:()=>[{id:"radio",nome:"La radio",dentro:()=>laRadio()},{id:"stazioni",nome:"Le tue stazioni",dentro:()=>leTueStazioni()}]},
   torre:{nome:"La Torre",ic:"🌐",breve:"la reception, chi sono, cosa so fare",
     // la Reception sta al piano terra della Torre (JJ, 3/10: «sposterei all'interno della torre la reception»)
-    testa(){ const n=nomeAssistente(); return [...TESTA("Al piano terra la Reception, in cima il globo","La Torre", n?`Bentornato. ${n} ti aspetta: è il tuo, con il nome che gli hai dato tu.`:"Benvenuto in città. Qui nasce il tuo assistente personale: un minuto, e comincio a imparare te."),
+    testa(){ const n=nomeAssistente(); return [...TESTA("Al piano terra la Reception, in cima il globo","La Torre", n?`Bentornato. ${n} ti aspetta: è il tuo, con il nome che gli hai dato tu.`:"Benvenuto in città. Qui nasce il tuo assistente personale: dagli un nome nella pagina (in alto, «← La pagina»), e comincio a imparare te."),
       P("Sono JJA-VIS, un sistema personale intelligente. Non rispondo: anticipo. Non archivio: imparo. Non servo il settore: servo la persona.")]; },
     parti:()=>[...LUOGHI.reception.parti(),
       {id:"globo",nome:"Il globo",dentro:()=>[BLOCCO(H3("Imparo te"), P("Un assistente professionale conosce un lavoro. Io imparo chi sei: le tue abitudini, le tue giornate, quello che ti preoccupa e quello che vuoi. Il lavoro è solo una parte di te. Più mi usi, più divento tuo. Uguale per tutti, diverso per ognuno.")),
@@ -804,7 +806,8 @@ function disegnaNova(){
   if(!ch.length) c.append(el("p",{class:"vuota",testo:`Scrivi a ${nomeAssistente()}. Quello che non sa lo passa a chi lo costruisce, e la risposta compare qui da sola.`}));
   ch.forEach(m=>{ const b=el("div",{class:"bolla "+(m.ruolo==="tu"?"tu":"io"),testo:m.testo});
     if(m.ruolo==="tu"&&m.attesa) b.append(el("small",{class:"attesa",testo:"ti rispondo appena posso"}));
-    if(m.azione&&AZIONI_CHAT[m.azione.servizio]){ b.append(el("br")); b.append(vai(PAGINA+AZIONI_CHAT[m.azione.servizio][1],AZIONI_CHAT[m.azione.servizio][0])); }
+    // i servizi che Nova propone stanno nella pagina: qui solo detto, senza un collegamento che porti fuori dalla città
+    if(m.azione&&AZIONI_CHAT[m.azione.servizio]) b.append(el("small",{class:"attesa",testo:AZIONI_CHAT[m.azione.servizio][0].replace(" →","")+": lo trovi nella pagina."}));
     c.append(b); });
   c.scrollTop=c.scrollHeight;
   // mostrata = letta, come nella pagina

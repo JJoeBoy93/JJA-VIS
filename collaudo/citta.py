@@ -234,9 +234,8 @@ async def main():
             await vai(p, n)
             f = await foglio(p)
             for h in f["link"]:
-                if h.startswith("index.html#"):
-                    k = h.split("#", 1)[1]
-                    if k not in SCHEDE and k not in ID_PAGINA: rotti.append((n, h))
+                if h.startswith("index.html"):   # JJ, 4/10: dalla città non si esce cliccando, solo da «← La pagina»
+                    rotti.append((n, h))
                 elif not h.startswith("https://jjoeboy93.github.io/") and not (n == "Cinema" and re.match(r"https://(www\.)?(instagram\.com|youtube\.com|youtu\.be|tiktok\.com)/", h)): rotti.append((n, h))
             parti = await p.evaluate("window.CITTA.parti()")
             if parti:
@@ -292,7 +291,7 @@ async def main():
                 prova("in stanza toccare la vista non fa camminare fuori", await p.evaluate("window.CITTA.dove()") == prima)
             await p.click("#esci-stanza")
             await p.wait_for_timeout(400)
-        prova("tutti i link dei palazzi portano a un posto che esiste", not rotti, rotti)
+        prova("nessuna scheda della città porta fuori, nella pagina (si esce solo da «← La pagina»); i link esterni sono solo quelli permessi", not rotti, rotti)
         prova("dentro ogni palazzo si arriva a ogni cosa camminando: niente salti, niente muri", not senza_salti, senza_salti)
         prova("il giro è chiuso dopo Sartoria, Torre e Bottega", "Giro chiuso" in await p.inner_text("#giro"))
         await p.wait_for_timeout(500); await foto(p, "05-dopo-il-giro")
@@ -433,7 +432,8 @@ async def main():
         prova("chi ha già fatto il giro non lo rivede", await p.evaluate("document.getElementById('giro').hidden"))
         prova("chi aveva fatto il giro alla vecchia Reception non lo rifà: vale per la Torre", "Giro chiuso" in await p.inner_text("#giro") or await p.evaluate("document.getElementById('giro').hidden"))
         await vai(p, "La Torre")
-        prova("senza nome, la Reception nella Torre manda a darne uno", "Dai un nome" in (await foglio(p))["testo"])
+        f_ = await foglio(p)
+        prova("senza nome, la Reception nella Torre dice di darne uno nella pagina, senza un collegamento che porti fuori", "nella pagina" in f_["testo"] and not any(h.startswith("index.html") for h in f_["link"]), f_["link"])
         prova("nessun errore JavaScript (ritorno)", not err, err[:3])
         await ctx.close()
 
