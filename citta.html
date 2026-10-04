@@ -1676,7 +1676,22 @@ async function costruisci(){
       const ped=cilindro(0.45,0.5,0.25,0x0D3A5C,14); ped.position.set(m.position.x,0.125,m.position.z); S.add(ped, m); toccabili.push([m,"sartoria"]); solidi.push({cerchio:true,x:m.position.x,z:m.position.z,r:0.5}); }); }
 
   // ── l'Albero della Vita, al centro ──
-  const albero=new THREE.Group(); S.add(albero);
+  // (JJ, 4/10, col disegno: «l'albero in mezzo mettilo sopra a una piccola collinetta, circondata dall'acqua, circondata da
+  // un muretto con sopra la staccionata, e un po' più distanziate le panchine, che ci si può sedere»)
+  const COLLINA={r:4.2,h:1.0}, ACQUA=[4.2,6.0], MURETTO={r:6.25,alto:0.55}, PANCHINE_R=11;
+  { const R=(COLLINA.r**2+COLLINA.h**2)/(2*COLLINA.h);
+    const col=new THREE.Mesh(new THREE.SphereGeometry(R,40,10,0,Math.PI*2,0,Math.asin(COLLINA.r/R)), mat(0x3f8f3a)); col.position.y=COLLINA.h-R; S.add(col);
+    const acqua=new THREE.Mesh(new THREE.RingGeometry(ACQUA[0]-0.1,ACQUA[1],64), new THREE.MeshLambertMaterial({color:0x1f8fbf,transparent:true,opacity:0.85,emissive:0x0b3a55}));
+    acqua.rotation.x=-Math.PI/2; acqua.position.y=0.06; S.add(acqua); scena._acqua=acqua;
+    const pietra=0x9aa3ad;
+    for(const r of [MURETTO.r-0.15,MURETTO.r+0.15]){ const m=new THREE.Mesh(new THREE.CylinderGeometry(r,r,MURETTO.alto,64,1,true), new THREE.MeshLambertMaterial({color:pietra,side:THREE.DoubleSide})); m.position.y=MURETTO.alto/2; S.add(m); }
+    const cima=new THREE.Mesh(new THREE.RingGeometry(MURETTO.r-0.15,MURETTO.r+0.15,64), mat(0xb7bfc8)); cima.rotation.x=-Math.PI/2; cima.position.y=MURETTO.alto; S.add(cima);
+    // la staccionata sul muretto: paletti di legno e due correnti
+    const N=48, pali=new THREE.InstancedMesh(new THREE.BoxGeometry(0.08,0.62,0.08), mat(0x7a5a3a), N), m4=new THREE.Matrix4();
+    for(let i=0;i<N;i++){ const a=i/N*Math.PI*2; m4.makeTranslation(Math.sin(a)*MURETTO.r,MURETTO.alto+0.31,Math.cos(a)*MURETTO.r); pali.setMatrixAt(i,m4); } S.add(pali);
+    for(const y of [MURETTO.alto+0.25,MURETTO.alto+0.55]){ const c=new THREE.Mesh(new THREE.TorusGeometry(MURETTO.r,0.035,4,72), mat(0x8a6a48)); c.rotation.x=Math.PI/2; c.position.y=y; S.add(c); }
+    scena._albero={collina:COLLINA, acqua:ACQUA, muretto:MURETTO.r, paletti:N}; }
+  const albero=new THREE.Group(); albero.position.y=COLLINA.h-0.05; S.add(albero);   // sulla cima della collinetta
   { const tronco=cilindro(0.75,1.5,7.5,0x2a2420,10); tronco.position.y=3.75; albero.add(tronco);
     for(let i=0;i<6;i++){ const r=cilindro(0.18,0.5,3.2,0x2a2420,6); const a=i/6*Math.PI*2; r.position.set(Math.sin(a)*1.6,0.35,Math.cos(a)*1.6); r.rotation.set(Math.cos(a)*1.35,0,-Math.sin(a)*1.35); albero.add(r); }
     for(let i=0;i<7;i++){ const b=cilindro(0.15,0.4,4.5,0x2a2420,6); const a=i/7*Math.PI*2+0.3; b.position.set(Math.sin(a)*1.6,8.2,Math.cos(a)*1.6); b.rotation.set(Math.cos(a)*0.9,0,-Math.sin(a)*0.9); albero.add(b); }
@@ -1696,18 +1711,20 @@ async function costruisci(){
     const fg=new THREE.BufferGeometry(); fg.setAttribute("position", new THREE.Float32BufferAttribute(fili,3));
     chioma.add(new THREE.LineSegments(fg, new THREE.LineBasicMaterial({color:0x48CAE4,transparent:true,opacity:.35})));
     const cuore=new THREE.PointLight(0x48CAE4, 160, 30, 2); cuore.position.y=7; albero.add(cuore);
-    const anello=new THREE.Mesh(new THREE.RingGeometry(2.6,2.9,48), mat(0x00B4D8,true)); anello.rotation.x=-Math.PI/2; anello.position.y=0.04; albero.add(anello);
     const tocco=new THREE.Mesh(new THREE.CylinderGeometry(3,3,9,8), new THREE.MeshBasicMaterial({visible:false})); tocco.position.y=4.5; albero.add(tocco);
     toccabili.push([tocco,"albero"]);
-    const cart=insegna("L'ALBERO DELLA VITA","ogni JJA-VIS è un nodo",3.2); cart.position.set(0,1.1,3.3); albero.add(cart);
-    const cp=cilindro(0.05,0.05,1,0x8a7a60,6); cp.position.set(0,0.5,3.28); albero.add(cp);
-    solidi.push({cerchio:true,x:0,z:0,r:2.2});
-    porte.albero={id:"albero",x:0,z:4.8,guarda:Math.PI};
+    // il cartello fuori dal muretto, davanti; dentro il muretto non si entra: l'albero si guarda da qui
+    const cart=insegna("L'ALBERO DELLA VITA","ogni JJA-VIS è un nodo",3.2); cart.position.set(0,1.25,MURETTO.r+0.75); S.add(cart);
+    const cp=cilindro(0.05,0.05,1.2,0x8a7a60,6); cp.position.set(0,0.6,MURETTO.r+0.73); S.add(cp);
+    solidi.push({cerchio:true,x:0,z:0,r:MURETTO.r+0.25});
+    porte.albero={id:"albero",x:0,z:MURETTO.r+1.9,guarda:Math.PI};
   }
-  // panchine intorno all'albero
-  for(let i=0;i<4;i++){ const a=i/4*Math.PI*2+Math.PI/4, b=new THREE.Group(); b.position.set(Math.sin(a)*6.5,0,Math.cos(a)*6.5); b.rotation.y=a+Math.PI;
+  // le panchine: sei, larghe intorno all'albero, guardano l'albero; ci si siede (scena.siedi)
+  const panchine=[];
+  for(let i=0;i<6;i++){ const a=i/6*Math.PI*2+Math.PI/6, x=Math.sin(a)*PANCHINE_R, z=Math.cos(a)*PANCHINE_R, b=new THREE.Group(); b.position.set(x,0,z); b.rotation.y=a+Math.PI;
     const s=scatola(2.2,0.1,0.6,0x6b4a2e); s.position.y=0.5; const sc=scatola(2.2,0.6,0.1,0x6b4a2e); sc.position.set(0,0.85,-0.28);
-    for(const x of [-0.9,0.9]){ const z=scatola(0.08,0.5,0.5,0x222222); z.position.set(x,0.25,0); b.add(z); } b.add(s,sc); S.add(b); }
+    for(const xx of [-0.9,0.9]){ const zz=scatola(0.08,0.5,0.5,0x222222); zz.position.set(xx,0.25,0); b.add(zz); } b.add(s,sc); S.add(b);
+    solidi.push({x,z,rot:a+Math.PI,w:2.2,d:0.6}); occupa(x,z,a+Math.PI,2.2,0.6,"panchina"); panchine.push({x,z,rot:a+Math.PI}); }
 
   // ── lampioni e alberi, disegnati in blocco ──
   { const lamp=[];
@@ -2013,8 +2030,8 @@ async function costruisci(){
     return via; }
   function giraAlbero(a,b,tappe){ const ux=b.x-a.x, uz=b.z-a.z, l2=ux*ux+uz*uz||1;
     const t=Math.max(0,Math.min(1,-(a.x*ux+a.z*uz)/l2)), cx=a.x+ux*t, cz=a.z+uz*t;
-    if(Math.hypot(cx,cz)<3.8){ let nx=-uz, nz=ux; const nl=Math.hypot(nx,nz)||1; nx/=nl; nz/=nl;
-      if(nx*(a.x+b.x)+nz*(a.z+b.z)<0){ nx=-nx; nz=-nz; } tappe.push({x:nx*5.5,z:nz*5.5}); } }
+    if(Math.hypot(cx,cz)<7.3){ let nx=-uz, nz=ux; const nl=Math.hypot(nx,nz)||1; nx/=nl; nz/=nl;
+      if(nx*(a.x+b.x)+nz*(a.z+b.z)<0){ nx=-nx; nz=-nz; } tappe.push({x:nx*8.6,z:nz*8.6}); } }
   function lottoVicino(){ let m=null, dm=Infinity; for(const [k,P] of Object.entries(porte)){ if(P.id!=="lotto") continue; const d=Math.hypot(P.x-tu.position.x,P.z-tu.position.z); if(d<dm){ dm=d; m=k; } } return m; }
   function percorso(k){
     if(sulTetto) scena.terrazza(false);
@@ -2212,6 +2229,7 @@ async function costruisci(){
   $("entra").addEventListener("click",()=>{ const b=$("entra");
     if(stanzaAperta){ if(b.dataset.azione==="esci") esciStanza(); else if(b.dataset.cosa){ const c=attiva&&attiva.cose[b.dataset.cosa]; if(c&&tuStanza) tuStanza.rotation.y=Math.atan2(c.x-tuStanza.position.x,c.z-tuStanza.position.z); apriCosa(b.dataset.cosa); } return; }
     if(b.dataset.azione==="scendi"){ scena.terrazza(false); apriStanza("torre"); return; }
+    if(b.dataset.azione==="siedi"){ scena.siedi(+b.dataset.panca); return; }
     const id=b.dataset.id; if(id) apriFoglio(id); });
 
   function ridimensiona(){ renderer.setSize(innerWidth,innerHeight,false); cam.aspect=innerWidth/innerHeight; cam.fov=innerHeight>innerWidth?68:58; cam.updateProjectionMatrix(); }
@@ -2269,6 +2287,13 @@ async function costruisci(){
     renderer.render(R.S,camStanza);
   }
 
+  let seduto=null;
+  scena.siedi=i=>{ const b=panchine[i]; if(!b) return; seduto=b; stato.meta=null;
+    const fx=Math.sin(b.rot), fz=Math.cos(b.rot); tu.position.set(b.x+fx*0.08,-0.38,b.z+fz*0.08); tu.rotation.y=b.rot;
+    tu.userData.gambe.forEach(g=>g.rotation.x=-1.45); pieghe(tu); $("entra").hidden=true; vicinoPrima="seduto"; };
+  scena.seduto=()=>({seduto:!!seduto, y:+tu.position.y.toFixed(2), gamba:+tu.userData.gambe[0].rotation.x.toFixed(2)});
+  scena.panchine=()=>panchine.map(b=>({x:+b.x.toFixed(2),z:+b.z.toFixed(2)}));
+  scena.albero=()=>scena._albero;
   let sulTetto=false; const TETTO=(PALAZZI.find(P=>P.id==="torre").h)+0.4;
   function passo(){
     const dt=Math.min(orologio.getDelta(),0.2), t=orologio.elapsedTime; // anche a pochi fotogrammi si cammina alla velocità giusta
@@ -2287,20 +2312,24 @@ async function costruisci(){
     else if(stato.meta && libero){ const r=versoTappa(tu,stato,dt,7.5,()=>{ const P=porte[stato.metaId]; tu.rotation.y=P.guarda; apriFoglio(P.id); });
       if(r){ [vx,vz,vel]=r; // la telecamera gira dolce dietro a dove vai
         const ya=Math.atan2(-vx,-vz); let dy=ya-stato.yaw; dy=Math.atan2(Math.sin(dy),Math.cos(dy)); stato.yaw+=dy*Math.min(1,dt*2.2); } }
+    if(seduto && vel>0){ seduto=null; tu.position.y=0; vicinoPrima=null; }   // muovendo il cerchio ci si alza
+    if(seduto){ tu.userData.gambe.forEach(g=>g.rotation.x=-1.45); pieghe(tu); }
     if(vel>0){ tu.position.x+=vx*vel*dt; tu.position.z+=vz*vel*dt;
       if(sulTetto){ const T=porte.torre, P=PALAZZI.find(q=>q.id==="torre"), c=Math.cos(P.rot), s2=Math.sin(P.rot), lim=P.w/2-0.7;
         let lx=(tu.position.x-T.cx)*c-(tu.position.z-T.cz)*s2, lz=(tu.position.x-T.cx)*s2+(tu.position.z-T.cz)*c;
         lx=Math.max(-lim,Math.min(lim,lx)); lz=Math.max(-lim,Math.min(lim,lz));
         tu.position.x=T.cx+lx*c+lz*s2; tu.position.z=T.cz-lx*s2+lz*c; }
       else spingiFuori(tu.position,0.45);
+      if(!sulTetto) tu.position.y=0;
       const ry=Math.atan2(vx,vz); let dr=ry-tu.rotation.y; dr=Math.atan2(Math.sin(dr),Math.cos(dr)); tu.rotation.y+=dr*Math.min(1,dt*12); cammina(tu,vel*dt*1.9); }
-    else fermo(tu);
+    else if(!seduto) fermo(tu);
 
     // chi passeggia
     for(const p of passanti){
-      if(!p.meta){ p.attesa-=dt; fermo(p.m); if(p.attesa<=0){ const a=Math.random()*Math.PI*2, r=4+Math.random()*13; p.meta=new THREE.Vector3(Math.sin(a)*r,0,Math.cos(a)*r); } continue; }
+      if(!p.meta){ p.attesa-=dt; fermo(p.m); if(p.attesa<=0){ const a=Math.random()*Math.PI*2, r=8.5+Math.random()*11; p.meta=new THREE.Vector3(Math.sin(a)*r,0,Math.cos(a)*r); p.tempo=0; } continue; }
       const dx=p.meta.x-p.m.position.x, dz=p.meta.z-p.m.position.z, d=Math.hypot(dx,dz);
-      if(d<0.3){ p.meta=null; p.attesa=1+Math.random()*4; continue; }
+      p.tempo=(p.tempo||0)+dt;
+      if(d<0.3 || p.tempo>Math.max(6,d)){ p.meta=null; p.attesa=1+Math.random()*4; continue; }   // arrivato, o incastrato: un'altra meta
       p.m.position.x+=dx/d*1.4*dt; p.m.position.z+=dz/d*1.4*dt; spingiFuori(p.m.position,0.4);
       const ry=Math.atan2(dx,dz); let dr=ry-p.m.rotation.y; dr=Math.atan2(Math.sin(dr),Math.cos(dr)); p.m.rotation.y+=dr*Math.min(1,dt*6); cammina(p.m,1.4*dt*1.9);
     }
@@ -2309,8 +2338,12 @@ async function costruisci(){
     let vicino=null, dmin=3.3;
     if(!sulTetto) for(const P of Object.values(porte)){ const d=Math.hypot(P.x-tu.position.x,P.z-tu.position.z); if(d<dmin){ dmin=d; vicino=P.id; } }
     if(sulTetto) vicino="terrazza";
+    // vicino a una panchina, e fermo: «Siediti»
+    let panca=-1; if(!vicino && !sulTetto && !seduto) panchine.forEach((b,i)=>{ if(Math.hypot(b.x-tu.position.x,b.z-tu.position.z)<1.9) panca=i; });
+    if(seduto) vicino="seduto"; else if(panca>=0) vicino="panchina"+panca;
     if(vicino!==vicinoPrima && !sulTetto){ vicinoPrima=vicino; usoPrima=null; const b=$("entra"); delete b.dataset.cosa; delete b.dataset.azione;
-      if(vicino && !fogliAperto){ b.dataset.id=vicino; b.textContent=(LUOGHI[vicino].esterno?"Guarda · ":"Entra · ")+LUOGHI[vicino].nome; b.hidden=false; } else b.hidden=true; }
+      if(vicino && vicino.startsWith("panchina") && !fogliAperto){ delete b.dataset.id; b.dataset.azione="siedi"; b.dataset.panca=vicino.slice(8); b.textContent="Siediti · in panchina"; b.hidden=false; }
+      else if(vicino && LUOGHI[vicino] && !fogliAperto){ b.dataset.id=vicino; b.textContent=(LUOGHI[vicino].esterno?"Guarda · ":"Entra · ")+LUOGHI[vicino].nome; b.hidden=false; } else b.hidden=true; }
     if(fogliAperto && !$("entra").hidden) $("entra").hidden=true;
     if(!fogliAperto && vicino && $("entra").hidden){ vicinoPrima=null; }
 

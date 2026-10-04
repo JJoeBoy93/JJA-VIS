@@ -510,6 +510,20 @@ async def main():
         prova("il cerchio fa camminare", abs(dopo["x"] - prima["x"]) + abs(dopo["z"] - prima["z"]) > 1, (prima, dopo))
         prova("contro la facciata ci si ferma: non si entra nei muri", not await p.evaluate("window.CITTA.nelMuro()"), dopo)
         await foto(p, "06-camminato")
+        # l'albero sulla collinetta, l'acqua, il muretto con la staccionata, le panchine dove sedersi (JJ, 4/10)
+        al = await p.evaluate("window.CITTA.albero()"); pa = await p.evaluate("window.CITTA.panchine()")
+        import math
+        dmin = min(math.hypot(a_["x"] - b_["x"], a_["z"] - b_["z"]) for i, a_ in enumerate(pa) for b_ in pa[i + 1:])
+        prova("l'albero sta su una collinetta, circondata dall'acqua, circondata dal muretto con la staccionata", al["collina"]["h"] > 0.5 and al["acqua"][0] <= al["collina"]["r"]
+              and al["acqua"][1] < al["muretto"] and al["paletti"] >= 24, al)
+        prova("le panchine sono sei, fuori dal muretto e più distanziate (almeno 8 m l'una dall'altra)", len(pa) == 6 and all(math.hypot(b_["x"], b_["z"]) >= 10 for b_ in pa) and dmin >= 8, [pa, dmin])
+        await p.evaluate("window.CITTA.siedi(0)"); await p.wait_for_timeout(1200)
+        sd = await p.evaluate("window.CITTA.seduto()")
+        prova("in panchina ci si siede: più in basso, le gambe in avanti, e resta così", sd["seduto"] and sd["y"] < -0.2 and sd["gamba"] < -1.2, sd)
+        await p.mouse.move(cx, cy); await p.mouse.down(); await p.mouse.move(cx, cy + 50, steps=4); await p.wait_for_timeout(1500); await p.mouse.up()
+        sd2 = await p.evaluate("window.CITTA.seduto()")
+        prova("muovendo il cerchio ci si alza e si cammina", not sd2["seduto"] and sd2["y"] == 0, sd2)
+        await foto(p, "06b-panchine")
         prova("nessun errore JavaScript (accesa)", not err, err[:3])
         await ctx.close()
 
