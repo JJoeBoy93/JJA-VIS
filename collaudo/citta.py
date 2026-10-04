@@ -513,7 +513,6 @@ async def main():
         prova("nessun errore JavaScript (accesa)", not err, err[:3])
         await ctx.close()
 
-        await ctx.close()   # una pagina 3D accesa in più rallenta la prossima fino a farla cadere oltre i 30 s
         # 5. di nuovo: il vestito è rimasto, il giro chiuso non si ripete per sempre
         ctx, p, err = await nuova(b, citta={"mestiere": "Sanità", "vestito": "sanita", "pelle": 0, "giro": {"sartoria": True, "reception": True, "bottega": True}, "giroVisto": True})
         await p.goto(BASE + "citta.html")
