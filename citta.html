@@ -93,6 +93,16 @@ body.in-sartoria #foglio{max-height:56vh} /* sopra si deve vedere l'avatar inter
 .scelta[aria-pressed="true"]{background:#0D2A3E;border-color:var(--accento);box-shadow:0 0 10px color-mix(in srgb,var(--accento) 35%,transparent) inset}
 .tinte{display:flex;flex-wrap:wrap;gap:9px}
 .riga-radio{display:flex;align-items:center;gap:10px;margin:6px 0}
+.gettoni{display:flex;align-items:center;gap:6px;margin-top:6px;font:400 13px/1.2 var(--f-mono);color:var(--tenue)}
+.gettoni img{width:22px;height:22px;border-radius:50%}
+.gettoni b{color:var(--oro);font-weight:700}
+.vassoio .riga{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:8px 0;font-size:16px}
+.barra-twitch .cose-tavolo{display:flex;flex-wrap:wrap;gap:6px}
+.barra-twitch .cose-tavolo button{font:600 13px/1 var(--f-testo);color:#efeff1;background:#26262c;border:1px solid #3a3a44;padding:8px 10px;cursor:pointer}
+#strato-gioco{position:fixed;inset:0;z-index:1000;background:#07131f;display:flex;flex-direction:column;padding:calc(env(safe-area-inset-top,0px) + 8px) 0 env(safe-area-inset-bottom,0px);color:#e6f6ff}
+#strato-gioco .barra{display:flex;justify-content:space-between;align-items:center;padding:6px 12px 10px;font:700 16px/1.2 var(--f-titoli)}
+#campo-gioco{position:relative;flex:1;overflow:hidden;touch-action:none}
+#campo-gioco img{position:absolute;width:64px;height:64px;border-radius:50%;cursor:pointer;filter:drop-shadow(0 0 10px #00B4D8)}
 /* la chat di Twitch: uno strato suo, a tutto schermo, niente sopra, niente trasformazioni né trasparenze (Twitch spegne lo scrivere se è coperta) */
 #strato-twitch{position:fixed;inset:0;z-index:1000;display:flex;flex-direction:column;background:#0e0e10;padding:calc(env(safe-area-inset-top,0px) + 8px) 0 env(safe-area-inset-bottom,0px)}
 #strato-twitch .barra-twitch{flex:none;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:6px 12px 8px;color:#efeff1;font:700 16px/1.2 var(--f-titoli)}
@@ -224,6 +234,7 @@ body.con-nova #joy,body.con-nova #entra,body.con-nova #vai{opacity:0;pointer-eve
   <div id="cartello" class="cornice">
     <div class="titolo">La città di JJA-VIS</div>
     <div class="sotto" id="numeri">il tuo assistente, in carne e palazzi</div>
+    <div class="gettoni" id="gettoni" title="I tuoi gettoni"><img id="gettone-img" alt=""><b id="gettoni-n">100</b> gettoni</div>
     <button id="giro" type="button" aria-label="Il tuo primo giro"></button>
   </div>
   <div class="pulsanti-hud"><button class="pulsante apri-nova" type="button" id="apri-nova">💬 <span class="nome-nova">Nova</span><i class="nuovo" hidden></i></button>
@@ -325,6 +336,8 @@ if(!citta.vestito) citta.vestito=citta.mestiere?vestitoDi(citta.mestiere):"altro
 if(typeof citta.pelle!=="number") citta.pelle=1;
 if(citta.giro && citta.giro.reception && !citta.giro.torre) citta.giro.torre=true;
 if(!CORPI.some(c=>c[0]===citta.corpo)) citta.corpo="uomo";
+// i gettoni, la moneta del gioco (JJ, 4/10): 100 alla partenza; si vincono in Sala giochi; si spendono al Café
+if(typeof citta.gettoni!=="number") citta.gettoni=100;
 if(!CAPELLI.some(c=>c[0]===citta.capelli)) citta.capelli=citta.corpo==="donna"?"lunghi":"corti";
 if(typeof citta.capelliColore!=="number") citta.capelliColore=0;
 
@@ -662,10 +675,13 @@ const LUOGHI={
       {id:"sito",nome:"Il suo sito",dentro:()=>[BLOCCO(H3("Il suo sito"), P("È il primo lavoro uscito dalla Forgia: una ditta appena nata, un sito che si usa col pollice."), ...DENTRO.athena.map(f=>f()))]}],
     fine:()=>[AZIONI(vai(PRODOTTI.athena.link,"Guarda il sito",false,true), vai(PAGINA+"#costruisci","Uno così per te",true))]},
   giochi:{nome:"Sala giochi",ic:"🕹",breve:"i giochi di chi mi costruisce",
-    testa:()=>TESTA("Si apre presto","Sala giochi","Qui arrivano i giochi che crea chi mi costruisce, uno per cabinato."),
+    testa:()=>TESTA("Si gioca, si vincono gettoni","Sala giochi","I gettoni sono la moneta della città: se ne vincono qui, si spendono al Café."),
     parti:()=>[
-      {id:"cab1",nome:"Cabinato 1",dentro:()=>[BLOCCO(CARTE([["Cabinato 1","in costruzione","Il primo gioco. Ne parlerò quando si potrà giocare."]]))]},
+      {id:"cab1",nome:"Acchiappa i gettoni",dentro:()=>[BLOCCO(H3("Acchiappa i gettoni"), P("25 secondi: compaiono i gettoni di JJA-VIS, toccali prima che spariscano. Ogni gettone preso è tuo, fino a 15 a partita."),
+        AZIONI(bottone("Gioca",giocaAcchiappa)), NOTA(`Hai ${citta.gettoni} gettoni.`))]},
       {id:"cab2",nome:"Cabinato 2",dentro:()=>[BLOCCO(CARTE([["Cabinato 2","libero","Quello che chiedete in tanti."]]))]},
+      {id:"macchinetta",nome:"La macchinetta dei gettoni",dentro:()=>[BLOCCO(H3("La macchinetta"), P("Qui un giorno i gettoni si compreranno."),
+        NOTA("Non ancora accesa: comprare coi soldi veri vuol dire decidere prima chi incassa (col commercialista). Intanto i gettoni si vincono giocando."))]},
       {id:"chi",nome:"Chi li fa",dentro:()=>[BLOCCO(H3("Chi li fa"), P("Chi mi costruisce è creatore ufficiale di isole di Fortnite. Le isole su commissione le trovi alla Forgia.")),
         NOTA("A cosa vorresti giocare? Dimmelo nella chat: le idee più chieste diventano il prossimo cabinato.")]}],
     fine:()=>[AZIONI(parlaQui("Dimmi a cosa vorresti giocare","Mi piacerebbe giocare a "))]},
@@ -763,6 +779,46 @@ function specchio(){
 const GLOBO_DICE=()=>[BLOCCO(H3("Imparo te"), P("Un assistente professionale conosce un lavoro. Io imparo chi sei: le tue abitudini, le tue giornate, quello che ti preoccupa e quello che vuoi. Il lavoro è solo una parte di te. Più mi usi, più divento tuo. Uguale per tutti, diverso per ognuno.")),
         BLOCCO(H3("Da dove nasco"), P("Chi mi costruisce ha molte vite insieme: una ditta di trasporti, il furgone da corriere ogni mattina, il codice la notte, le isole di Fortnite di cui è creatore ufficiale. Cercava qualcosa che lo aiutasse in tutte. Non l'ha trovato, e ha deciso di costruirlo.")), BLOCCO(H3("Per chiunque"), P("Chiunque, ovunque nasca e qualunque lavoro faccia, ha diritto al suo assistente personale. Il corriere di Milano, il farmacista di Tokyo, l'agricoltore del Brasile, il meccanico del Cairo. Parto dal lavoro che conosco meglio, la consegna, e da lì vado verso tutti.")),
         NOTA("Come sono fatto dentro non lo racconto: sono mesi di lavoro, notte dopo notte. Cosa so fare sì.")];
+// ── l'icona di JJA-VIS, disegnata nel telefono (JJ, 4/10: «il gettone ha l'icona di JJA-VIS, come quella di JARVIS ma di
+// JJA-VIS»): anello azzurro con le tacche, un arco pieno, un tratto giallo, dentro il disco scuro col cerchio di dodici
+// caselle arancioni e la scritta. È anche la faccia dei gettoni e il cerchio per terra nella Torre.
+function iconaJJAVIS(px=256){
+  const c=document.createElement("canvas"); c.width=c.height=px; const x=c.getContext("2d"), m=px/2, R=px/2;
+  if(!x) return c;   // senza disegno (raro): niente icona, ma la città va avanti
+  x.fillStyle="#061521"; x.beginPath(); x.arc(m,m,R,0,Math.PI*2); x.fill();
+  x.strokeStyle="#7fd8f0"; x.lineWidth=px*0.018; x.beginPath(); x.arc(m,m,R*0.93,0,Math.PI*2); x.stroke();
+  for(let i=0;i<60;i++){ const a=i/60*Math.PI*2, r1=R*0.8, r2=R*(i%5?0.85:0.88); x.lineWidth=px*0.008; x.beginPath(); x.moveTo(m+Math.cos(a)*r1,m+Math.sin(a)*r1); x.lineTo(m+Math.cos(a)*r2,m+Math.sin(a)*r2); x.stroke(); }
+  x.strokeStyle="#3fa9d6"; x.lineWidth=px*0.075; x.beginPath(); x.arc(m,m,R*0.7,-Math.PI*0.95,Math.PI*0.25); x.stroke();
+  x.strokeStyle="#FFD60A"; x.lineWidth=px*0.02; x.beginPath(); x.arc(m,m,R*0.62,Math.PI*0.62,Math.PI*0.9); x.stroke();
+  x.fillStyle="#0b0d12"; x.beginPath(); x.arc(m,m,R*0.55,0,Math.PI*2); x.fill();
+  x.strokeStyle="#c8642a"; x.lineWidth=px*0.01; for(const r of [0.53,0.38]){ x.beginPath(); x.arc(m,m,R*r,0,Math.PI*2); x.stroke(); }
+  for(let i=0;i<12;i++){ const a=i/12*Math.PI*2; x.beginPath(); x.moveTo(m+Math.cos(a)*R*0.38,m+Math.sin(a)*R*0.38); x.lineTo(m+Math.cos(a)*R*0.53,m+Math.sin(a)*R*0.53); x.stroke(); }
+  x.fillStyle="#ffffff"; x.font=`700 ${Math.round(px*0.1)}px system-ui,sans-serif`; x.textAlign="center"; x.textBaseline="middle"; x.fillText("JJA-VIS",m,m);
+  return c;
+}
+const ICONA=iconaJJAVIS(256), ICONA_URL=ICONA.toDataURL("image/png");
+function aggiornaGettoni(){ const n=$("gettoni-n"); if(n) n.textContent=citta.gettoni; const i=$("gettone-img"); if(i && !i.src) i.src=ICONA_URL; }
+function spendi(n){ if(citta.gettoni<n) return false; citta.gettoni-=n; salva(); aggiornaGettoni(); return true; }
+function guadagna(n){ citta.gettoni+=n; salva(); aggiornaGettoni(); }
+
+// ── Acchiappa i gettoni (Sala giochi, cabinato 1): uno strato a tutto schermo, 25 secondi
+const GIOCO={durata:25, massimo:15};
+function giocaAcchiappa(){
+  let L=$("strato-gioco"); if(L) L.remove();
+  L=document.createElement("div"); L.id="strato-gioco";
+  L.innerHTML='<div class="barra"><span>🪙 <b id="gioco-punti">0</b> · <span id="gioco-tempo">25</span> s</span><button type="button" class="pulsante" id="gioco-esci">Esci</button></div><div id="campo-gioco"></div><p id="gioco-esito" style="text-align:center;margin:10px;min-height:1.2em"></p>';
+  document.body.appendChild(L); document.body.classList.add("con-twitch");
+  const st={punti:0, fine:Date.now()+GIOCO.durata*1000, finito:false}; scena._gioco=st;
+  const campo=$("campo-gioco"), metti=()=>{ if(st.finito) return; const r=campo.getBoundingClientRect(), im=new Image(); im.src=ICONA_URL;
+    im.style.left=Math.random()*Math.max(1,r.width-64)+"px"; im.style.top=Math.random()*Math.max(1,r.height-64)+"px";
+    const via=setTimeout(()=>im.remove(),1100); im.addEventListener("pointerdown",()=>{ clearTimeout(via); im.remove(); st.punti++; $("gioco-punti").textContent=st.punti; }); campo.appendChild(im); };
+  const fine=()=>{ if(st.finito) return; st.finito=true; clearInterval(st.t1); clearInterval(st.t2); const vinti=Math.min(st.punti,GIOCO.massimo); guadagna(vinti);
+    $("gioco-esito").textContent=`Fine! Hai preso ${st.punti} gettoni: ne vinci ${vinti}. Ora ne hai ${citta.gettoni}.`; campo.textContent=""; };
+  st.prendi=()=>{ st.punti++; }; st.fine2=fine;
+  st.t1=setInterval(metti,700); st.t2=setInterval(()=>{ const s=Math.max(0,Math.ceil((st.fine-Date.now())/1000)); $("gioco-tempo").textContent=s; if(s<=0) fine(); },250);
+  $("gioco-esci").addEventListener("click",()=>{ fine(); L.remove(); document.body.classList.remove("con-twitch"); ridisegnaCarta(); });
+}
+
 // ── i piani della Torre
 const PIANI=[
   {n:0,id:"torre",etichetta:"Piano terra",cosa:"la Reception e l'assistente"},
@@ -861,25 +917,39 @@ function bancone(){
 
 // ── il JJA-VIS Café: colazione (è un gioco: niente soldi), recensioni (arrivano a chi mi costruisce, come un messaggio
 // della chat: pubbliche quando ci sarà chi le modera), offri un caffè (sostieni.json, acceso solo quando c'è chi incassa)
-const BAR=[["Caffè","☕"],["Cappuccino","☕"],["Brioche","🥐"],["Spremuta","🍊"],["Cornetto alla crema","🥐"],["Tè","🍵"]];
-const colazioneMia=[];
+// [nome, icona, gettoni, quanti sorsi o morsi (da, a), sorso/morso] (JJ, 4/10: caffè 3/4 sorsi, tè di più, brioche 6/7 morsi, biscotto 2/3)
+const BAR=[["Caffè","☕",2,[3,4],"sorso"],["Cappuccino","☕",3,[5,6],"sorso"],["Tè","🍵",2,[7,9],"sorso"],["Spremuta","🍊",3,[5,6],"sorso"],
+  ["Brioche","🥐",3,[6,7],"morso"],["Cornetto alla crema","🥐",3,[6,7],"morso"],["Biscotto","🍪",1,[2,3],"morso"]];
+const vassoio=[];   // quello che hai ordinato e non hai ancora finito: arriva al tuo tavolino
+let esitoBar="";
 function colazione(){
   const box=el("div",{class:"scelte",role:"group","aria-label":"La colazione",id:"bar-menu"});
-  BAR.forEach(([n,ic])=>{ const b=el("button",{class:"scelta",type:"button",testo:`${ic} ${n}`}); b.addEventListener("click",()=>{ colazioneMia.push(n); ridisegnaCarta(); }); box.appendChild(b); });
-  const fatta=el("p",{id:"bar-ordine",class:"nota",testo:colazioneMia.length?`Al tuo tavolo: ${colazioneMia.join(", ")}. Buona colazione.`:"Scegli cosa prendi: è un gioco, qui non si paga."});
-  return [BLOCCO(H3("La colazione"), box, fatta, colazioneMia.length?AZIONI(bottone("Ho finito",()=>{ colazioneMia.length=0; ridisegnaCarta(); },true)):null)];
+  BAR.forEach(([n,ic,g,q,v])=>{ const b=el("button",{class:"scelta",type:"button",testo:`${ic} ${n} · ${g} 🪙`}); b.dataset.voce=n;
+    b.addEventListener("click",()=>{ if(!spendi(g)){ esitoBar=`Non ti bastano i gettoni: ne hai ${citta.gettoni}. Se ne vincono in Sala giochi.`; ridisegnaCarta(); return; }
+      const tot=q[0]+Math.floor(Math.random()*(q[1]-q[0]+1)); vassoio.push({nome:n,ic,verbo:v,tot,resta:tot}); if(scena.pronta&&scena.vassoioAlTavolo) scena.vassoioAlTavolo();
+      esitoBar=`${ic} ${n}: te lo porto al tavolino. Siediti a uno dei tavolini.`; ridisegnaCarta(); }); box.appendChild(b); });
+  return [BLOCCO(H3("La colazione"), P(`Si paga coi gettoni. Ne hai ${citta.gettoni}.`), box, el("p",{id:"bar-ordine",class:"nota",testo:esitoBar||"Scegli cosa prendi: arriva al tuo tavolino."}))];
 }
+// prendere un sorso o un morso di una cosa del vassoio
+function consuma(k){ const c=vassoio[k]; if(!c) return; c.resta--; if(scena.pronta&&scena.portaAllaBocca) scena.portaAllaBocca();
+  if(c.resta<=0){ vassoio.splice(k,1); esitoBar=`${c.ic} ${c.nome}: finito.`; } if(scena.pronta&&scena.vassoioAlTavolo) scena.vassoioAlTavolo();
+  ridisegnaVassoio(); }
+function righeVassoio(){ return vassoio.map((c,k)=>{ const r=el("div",{class:"riga"}); r.append(el("span",{testo:`${c.ic} ${c.nome} · ${c.resta}/${c.tot}`}));
+  const b=bottone(c.verbo==="sorso"?"Bevi un sorso":"Dai un morso",()=>consuma(k),true); b.dataset.consuma=c.nome; r.append(b); return r; }); }
+function ridisegnaVassoio(){ if(cartaAperta==="tavolini") ridisegnaCarta(); const t=$("cose-tavolo"); if(t) disegnaCoseTavolo(t); }
+function disegnaCoseTavolo(t){ t.textContent=""; vassoio.forEach((c,k)=>{ const b=document.createElement("button"); b.type="button"; b.textContent=`${c.ic} ${c.verbo==="sorso"?"sorso":"morso"} (${c.resta})`; b.dataset.consuma=c.nome; b.addEventListener("click",()=>consuma(k)); t.appendChild(b); }); }
 // ai tavolini si parla con gli altri nella chat del canale Twitch di chi mi costruisce (JJoe_Boy93), moderata da
 // StreamElements (JJ, 4/10). Incorporata come dice Twitch (dev.twitch.tv/docs/embed/chat): iframe con «parent» = il
 // dominio della pagina, solo su https. Si apre solo se lo chiedi: dentro valgono le regole e i cookie di Twitch.
 const TWITCH="jjoe_boy93";
 let chatBarAperta=false;
 function tavolini(){
-  const out=[BLOCCO(H3("Due chiacchiere"), P("Ai tavolini ci si parla con gli altri: è la chat del canale Twitch di chi mi costruisce, e la tiene pulita StreamElements. Per leggere basta aprirla; per scrivere serve un account Twitch."))];
-  // JJ, 4/10: «ho fatto login in Twitch ma non apre la barra di digitazione». Twitch spegne lo scrivere quando la sua chat è
-  // coperta o non si vede (dev.twitch.tv/docs/embed): dentro la carta c'erano sopra la × e gli angoli della cornice. Ora la
-  // chat si apre in uno strato tutto suo, figlio diretto della pagina, a tutto schermo, senza niente sopra e senza effetti.
-  out.push(AZIONI(bottone("Siediti e apri la chat",apriChatTwitch)), NOTA("Si apre a tutto schermo la chat di Twitch: da lì valgono le sue regole e i suoi cookie. In alto «Torna al Café»."));
+  const seduto=scena.pronta && scena.sedutoAlBar && scena.sedutoAlBar();
+  const out=[BLOCCO(H3("Due chiacchiere"), P("Ti siedi a un tavolino con quello che hai ordinato, e parli con gli altri nella chat del canale Twitch di chi mi costruisce (la tiene pulita StreamElements). Fra un messaggio e l'altro, bevi o mangi."))];
+  if(!seduto) out.push(AZIONI(bottone("Siediti al tavolino",()=>{ if(scena.siediAlBar) scena.siediAlBar(); ridisegnaCarta(); })));
+  else { const v=el("div",{class:"vassoio",id:"vassoio"}); if(vassoio.length) v.append(...righeVassoio()); else v.append(el("p",{class:"nota",testo:"Sul tavolino non c'è niente: ordina al bancone."}));
+    out.push(BLOCCO(H3("Sul tuo tavolino"), v), AZIONI(bottone("Apri la chat",apriChatTwitch), bottone("Alzati",()=>{ if(scena.alzatiDalBar) scena.alzatiDalBar(); ridisegnaCarta(); },true)),
+      NOTA("La chat si apre a tutto schermo: da lì valgono le regole e i cookie di Twitch. In alto «Torna al Café», e le tue cose da bere e mangiare.")); }
   return out;
 }
 function apriChatTwitch(){
@@ -888,12 +958,13 @@ function apriChatTwitch(){
     const barra=document.createElement("div"); barra.className="barra-twitch";
     const t=document.createElement("b"); t.textContent="☕ JJA-VIS Café · la chat";
     const b=document.createElement("button"); b.type="button"; b.id="chiudi-twitch"; b.className="pulsante"; b.textContent="Torna al Café"; b.addEventListener("click",chiudiChatTwitch);
-    barra.append(t,b);
+    const cose=document.createElement("div"); cose.className="cose-tavolo"; cose.id="cose-tavolo"; disegnaCoseTavolo(cose);
+    barra.append(t,cose,b); barra.style.flexWrap="wrap";
     const f=document.createElement("iframe"); f.id="chat-bar"; f.title="La chat del JJA-VIS Café, su Twitch";
     f.setAttribute("sandbox","allow-storage-access-by-user-activation allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox allow-modals allow-forms");
     f.src=`https://www.twitch.tv/embed/${TWITCH}/chat?parent=${location.hostname}&darkpopout`;
     L.append(barra,f); document.body.appendChild(L); }
-  L.hidden=false; document.body.classList.add("con-twitch"); chatBarAperta=true;
+  L.hidden=false; document.body.classList.add("con-twitch"); chatBarAperta=true; const t=$("cose-tavolo"); if(t) disegnaCoseTavolo(t);
 }
 function chiudiChatTwitch(){ const L=$("strato-twitch"); if(L){ L.remove(); } document.body.classList.remove("con-twitch"); chatBarAperta=false; }
 let stelle=0;
@@ -1105,7 +1176,7 @@ $("chiudi-carta").addEventListener("click", chiudiCarta);
 ["apri-nova","apri-nova-stanza"].forEach(id=>$(id).addEventListener("click",()=>apriNova("")));
 $("chiudi-nova").addEventListener("click", chiudiNova);
 $("nova-manda").addEventListener("click", mandaNova);
-nomiNova(); segnaNovita();
+nomiNova(); segnaNovita(); aggiornaGettoni();
 // una risposta arrivata mentre la città era chiusa: si guarda all'apertura, se c'è una domanda in attesa
 if(novaAttesa()){ novaDa=Date.now(); controllaNova().then(giroNova); }
 document.addEventListener("visibilitychange",()=>{ if(!document.hidden && novaAttesa()) controllaNova().then(giroNova); });
@@ -1867,7 +1938,9 @@ async function costruisci(){
     torre(S2,h){ h.insegnaFondo("LA TORRE","piano terra · la reception");
       const banco=scatola(4,1.1,0.9,0x0D2A3E); h.metti(banco,0,0.55,-3.2); h.metti(scatola(4.02,0.06,0.92,0x00B4D8,true),0,1.12,-3.2); h.solido(0,-3.2,4,0.9);
       // il globo sopra il bancone è l'assistente: si tocca lui, e dice tutto
+      // per terra, nel cerchio azzurro, l'icona di JJA-VIS (JJ, 4/10)
       const g=h.metti(ologlobo(0.9),0,2.6,-3.4); h.metti(new THREE.Mesh(new THREE.RingGeometry(1.2,1.35,48),mat(0x00B4D8,true)),0,0.03,-1.2).rotation.x=-Math.PI/2;
+      const ico=new THREE.Mesh(new THREE.CircleGeometry(1.18,48), new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(ICONA)})); ico.material.map.colorSpace=THREE.SRGBColorSpace; h.metti(ico,0,0.035,-1.2).rotation.x=-Math.PI/2; S2.userData.icona=ico;
       h.cosa("globo",[g,banco],0,-3.4,{x:0,z:-1.9},3.9);
       vetrate(S2,h); pianoComune(S2,h); },
     torre1(S2,h){ h.insegnaFondo("1° PIANO","cosa so fare");
@@ -1895,9 +1968,10 @@ async function costruisci(){
       // la lavagna delle recensioni a destra
       const lav=aParete(schermo(2.8,1.6,"#FFD60A","RECENSIONI"),1,1.6,-1.5); lav.position.x-=0.1; S2.add(lav); h.cosa("recensioni",[lav],6.6,-1.5,{x:5.3,z:-1.5},3.4);
       // i tavolini tondi con le sedie
-      const tav=[]; [[-2.5,1.6],[2.2,1.4],[3.6,-3.6]].forEach(([x,z])=>{ const t=cilindro(0.55,0.55,0.06,0xc8a165,16), g2=cilindro(0.06,0.06,0.95,0x333333,8);
+      const tav=[]; S2.userData.posti=[]; [[-2.5,1.6],[2.2,1.4],[3.6,-3.6]].forEach(([x,z])=>{ const t=cilindro(0.55,0.55,0.06,0xc8a165,16), g2=cilindro(0.06,0.06,0.95,0x333333,8);
         h.metti(t,x,0.98,z); h.metti(g2,x,0.48,z); tav.push(t); h.tondo(x,z,0.6);
-        for(const a of [0,Math.PI]){ h.metti(cilindro(0.22,0.22,0.5,0x2a3f57,10),x+Math.cos(a)*0.85,0.25,z+Math.sin(a)*0.85); } });
+        for(const a of [0,Math.PI]){ const sx=x+Math.cos(a)*0.85, sz=z+Math.sin(a)*0.85; h.metti(cilindro(0.22,0.22,0.5,0x2a3f57,10),sx,0.25,sz);
+          S2.userData.posti.push({x:sx,z:sz,tx:x,tz:z}); } });
       h.cosa("tavolini",tav,2.2,1.4,{x:2.2,z:2.6},2.2);
       // la tazzina del caffè sospeso, accanto alla porta
       const taz=cilindro(0.18,0.14,0.22,0xffffff,12); h.metti(scatola(0.8,1,0.8,0x3a2a1e),-5.6,0.5,4.4); h.metti(taz,-5.6,1.12,4.4); h.solido(-5.6,4.4,0.8,0.8);
@@ -1915,7 +1989,10 @@ async function costruisci(){
       h.cosa("scaffali",sc,-4.2,-4.6,{x:-4.2,z:-3.2},3.7);
       h.metti(scatola(1.2,0.15,1.2,0x8a6a40),0,0.08,-1.6); for(let k=0;k<5;k++) h.metti(scatola(0.5,0.4,0.5,0xc8a165),-0.25+(k%2)*0.5,0.36+Math.floor(k/2)*0.4,-1.6+(k%2?0.2:-0.2)); h.solido(0,-1.6,1.4,1.4);
       const sito=aParete(schermo(2.6,1.5,"#00B4D8","IL SITO"),1,1.5,2.0); S2.add(sito); h.cosa("sito",[sito],6.6,1.5,{x:5.3,z:1.5},3.3); },
-    giochi(S2,h){ h.insegnaFondo("SALA GIOCHI","si apre presto");
+    giochi(S2,h){ h.insegnaFondo("SALA GIOCHI","si gioca, si vincono gettoni");
+      // la macchinetta dei gettoni, accanto alla porta
+      const mac=scatola(1,2,0.8,0x2a3f57); h.metti(mac,5.6,1,4.6); h.metti(scatola(0.6,0.4,0.04,0xFFD60A,true),5.6,1.5,4.18); h.solido(5.6,4.6,1,0.8);
+      h.cosa("macchinetta",[mac],5.6,4.6,{x:4.4,z:4.4},2.4);
       [[-5,0xff4fd8,"cab1","1"],[-2.5,0x00B4D8,"cab2","2"],[2.5,0xFFD60A,"chi","?"],[5,0x2ECC71,null,"?"]].forEach(([x,c,k,t])=>{ const m=scatola(1.2,2.2,0.9,0x15161a); h.metti(m,x,1.1,-5);
         const sc=schermo(0.9,0.7,"#"+c.toString(16).padStart(6,"0"),t); h.metti(sc,x,1.55,-4.54); h.metti(scatola(1.21,0.12,0.12,c,true),x,2.25,-4.55); h.solido(x,-5,1.2,0.9);
         if(k) h.cosa(k,[m,sc],x,-5,{x,z:-3.6},2.95); });
@@ -1986,7 +2063,25 @@ async function costruisci(){
     yawFuori=stato.yaw; stato.yaw=0; Object.assign(dentro,{meta:null,tappe:[],metaId:null,fermoDa:0,distPrima:Infinity,camSubito:true});
     usoPrima=undefined; $("entra").hidden=true;   // il pulsante di fuori non resta acceso dentro
   };
-  scena.esci=()=>{ if(attiva && attiva.S && tuStanza){ attiva.S.remove(tuStanza); stato.yaw=yawFuori; } tuStanza=null; attiva=null; $("entra").hidden=true; vicinoPrima=null; };
+  // il Café: sedersi a un tavolino, le cose ordinate sul tavolo, il braccio alla bocca
+  let alBar=null, boccaFino=0; const piatti=[];
+  scena.sedutoAlBar=()=>!!alBar;
+  scena.siediAlBar=()=>{ if(!attiva||!attiva.S.userData.posti||!tuStanza) return; const p=tuStanza.position;
+    const posto=attiva.S.userData.posti.slice().sort((a,b)=>Math.hypot(a.x-p.x,a.z-p.z)-Math.hypot(b.x-p.x,b.z-p.z))[0];
+    alBar=posto; dentro.meta=null; tuStanza.position.set(posto.x,-0.38,posto.z); tuStanza.rotation.y=Math.atan2(posto.tx-posto.x,posto.tz-posto.z);
+    tuStanza.userData.gambe.forEach(g=>g.rotation.x=-1.45); pieghe(tuStanza); scena.vassoioAlTavolo(); };
+  scena.alzatiDalBar=()=>{ if(!alBar) return; alBar=null; if(tuStanza){ tuStanza.position.y=0; spingiDentro(tuStanza.position,0.4); } scena.vassoioAlTavolo(); };
+  scena.vassoioAlTavolo=()=>{ if(!attiva||!attiva.S) return; piatti.splice(0).forEach(m=>m.parent&&m.parent.remove(m)); if(!alBar) return;
+    vassoio.forEach((c,k)=>{ const a=Math.atan2(alBar.x-alBar.tx,alBar.z-alBar.tz)+(k-(vassoio.length-1)/2)*0.5, r=0.32, x=alBar.tx+Math.sin(a)*r, z=alBar.tz+Math.cos(a)*r;
+      const g=new THREE.Group(); g.position.set(x,1.02,z);
+      if(c.verbo==="sorso"){ const tz=cilindro(0.07,0.055,0.11,c.nome==="Spremuta"?0xffa53a:0xf5f5f5,10); tz.position.y=0.055; g.add(tz); const liq=cilindro(0.062,0.062,0.01,c.nome==="Tè"?0xb5651d:c.nome==="Spremuta"?0xff8c1a:0x4a2c1a,10); liq.position.y=0.06+0.045*(c.resta/c.tot); g.add(liq); }
+      else { const pt=cilindro(0.13,0.13,0.015,0xffffff,14); g.add(pt); const cibo=palla(0.07,c.nome==="Biscotto"?0xc8925a:0xd99a4e); cibo.scale.set(1.3*Math.max(0.3,c.resta/c.tot),0.6,1); cibo.position.y=0.05; g.add(cibo); }
+      attiva.S.add(g); piatti.push(g); }); };
+  scena.portaAllaBocca=()=>{ boccaFino=tStanza+0.8; };
+  scena.bar=()=>({seduto:!!alBar, y:tuStanza?+tuStanza.position.y.toFixed(2):null, vassoio:vassoio.map(c=>({nome:c.nome,resta:c.resta,tot:c.tot})), sulTavolo:piatti.length, gettoni:citta.gettoni});
+  scena.gettoni=n=>{ if(typeof n==="number"){ citta.gettoni=n; salva(); aggiornaGettoni(); } return citta.gettoni; };
+  scena.iconaPerTerra=()=>!!(attiva&&attiva.S&&attiva.S.userData.icona);
+  scena.esci=()=>{ alBar=null; piatti.splice(0).forEach(m=>m.parent&&m.parent.remove(m)); if(attiva && attiva.S && tuStanza){ attiva.S.remove(tuStanza); stato.yaw=yawFuori; } tuStanza=null; attiva=null; $("entra").hidden=true; vicinoPrima=null; };
   scena.carta=cosa=>{ if(!attiva || attiva.esterno || !tuStanza) return; dentro.meta=null;
     if(cosa==="specchio"){ const c=attiva.cose.specchio; tuStanza.position.set(c.posto.x,0,c.posto.z); } };
   const vecchioRivesti=rivesti;
@@ -2274,9 +2369,11 @@ async function costruisci(){
     if(!cartaAperta && (Math.abs(mx)>0.05||Math.abs(my)>0.05)){ const l=Math.hypot(vx,vz); vel=andatura(Math.min(1,l))[3]; vx/=l; vz/=l; dentro.meta=null; }
     else if(!cartaAperta && dentro.meta){ const r=versoTappa(tuStanza,dentro,dt,4.2,()=>{ const c=R.cose[dentro.metaId]; tuStanza.rotation.y=Math.atan2(c.x-tuStanza.position.x,c.z-tuStanza.position.z); apriCosa(dentro.metaId); });
       if(r){ [vx,vz,vel]=r; const ya=Math.atan2(-vx,-vz); let dy=ya-stato.yaw; dy=Math.atan2(Math.sin(dy),Math.cos(dy)); stato.yaw+=dy*Math.min(1,dt*2.5); } }
+    if(alBar && vel>0){ scena.alzatiDalBar(); }   // muovendo il cerchio ci si alza dal tavolino
+    if(alBar){ tuStanza.userData.gambe.forEach(g=>g.rotation.x=-1.45); pieghe(tuStanza); tuStanza.userData.braccia[1].rotation.x=tStanza<boccaFino?-2.1:0; }
     if(vel>0){ tuStanza.position.x+=vx*vel*dt; tuStanza.position.z+=vz*vel*dt; spingiDentro(tuStanza.position,0.4);
       const ry=Math.atan2(vx,vz); let dr=ry-tuStanza.rotation.y; dr=Math.atan2(Math.sin(dr),Math.cos(dr)); tuStanza.rotation.y+=dr*Math.min(1,dt*12); cammina(tuStanza,vel*dt*1.9); }
-    else fermo(tuStanza);
+    else if(!alBar) fermo(tuStanza);
     // vicino a una cosa, o alla porta?
     let uso=null; const p=tuStanza.position;
     if(p.z>PROFONDO/2-1.5 && Math.abs(p.x)<1.6) uso="esci";

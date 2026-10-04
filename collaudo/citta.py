@@ -375,16 +375,39 @@ async def main():
         # 3d1b. il JJA-VIS Café (JJ, 4/10): la struttura della Piazza delle voci, ora un bar
         await vai(p, "JJA-VIS Café")
         prova("il bar ha il bancone, la lavagna delle recensioni, i tavolini e il caffè da offrire", set(await p.evaluate("window.CITTA.cose()")) == {"banco-bar", "recensioni", "tavolini", "caffe"})
+        # i gettoni (JJ, 4/10): 100 alla partenza, la colazione si paga, arriva al tavolino, si beve a sorsi e si mangia a morsi
+        g0 = await p.evaluate("window.CITTA.gettoni()")
+        prova("si parte con 100 gettoni, e in testata c'è l'icona di JJA-VIS", g0 == 100 and await p.evaluate("(document.getElementById('gettone-img').src||'').startsWith('data:image/png')"), g0)
         await usa(p, "banco-bar", "Il bancone del bar")
-        await p.click("#bar-menu .scelta:has-text('Cappuccino')"); await p.click("#bar-menu .scelta:has-text('Brioche')"); await p.wait_for_timeout(300)
-        prova("al bar si fa colazione (un gioco, non si paga)", "Cappuccino, Brioche" in await p.inner_text("#bar-ordine"))
+        await p.click("#bar-menu .scelta[data-voce='Caffè']"); await p.click("#bar-menu .scelta[data-voce='Brioche']"); await p.click("#bar-menu .scelta[data-voce='Biscotto']"); await p.wait_for_timeout(300)
+        b1 = await p.evaluate("window.CITTA.bar()")
+        tot = {v["nome"]: v["tot"] for v in b1["vassoio"]}
+        prova("la colazione si paga coi gettoni (caffè 2, brioche 3, biscotto 1)", b1["gettoni"] == 94, b1)
+        prova("sorsi e morsi come vuole JJ: caffè 3-4, brioche 6-7, biscotto 2-3", 3 <= tot["Caffè"] <= 4 and 6 <= tot["Brioche"] <= 7 and 2 <= tot["Biscotto"] <= 3, tot)
+        await p.evaluate("window.CITTA.gettoni(1)"); await p.click("#bar-menu .scelta[data-voce='Cappuccino']"); await p.wait_for_timeout(300)
+        prova("senza gettoni non si ordina, e dice dove vincerne", "Sala giochi" in await p.inner_text("#bar-ordine") and len((await p.evaluate("window.CITTA.bar()"))["vassoio"]) == 3)
+        await p.evaluate("window.CITTA.gettoni(94)")
+        await usa(p, "tavolini", "I tavolini")
+        await p.click("#stanza-carta button:has-text('Siediti al tavolino')"); await p.wait_for_timeout(1200)
+        b2 = await p.evaluate("window.CITTA.bar()")
+        prova("al tavolino ci si siede davvero, e sul tavolo arriva quello che hai ordinato", b2["seduto"] and b2["y"] < -0.2 and b2["sulTavolo"] == 3, b2)
+        n = 0
+        while n < 10 and await p.evaluate("window.CITTA.bar().vassoio.some(v=>v.nome==='Caffè')"):
+            await p.click("#vassoio button[data-consuma='Caffè']"); await p.wait_for_timeout(250); n += 1
+        prova("il caffè si beve a sorsi, e quando è finito sparisce dal tavolo", n == tot["Caffè"] and (await p.evaluate("window.CITTA.bar()"))["sulTavolo"] == 2, [n, tot["Caffè"]])
+        await foto(p, "16c2-al-tavolino")
         await usa(p, "recensioni", "La lavagna delle recensioni")
         await p.click("#rec-stelle .scelta >> nth=3"); await p.fill("#rec-testo", "Bella la radio"); await p.click("#rec-manda")
         await p.wait_for_function("document.getElementById('rec-esito').textContent.startsWith('Grazie')", timeout=15000)
         prova("la recensione parte e arriva a chi mi costruisce, con le stelle", any(x.get("testo", "").startswith("⭐ Recensione ★★★★: Bella la radio") for x in parlate))
+        prova("andando alla lavagna ci si è alzati dal tavolino", not (await p.evaluate("window.CITTA.bar()"))["seduto"])
         await usa(p, "tavolini", "I tavolini")
         prova("ai tavolini la chat non si apre da sola (è di Twitch, coi suoi cookie)", await p.evaluate("!document.getElementById('chat-bar')"))
-        await p.click("#stanza-carta button:has-text('Siediti e apri la chat')"); await p.wait_for_timeout(600)
+        await p.click("#stanza-carta button:has-text('Siediti al tavolino')"); await p.wait_for_timeout(800)
+        await p.click("#stanza-carta button:has-text('Apri la chat')"); await p.wait_for_timeout(600)
+        prova("nella chat, in alto, ci sono le cose del tavolino da bere e mangiare fra un messaggio e l'altro", await p.evaluate("document.querySelectorAll('#cose-tavolo button').length") == 2)
+        await p.click("#cose-tavolo button[data-consuma='Biscotto']"); await p.wait_for_timeout(200)
+        prova("un morso dalla chat conta", [v["resta"] for v in (await p.evaluate("window.CITTA.bar()"))["vassoio"] if v["nome"] == "Biscotto"][0] == tot["Biscotto"] - 1)
         src = await p.evaluate("(document.getElementById('chat-bar')||{}).src||''")
         prova("aprendola, è la chat del canale Twitch JJoe_Boy93 incorporata come dice Twitch (parent = il dominio della pagina)", src.startswith("https://www.twitch.tv/embed/jjoe_boy93/chat?parent=jjoeboy93.github.io"), src)
         lib = await p.evaluate("""(()=>{ const f=document.getElementById('chat-bar'); const r=f.getBoundingClientRect(); const fuori=[];
@@ -403,6 +426,7 @@ async def main():
 
         # 3d1c. la Torre a dieci piani (JJ, 4/10): ascensore, scale, la Borsa al 2°, l'attico privato, la terrazza
         await vai(p, "La Torre")
+        prova("per terra, nel cerchio azzurro della Torre, c'è l'icona di JJA-VIS", await p.evaluate("window.CITTA.iconaPerTerra()"))
         await usa(p, "ascensore", "L'ascensore")
         prova("l'ascensore ha i dieci piani, e l'attico non si può scegliere", await p.evaluate("document.querySelectorAll('#piani .scelta').length") == 10
               and await p.evaluate("[...document.querySelectorAll('#piani .scelta')].find(b=>b.textContent.startsWith('Attico')).disabled"))
@@ -434,6 +458,20 @@ async def main():
         await foto(p, "16d-terrazza")
         await p.click("#entra"); await p.wait_for_function("document.getElementById('stanza-nome').textContent==='La Torre'", timeout=20000)
         prova("«Scendi» riporta alla Reception", not (await p.evaluate("window.CITTA.sulTetto()"))["su"])
+        await p.click("#esci-stanza"); await p.wait_for_timeout(400)
+
+        # 3d1d. la Sala giochi: si vincono gettoni; la macchinetta non è accesa
+        await vai(p, "Sala giochi")
+        await usa(p, "macchinetta", "La macchinetta dei gettoni")
+        prova("la macchinetta dei gettoni dice che comprarli coi soldi non è ancora acceso", "Non ancora accesa" in await p.inner_text("#stanza-carta"))
+        await usa(p, "cab1", "Acchiappa i gettoni")
+        g1 = await p.evaluate("window.CITTA.gettoni()")
+        await p.click("#stanza-carta button:has-text('Gioca')"); await p.wait_for_timeout(1500)
+        prova("al cabinato si gioca: uno strato a tutto schermo coi gettoni da prendere", await p.evaluate("!!document.getElementById('strato-gioco') && document.querySelectorAll('#campo-gioco img').length>0"))
+        await p.evaluate("for(let i=0;i<20;i++) window.CITTA._gioco.prendi(); window.CITTA._gioco.fine2()"); await p.wait_for_timeout(300)
+        prova("a fine partita si vincono i gettoni presi, al massimo 15", await p.evaluate("window.CITTA.gettoni()") == g1 + 15 and "ne vinci 15" in await p.inner_text("#gioco-esito"))
+        await foto(p, "16e-gioco")
+        await p.click("#gioco-esci"); await p.wait_for_timeout(300)
         await p.click("#esci-stanza"); await p.wait_for_timeout(400)
 
         # 3d2. la Radio sotto l'antenna (JJ, 3/10): le sei stazioni dell'app, e si accendono davvero
