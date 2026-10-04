@@ -104,7 +104,7 @@ def tempi_della_pagina():
 
 async def vai(p, nome, attesa=120000):
     await p.click("#vai")
-    await p.click(f'#foglio .elenco-vai button:has-text({json.dumps(nome)})')
+    await p.click(f'#foglio .elenco-vai button:has-text({json.dumps(nome, ensure_ascii=False)})')   # «Café»: \u00e9 non è un selettore
     await arrivato(p, nome, attesa)
 
 async def arrivato(p, nome, attesa=120000):
@@ -227,7 +227,7 @@ async def main():
         prova("il giro segna la Sartoria", await p.evaluate("document.querySelectorAll('#giro .f.fatta').length===1"))
 
         # 3. ogni luogo: si apre e ogni link interno porta a un id vero della pagina
-        nomi = ["Radio", "Bottega", "La Torre", "L'Albero della Vita", "Piazza delle voci", "Cinema", "Borsa", "Athena Trasporti", "Lotto libero", "Sala giochi", "Ristorante", "Palestra"]
+        nomi = ["Radio", "Bottega", "La Torre", "L'Albero della Vita", "JJA-VIS Café", "Cinema", "Borsa", "Athena Trasporti", "Lotto libero", "Sala giochi", "Ristorante", "Palestra"]
         senza_salti = []
         rotti = []
         for n in nomi:
@@ -275,9 +275,9 @@ async def main():
             if n == "La Torre":
                 prova("la Torre ha i numeri veri della porta", "42" in f["testo"] and "4.639" in f["testo"] and "8.385" in f["testo"])
                 await foto(p, "08-stanza-torre")
-            if n == "Piazza delle voci":
+            if n == "Bottega":   # le domande del mestiere ora le fa la commessa (JJ, 4/10)
                 tp = tempi_della_pagina(); manca = [x for x in tp["Corriere o autista"] if x not in f["testo"]]
-                prova("Piazza delle voci: le domande del mestiere sono quelle della pagina", not manca, manca)
+                prova("in Bottega la commessa fa le domande del mestiere, le stesse della pagina", not manca and "cosa ti fa perdere tempo" in f["testo"], manca)
             if n == "Cinema":
                 await p.wait_for_selector("#stanza .video", timeout=10000)
                 hrefs = await p.evaluate("[...document.querySelectorAll('#stanza .video')].map(a=>a.href)")
@@ -369,6 +369,23 @@ async def main():
               and sum(1 for m in io_b.get("chat", []) if m["ruolo"] == "tu" and m["testo"].startswith(("🔎", "🛠"))) == 2, [uc, io_b.get("chat")])
         prova("al bancone nessun collegamento porta fuori dalla città", not await p.evaluate("[...document.querySelectorAll('#stanza-carta a')].some(a=>a.getAttribute('href').startsWith('index.html'))"))
         await foto(p, "16a-bancone")
+        await p.click("#esci-stanza"); await p.wait_for_timeout(400)
+
+        # 3d1b. il JJA-VIS Café (JJ, 4/10): la struttura della Piazza delle voci, ora un bar
+        await vai(p, "JJA-VIS Café")
+        prova("il bar ha il bancone, la lavagna delle recensioni, i tavolini e il caffè da offrire", set(await p.evaluate("window.CITTA.cose()")) == {"banco-bar", "recensioni", "tavolini", "caffe"})
+        await usa(p, "banco-bar", "Il bancone del bar")
+        await p.click("#bar-menu .scelta:has-text('Cappuccino')"); await p.click("#bar-menu .scelta:has-text('Brioche')"); await p.wait_for_timeout(300)
+        prova("al bar si fa colazione (un gioco, non si paga)", "Cappuccino, Brioche" in await p.inner_text("#bar-ordine"))
+        await usa(p, "recensioni", "La lavagna delle recensioni")
+        await p.click("#rec-stelle .scelta >> nth=3"); await p.fill("#rec-testo", "Bella la radio"); await p.click("#rec-manda")
+        await p.wait_for_function("document.getElementById('rec-esito').textContent.startsWith('Grazie')", timeout=15000)
+        prova("la recensione parte e arriva a chi mi costruisce, con le stelle", any(x.get("testo", "").startswith("⭐ Recensione ★★★★: Bella la radio") for x in parlate))
+        await usa(p, "caffe", "Offri un caffè")
+        await p.wait_for_timeout(1500)
+        tc = await p.inner_text("#stanza-carta")
+        prova("«offri un caffè» dice che non è ancora acceso (sostieni.json: pronto false), senza pulsanti finti", "Non è ancora acceso" in tc and "☕ Offri" not in tc, tc[:160])
+        await foto(p, "16c-cafe")
         await p.click("#esci-stanza"); await p.wait_for_timeout(400)
 
         # 3d2. la Radio sotto l'antenna (JJ, 3/10): le sei stazioni dell'app, e si accendono davvero

@@ -608,6 +608,14 @@ const LUOGHI={
         P("Se vuoi un video su una cosa precisa, chiedilo: le domande arrivano a chi mi costruisce."),
         AZIONI(parlaQui("Chiedi un video","Vorrei un video su ")))]}],
     fine:()=>[AZIONI(vai(PAGINA+"#sa-fare","Guardali nella pagina",true))]},
+  cafe:{nome:"JJA-VIS Café",ic:"☕",breve:"colazione, recensioni, due chiacchiere",
+    testa:()=>TESTA("Il bar della città","JJA-VIS Café","Si fa colazione, si lascia una recensione, si chiacchiera. E se vuoi, offri un caffè a chi costruisce tutto questo."),
+    parti:()=>[
+      {id:"banco-bar",nome:"Il bancone del bar",breve:"ordina la colazione",dentro:()=>colazione()},
+      {id:"recensioni",nome:"La lavagna delle recensioni",dentro:()=>recensioni()},
+      {id:"tavolini",nome:"I tavolini",dentro:()=>[BLOCCO(H3("Due chiacchiere"), P("Qui ci si siede con gli altri. Per ora i clienti che vedi sono di passaggio: quando la città avrà gente vera collegata, ai tavolini ci si parlerà davvero."),
+        NOTA("Non ancora acceso: parlare con altre persone dentro la città ha bisogno di un posto dove passano i messaggi, e di qualcuno che lo tenga pulito."))]},
+      {id:"caffe",nome:"Offri un caffè",dentro:()=>offriCaffe()}]},
   voci:{nome:"Piazza delle voci",ic:"🗳",breve:"dimmi cosa ti fa perdere tempo",
     testa:()=>TESTA("Qui si decide cosa costruire","Piazza delle voci","Non decido da solo cosa costruire. Lo decide chi passa di qui: cosa ti fa perdere tempo nel tuo lavoro, e quanto varrebbe toglierlo."),
     parti:()=>[
@@ -683,7 +691,7 @@ const LUOGHI={
       {id:"punto",nome:"A che punto è",dentro(){ const n=nomeAssistente(); return [BLOCCO(H3("A che punto è"), P("È un progetto: arriva con l'app. Oggi le foglie sono la promessa."), NOTA(n?`La foglia d'oro è quella di ${n}.`:"Quando dai un nome al tuo assistente, una foglia d'oro diventa la sua."))]; }}],
     fine:()=>[AZIONI(vai(PAGINA+"#chi-sono","Chi sono, nella pagina",true))]},
 };
-const ELENCO=["torre","radio","sartoria","bottega","albero","giochi","voci","cinema","borsa","athena","ristorante","palestra","lotto"];
+const ELENCO=["torre","radio","sartoria","bottega","albero","giochi","cafe","cinema","borsa","athena","ristorante","palestra","lotto"];
 let cinemaChiesto=false;
 const schedaIntera=L=>[...L.testa(), ...L.parti().flatMap(p=>p.dentro()), ...(L.fine?L.fine():[])].filter(Boolean);
 const parteDi=(L,k)=>L.parti().find(p=>p.id===k);
@@ -797,7 +805,50 @@ function bancone(){
       catch(e){ return "Non è partito ("+e.message+"). Riprova fra un minuto."; } });
   // la Forgia, qui al bancone: cosa si costruisce, come si lavora, il primo lavoro
   const forgia=LUOGHI.forgia.parti().flatMap(p=>p.dentro());
-  return [P("Il commesso ti ascolta: chiedigli un sopralluogo o un lavoro su misura."), so, cm, ...forgia];
+  // le domande del mestiere (erano nella Piazza delle voci): le fa la commessa (JJ, 4/10)
+  const m=citta.mestiere && TEMPO_PER_MESTIERE[citta.mestiere] ? citta.mestiere : null;
+  const tempi=el("div",{class:"scelte",role:"group","aria-label":"Cosa ti fa perdere tempo",id:"tempi-bancone"});
+  if(m) TEMPO_PER_MESTIERE[m].forEach(t=>{ const b=el("button",{class:"scelta",type:"button",testo:t}); b.addEventListener("click",()=>apriNova(`Nel mio lavoro (${m}) perdo tempo con: ${t}. `)); tempi.appendChild(b); });
+  const domande=BLOCCO(H3("La commessa ti chiede: cosa ti fa perdere tempo?"),
+    m?P(`Per chi fa ${m.toLowerCase()} di solito è una di queste. Toccala e me lo dici in chat, con due parole su quanto tempo ti costa: quello che chiedono in tanti diventa il prossimo lavoro.`):P("Il corriere perde tempo col giro del mattino, il negozio con le scorte, l'artigiano coi preventivi. Dimmi il tuo mestiere in Sartoria e qui ti faccio le tue domande."),
+    m?tempi:null, m?NOTA("Sono le stesse scelte che trovi nella pagina."):null);
+  return [P("La commessa ti ascolta: dille cosa ti fa perdere tempo, chiedile un sopralluogo o un lavoro su misura."), domande, so, cm, ...forgia];
+}
+
+// ── il JJA-VIS Café: colazione (è un gioco: niente soldi), recensioni (arrivano a chi mi costruisce, come un messaggio
+// della chat: pubbliche quando ci sarà chi le modera), offri un caffè (sostieni.json, acceso solo quando c'è chi incassa)
+const BAR=[["Caffè","☕"],["Cappuccino","☕"],["Brioche","🥐"],["Spremuta","🍊"],["Cornetto alla crema","🥐"],["Tè","🍵"]];
+const colazioneMia=[];
+function colazione(){
+  const box=el("div",{class:"scelte",role:"group","aria-label":"La colazione",id:"bar-menu"});
+  BAR.forEach(([n,ic])=>{ const b=el("button",{class:"scelta",type:"button",testo:`${ic} ${n}`}); b.addEventListener("click",()=>{ colazioneMia.push(n); ridisegnaCarta(); }); box.appendChild(b); });
+  const fatta=el("p",{id:"bar-ordine",class:"nota",testo:colazioneMia.length?`Al tuo tavolo: ${colazioneMia.join(", ")}. Buona colazione.`:"Scegli cosa prendi: è un gioco, qui non si paga."});
+  return [BLOCCO(H3("La colazione"), box, fatta, colazioneMia.length?AZIONI(bottone("Ho finito",()=>{ colazioneMia.length=0; ridisegnaCarta(); },true)):null)];
+}
+let stelle=0;
+function recensioni(){
+  const st=el("div",{class:"scelte",role:"group","aria-label":"Quante stelle",id:"rec-stelle"});
+  for(let k=1;k<=5;k++){ const b=el("button",{class:"scelta",type:"button","aria-pressed":String(stelle===k),testo:"★".repeat(k)}); b.addEventListener("click",()=>{ stelle=k; st.querySelectorAll(".scelta").forEach((x,i)=>x.setAttribute("aria-pressed",String(i===k-1))); }); st.appendChild(b); }
+  const testo=campo("Cosa ne pensi della città, di me, di quello che manca","rec-testo","area",500);
+  const esito=el("p",{class:"nota",id:"rec-esito",role:"status"});
+  const manda=bottone("Lascia la recensione",async()=>{ const t=$("rec-testo").value.trim();
+    if(!stelle){ esito.textContent="Scegli le stelle, da una a cinque."; return; }
+    if(!t){ esito.textContent="Scrivi anche due parole."; return; }
+    if(!nomeAssistente()){ esito.textContent="Prima dai un nome al tuo assistente, nella pagina (in alto, «← La pagina»)."; return; }
+    try{ await mandaBancone("chat", `⭐ Recensione ${"★".repeat(stelle)}: ${t}`.slice(0,800), undefined); $("rec-testo").value=""; stelle=0;
+      esito.textContent="Grazie: la legge chi mi costruisce, e la risposta arriva nella chat 💬."; }
+    catch(e){ esito.textContent="Non è partita ("+e.message+"). Riprova fra un minuto."; } });
+  manda.id="rec-manda";
+  return [BLOCCO(H3("Lascia una recensione"), st, testo, AZIONI(manda), esito,
+    NOTA("Per ora la recensione la legge chi mi costruisce, come un messaggio. Sulla lavagna, per tutti, arriveranno quando ci sarà chi le controlla prima.")) ];
+}
+let sostieni=null;
+function offriCaffe(){
+  if(sostieni===null){ sostieni=false; fetch("sostieni.json").then(r=>r.ok?r.json():null).then(d=>{ sostieni=d||{}; ridisegnaCarta(); }).catch(()=>{ sostieni={}; ridisegnaCarta(); }); }
+  const modo=sostieni && sostieni.pronto ? (sostieni.modi||[]).find(m=>/^https:\/\//.test(m.url||"")) : null;
+  return [BLOCCO(H3("Offri un caffè a chi mi costruisce"),
+    P("Un caffè vero, a chi passa le notti a costruire questa città. Aiuta più di quanto sembri."),
+    modo? AZIONI(vai(modo.url,"☕ "+(modo.nome||"Offri un caffè"),false,true)) : NOTA(sostieni===false?"Guardo se è acceso…":"Non è ancora acceso: prima va deciso chi incassa, e con il commercialista. Quando lo è, il pulsante compare qui da solo."))];
 }
 
 // ── la Radio (JJ, 3/10: «l'antenna Radio, che è un servizio che abbiamo già in Jarvis, e se si può fare accendere
@@ -1373,7 +1424,8 @@ async function costruisci(){
     {id:"radio",ang:-22,w:11,d:7,h:6,muro:"#1b3a57",vetro:true,tetto:"piano",titolo:"RADIO",sotto:"accendi le tue stazioni",antenna:true},
     {id:"sartoria", ang:22, w:9, d:7,h:7,muro:"#c99a8a",vetrine:1,tetto:"falde",titolo:"SARTORIA",sotto:"vesti il tuo avatar"},
     {id:"borsa",    ang:58, w:9, d:9,h:10,muro:"#d9d2c2",porta:true,tetto:"piano",titolo:"BORSA",sotto:"investi in JJA-VIS",colonne:true},
-    {id:"voci",     ang:92, w:11,d:9,h:9,muro:"#b5654a",porta:true,tetto:"piano",titolo:"PIAZZA DELLE VOCI",sotto:"cosa ti fa perdere tempo?",orologio:true},
+    // la struttura della Piazza delle voci resta (JJ: «mi piace»), ma è un bar: il JJA-VIS Café (JJ, 4/10)
+    {id:"cafe",     ang:92, w:11,d:9,h:9,muro:"#b5654a",porta:true,tetto:"piano",titolo:"JJA-VIS CAFÈ",sotto:"colazione · recensioni · due chiacchiere",orologio:true},
     {id:"cinema",   ang:126,w:11,d:9,h:8,muro:"#3b2a4f",porta:true,tetto:"piano",titolo:"CINEMA",sotto:"guardami al lavoro",colore:"#FFD60A"},
     {id:"giochi",   ang:154,w:10,d:9,h:8,muro:"#24123a",porta:true,tetto:"piano",titolo:"SALA GIOCHI",sotto:"i giochi di chi mi costruisce",colore:"#ff4fd8",neon:true},
     {id:"torre",    ang:180,w:9, d:9,h:30,muro:"#0f2d47",porta:true,tetto:"piano",titolo:"LA TORRE",sotto:"chi sono · cosa so fare",luce:0.85,r:33.4},
@@ -1738,11 +1790,24 @@ async function costruisci(){
       const bb=scatola(1.4,1.1,0.8,0x3b2a4f); h.metti(bb,-3.0,0.55,5.0); h.metti(scatola(1.42,0.06,0.82,0xFFD60A,true),-3.0,1.12,5.0); h.solido(-3.0,5.0,1.4,0.8);
       const cartello=schermo(1.6,0.6,"#FFD60A","BIGLIETTI"); h.metti(cartello,-3.0,2.0,5.38,Math.PI);
       h.cosa("biglietteria",[bb,cartello],-3.0,5.0,{x:-1.8,z:4.6},2.6); },
-    voci(S2,h){ h.insegnaFondo("PIAZZA DELLE VOCI","cosa vi fa perdere tempo?");
-      const pod=cilindro(0.5,0.6,1.1,0x0D3A5C,12), gl=ologlobo(0.4); h.metti(pod,0,0.55,-3.4); h.metti(gl,0,1.7,-3.4); h.tondo(0,-3.4,0.7);
-      h.cosa("urna",[pod,gl],0,-3.4,{x:0,z:-2.0},2.6);
-      for(const s of [-1,1]) for(const z of [-2.2,0.2]){ const b=scatola(2.2,0.45,0.6,0x6b4a2e); h.metti(b,s*5,0.23,z,Math.PI/2); h.solido(s*5,z,0.6,2.2); }
-      const tab=aParete(schermo(2.6,1.5,"#FFD60A","I NUMERI"),-1,2.8,2.2); S2.add(tab); h.cosa("tabellone",[tab],-6.6,2.8,{x:-5.3,z:2.8},3.4); },
+    cafe(S2,h){ h.insegnaFondo("JJA-VIS CAFÈ","colazione · recensioni · due chiacchiere");
+      // il bancone del bar in fondo a sinistra, con la vetrina delle brioche e la macchina del caffè
+      const bb=scatola(4,1.1,0.9,0x6b4a2e); h.metti(bb,-3.4,0.55,-4); h.metti(scatola(4.1,0.06,1,0xc8a165),-3.4,1.13,-4); h.solido(-3.4,-4,4,0.9);
+      const vetr=scatola(1.4,0.5,0.7,0xcfeaf2); vetr.material=vetr.material.clone(); vetr.material.transparent=true; vetr.material.opacity=0.5; h.metti(vetr,-4.5,1.4,-4);
+      for(let q=0;q<4;q++) h.metti(palla(0.11,0xd99a4e),-5+q*0.32,1.25,-4);
+      const mac=scatola(0.8,0.6,0.5,0x9aa3ad); h.metti(mac,-2.3,1.45,-4.1);
+      const barista=avatar({vestito:"negozio",corpo:"uomo",capelli:"corti",capelliColore:1,pelle:3}); barista.position.set(-3.4,0,-5); S2.add(barista); h.solido(-3.4,-5,0.8,0.6);
+      h.cosa("banco-bar",[bb,mac],-3.4,-4,{x:-3.4,z:-2.8},2.6);
+      // la lavagna delle recensioni a destra
+      const lav=aParete(schermo(2.8,1.6,"#FFD60A","RECENSIONI"),1,1.6,-1.5); lav.position.x-=0.1; S2.add(lav); h.cosa("recensioni",[lav],6.6,-1.5,{x:5.3,z:-1.5},3.4);
+      // i tavolini tondi con le sedie
+      const tav=[]; [[-2.5,1.6],[2.2,1.4],[3.6,-3.6]].forEach(([x,z])=>{ const t=cilindro(0.55,0.55,0.06,0xc8a165,16), g2=cilindro(0.06,0.06,0.95,0x333333,8);
+        h.metti(t,x,0.98,z); h.metti(g2,x,0.48,z); tav.push(t); h.tondo(x,z,0.6);
+        for(const a of [0,Math.PI]){ h.metti(cilindro(0.22,0.22,0.5,0x2a3f57,10),x+Math.cos(a)*0.85,0.25,z+Math.sin(a)*0.85); } });
+      h.cosa("tavolini",tav,2.2,1.4,{x:2.2,z:2.6},2.2);
+      // la tazzina del caffè sospeso, accanto alla porta
+      const taz=cilindro(0.18,0.14,0.22,0xffffff,12); h.metti(scatola(0.8,1,0.8,0x3a2a1e),-5.6,0.5,4.4); h.metti(taz,-5.6,1.12,4.4); h.solido(-5.6,4.4,0.8,0.8);
+      h.cosa("caffe",[taz],-5.6,4.4,{x:-4.4,z:4.2},1.9); },
     borsa(S2,h){ h.metti(schermo(12,1.1,"#2ECC71","JJA-VIS FREE  ·  PRO  ·  ENTERPRISE"),0,4.1,-PROFONDO/2+0.08);
       h.insegnaFondo("BORSA","per chi vuole investire",5,2.6);
       const tav=[]; for(let k=0;k<3;k++){ const t=tavolo(2.4,1); h.metti(t,-4+k*4,0,-2.4); const s=schermo(1,0.6,"#2ECC71",["Free","Pro","Ent."][k]); h.metti(s,-4+k*4,1.45,-2.6); tav.push(t,s); h.solido(-4+k*4,-2.4,2.4,1); }
