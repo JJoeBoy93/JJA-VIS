@@ -248,8 +248,8 @@ async def main():
                 if await p.evaluate("window.CITTA.saltiDentro()") != s0: senza_salti.append((n, "salti", await p.evaluate("window.CITTA.saltiDentro()") - s0))
                 await p.click("#chiudi-carta"); await p.wait_for_timeout(300); f = await foglio(p)   # di nuovo la scheda intera
             if n == "La Torre":
-                prova("la Reception è dentro la Torre e saluta col nome dato nella pagina; ci sono banco, salottino e dati", "Ettore" in f["testo"]
-                      and set(await p.evaluate("window.CITTA.cose()")) == {"banco", "globo", "dati", "ascensore", "scale"}, [f["testo"][:80], await p.evaluate("window.CITTA.cose()")])
+                prova("la Reception è dentro la Torre e saluta col nome; al piano terra solo il globo, l'ascensore e le scale", "Ettore" in f["testo"]
+                      and set(await p.evaluate("window.CITTA.cose()")) == {"globo", "ascensore", "scale"}, [f["testo"][:80], await p.evaluate("window.CITTA.cose()")])
                 await p.click("#stanza button:has-text('Parla con Ettore')"); await p.wait_for_timeout(400)
                 prova("«Parla con Ettore» apre la chat in città, non la pagina", await p.is_visible("#nova") and p.url.endswith("citta.html")
                       and await p.inner_text("#nova-titolo") == "Ettore", p.url)
@@ -274,7 +274,7 @@ async def main():
             if n == "Bottega":
                 prova("la stanza della Bottega è approfondita: Clio spiega come funziona, coi numeri veri", "Come funziona" in f["testo"] and "21" in f["testo"])
             if n == "La Torre":
-                prova("l'assistente al piano terra dice «per chiunque» e descrive i piani, fino alla terrazza; il salottino non c'è più", "Per chiunque" in f["testo"] and "Terrazza" in f["testo"] and "Attico" in f["testo"] and "salottino" not in f["testo"].lower(), f["testo"][:120])
+                prova("l'assistente al piano terra dice tutto (cosa succede quando entri, per chiunque, i piani, i tuoi dati), fino alla terrazza; il salottino non c'è più", "Per chiunque" in f["testo"] and "Cosa succede quando entri" in f["testo"] and "I tuoi dati" in f["testo"] and "Terrazza" in f["testo"] and "Attico" in f["testo"] and "salottino" not in f["testo"].lower(), f["testo"][:120])
                 await foto(p, "08-stanza-torre")
             if n == "Bottega":   # le domande del mestiere ora le fa la commessa (JJ, 4/10)
                 tp = tempi_della_pagina(); manca = [x for x in tp["Corriere o autista"] if x not in f["testo"]]

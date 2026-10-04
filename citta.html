@@ -584,9 +584,10 @@ const LUOGHI={
   torre:{nome:"La Torre",ic:"🌐",breve:"la reception, l'assistente, i piani",
     testa(){ const n=nomeAssistente(); return [...TESTA("Piano terra · la Reception","La Torre", n?`Bentornato. ${n} ti aspetta: è il tuo, con il nome che gli hai dato tu.`:"Benvenuto in città. Qui nasce il tuo assistente personale: dagli un nome nella pagina (in alto, «← La pagina»), e comincio a imparare te."),
       P("Sono JJA-VIS, un sistema personale intelligente. Non rispondo: anticipo. Non archivio: imparo. Non servo il settore: servo la persona.")]; },
-    parti:()=>[LUOGHI.reception.parti().find(p=>p.id==="banco"),
-      {id:"globo",nome:"L'assistente",breve:"il globo ti spiega tutto",dentro:()=>[...GLOBO_DICE(), BLOCCO(H3("I piani"), LISTA(PIANI.map(p=>`${p.etichetta}: ${p.cosa}`)))]},
-      LUOGHI.reception.parti().find(p=>p.id==="dati"), ...PARTI_PIANO(0)],
+    // tutto quello che c'è da sapere lo dice l'assistente, il globo: anche cosa succede quando entri e i tuoi dati (JJ, 4/10)
+    parti:()=>[{id:"globo",nome:"L'assistente",breve:"il globo ti spiega tutto",dentro:()=>{ const R=LUOGHI.reception.parti();
+        return [...R.find(p=>p.id==="banco").dentro(), ...GLOBO_DICE(), BLOCCO(H3("I piani"), LISTA(PIANI.map(p=>`${p.etichetta}: ${p.cosa}`))), ...R.find(p=>p.id==="dati").dentro()]; }},
+      ...PARTI_PIANO(0)],
     fine:()=>[AZIONI(parlaQui(`Parla con ${nomeAssistente()}`,""))]},
   torre1:{nome:"La Torre · 1° piano",ic:"🌐",breve:"cosa so fare",piano:1,
     testa:()=>TESTA("1° piano","Cosa so fare","Quello che so già fare oggi, sul telefono di chi mi costruisce."),
@@ -1846,11 +1847,9 @@ async function costruisci(){
     // piano terra: il bancone della Reception con l'assistente (il globo) sopra, i tuoi dati sulla parete, ascensore e scale
     torre(S2,h){ h.insegnaFondo("LA TORRE","piano terra · la reception");
       const banco=scatola(4,1.1,0.9,0x0D2A3E); h.metti(banco,0,0.55,-3.2); h.metti(scatola(4.02,0.06,0.92,0x00B4D8,true),0,1.12,-3.2); h.solido(0,-3.2,4,0.9);
-      h.cosa("banco",[banco],-1.2,-3.2,{x:-1.2,z:-1.9},2.0);
+      // il globo sopra il bancone è l'assistente: si tocca lui, e dice tutto
       const g=h.metti(ologlobo(0.9),0,2.6,-3.4); h.metti(new THREE.Mesh(new THREE.RingGeometry(1.2,1.35,48),mat(0x00B4D8,true)),0,0.03,-1.2).rotation.x=-Math.PI/2;
-      h.cosa("globo",[g],1.2,-3.4,{x:1.2,z:-1.9},3.9);
-      const term=scatola(0.6,1.2,0.8,0x0D2A3E); h.metti(term,-6.4,0.6,-0.5); const sc2=scatola(0.04,0.45,0.7,0x00B4D8,true); h.metti(sc2,-6.08,1.1,-0.5); h.solido(-6.4,-0.5,0.6,0.8);
-      h.cosa("dati",[term,sc2],-6.4,-0.5,{x:-5.3,z:-0.5},1.9);
+      h.cosa("globo",[g,banco],0,-3.4,{x:0,z:-1.9},3.9);
       vetrate(S2,h); pianoComune(S2,h); },
     torre1(S2,h){ h.insegnaFondo("1° PIANO","cosa so fare");
       const sa=schermo(4.2,2.2,"#00B4D8","COSA SO FARE"); h.metti(sa,0,1.9,-PROFONDO/2+0.1); h.cosa("sa",[sa],0,-5.2,{x:0,z:-4.2},3.4);
