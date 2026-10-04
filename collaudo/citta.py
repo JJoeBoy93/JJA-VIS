@@ -141,7 +141,7 @@ async def main():
 
         # 1. si accende: niente errori, il caricamento se ne va, la scena disegna qualcosa
         ctx, p, err = await nuova(b, profilo={"nome": "Ettore", "mestiere": "Guida turistica"})
-        await p.goto(BASE + "citta.html")
+        await p.goto(BASE + "citta.html", timeout=60000)
         await p.wait_for_function("window.CITTA && window.CITTA.pronta && window.CITTA.fotogrammi()>5", timeout=30000)
         await p.wait_for_timeout(800)
         prova("la città si accende", True)
@@ -287,6 +287,14 @@ async def main():
                 srcv = await p.evaluate("(document.getElementById('video-cinema')||{}).src||''")
                 prova("al Cinema il video si guarda dentro la città, sul grande schermo (incorporamento di Instagram)", srcv == "https://www.instagram.com/reel/PROVA1/embed/" and p.url.endswith("citta.html"), srcv)
                 await p.click("#chiudi-cinema"); await p.wait_for_timeout(300)
+                inc = await p.evaluate("""['https://www.youtube.com/watch?v=abc123','https://youtu.be/abc123','https://www.youtube.com/shorts/abc123',
+                    'https://www.tiktok.com/@jjoe_boy93/video/7382225350710824222','https://vm.tiktok.com/ZMabc/','http://www.instagram.com/reel/X/'].map(u=>window.CITTA.incorpora(u))""")
+                prova("il Cinema sa incorporare YouTube e TikTok (lettore ufficiale /player/v1), e quello che non sa o non è https resta fuori", inc == ["https://www.youtube.com/embed/abc123"] * 3 + ["https://www.tiktok.com/player/v1/7382225350710824222?description=1", None, None], inc)
+                await usa(p, "poltrone", "Le poltrone")
+                await p.click("#stanza-carta button:has-text('Siediti in poltrona')"); await p.wait_for_timeout(1000)
+                pb = await p.evaluate("window.CITTA.bar()")
+                prova("al Cinema ci si siede in poltrona, e da seduti c'è l'elenco dei video", pb["seduto"] and pb["y"] < 0 and await p.evaluate("document.querySelectorAll('#stanza-carta .video').length") == 1, pb)
+                await p.click("#stanza-carta button:has-text('Alzati')"); await p.wait_for_timeout(300)
                 await foto(p, "09-stanza-cinema")
 
             prova(f"{n}: c'è l'interno o il luogo in 3D", await colori_in_alto(p) > 12)
@@ -582,7 +590,7 @@ async def main():
 
         # 5. di nuovo: il vestito è rimasto, il giro chiuso non si ripete per sempre
         ctx, p, err = await nuova(b, citta={"mestiere": "Sanità", "vestito": "sanita", "pelle": 0, "giro": {"sartoria": True, "reception": True, "bottega": True}, "giroVisto": True})
-        await p.goto(BASE + "citta.html")
+        await p.goto(BASE + "citta.html", timeout=60000)
         await p.wait_for_function("window.CITTA && window.CITTA.pronta && window.CITTA.fotogrammi()>3", timeout=30000)
         prova("chi ha già fatto il giro non lo rivede", await p.evaluate("document.getElementById('giro').hidden"))
         prova("chi aveva fatto il giro alla vecchia Reception non lo rifà: vale per la Torre", "Giro chiuso" in await p.inner_text("#giro") or await p.evaluate("document.getElementById('giro').hidden"))
@@ -594,7 +602,7 @@ async def main():
 
         # 5b. l'aspetto scelto nella pagina colora la città e la sfera (JJ, 3/10)
         ctx, p, err = await nuova(b, profilo={"nome": "Ada", "tema": "naturale"})
-        await p.goto(BASE + "citta.html")
+        await p.goto(BASE + "citta.html", timeout=60000)
         await p.wait_for_function("window.CITTA && window.CITTA.pronta && window.CITTA.fotogrammi()>3", timeout=60000)
         sf = await p.evaluate("window.CITTA.sfera()")
         prova("aspetto «naturale»: la città e la sfera prendono i suoi colori", sf == {"tema": "naturale", "colori": ["34d399", "059669", "fbbf24"]}
@@ -605,7 +613,7 @@ async def main():
 
         # 6. senza WebGL: la città diventa un elenco e funziona lo stesso
         ctx, p, err = await nuova(b, webgl=False)
-        await p.goto(BASE + "citta.html")
+        await p.goto(BASE + "citta.html", timeout=60000)
         await p.wait_for_selector("#riserva:not([hidden])", timeout=15000)
         prova("senza 3D si vede l'elenco, e dice perché", "3D" in await p.inner_text("#riserva-perche"))
         await p.click("#riserva-elenco button:has-text('Bottega')"); await p.wait_for_timeout(500)

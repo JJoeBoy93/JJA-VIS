@@ -633,8 +633,10 @@ const LUOGHI={
     parti:()=>[{id:"schermo",nome:"Lo schermo",dentro(){
       const elenco=el("div",{class:"elenco-video"});
       if(VIDEO===null){ elenco.append(NOTA("Prendo l'elenco dei video…"));
-        if(!cinemaChiesto){ cinemaChiesto=true; fetch(PORTA+"/video").then(r=>r.ok?r.json():{video:[]}).then(d=>{ VIDEO=(d.video||[]).filter(v=>v && /^https:\/\//.test(v.url||"")); }).catch(()=>{ VIDEO=[]; }).then(()=>{ if(stanzaAperta==="cinema") ridisegnaCarta(); }); } }
-      else if(!VIDEO.length) elenco.append(NOTA("Non riesco a prendere l'elenco dei video in questo momento: li trovi nella pagina."));
+        if(!cinemaChiesto){ cinemaChiesto=true; fetch(PORTA+"/video").then(r=>{ if(!r.ok) throw new Error(r.status); return r.json(); }).then(d=>{ VIDEO=(d.video||[]).filter(v=>v && /^https:\/\//.test(v.url||"")); }).catch(()=>{ VIDEO=false; }).then(()=>{ if(stanzaAperta==="cinema") ridisegnaCarta(); }); } }
+      // «non riesco» e «non ce ne sono» sono due cose diverse, e si dicono diverse (JJ, 4/10: «non si vede niente»: l'elenco era vuoto)
+      else if(VIDEO===false) elenco.append(NOTA("Non riesco a prendere l'elenco dei video in questo momento. Riprova fra poco."));
+      else if(!VIDEO.length) elenco.append(NOTA("Ancora nessun video in programmazione. Se ne vuoi uno su qualcosa, chiedilo alla biglietteria."));
       // JJ, 4/10: «vedere i video nel cinema»: si guardano dentro la città, sul grande schermo (uno strato a tutto schermo),
       // con l'incorporamento delle piattaforme (Instagram: indirizzo del post + /embed; YouTube: youtube.com/embed/<id>).
       // Quelli che non si sanno incorporare si aprono sulla loro piattaforma, in un'altra scheda.
@@ -643,6 +645,10 @@ const LUOGHI={
         if(dentro){ a.dataset.dentro=dentro; a.addEventListener("click",e=>{ e.preventDefault(); proietta(dentro, v.titolo||"Un video"); }); }
         elenco.append(a); });
       return [BLOCCO(H3("In programmazione"), elenco), NOTA("I video sono delle loro piattaforme: anche guardati qui valgono le loro regole e i loro cookie.")]; }},
+      {id:"poltrone",nome:"Le poltrone",dentro:()=>{ const seduto=scena.pronta&&scena.sedutoAlBar&&scena.sedutoAlBar();
+        return [BLOCCO(H3("In poltrona"), P(seduto?"Sei seduto: scegli un video, si guarda sul grande schermo.":"Siediti, e da lì guardi i video sul grande schermo."),
+          AZIONI(seduto?bottone("Alzati",()=>{ scena.alzatiDalBar(); ridisegnaCarta(); },true):bottone("Siediti in poltrona",()=>{ scena.siediAlBar(); ridisegnaCarta(); }))),
+          ...(seduto?LUOGHI.cinema.parti().find(p=>p.id==="schermo").dentro():[])]; }},
       {id:"biglietteria",nome:"La biglietteria",dentro:()=>[BLOCCO(H3("Il biglietto"),
         P("Qui si entra gratis. Ogni video è un pezzo di lavoro vero: il giro del mattino, il codice della notte, quello che va storto e come si sistema."),
         P("Se vuoi un video su una cosa precisa, chiedilo: le domande arrivano a chi mi costruisce."),
@@ -982,6 +988,9 @@ function incorporaVideo(u){ try{ const x=new URL(u); if(x.protocol!=="https:") r
     if(/(^|\.)instagram\.com$/.test(x.hostname)){ const m=x.pathname.match(/^\/(reel|p|tv)\/([A-Za-z0-9_-]+)/); return m?`https://www.instagram.com/${m[1]}/${m[2]}/embed/`:null; }
     if(/(^|\.)youtube\.com$/.test(x.hostname)){ const id=x.searchParams.get("v")||(x.pathname.match(/^\/(shorts|embed)\/([A-Za-z0-9_-]+)/)||[])[2]; return id?`https://www.youtube.com/embed/${id}`:null; }
     if(x.hostname==="youtu.be"){ const id=x.pathname.slice(1).split("/")[0]; return id?`https://www.youtube.com/embed/${id}`:null; }
+    // TikTok: il lettore ufficiale da incorporare (developers.tiktok.com/doc/embed-player): /player/v1/<id del post>,
+    // l'id sta negli indirizzi /@utente/video/<id>; i link brevi (vm.tiktok.com) non si sciolgono dal telefono: fuori
+    if(/(^|\.)tiktok\.com$/.test(x.hostname)){ const id=(x.pathname.match(/\/video\/(\d+)/)||x.pathname.match(/^\/player\/v1\/(\d+)/)||[])[1]; return id?`https://www.tiktok.com/player/v1/${id}?description=1`:null; }
   }catch(_){} return null; }
 function proietta(src,titolo){
   let L=$("strato-cinema"); if(L) L.remove();
@@ -1990,8 +1999,12 @@ async function costruisci(){
       const v=vetrate(S2,h); h.cosa("vetrata",v,-6.8,0,{x:-5.4,z:0},2.6); pianoComune(S2,h); }])),
     cinema(S2,h){ const sc=schermo(9,3.6,"#00B4D8","GUARDAMI AL LAVORO"); h.metti(sc,0,2.5,-PROFONDO/2+0.08);
       h.cosa("schermo",[sc],0,-5.6,{x:0,z:-3.4},4.75);
-      for(const s of [-1,1]){ for(let r=0;r<4;r++) for(let k=0;k<3;k++){ const x=s*(2.8+k*1.4), z=-1+r*1.4; h.metti(scatola(1.1,0.5,0.8,0x8a1f2c),x,0.25+r*0.15,z); h.metti(scatola(1.1,0.8,0.15,0x8a1f2c),x,0.7+r*0.15,z+0.38); }
+      // le poltrone: ci si siede, guardando lo schermo (JJ, 4/10: «non ci si può neanche sedere sulle poltrone»)
+      S2.userData.posti=[]; const pol=[];
+      for(const s of [-1,1]){ for(let r=0;r<4;r++) for(let k=0;k<3;k++){ const x=s*(2.8+k*1.4), z=-1+r*1.4; const se=scatola(1.1,0.5,0.8,0x8a1f2c); h.metti(se,x,0.25+r*0.15,z); h.metti(scatola(1.1,0.8,0.15,0x8a1f2c),x,0.7+r*0.15,z+0.38);
+          S2.userData.posti.push({x,z:z-0.05,tx:x,tz:-6,y:-0.38+r*0.15}); if(k===0) pol.push(se); }
         h.solido(s*4.2,1.3,4.2,5.4); }
+      h.cosa("poltrone",pol,0,0.4,{x:0,z:0.4},1.6);
       // la biglietteria, accanto alla porta: ci si arriva dal corridoio, fra le poltrone e la porta
       const bb=scatola(1.4,1.1,0.8,0x3b2a4f); h.metti(bb,-3.0,0.55,5.0); h.metti(scatola(1.42,0.06,0.82,0xFFD60A,true),-3.0,1.12,5.0); h.solido(-3.0,5.0,1.4,0.8);
       const cartello=schermo(1.6,0.6,"#FFD60A","BIGLIETTI"); h.metti(cartello,-3.0,2.0,5.38,Math.PI);
@@ -2107,10 +2120,10 @@ async function costruisci(){
   scena.sedutoAlBar=()=>!!alBar;
   scena.siediAlBar=()=>{ if(!attiva||!attiva.S.userData.posti||!tuStanza) return; const p=tuStanza.position;
     const posto=attiva.S.userData.posti.slice().sort((a,b)=>Math.hypot(a.x-p.x,a.z-p.z)-Math.hypot(b.x-p.x,b.z-p.z))[0];
-    alBar=posto; dentro.meta=null; tuStanza.position.set(posto.x,-0.38,posto.z); tuStanza.rotation.y=Math.atan2(posto.tx-posto.x,posto.tz-posto.z);
+    alBar=posto; dentro.meta=null; tuStanza.position.set(posto.x,posto.y??-0.38,posto.z); tuStanza.rotation.y=Math.atan2(posto.tx-posto.x,posto.tz-posto.z);
     tuStanza.userData.gambe.forEach(g=>g.rotation.x=-1.45); pieghe(tuStanza); scena.vassoioAlTavolo(); };
   scena.alzatiDalBar=()=>{ if(!alBar) return; alBar=null; if(tuStanza){ tuStanza.position.y=0; spingiDentro(tuStanza.position,0.4); } scena.vassoioAlTavolo(); };
-  scena.vassoioAlTavolo=()=>{ if(!attiva||!attiva.S) return; piatti.splice(0).forEach(m=>m.parent&&m.parent.remove(m)); if(!alBar) return;
+  scena.vassoioAlTavolo=()=>{ if(!attiva||!attiva.S) return; piatti.splice(0).forEach(m=>m.parent&&m.parent.remove(m)); if(!alBar || alBar.y!==undefined) return;   // al Cinema niente vassoio
     vassoio.forEach((c,k)=>{ const a=Math.atan2(alBar.x-alBar.tx,alBar.z-alBar.tz)+(k-(vassoio.length-1)/2)*0.5, r=0.32, x=alBar.tx+Math.sin(a)*r, z=alBar.tz+Math.cos(a)*r;
       const g=new THREE.Group(); g.position.set(x,1.02,z);
       if(c.verbo==="sorso"){ const tz=cilindro(0.07,0.055,0.11,c.nome==="Spremuta"?0xffa53a:0xf5f5f5,10); tz.position.y=0.055; g.add(tz); const liq=cilindro(0.062,0.062,0.01,c.nome==="Tè"?0xb5651d:c.nome==="Spremuta"?0xff8c1a:0x4a2c1a,10); liq.position.y=0.06+0.045*(c.resta/c.tot); g.add(liq); }
@@ -2323,6 +2336,7 @@ async function costruisci(){
     return r; };
   scena.vistaSpecchio=()=>dentro&&tuStanza?+camStanza.position.distanceTo(tuStanza.position).toFixed(2):null;
   scena.radio=()=>({stazioni:citta.radio.slice(), partenza:PRESELEZIONI_APP.slice(), inOnda:radio.inOnda, src:radio.src, stato:radio.stato, antenna:!!Object.values(porte).length && S.children.some(o=>o.userData&&o.userData.antenna)});
+  scena.incorpora=u=>incorporaVideo(u);
   scena.lotti=()=>Object.values(porte).filter(P=>P.id==="lotto").length;
   scena.dove=()=>({x:tu.position.x,z:tu.position.z});
   scena.nelMuro=()=>solidi.some(s=>dentroUno(tu.position.x,tu.position.z,s));
