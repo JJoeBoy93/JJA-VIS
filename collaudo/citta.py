@@ -156,7 +156,6 @@ async def main():
         m = await p.evaluate("window.CITTA.misure()")
         storti = {k: v for k, v in m["tetti"].items() if v["angoli"] != 4 or abs(v["largo"] - v["w"] * 1.08) > 0.05 or abs(v["profondo"] - v["d"] * 1.08) > 0.05}
         prova("i tetti a falde sono dritti: la base è il rettangolo del palazzo, con quattro angoli veri", len(m["tetti"]) == m["falde"] >= 3 and "ristorante" in m["tetti"] and not storti, storti or m["tetti"])
-        prova("Borsa: l'insegna sta davanti alle colonne", m["borsa"]["davantiColonne"] is not None and m["borsa"]["davantiColonne"] > m["borsa"]["colonne"], m["borsa"])
         prova("Torre: il logo JJA-VIS in cima, sui quattro lati", m["logoTorre"] == 4, m["logoTorre"])
         prova("nessun palazzo, lotto, lampione o albero sta sulla strada", await p.evaluate("window.CITTA.sullaStrada()") == [], await p.evaluate("window.CITTA.sullaStrada()"))
         prova("le vie che il cammino segue non passano dentro niente (il furgone stava sull'anello)", await p.evaluate("window.CITTA.stradeLibere()") == [], await p.evaluate("window.CITTA.stradeLibere()"))
@@ -227,7 +226,7 @@ async def main():
         prova("il giro segna la Sartoria", await p.evaluate("document.querySelectorAll('#giro .f.fatta').length===1"))
 
         # 3. ogni luogo: si apre e ogni link interno porta a un id vero della pagina
-        nomi = ["Radio", "Bottega", "La Torre", "L'Albero della Vita", "JJA-VIS Café", "Cinema", "Borsa", "Athena Trasporti", "Lotto libero", "Sala giochi", "Ristorante", "Palestra"]
+        nomi = ["Radio", "Bottega", "La Torre", "L'Albero della Vita", "JJA-VIS Café", "Cinema", "Athena Trasporti", "Lotto libero", "Sala giochi", "Ristorante", "Palestra"]
         senza_salti = []
         rotti = []
         for n in nomi:
@@ -248,7 +247,7 @@ async def main():
                 await p.click("#chiudi-carta"); await p.wait_for_timeout(300); f = await foglio(p)   # di nuovo la scheda intera
             if n == "La Torre":
                 prova("la Reception è dentro la Torre e saluta col nome dato nella pagina; ci sono banco, salottino e dati", "Ettore" in f["testo"]
-                      and {"banco", "chat", "dati", "globo"} <= set(await p.evaluate("window.CITTA.cose()")), f["testo"][:80])
+                      and set(await p.evaluate("window.CITTA.cose()")) == {"banco", "globo", "dati", "ascensore", "scale"}, [f["testo"][:80], await p.evaluate("window.CITTA.cose()")])
                 await p.click("#stanza button:has-text('Parla con Ettore')"); await p.wait_for_timeout(400)
                 prova("«Parla con Ettore» apre la chat in città, non la pagina", await p.is_visible("#nova") and p.url.endswith("citta.html")
                       and await p.inner_text("#nova-titolo") == "Ettore", p.url)
@@ -273,7 +272,7 @@ async def main():
             if n == "Bottega":
                 prova("la stanza della Bottega è approfondita: Clio spiega come funziona, coi numeri veri", "Come funziona" in f["testo"] and "21" in f["testo"])
             if n == "La Torre":
-                prova("la Torre ha i numeri veri della porta", "42" in f["testo"] and "4.639" in f["testo"] and "8.385" in f["testo"])
+                prova("l'assistente al piano terra dice «per chiunque» e descrive i piani, fino alla terrazza; il salottino non c'è più", "Per chiunque" in f["testo"] and "Terrazza" in f["testo"] and "Attico" in f["testo"] and "salottino" not in f["testo"].lower(), f["testo"][:120])
                 await foto(p, "08-stanza-torre")
             if n == "Bottega":   # le domande del mestiere ora le fa la commessa (JJ, 4/10)
                 tp = tempi_della_pagina(); manca = [x for x in tp["Corriere o autista"] if x not in f["testo"]]
@@ -283,9 +282,9 @@ async def main():
                 hrefs = await p.evaluate("[...document.querySelectorAll('#stanza .video')].map(a=>a.href)")
                 prova("al Cinema i video veri dalla porta, e un link non https non passa", hrefs == ["https://www.instagram.com/reel/PROVA1/"], hrefs)
                 await foto(p, "09-stanza-cinema")
-            if n == "Borsa": prova("in Borsa le stime sono dette stime", "Stime di chi fa questo lavoro" in f["testo"])
+
             prova(f"{n}: c'è l'interno o il luogo in 3D", await colori_in_alto(p) > 12)
-            if n == "Borsa":
+            if n == "Cinema":
                 prima = await p.evaluate("window.CITTA.dove()")
                 await p.mouse.click(195, 150); await p.wait_for_timeout(800)
                 prova("in stanza toccare la vista non fa camminare fuori", await p.evaluate("window.CITTA.dove()") == prima)
@@ -388,6 +387,41 @@ async def main():
         await foto(p, "16c-cafe")
         await p.click("#esci-stanza"); await p.wait_for_timeout(400)
 
+        # 3d1c. la Torre a dieci piani (JJ, 4/10): ascensore, scale, la Borsa al 2°, l'attico privato, la terrazza
+        await vai(p, "La Torre")
+        await usa(p, "ascensore", "L'ascensore")
+        prova("l'ascensore ha i dieci piani, e l'attico non si può scegliere", await p.evaluate("document.querySelectorAll('#piani .scelta').length") == 10
+              and await p.evaluate("[...document.querySelectorAll('#piani .scelta')].find(b=>b.textContent.startsWith('Attico')).disabled"))
+        await p.click("#piani .scelta:has-text('1° piano')")
+        await p.wait_for_function("document.getElementById('stanza-nome').textContent==='La Torre · 1° piano' && window.CITTA.cose().length>0", timeout=20000)
+        f1 = await foglio(p)
+        prova("al 1° piano cosa so fare, coi numeri veri della porta", "42" in f1["testo"] and "4.639" in f1["testo"] and "8.385" in f1["testo"], f1["testo"][:120])
+        await usa(p, "scale", "Le scale")
+        await p.click("#stanza-carta button:has-text('Sali al 2° piano')")
+        await p.wait_for_function("document.getElementById('stanza-nome').textContent==='La Torre · 2° piano' && window.CITTA.cose().length>0", timeout=20000)
+        f2 = await foglio(p)
+        prova("con le scale si sale: al 2° piano c'è la Borsa, investi, e le stime sono dette stime", "Stime di chi fa questo lavoro" in f2["testo"] and {"lavagna", "tavoli", "bacheca", "ascensore", "scale"} <= set(await p.evaluate("window.CITTA.cose()")), f2["testo"][:120])
+        senza = []
+        for k in range(3, 8):
+            await usa(p, "ascensore", "L'ascensore")
+            await p.click(f"#piani .scelta:has-text('{k}° piano')")
+            await p.wait_for_function(f"document.getElementById('stanza-nome').textContent==='La Torre · {k}° piano' && window.CITTA.cose().length>0", timeout=20000)
+            if set(await p.evaluate("window.CITTA.cose()")) != {"vetrata", "ascensore", "scale"}: senza.append(k)
+        prova("i piani dal 3° al 7° ci sono, liberi, con vetrata, ascensore e scale", not senza, senza)
+        await usa(p, "ascensore", "L'ascensore")
+        await p.click("#piani .scelta:has-text('Terrazza')"); await p.wait_for_timeout(1500)
+        tt = await p.evaluate("window.CITTA.sulTetto()")
+        prova("dalla terrazza si guarda la città dall'alto: si è sul tetto della Torre", tt["su"] and tt["y"] > 29, tt)
+        j = await p.query_selector("#joy"); bb = await j.bounding_box(); cx, cy = bb["x"] + bb["width"] / 2, bb["y"] + bb["height"] / 2
+        await p.mouse.move(cx, cy); await p.mouse.down(); await p.mouse.move(cx, cy - 55, steps=4); await p.wait_for_timeout(4000); await p.mouse.up()
+        t2 = await p.evaluate("window.CITTA.sulTetto()")
+        prova("sulla terrazza si cammina ma non si cade: si resta dentro il parapetto", t2["su"] and t2["y"] == tt["y"] and (abs(t2["x"] - tt["x"]) + abs(t2["z"] - tt["z"])) > 0.5
+              and max(abs(t2["x"] - tt["x"]), abs(t2["z"] - tt["z"])) < 4.2, [tt, t2])
+        await foto(p, "16d-terrazza")
+        await p.click("#entra"); await p.wait_for_function("document.getElementById('stanza-nome').textContent==='La Torre'", timeout=20000)
+        prova("«Scendi» riporta alla Reception", not (await p.evaluate("window.CITTA.sulTetto()"))["su"])
+        await p.click("#esci-stanza"); await p.wait_for_timeout(400)
+
         # 3d2. la Radio sotto l'antenna (JJ, 3/10): le sei stazioni dell'app, e si accendono davvero
         rd = await p.evaluate("window.CITTA.radio()")
         prova("sul palazzo della vecchia Reception c'è l'antenna della Radio, e le sei stazioni sono quelle di partenza dell'app", rd["antenna"]
@@ -457,8 +491,8 @@ async def main():
         prova("lo sguardo in verticale è meno sensibile sui movimenti piccoli (curva, non retta)", cv[0] < 0.004 * 2 * 0.5 and cv[1] <= 0.004 * 25, cv)
 
         # 4. camminare col cerchio sposta davvero, e i palazzi non si attraversano:
-        # davanti alla Borsa si spinge avanti, contro la facciata, per tre secondi
-        await vai(p, "Borsa"); await p.click("#esci-stanza"); await p.wait_for_timeout(500)
+        # davanti al Cinema si spinge avanti, contro la facciata, per tre secondi
+        await vai(p, "Cinema"); await p.click("#esci-stanza"); await p.wait_for_timeout(500)
         prima = await p.evaluate("window.CITTA.dove()")
         j = await p.query_selector("#joy"); bb = await j.bounding_box()
         cx, cy = bb["x"] + bb["width"] / 2, bb["y"] + bb["height"] / 2

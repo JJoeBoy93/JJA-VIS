@@ -578,22 +578,29 @@ const LUOGHI={
   radio:{nome:"Radio",ic:"📻",breve:"accendi le tue stazioni",
     testa:()=>TESTA("Sotto l'antenna","Radio","La stessa radio che ho nell'app sul furgone: sei stazioni, una per tasto. Qui le accendi mentre giri per la città."),
     parti:()=>[{id:"radio",nome:"La radio",dentro:()=>laRadio()},{id:"stazioni",nome:"Le tue stazioni",dentro:()=>leTueStazioni()}]},
-  torre:{nome:"La Torre",ic:"🌐",breve:"la reception, chi sono, cosa so fare",
-    // la Reception sta al piano terra della Torre (JJ, 3/10: «sposterei all'interno della torre la reception»)
-    testa(){ const n=nomeAssistente(); return [...TESTA("Al piano terra la Reception, in cima il globo","La Torre", n?`Bentornato. ${n} ti aspetta: è il tuo, con il nome che gli hai dato tu.`:"Benvenuto in città. Qui nasce il tuo assistente personale: dagli un nome nella pagina (in alto, «← La pagina»), e comincio a imparare te."),
+  // ── LA TORRE, dieci piani come si vedono da fuori (JJ, 4/10: «me la immagino come la torre Stark: all'attico ci vado io;
+  // piano terra la reception, con il bancone e l'assistente, il globo, che ti dà le informazioni di base e ti descrive i piani;
+  // il salottino toglilo; "per chiunque" è una cosa che dice il globo»). Si sale con l'ascensore o con le scale; in cima la terrazza.
+  torre:{nome:"La Torre",ic:"🌐",breve:"la reception, l'assistente, i piani",
+    testa(){ const n=nomeAssistente(); return [...TESTA("Piano terra · la Reception","La Torre", n?`Bentornato. ${n} ti aspetta: è il tuo, con il nome che gli hai dato tu.`:"Benvenuto in città. Qui nasce il tuo assistente personale: dagli un nome nella pagina (in alto, «← La pagina»), e comincio a imparare te."),
       P("Sono JJA-VIS, un sistema personale intelligente. Non rispondo: anticipo. Non archivio: imparo. Non servo il settore: servo la persona.")]; },
-    parti:()=>[...LUOGHI.reception.parti(),
-      {id:"globo",nome:"Il globo",dentro:()=>[BLOCCO(H3("Imparo te"), P("Un assistente professionale conosce un lavoro. Io imparo chi sei: le tue abitudini, le tue giornate, quello che ti preoccupa e quello che vuoi. Il lavoro è solo una parte di te. Più mi usi, più divento tuo. Uguale per tutti, diverso per ognuno.")),
-        BLOCCO(H3("Da dove nasco"), P("Chi mi costruisce ha molte vite insieme: una ditta di trasporti, il furgone da corriere ogni mattina, il codice la notte, le isole di Fortnite di cui è creatore ufficiale. Cercava qualcosa che lo aiutasse in tutte. Non l'ha trovato, e ha deciso di costruirlo."))]},
-      {id:"sa",nome:"Cosa so fare",dentro:()=>[BLOCCO(H3("Cosa so già fare, oggi"), P("Su un telefono solo: quello di chi mi costruisce, ogni giorno sul furgone."),
+    parti:()=>[LUOGHI.reception.parti().find(p=>p.id==="banco"),
+      {id:"globo",nome:"L'assistente",breve:"il globo ti spiega tutto",dentro:()=>[...GLOBO_DICE(), BLOCCO(H3("I piani"), LISTA(PIANI.map(p=>`${p.etichetta}: ${p.cosa}`)))]},
+      LUOGHI.reception.parti().find(p=>p.id==="dati"), ...PARTI_PIANO(0)],
+    fine:()=>[AZIONI(parlaQui(`Parla con ${nomeAssistente()}`,""))]},
+  torre1:{nome:"La Torre · 1° piano",ic:"🌐",breve:"cosa so fare",piano:1,
+    testa:()=>TESTA("1° piano","Cosa so fare","Quello che so già fare oggi, sul telefono di chi mi costruisce."),
+    parti:()=>[{id:"sa",nome:"Cosa so fare",dentro:()=>[BLOCCO(H3("Cosa so già fare, oggi"), P("Su un telefono solo: quello di chi mi costruisce, ogni giorno sul furgone."),
         FATTI([[VETRINA.attrezzi?String(VETRINA.attrezzi):"40+","attrezzi"],["8.385","numeri civici di un paese, uno per uno"],["18","zone di consegna"],[VETRINA.canzoni?VETRINA.canzoni.toLocaleString("it-IT"):"4.639","canzoni che riconosco, imparate ascoltando la radio"]]),
         LISTA(["In macchina: sono una sorgente di Android Auto, con sei radio preselezionate. Mi parli mentre guidi, anche con la musica accesa.",
           "Al lavoro: metti un pacco nel giro e la giornata parte; a sera la chiudo io, e non la chiudo se resta qualcosa da fare.",
           "La tua giornata: sveglie, appuntamenti, compleanni; la mattina ti dico cosa ti aspetta. Se dici «mia figlia», so di chi parli.",
-          "Occhi e orecchie: guardo le foto, cerco sul web e ti lascio le fonti da toccare. Mi scrivi anche da Telegram."]))]},
-      {id:"tutti",nome:"Per chiunque",dentro:()=>[BLOCCO(H3("Per chiunque"), P("Chiunque, ovunque nasca e qualunque lavoro faccia, ha diritto al suo assistente personale. Il corriere di Milano, il farmacista di Tokyo, l'agricoltore del Brasile, il meccanico del Cairo. Parto dal lavoro che conosco meglio, la consegna, e da lì vado verso tutti.")),
-        NOTA("Come sono fatto dentro non lo racconto: sono mesi di lavoro, notte dopo notte. Cosa so fare sì.")]}],
-    fine:()=>[AZIONI(parlaQui(`Parla con ${nomeAssistente()}`,""), vai(PAGINA+"#sa-fare","Cosa so fare, nella pagina",true))]},
+          "Occhi e orecchie: guardo le foto, cerco sul web e ti lascio le fonti da toccare. Mi scrivi anche da Telegram."]))]}, ...PARTI_PIANO(1)]},
+  torre2:{nome:"La Torre · 2° piano",ic:"📈",breve:"investi in JJA-VIS",piano:2,
+    testa:()=>LUOGHI.borsa.testa(), parti:()=>[...LUOGHI.borsa.parti(), ...PARTI_PIANO(2)], fine:()=>(LUOGHI.borsa.fine?LUOGHI.borsa.fine():[])},
+  ...Object.fromEntries([3,4,5,6,7].map(n=>[`torre${n}`,{nome:`La Torre · ${n}° piano`,ic:"🌐",breve:"piano libero",piano:n,
+    testa:()=>TESTA(`${n}° piano`,"Piano libero",`Per ora è vuoto: da qui si guarda la città dalle vetrate. Cosa ci va, lo decide chi mi costruisce.`),
+    parti:()=>[{id:"vetrata",nome:"La vetrata",dentro:()=>[BLOCCO(H3("La vista"), P(`Dal ${n}° piano la città si vede tutta: la piazza, l'albero, i quartieri. Dalla terrazza, in cima, ancora meglio.`))]}, ...PARTI_PIANO(n)]}])),
   cinema:{nome:"Cinema",ic:"🎬",breve:"guardami al lavoro",
     testa:()=>TESTA("In sala","Cinema","Guardami al lavoro: video veri, dal telefono e dal furgone di chi mi costruisce. Nessun montaggio che non sia mio."),
     parti:()=>[{id:"schermo",nome:"Lo schermo",dentro(){
@@ -691,7 +698,7 @@ const LUOGHI={
       {id:"punto",nome:"A che punto è",dentro(){ const n=nomeAssistente(); return [BLOCCO(H3("A che punto è"), P("È un progetto: arriva con l'app. Oggi le foglie sono la promessa."), NOTA(n?`La foglia d'oro è quella di ${n}.`:"Quando dai un nome al tuo assistente, una foglia d'oro diventa la sua."))]; }}],
     fine:()=>[AZIONI(vai(PAGINA+"#chi-sono","Chi sono, nella pagina",true))]},
 };
-const ELENCO=["torre","radio","sartoria","bottega","albero","giochi","cafe","cinema","borsa","athena","ristorante","palestra","lotto"];
+const ELENCO=["torre","radio","sartoria","bottega","albero","giochi","cafe","cinema","athena","ristorante","palestra","lotto"];
 let cinemaChiesto=false;
 const schedaIntera=L=>[...L.testa(), ...L.parti().flatMap(p=>p.dentro()), ...(L.fine?L.fine():[])].filter(Boolean);
 const parteDi=(L,k)=>L.parti().find(p=>p.id===k);
@@ -745,6 +752,38 @@ function specchio(){
     b.style.background="#"+t.toString(16).padStart(6,"0"); b.addEventListener("click",()=>{ citta.pelle=i; rifai(); }); pel.appendChild(b); });
   out.push(el("div",{class:"sezione",testo:"Pelle"}), pel);
   return out;
+}
+
+// quello che dice l'assistente al piano terra (era il globo in cima e «per chiunque»)
+const GLOBO_DICE=()=>[BLOCCO(H3("Imparo te"), P("Un assistente professionale conosce un lavoro. Io imparo chi sei: le tue abitudini, le tue giornate, quello che ti preoccupa e quello che vuoi. Il lavoro è solo una parte di te. Più mi usi, più divento tuo. Uguale per tutti, diverso per ognuno.")),
+        BLOCCO(H3("Da dove nasco"), P("Chi mi costruisce ha molte vite insieme: una ditta di trasporti, il furgone da corriere ogni mattina, il codice la notte, le isole di Fortnite di cui è creatore ufficiale. Cercava qualcosa che lo aiutasse in tutte. Non l'ha trovato, e ha deciso di costruirlo.")), BLOCCO(H3("Per chiunque"), P("Chiunque, ovunque nasca e qualunque lavoro faccia, ha diritto al suo assistente personale. Il corriere di Milano, il farmacista di Tokyo, l'agricoltore del Brasile, il meccanico del Cairo. Parto dal lavoro che conosco meglio, la consegna, e da lì vado verso tutti.")),
+        NOTA("Come sono fatto dentro non lo racconto: sono mesi di lavoro, notte dopo notte. Cosa so fare sì.")];
+// ── i piani della Torre
+const PIANI=[
+  {n:0,id:"torre",etichetta:"Piano terra",cosa:"la Reception e l'assistente"},
+  {n:1,id:"torre1",etichetta:"1° piano",cosa:"cosa so fare"},
+  {n:2,id:"torre2",etichetta:"2° piano",cosa:"la Borsa: investi in JJA-VIS"},
+  {n:3,id:"torre3",etichetta:"3° piano",cosa:"libero"},
+  {n:4,id:"torre4",etichetta:"4° piano",cosa:"libero"},
+  {n:5,id:"torre5",etichetta:"5° piano",cosa:"libero"},
+  {n:6,id:"torre6",etichetta:"6° piano",cosa:"libero"},
+  {n:7,id:"torre7",etichetta:"7° piano",cosa:"libero"},
+  {n:8,id:"attico",etichetta:"Attico",cosa:"di chi mi costruisce: privato",privato:true},
+  {n:9,id:"terrazza",etichetta:"Terrazza",cosa:"la città dall'alto"}];
+const pianoDi=id=>PIANI.find(p=>p.id===id);
+// ascensore e scale ci sono a ogni piano
+function PARTI_PIANO(n){ return [
+  {id:"ascensore",nome:"L'ascensore",breve:"scegli il piano",dentro:()=>{ const box=el("div",{class:"scelte",role:"group","aria-label":"I piani",id:"piani"});
+    PIANI.forEach(p=>{ const b=el("button",{class:"scelta",type:"button","aria-pressed":String(p.n===n),testo:`${p.etichetta} · ${p.cosa}`});
+      if(p.privato) b.disabled=true; else b.addEventListener("click",()=>vaiAlPiano(p.n)); box.appendChild(b); });
+    return [BLOCCO(H3("L'ascensore"), P("Tocca il piano. L'attico è di chi mi costruisce: lì non si va."), box)]; }},
+  {id:"scale",nome:"Le scale",breve:"un piano su o giù",dentro:()=>[BLOCCO(H3("Le scale"), P(`Sei al ${PIANI[n].etichetta.toLowerCase()}.`),
+    AZIONI(n<7?bottone(`Sali al ${PIANI[n+1].etichetta}`,()=>vaiAlPiano(n+1)):bottone("Sali in terrazza",()=>vaiAlPiano(9)), n>0?bottone(n===1?"Scendi al piano terra":`Scendi al ${PIANI[n-1].etichetta}`,()=>vaiAlPiano(n-1),true):null))]}]; }
+function vaiAlPiano(n){
+  const p=PIANI[n]; if(!p||p.privato) return;
+  if(p.id==="terrazza"){ esciStanza(); if(scena.pronta) scena.terrazza(true); return; }
+  if(stanzaAperta && scena.pronta) scena.esci();
+  stanzaAperta=null; apriStanza(p.id);
 }
 
 // ── il bancone della Bottega: il commesso prende le richieste di sopralluogo e di lavoro su misura, come i moduli
@@ -1423,7 +1462,8 @@ async function costruisci(){
     // dove c'era la Reception (ora dentro la Torre) c'è la Radio: il palazzo fa da base all'antenna (JJ, 3/10)
     {id:"radio",ang:-22,w:11,d:7,h:6,muro:"#1b3a57",vetro:true,tetto:"piano",titolo:"RADIO",sotto:"accendi le tue stazioni",antenna:true},
     {id:"sartoria", ang:22, w:9, d:7,h:7,muro:"#c99a8a",vetrine:1,tetto:"falde",titolo:"SARTORIA",sotto:"vesti il tuo avatar"},
-    {id:"borsa",    ang:58, w:9, d:9,h:10,muro:"#d9d2c2",porta:true,tetto:"piano",titolo:"BORSA",sotto:"investi in JJA-VIS",colonne:true},
+    // «investi» è nella Torre, al 2° piano (JJ, 4/10): al posto della Borsa un lotto libero
+    {id:"lotto",    ang:58, w:9, d:8,h:0,titolo:"LOTTO LIBERO",sotto:"la tua attività, qui"},
     // la struttura della Piazza delle voci resta (JJ: «mi piace»), ma è un bar: il JJA-VIS Café (JJ, 4/10)
     {id:"cafe",     ang:92, w:11,d:9,h:9,muro:"#b5654a",porta:true,tetto:"piano",titolo:"JJA-VIS CAFÈ",sotto:"colazione · recensioni · due chiacchiere",orologio:true},
     {id:"cinema",   ang:126,w:11,d:9,h:8,muro:"#3b2a4f",porta:true,tetto:"piano",titolo:"CINEMA",sotto:"guardami al lavoro",colore:"#FFD60A"},
@@ -1547,6 +1587,8 @@ async function costruisci(){
       g.userData.antenna={alto:y0+alto+0.3};
     }
     if(P.id==="torre"){
+      // il parapetto della terrazza
+      for(const [x,z,w,d] of [[0,P.d/2,P.w,0.15],[0,-P.d/2,P.w,0.15],[P.w/2,0,0.15,P.d],[-P.w/2,0,0.15,P.d]]){ const pa=scatola(w,1.0,d,0x9fb3c8); pa.position.set(x,P.h+0.9,z); g.add(pa); }
       // 2 ottobre, JJ: «in alto alla torre, dove c'è la luce spenta, metterei il logo di JJA-VIS». Sui quattro lati
       for(let k=0;k<4;k++){ const lg=insegna("JJA-VIS","",P.w*0.96); const a=k*Math.PI/2, r=P.w/2+0.07;
         lg.position.set(Math.sin(a)*r, P.h-1.6, Math.cos(a)*r); lg.rotation.y=a; lg.name="logo-torre"; g.add(lg); }
@@ -1768,20 +1810,21 @@ async function costruisci(){
       for(const [x,c,t] of [[2.6,"#00B4D8","</>"],[4.2,"#FFD60A","SITO"]]){ const s=schermo(1.3,0.8,c,t); h.metti(s,x,1.55,-3.7); sch.push(s); h.metti(scatola(0.08,0.4,0.08,0x222222),x,1.15,-3.75); }
       h.cosa("banco",[tav,...sch],3.4,-3.4,{x:3.4,z:-2.1},2.5);
       const lav=aParete(schermo(2.4,1.4,"#FFD60A","ATHENA"),1,1.5,2.0); S2.add(lav); h.cosa("lavoro",[lav],6.6,1.5,{x:5.3,z:1.5},3.3); },
-    torre(S2,h){ h.insegnaFondo("LA TORRE","la reception · chi sono · cosa so fare");
-      // la Reception al piano terra: il banco a destra in fondo, il salottino e i dati ai lati della porta
-      const banco=scatola(3,1.1,0.9,0x0D2A3E); h.metti(banco,3.8,0.55,-3.8); h.metti(scatola(3.02,0.06,0.92,0x00B4D8,true),3.8,1.12,-3.8); h.solido(3.8,-3.8,3,0.9);
-      h.cosa("banco",[banco],3.8,-3.8,{x:3.8,z:-2.6},2.4);
-      const div=scatola(1.2,0.45,2,0x2a3f57); h.metti(div,-5.5,0.25,4.6); const sch=scatola(0.2,0.7,2,0x2a3f57); h.metti(sch,-6.05,0.7,4.6); h.solido(-5.5,4.6,1.2,2);
-      h.cosa("chat",[div,sch],-5.5,4.6,{x:-4.3,z:4.4},1.9);
-      const term=scatola(0.8,1.2,0.6,0x0D2A3E); h.metti(term,5.5,0.6,4.6); const sc2=scatola(0.7,0.45,0.04,0x00B4D8,true); h.metti(sc2,5.5,1.1,4.28); h.solido(5.5,4.6,0.8,0.6);
-      h.cosa("dati",[term,sc2],5.5,4.6,{x:4.3,z:4.4},1.9);
-      const g=h.metti(ologlobo(1.2),0,1.7,-1.5); h.metti(new THREE.Mesh(new THREE.RingGeometry(1.7,1.9,48),mat(0x00B4D8,true)),0,0.03,-1.5).rotation.x=-Math.PI/2; h.tondo(0,-1.5,1.3);
-      h.cosa("globo",[g],0,-1.5,{x:0,z:0.7},3.5);
-      for(const s of [-1,1]){ const v=facciata(PROFONDO,ALTO,{muro:"#0f2d47",luce:0.85,seme:s>0?7:9}); const m=new THREE.Mesh(new THREE.PlaneGeometry(PROFONDO-0.2,ALTO-0.2),new THREE.MeshBasicMaterial({map:v.emi}));
-        h.metti(m,s*(LARGO/2-0.06),ALTO/2,0,-s*Math.PI/2); }
-      const sa=aParete(schermo(2.6,1.4,"#00B4D8","COSA SO FARE"),1,1.5,2.0); sa.position.x-=0.1; S2.add(sa); h.cosa("sa",[sa],6.6,1.5,{x:5.3,z:1.5},3.3);
-      const tt=aParete(schermo(2.6,1.4,"#FFD60A","PER CHIUNQUE"),-1,1.5,2.0); tt.position.x+=0.1; S2.add(tt); h.cosa("tutti",[tt],-6.6,1.5,{x:-5.3,z:1.5},3.3); },
+    // piano terra: il bancone della Reception con l'assistente (il globo) sopra, i tuoi dati sulla parete, ascensore e scale
+    torre(S2,h){ h.insegnaFondo("LA TORRE","piano terra · la reception");
+      const banco=scatola(4,1.1,0.9,0x0D2A3E); h.metti(banco,0,0.55,-3.2); h.metti(scatola(4.02,0.06,0.92,0x00B4D8,true),0,1.12,-3.2); h.solido(0,-3.2,4,0.9);
+      h.cosa("banco",[banco],-1.2,-3.2,{x:-1.2,z:-1.9},2.0);
+      const g=h.metti(ologlobo(0.9),0,2.6,-3.4); h.metti(new THREE.Mesh(new THREE.RingGeometry(1.2,1.35,48),mat(0x00B4D8,true)),0,0.03,-1.2).rotation.x=-Math.PI/2;
+      h.cosa("globo",[g],1.2,-3.4,{x:1.2,z:-1.9},3.9);
+      const term=scatola(0.6,1.2,0.8,0x0D2A3E); h.metti(term,-6.4,0.6,-0.5); const sc2=scatola(0.04,0.45,0.7,0x00B4D8,true); h.metti(sc2,-6.08,1.1,-0.5); h.solido(-6.4,-0.5,0.6,0.8);
+      h.cosa("dati",[term,sc2],-6.4,-0.5,{x:-5.3,z:-0.5},1.9);
+      vetrate(S2,h); pianoComune(S2,h); },
+    torre1(S2,h){ h.insegnaFondo("1° PIANO","cosa so fare");
+      const sa=schermo(4.2,2.2,"#00B4D8","COSA SO FARE"); h.metti(sa,0,1.9,-PROFONDO/2+0.1); h.cosa("sa",[sa],0,-5.2,{x:0,z:-4.2},3.4);
+      vetrate(S2,h); pianoComune(S2,h); },
+    torre2(S2,h){ ARREDI.borsa(S2,h); pianoComune(S2,h); },
+    ...Object.fromEntries([3,4,5,6,7].map(n=>[`torre${n}`,(S2,h)=>{ h.insegnaFondo(`${n}° PIANO`,"piano libero");
+      const v=vetrate(S2,h); h.cosa("vetrata",v,-6.8,0,{x:-5.4,z:0},2.6); pianoComune(S2,h); }])),
     cinema(S2,h){ const sc=schermo(9,3.6,"#00B4D8","GUARDAMI AL LAVORO"); h.metti(sc,0,2.5,-PROFONDO/2+0.08);
       h.cosa("schermo",[sc],0,-5.6,{x:0,z:-3.4},4.75);
       for(const s of [-1,1]){ for(let r=0;r<4;r++) for(let k=0;k<3;k++){ const x=s*(2.8+k*1.4), z=-1+r*1.4; h.metti(scatola(1.1,0.5,0.8,0x8a1f2c),x,0.25+r*0.15,z); h.metti(scatola(1.1,0.8,0.15,0x8a1f2c),x,0.7+r*0.15,z+0.38); }
@@ -1847,7 +1890,19 @@ async function costruisci(){
       const tapis=scatola(1,0.4,2.2,0x15161a); h.metti(tapis,5.6,0.2,-0.9); h.metti(scatola(0.9,1.2,0.1,0x2b2f36),5.6,0.9,-1.95); h.solido(5.6,-0.9,1,2.2);
       const bac=aParete(schermo(2.6,1.5,"#2ECC71","PRIMA DI COMINCIARE"),1,1.8,2.0); S2.add(bac); h.cosa("bacheca",[bac],6.6,1.8,{x:5.3,z:1.8},3.3); },
   };
-  const COLORI_STANZA={torre:[0x0f2d47],cinema:[0x1a1024],giochi:[0x1c0d2e],forgia:[0x3a2f2a],ristorante:[0x5a3428,0x2a1a12],palestra:[0x1f2a33,0x111418]};
+  const COLORI_STANZA={torre:[0x0f2d47],torre1:[0x0f2d47],torre2:[0x1f2a24],torre3:[0x0f2d47],torre4:[0x0f2d47],torre5:[0x0f2d47],torre6:[0x0f2d47],torre7:[0x0f2d47],cinema:[0x1a1024],giochi:[0x1c0d2e],forgia:[0x3a2f2a],ristorante:[0x5a3428,0x2a1a12],palestra:[0x1f2a33,0x111418]};
+  // le vetrate della Torre sulle pareti di fianco
+  function vetrate(S2,h){ const out=[]; for(const s of [-1,1]){ const v=facciata(PROFONDO,ALTO,{muro:"#0f2d47",luce:0.85,seme:s>0?7:9}); const m=new THREE.Mesh(new THREE.PlaneGeometry(PROFONDO-0.2,ALTO-0.2),new THREE.MeshBasicMaterial({map:v.emi}));
+      h.metti(m,s*(LARGO/2-0.06),ALTO/2,0,-s*Math.PI/2); out.push(m); } return out; }
+  // a ogni piano: l'ascensore sulla parete della porta, a sinistra; le scale lungo la parete di destra
+  function pianoComune(S2,h){
+    const tel=scatola(1.9,2.7,0.12,0x8a9099); h.metti(tel,-4.5,1.35,PROFONDO/2-0.08);
+    const porte=[-1,1].map(s=>{ const m=scatola(0.88,2.4,0.06,0xc9d1d9); h.metti(m,-4.5+s*0.45,1.2,PROFONDO/2-0.16); return m; });
+    h.metti(palla(0.07,0xFFD60A,true),-3.3,1.2,PROFONDO/2-0.15); h.solido(-4.5,PROFONDO/2-0.1,1.9,0.3);
+    h.cosa("ascensore",[tel,...porte],-4.5,PROFONDO/2-0.3,{x:-4.5,z:4.5},3.0);
+    const gradini=[]; for(let k=0;k<8;k++){ const g=scatola(1.3,0.25*(k+1),0.4,0x3a4a5c); h.metti(g,6.25,0.125*(k+1),5.6-k*0.4); gradini.push(g); }
+    h.solido(6.25,4.2,1.3,3.2); h.cosa("scale",gradini,6.25,4.2,{x:4.6,z:4.2},2.6);
+  }
   function costruisciStanza(id){
     const [muro,pav]=COLORI_STANZA[id]||[0x26425c]; const S2=guscio(muro,pav);
     const R={S:S2,id,cose:{},solidi:[],toccabili:[],segni:[]}; const L=LUOGHI[id];
@@ -1946,6 +2001,7 @@ async function costruisci(){
       if(nx*(a.x+b.x)+nz*(a.z+b.z)<0){ nx=-nx; nz=-nz; } tappe.push({x:nx*5.5,z:nz*5.5}); } }
   function lottoVicino(){ let m=null, dm=Infinity; for(const [k,P] of Object.entries(porte)){ if(P.id!=="lotto") continue; const d=Math.hypot(P.x-tu.position.x,P.z-tu.position.z); if(d<dm){ dm=d; m=k; } } return m; }
   function percorso(k){
+    if(sulTetto) scena.terrazza(false);
     if(k==="lotto") k=lottoVicino();
     const P=porte[k]; if(!P) return;
     const a={x:tu.position.x,z:tu.position.z}, b={x:P.x,z:P.z}; let tappe=[];
@@ -1968,6 +2024,13 @@ async function costruisci(){
 
   const stato={yaw:0,pitch:0.14,dist:8,jx:0,jy:0,tasti:{},meta:null,metaId:null,fermoDa:0,modo:"cammina",spin:0,salti:0};
   scena.vaiVerso=id=>percorso(id);
+  // ── la terrazza in cima alla Torre (JJ, 4/10: «il terrazzo calpestabile da dove guardare la città dall'alto»): si cammina
+  // sul tetto, dentro il parapetto, e si guarda giù; «Scendi» riporta alla Reception
+  scena.terrazza=on=>{ const T=porte.torre; if(!T) return;
+    if(on){ sulTetto=true; stato.meta=null; tu.position.set(T.cx,TETTO,T.cz); tu.rotation.y=T.guarda+Math.PI; stato.yaw=T.guarda; stato.pitch=0.5;
+      const b=$("entra"); delete b.dataset.id; delete b.dataset.cosa; b.dataset.azione="scendi"; b.textContent="Scendi · in ascensore"; b.hidden=false; vicinoPrima="terrazza"; }
+    else { sulTetto=false; tu.position.set(T.x,0,T.z); stato.pitch=0.14; const b=$("entra"); delete b.dataset.azione; b.hidden=true; vicinoPrima=null; } };
+  scena.sulTetto=()=>({su:sulTetto, y:+tu.position.y.toFixed(2), x:+tu.position.x.toFixed(2), z:+tu.position.z.toFixed(2)});
   scena.salti=()=>stato.salti;
   // per il collaudo: girare lo sguardo, e sapere se una cosa si vede
   scena.guarda=(yaw,pitch)=>{ stato.yaw=yaw; stato.pitch=pitch; };
@@ -2132,6 +2195,7 @@ async function costruisci(){
   // il pulsante grande: fuori «Entra», dentro «Usa» o «Esci»
   $("entra").addEventListener("click",()=>{ const b=$("entra");
     if(stanzaAperta){ if(b.dataset.azione==="esci") esciStanza(); else if(b.dataset.cosa){ const c=attiva&&attiva.cose[b.dataset.cosa]; if(c&&tuStanza) tuStanza.rotation.y=Math.atan2(c.x-tuStanza.position.x,c.z-tuStanza.position.z); apriCosa(b.dataset.cosa); } return; }
+    if(b.dataset.azione==="scendi"){ scena.terrazza(false); apriStanza("torre"); return; }
     const id=b.dataset.id; if(id) apriFoglio(id); });
 
   function ridimensiona(){ renderer.setSize(innerWidth,innerHeight,false); cam.aspect=innerWidth/innerHeight; cam.fov=innerHeight>innerWidth?68:58; cam.updateProjectionMatrix(); }
@@ -2189,6 +2253,7 @@ async function costruisci(){
     renderer.render(R.S,camStanza);
   }
 
+  let sulTetto=false; const TETTO=(PALAZZI.find(P=>P.id==="torre").h)+0.4;
   function passo(){
     const dt=Math.min(orologio.getDelta(),0.2), t=orologio.elapsedTime; // anche a pochi fotogrammi si cammina alla velocità giusta
     if(attiva && !attiva.esterno){ passoDentro(dt); return; }
@@ -2206,7 +2271,12 @@ async function costruisci(){
     else if(stato.meta && libero){ const r=versoTappa(tu,stato,dt,7.5,()=>{ const P=porte[stato.metaId]; tu.rotation.y=P.guarda; apriFoglio(P.id); });
       if(r){ [vx,vz,vel]=r; // la telecamera gira dolce dietro a dove vai
         const ya=Math.atan2(-vx,-vz); let dy=ya-stato.yaw; dy=Math.atan2(Math.sin(dy),Math.cos(dy)); stato.yaw+=dy*Math.min(1,dt*2.2); } }
-    if(vel>0){ tu.position.x+=vx*vel*dt; tu.position.z+=vz*vel*dt; spingiFuori(tu.position,0.45);
+    if(vel>0){ tu.position.x+=vx*vel*dt; tu.position.z+=vz*vel*dt;
+      if(sulTetto){ const T=porte.torre, P=PALAZZI.find(q=>q.id==="torre"), c=Math.cos(P.rot), s2=Math.sin(P.rot), lim=P.w/2-0.7;
+        let lx=(tu.position.x-T.cx)*c-(tu.position.z-T.cz)*s2, lz=(tu.position.x-T.cx)*s2+(tu.position.z-T.cz)*c;
+        lx=Math.max(-lim,Math.min(lim,lx)); lz=Math.max(-lim,Math.min(lim,lz));
+        tu.position.x=T.cx+lx*c+lz*s2; tu.position.z=T.cz-lx*s2+lz*c; }
+      else spingiFuori(tu.position,0.45);
       const ry=Math.atan2(vx,vz); let dr=ry-tu.rotation.y; dr=Math.atan2(Math.sin(dr),Math.cos(dr)); tu.rotation.y+=dr*Math.min(1,dt*12); cammina(tu,vel*dt*1.9); }
     else fermo(tu);
 
@@ -2221,8 +2291,9 @@ async function costruisci(){
 
     // vicino a una porta?
     let vicino=null, dmin=3.3;
-    for(const P of Object.values(porte)){ const d=Math.hypot(P.x-tu.position.x,P.z-tu.position.z); if(d<dmin){ dmin=d; vicino=P.id; } }
-    if(vicino!==vicinoPrima){ vicinoPrima=vicino; usoPrima=null; const b=$("entra"); delete b.dataset.cosa; delete b.dataset.azione;
+    if(!sulTetto) for(const P of Object.values(porte)){ const d=Math.hypot(P.x-tu.position.x,P.z-tu.position.z); if(d<dmin){ dmin=d; vicino=P.id; } }
+    if(sulTetto) vicino="terrazza";
+    if(vicino!==vicinoPrima && !sulTetto){ vicinoPrima=vicino; usoPrima=null; const b=$("entra"); delete b.dataset.cosa; delete b.dataset.azione;
       if(vicino && !fogliAperto){ b.dataset.id=vicino; b.textContent=(LUOGHI[vicino].esterno?"Guarda · ":"Entra · ")+LUOGHI[vicino].nome; b.hidden=false; } else b.hidden=true; }
     if(fogliAperto && !$("entra").hidden) $("entra").hidden=true;
     if(!fogliAperto && vicino && $("entra").hidden){ vicinoPrima=null; }
@@ -2230,13 +2301,14 @@ async function costruisci(){
     // la telecamera
     { const cp=Math.cos(stato.pitch); let dist=stato.dist+Math.max(0,stato.pitch-0.6)*26;  // più in alto, più lontano: la città dall'alto
       // trascinando in su la telecamera scende e lo sguardo sale: si vede la cima della torre
-      bersaglio.set(tu.position.x,1.6+Math.max(0,0.18-stato.pitch)*95,tu.position.z);
+      const q=sulTetto?TETTO:0;   // sulla terrazza tutto parte dal tetto
+      bersaglio.set(tu.position.x,q+1.6+Math.max(0,0.18-stato.pitch)*95,tu.position.z);
       dir.set(Math.sin(stato.yaw)*cp, Math.sin(stato.pitch), Math.cos(stato.yaw)*cp).normalize();
-      const testa=new THREE.Vector3(tu.position.x,1.6,tu.position.z); ray.set(testa,dir); ray.far=dist; const muro=ray.intersectObjects(muri,false); if(muro.length) dist=Math.max(1.2,muro[0].distance-0.4);
-      ideale.set(tu.position.x,1.6,tu.position.z).addScaledVector(dir,dist); if(ideale.y<0.5) ideale.y=0.5; ray.far=Infinity; }
+      const testa=new THREE.Vector3(tu.position.x,q+1.6,tu.position.z); ray.set(testa,dir); ray.far=dist; const muro=ray.intersectObjects(muri,false); if(muro.length) dist=Math.max(1.2,muro[0].distance-0.4);
+      ideale.set(tu.position.x,q+1.6,tu.position.z).addScaledVector(dir,dist); if(ideale.y<q+0.5) ideale.y=q+0.5; ray.far=Infinity; }
     cam.position.lerp(ideale, Math.min(1,dt*9)); cam.lookAt(bersaglio);
 
-    if(scena._globo){ scena._globo.rotation.y+=dt*0.35; scena._globo.position.y=36+Math.sin(t*0.8)*0.4; }
+    if(scena._globo){ scena._globo.rotation.y+=dt*0.35; scena._globo.position.y=36+Math.sin(t*0.8)*0.4; scena._globo.visible=!sulTetto; }   // sulla terrazza la telecamera ci starebbe dentro
     if(scena._chioma){ scena._chioma.rotation.y+=dt*0.04; }
     if(scena._oro){ const s=1+Math.sin(t*3)*0.18; scena._oro.scale.setScalar(s); }
     renderer.render(S,cam);
