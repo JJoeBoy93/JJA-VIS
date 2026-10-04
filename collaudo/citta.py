@@ -384,10 +384,16 @@ async def main():
         prova("la recensione parte e arriva a chi mi costruisce, con le stelle", any(x.get("testo", "").startswith("⭐ Recensione ★★★★: Bella la radio") for x in parlate))
         await usa(p, "tavolini", "I tavolini")
         prova("ai tavolini la chat non si apre da sola (è di Twitch, coi suoi cookie)", await p.evaluate("!document.getElementById('chat-bar')"))
-        await p.click("#stanza-carta button:has-text('Siediti e apri la chat')"); await p.wait_for_timeout(500)
+        await p.click("#stanza-carta button:has-text('Siediti e apri la chat')"); await p.wait_for_timeout(600)
         src = await p.evaluate("(document.getElementById('chat-bar')||{}).src||''")
         prova("aprendola, è la chat del canale Twitch JJoe_Boy93 incorporata come dice Twitch (parent = il dominio della pagina)", src.startswith("https://www.twitch.tv/embed/jjoe_boy93/chat?parent=jjoeboy93.github.io"), src)
-        await p.click("#stanza-carta button:has-text('Chiudi la chat')"); await p.wait_for_timeout(300)
+        lib = await p.evaluate("""(()=>{ const f=document.getElementById('chat-bar'); const r=f.getBoundingClientRect(); const fuori=[];
+            for(let e=f; e && e!==document.documentElement; e=e.parentElement){ const c=getComputedStyle(e); if(c.transform!=='none'||c.filter!=='none'||+c.opacity<1||c.backdropFilter&&c.backdropFilter!=='none') fuori.push(e.id||e.tagName); }
+            const punti=[[0.5,0.5],[0.1,0.9],[0.9,0.9],[0.9,0.1],[0.1,0.1],[0.5,0.97]].map(([x,y])=>document.elementFromPoint(r.left+r.width*x,r.top+r.height*y)===f);
+            return {padre:f.parentElement.parentElement===document.body, effetti:fuori, scoperta:punti.every(Boolean), alto:r.height, largo:r.width}; })()""")
+        prova("la chat di Twitch sta in uno strato suo: niente la copre e nessun contenitore ha effetti (sennò Twitch spegne lo scrivere)", lib["padre"] and not lib["effetti"] and lib["scoperta"] and lib["alto"] > 600, lib)
+        await p.click("#chiudi-twitch"); await p.wait_for_timeout(300)
+        prova("«Torna al Café» chiude la chat e si è di nuovo al bar", await p.evaluate("!document.getElementById('strato-twitch') && !document.body.classList.contains('con-twitch')"))
         await usa(p, "caffe", "Offri un caffè")
         await p.wait_for_timeout(1500)
         tc = await p.inner_text("#stanza-carta")

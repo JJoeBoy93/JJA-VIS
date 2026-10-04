@@ -93,6 +93,11 @@ body.in-sartoria #foglio{max-height:56vh} /* sopra si deve vedere l'avatar inter
 .scelta[aria-pressed="true"]{background:#0D2A3E;border-color:var(--accento);box-shadow:0 0 10px color-mix(in srgb,var(--accento) 35%,transparent) inset}
 .tinte{display:flex;flex-wrap:wrap;gap:9px}
 .riga-radio{display:flex;align-items:center;gap:10px;margin:6px 0}
+/* la chat di Twitch: uno strato suo, a tutto schermo, niente sopra, niente trasformazioni né trasparenze (Twitch spegne lo scrivere se è coperta) */
+#strato-twitch{position:fixed;inset:0;z-index:1000;display:flex;flex-direction:column;background:#0e0e10;padding:calc(env(safe-area-inset-top,0px) + 8px) 0 env(safe-area-inset-bottom,0px)}
+#strato-twitch .barra-twitch{flex:none;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:6px 12px 8px;color:#efeff1;font:700 16px/1.2 var(--f-titoli)}
+#strato-twitch iframe{flex:1;width:100%;border:0;display:block;background:#0e0e10}
+body.con-twitch .hud,body.con-twitch #joy,body.con-twitch #vai,body.con-twitch #entra,body.con-twitch #aiuto{visibility:hidden}
 .campo{display:flex;flex-direction:column;gap:6px;margin:12px 0 0;font-size:15px;color:var(--tenue)}
 .campo input,.campo textarea{font:500 16px/1.35 var(--f-testo);color:var(--testo);background:var(--input,#0a1622);border:1px solid var(--bordo);padding:10px}
 .campo textarea{min-height:84px;resize:vertical}
@@ -871,12 +876,26 @@ const TWITCH="jjoe_boy93";
 let chatBarAperta=false;
 function tavolini(){
   const out=[BLOCCO(H3("Due chiacchiere"), P("Ai tavolini ci si parla con gli altri: è la chat del canale Twitch di chi mi costruisce, e la tiene pulita StreamElements. Per leggere basta aprirla; per scrivere serve un account Twitch."))];
-  if(!chatBarAperta) out.push(AZIONI(bottone("Siediti e apri la chat",()=>{ chatBarAperta=true; ridisegnaCarta(); })), NOTA("Si apre la chat di Twitch: da lì valgono le sue regole e i suoi cookie."));
-  else { const f=el("iframe",{id:"chat-bar",title:"La chat del JJA-VIS Café, su Twitch",src:`https://www.twitch.tv/embed/${TWITCH}/chat?parent=${location.hostname}&darkpopout`,
-      sandbox:"allow-storage-access-by-user-activation allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox allow-modals"});
-    f.style.cssText="width:100%;height:60vh;border:1px solid var(--bordo);background:#0e0e10"; out.push(f, AZIONI(bottone("Chiudi la chat",()=>{ chatBarAperta=false; ridisegnaCarta(); },true))); }
+  // JJ, 4/10: «ho fatto login in Twitch ma non apre la barra di digitazione». Twitch spegne lo scrivere quando la sua chat è
+  // coperta o non si vede (dev.twitch.tv/docs/embed): dentro la carta c'erano sopra la × e gli angoli della cornice. Ora la
+  // chat si apre in uno strato tutto suo, figlio diretto della pagina, a tutto schermo, senza niente sopra e senza effetti.
+  out.push(AZIONI(bottone("Siediti e apri la chat",apriChatTwitch)), NOTA("Si apre a tutto schermo la chat di Twitch: da lì valgono le sue regole e i suoi cookie. In alto «Torna al Café»."));
   return out;
 }
+function apriChatTwitch(){
+  let L=$("strato-twitch");
+  if(!L){ L=document.createElement("div"); L.id="strato-twitch";
+    const barra=document.createElement("div"); barra.className="barra-twitch";
+    const t=document.createElement("b"); t.textContent="☕ JJA-VIS Café · la chat";
+    const b=document.createElement("button"); b.type="button"; b.id="chiudi-twitch"; b.className="pulsante"; b.textContent="Torna al Café"; b.addEventListener("click",chiudiChatTwitch);
+    barra.append(t,b);
+    const f=document.createElement("iframe"); f.id="chat-bar"; f.title="La chat del JJA-VIS Café, su Twitch";
+    f.setAttribute("sandbox","allow-storage-access-by-user-activation allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox allow-modals allow-forms");
+    f.src=`https://www.twitch.tv/embed/${TWITCH}/chat?parent=${location.hostname}&darkpopout`;
+    L.append(barra,f); document.body.appendChild(L); }
+  L.hidden=false; document.body.classList.add("con-twitch"); chatBarAperta=true;
+}
+function chiudiChatTwitch(){ const L=$("strato-twitch"); if(L){ L.remove(); } document.body.classList.remove("con-twitch"); chatBarAperta=false; }
 let stelle=0;
 function recensioni(){
   const st=el("div",{class:"scelte",role:"group","aria-label":"Quante stelle",id:"rec-stelle"});
