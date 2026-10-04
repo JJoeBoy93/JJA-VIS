@@ -1,1 +1,4 @@
 modelli/*.glb
+
+# le skin della Sartoria si tengono: sono quelle che la città carica
+!modelli/skin/*.glb

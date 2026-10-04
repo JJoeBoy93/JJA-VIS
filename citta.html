@@ -102,9 +102,6 @@ body.in-sartoria #foglio{max-height:56vh} /* sopra si deve vedere l'avatar inter
 #strato-gioco{position:fixed;inset:0;z-index:1000;background:#07131f;display:flex;flex-direction:column;padding:calc(env(safe-area-inset-top,0px) + 8px) 0 env(safe-area-inset-bottom,0px);color:#e6f6ff}
 #strato-gioco .barra-gioco{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:8px 14px 10px;font:700 18px/1.2 var(--f-titoli);background:#0b1a2a;border-bottom:1px solid #1f3a52}
 #strato-gioco .barra-gioco button{font:700 16px/1 var(--f-titoli);color:#e6f6ff;background:#13283b;border:1px solid #2c5577;padding:10px 16px;cursor:pointer}
-#classifica{margin:6px auto 14px;width:min(92%,420px);border-collapse:collapse;font:500 16px/1.3 var(--f-testo)}
-#classifica td{padding:7px 10px;border-bottom:1px solid #1f3a52}
-#classifica tr.nuovo td{color:#FFD60A;font-weight:700}
 #strato-gioco .fondo{display:flex;justify-content:center;gap:10px;margin-bottom:12px}
 #strato-gioco .fondo button{font:700 16px/1 var(--f-titoli);color:#07131f;background:#00B4D8;border:0;padding:12px 18px;cursor:pointer}
 #campo-gioco{position:relative;flex:1;overflow:hidden;touch-action:none}
@@ -287,8 +284,12 @@ body.con-nova #joy,body.con-nova #entra,body.con-nova #vai{opacity:0;pointer-eve
   </div>
 </div>
 
+<!-- i caricatori di three r170 (dal pacchetto npm three@0.170.0, la stessa versione del core) cercano «three» per nome -->
+<script type="importmap">{"imports":{"three":"./lib/three.module.min.js"}}</script>
 <script type="module">
 import * as THREE from "./lib/three.module.min.js";
+import { GLTFLoader } from "./lib/addons/loaders/GLTFLoader.js";
+import * as SkeletonUtils from "./lib/addons/utils/SkeletonUtils.js";
 
 // ══ LA CITTÀ DI JJA-VIS ══ — nata il 2 ottobre 2026 (Athena), su richiesta di JJ:
 // «non voglio la piazzetta, voglio una piccola città: la reception, la bottega
@@ -697,7 +698,7 @@ const LUOGHI={
   giochi:{nome:"Sala giochi",ic:"🕹",breve:"i giochi di chi mi costruisce",
     testa:()=>TESTA("Si gioca, si vincono gettoni","Sala giochi","I gettoni sono la moneta della città: se ne vincono qui, si spendono al Café."),
     parti:()=>[
-      {id:"cab1",nome:"Acchiappa i gettoni",dentro:()=>[BLOCCO(H3("Acchiappa i gettoni"), P("25 secondi: compaiono i gettoni di JJA-VIS, toccali prima che spariscano. Ogni gettone preso è tuo, fino a 15 a partita."),
+      {id:"cab1",nome:"Acchiappa i gettoni",dentro:()=>[BLOCCO(H3("Acchiappa i gettoni"), P("25 secondi: compaiono i gettoni di JJA-VIS, toccali prima che spariscano. Attento alle 💣: se ne tocchi una perdi i gettoni presi in quella partita. ⚡ per 5 secondi ne escono il doppio; ×2 per 6 secondi ogni gettone vale doppio. Più va avanti, più spariscono in fretta. Ne vinci fino a 25 a partita."),
         AZIONI(bottone("Gioca",giocaAcchiappa)), NOTA(`Hai ${citta.gettoni} gettoni.`))]},
       {id:"cab2",nome:"Cabinato 2",dentro:()=>[BLOCCO(CARTE([["Cabinato 2","libero","Quello che chiedete in tanti."]]))]},
       {id:"macchinetta",nome:"La macchinetta dei gettoni",dentro:()=>[BLOCCO(H3("La macchinetta"), P("Qui un giorno i gettoni si compreranno."),
@@ -755,7 +756,7 @@ function manichini(){
   return out;
 }
 // La Sartoria, allo specchio: il mestiere serve a me, il vestito è tuo.
-let mestiereDaCambiare=false;
+let mestiereDaCambiare=false, esitoSkin="";
 function specchio(){
   const out=[];
   const rifai=()=>{ salva(); rivesti(); ridisegnaCarta(); };
@@ -771,6 +772,15 @@ function specchio(){
     lista.forEach(([k,n])=>{ const b=el("button",{class:"scelta",type:"button","aria-pressed":String(citta[chiave]===k),testo:n});
       b.addEventListener("click",()=>{ citta[chiave]=k; if(chiave==="corpo" && !citta.capelliScelti) citta.capelli=k==="donna"?"lunghi":"corti"; if(chiave==="capelli") citta.capelliScelti=true; rifai(); }); box.appendChild(b); });
     return box; };
+  // le skin: si indossano quelle tue, le altre si sbloccano coi gettoni
+  const sk=el("div",{class:"vassoio",id:"skin"});
+  SKIN.forEach(k=>{ const mia=citta.skinMie.includes(k.id), su=citta.skin===k.id, r=el("div",{class:"riga"}); r.dataset.skin=k.id;
+    r.append(el("span",{testo:`${k.nome} · ${k.nota}`}));
+    const b=su?el("span",{class:"nota",testo:"indossata"}):mia?bottone("Indossa",()=>{ citta.skin=k.id; rifai(); },true)
+      :bottone(`Sblocca · ${k.prezzo} 🪙`,()=>{ if(!spendi(k.prezzo)){ esitoSkin=`Ti servono ${k.prezzo} gettoni, ne hai ${citta.gettoni}: si vincono in Sala giochi.`; ridisegnaCarta(); return; }
+        citta.skinMie.push(k.id); citta.skin=k.id; esitoSkin=`${k.nome}: è tua.`; rifai(); });
+    r.append(b); sk.appendChild(r); });
+  out.push(el("div",{class:"sezione",testo:`Le skin · hai ${citta.gettoni} gettoni`}), sk, el("p",{class:"nota",id:"esito-skin",testo:esitoSkin||"La base è fatta in Blender; «Classica» ha i vestiti dei mestieri. Le altre si sbloccano coi gettoni."}));
   out.push(el("div",{class:"sezione",testo:"Il corpo"}), scelte(CORPI,"corpo","il corpo","scelta-corpo"));
   out.push(el("div",{class:"sezione",testo:"I capelli"}), scelte(CAPELLI,"capelli","i capelli","scelta-capelli"));
   const cc=el("div",{class:"tinte",role:"group","aria-label":"colore dei capelli",id:"tinte-capelli"});
@@ -836,32 +846,38 @@ function aggiornaGettoni(){ const n=$("gettoni-n"); if(n) n.textContent=citta.ge
 function spendi(n){ if(citta.gettoni<n) return false; citta.gettoni-=n; salva(); aggiornaGettoni(); return true; }
 function guadagna(n){ citta.gettoni+=n; salva(); aggiornaGettoni(); }
 
-// ── Acchiappa i gettoni (Sala giochi, cabinato 1): uno strato a tutto schermo, 25 secondi
-const GIOCO={durata:25, massimo:15};
+// ── Acchiappa i gettoni (Sala giochi, cabinato 1): uno strato a tutto schermo, 25 secondi.
+// JJ, 4/10: «rendi un po' difficile il prendi monete: qualche bomba che ti fa perdere le monete guadagnate se prendi quella al
+// posto del gettone, e magari qualche buff, tipo velocità aumentata dello spawn, punti bonus col x2».
+//   gettone  +1 (o +2 col ×2)          bomba    perdi tutti i gettoni presi in questa partita
+//   ⚡ turbo  per 5 s ne escono il doppio  ×2       per 6 s ogni gettone vale doppio
+// e più passa il tempo, meno restano a schermo (da 1,2 s a 0,75 s).
+const GIOCO={durata:25, massimo:25, probabilita:[["gettone",0.68],["bomba",0.2],["turbo",0.06],["x2",0.06]], turbo:5000, x2:6000};
 function giocaAcchiappa(){
   let L=$("strato-gioco"); if(L) L.remove();
   L=document.createElement("div"); L.id="strato-gioco";
-  L.innerHTML='<div class="barra-gioco"><span>🪙 <b id="gioco-punti">0</b> · <span id="gioco-tempo">25</span> s</span><button type="button" id="gioco-esci">Esci</button></div><div id="campo-gioco"></div><p id="gioco-esito" style="text-align:center;margin:10px;min-height:1.2em"></p><div id="gioco-fine"></div>';
+  L.innerHTML='<div class="barra"><span>🪙 <b id="gioco-punti">0</b> · <span id="gioco-tempo">25</span> s <span id="gioco-buff"></span></span><button type="button" class="pulsante" id="gioco-esci">Esci</button></div><div id="campo-gioco"></div><p id="gioco-esito" style="text-align:center;margin:10px;min-height:1.2em">Prendi i gettoni, non le bombe 💣</p>';
   document.body.appendChild(L); document.body.classList.add("con-twitch");
-  const st={punti:0, fine:Date.now()+GIOCO.durata*1000, finito:false}; scena._gioco=st;
-  const campo=$("campo-gioco"), metti=()=>{ if(st.finito) return; const r=campo.getBoundingClientRect(), im=new Image(); im.src=ICONA_URL;
-    im.style.left=Math.random()*Math.max(1,r.width-64)+"px"; im.style.top=Math.random()*Math.max(1,r.height-64)+"px";
-    const via=setTimeout(()=>im.remove(),1100); im.addEventListener("pointerdown",()=>{ clearTimeout(via); im.remove(); st.punti++; $("gioco-punti").textContent=st.punti; }); campo.appendChild(im); };
-  const fine=()=>{ if(st.finito) return; st.finito=true; clearInterval(st.t1); clearInterval(st.t2); const vinti=Math.min(st.punti,GIOCO.massimo); guadagna(vinti);
-    $("gioco-esito").textContent=`Fine! Hai preso ${st.punti} gettoni: ne vinci ${vinti}. Ora ne hai ${citta.gettoni}.`; campo.textContent=""; campo.style.flex="0 0 0";
-    // la classifica (JJ, 4/10: «manca la classifica alla fine»): i tuoi migliori cinque, in questo telefono
-    const voce={punti:st.punti, data:new Date().toISOString().slice(0,10), t:Date.now()};
-    citta.record=[...(citta.record||[]), voce].sort((a,b)=>b.punti-a.punti||a.t-b.t).slice(0,5); salva();
-    const pos=citta.record.findIndex(r=>r.t===voce.t);
-    const tab=document.createElement("table"); tab.id="classifica";
-    citta.record.forEach((r,i)=>{ const tr=tab.insertRow(); if(r.t===voce.t) tr.className="nuovo"; tr.insertCell().textContent=`${i+1}°`; tr.insertCell().textContent=`${r.punti} gettoni`; tr.insertCell().textContent=r.t===voce.t?"adesso":r.data; });
-    const f=$("gioco-fine"); f.textContent="";
-    const h=document.createElement("h3"); h.style.cssText="text-align:center;margin:4px 0 6px;font:800 20px/1.2 var(--f-titoli)"; h.textContent=pos===0&&citta.record.length>1?"🏆 Nuovo record!":"La tua classifica";
-    const nota=document.createElement("p"); nota.style.cssText="text-align:center;margin:0 16px 12px;color:#8fb3c8;font-size:14px"; nota.textContent="I tuoi migliori cinque, in questo telefono. La classifica con tutti i giocatori arriva quando c'è un posto dove tenerla.";
-    const fondo=document.createElement("div"); fondo.className="fondo"; const ancora=document.createElement("button"); ancora.type="button"; ancora.id="gioco-ancora"; ancora.textContent="Gioca ancora"; ancora.addEventListener("click",giocaAcchiappa); fondo.append(ancora);
-    f.append(h,tab,fondo,nota); };
-  st.prendi=()=>{ st.punti++; }; st.fine2=fine;
-  st.t1=setInterval(metti,700); st.t2=setInterval(()=>{ const s=Math.max(0,Math.ceil((st.fine-Date.now())/1000)); $("gioco-tempo").textContent=s; if(s<=0) fine(); },250);
+  const ora=()=>Date.now(), inizio=ora(), st={punti:0, fine:inizio+GIOCO.durata*1000, finito:false, turboFino:0, x2Fino:0, bombe:0}; scena._gioco=st;
+  const campo=$("campo-gioco"), buff=()=>{ const b=[]; if(ora()<st.turboFino) b.push("⚡ turbo"); if(ora()<st.x2Fino) b.push("×2"); $("gioco-buff").textContent=b.length?" · "+b.join(" "):""; };
+  const tipoACaso=()=>{ let r=Math.random(); for(const [t,p] of GIOCO.probabilita){ if(r<p) return t; r-=p; } return "gettone"; };
+  st.prendi=tipo=>{ if(st.finito) return;
+    if(tipo==="gettone"){ st.punti+=ora()<st.x2Fino?2:1; }
+    else if(tipo==="bomba"){ st.punti=0; st.bombe++; $("gioco-esito").textContent="💥 Bomba! Persi i gettoni di questa partita."; campo.animate&&campo.animate([{background:"#5a0d0d"},{background:"transparent"}],{duration:400}); }
+    else if(tipo==="turbo"){ st.turboFino=ora()+GIOCO.turbo; $("gioco-esito").textContent="⚡ Turbo: ne escono il doppio!"; }
+    else if(tipo==="x2"){ st.x2Fino=ora()+GIOCO.x2; $("gioco-esito").textContent="×2: ogni gettone vale doppio!"; }
+    $("gioco-punti").textContent=st.punti; buff(); };
+  const metti=()=>{ if(st.finito) return; const r=campo.getBoundingClientRect(), tipo=tipoACaso(); let e;
+    if(tipo==="gettone"){ e=new Image(); e.src=ICONA_URL; } else { e=document.createElement("div"); e.textContent=tipo==="bomba"?"💣":tipo==="turbo"?"⚡":"×2"; e.style.cssText="width:64px;height:64px;font:800 40px/64px system-ui;text-align:center;color:#FFD60A"; }
+    e.className="pezzo-gioco"; e.dataset.tipo=tipo; e.style.position="absolute";
+    e.style.left=Math.random()*Math.max(1,r.width-64)+"px"; e.style.top=Math.random()*Math.max(1,r.height-64)+"px";
+    const resta=Math.max(750,1200-(ora()-inizio)/GIOCO.durata/1000*450), via=setTimeout(()=>e.remove(),resta);
+    e.addEventListener("pointerdown",()=>{ clearTimeout(via); e.remove(); st.prendi(tipo); }); campo.appendChild(e); };
+  const giro=()=>{ if(st.finito) return; metti(); st.t1=setTimeout(giro, ora()<st.turboFino?350:700); };
+  const fine=()=>{ if(st.finito) return; st.finito=true; clearTimeout(st.t1); clearInterval(st.t2); const vinti=Math.min(st.punti,GIOCO.massimo); guadagna(vinti);
+    $("gioco-esito").textContent=`Fine! Hai preso ${st.punti} gettoni: ne vinci ${vinti}. Ora ne hai ${citta.gettoni}.`; campo.textContent=""; };
+  st.fine2=fine; st.turbo=()=>ora()<st.turboFino; st.x2=()=>ora()<st.x2Fino;
+  giro(); st.t2=setInterval(()=>{ const s=Math.max(0,Math.ceil((st.fine-ora())/1000)); $("gioco-tempo").textContent=s; buff(); if(s<=0) fine(); },250);
   $("gioco-esci").addEventListener("click",()=>{ fine(); L.remove(); document.body.classList.remove("con-twitch"); ridisegnaCarta(); });
 }
 
@@ -1313,6 +1329,7 @@ const tex=c=>{ const t=new THREE.CanvasTexture(c); t.colorSpace=THREE.SRGBColorS
 // occhi, sopracciglia, naso e bocca. Le giunture restano dove le usano il passo e la stoffa: anche a 0,9 m (ANCA),
 // spalle a 1,55. Uomo o donna cambiano le proporzioni; i vestiti si appoggiano sopra.
 function avatar(st){
+  if(st===citta){ const m=avatarDaSkin(st); if(m) return m; }   // la skin vale solo per te: passanti e manichini restano fatti nel codice
   const v=VESTITI[st.vestito]||VESTITI.altro, donna=st.corpo==="donna";
   const maglia=(typeof st.colore==="number")?st.colore:v.maglia;
   const pant=(typeof st.pantaloni==="number")?st.pantaloni:(st.vestito==="artigiano"&&typeof st.colore==="number"?maglia:v.pantaloni);
@@ -1473,13 +1490,51 @@ function capigliatura(g, cappello){
     const t=capsula(0.05,0.22,c,8); t.position.set(0,1.8,-0.27); t.rotation.x=0.15; g.add(t);
   }
 }
+// ── LE SKIN (JJ, 4/10: «le nostre in Blender come base quando inizi; quelle della 2 e la 3 le puoi sbloccare con i gettoni
+// nella Sartoria, e costano come nel negozio di Fortnite, dalle 800 alle 2000 monete per skin»). I modelli sono fatti in
+// Blender da modelli/prepara_skin.py. «Classica» è l'omino fatto nel codice, con tutti i vestiti dei mestieri (camice compreso).
+const SKIN=[
+  {id:"base",nome:"Base JJA-VIS",prezzo:0,file:c=>`modelli/skin/base-${c.corpo==="donna"?"donna":"uomo"}.glb`,ossa:[["gamba_s","gamba_d"],["braccio_s","braccio_d"]],colori:true,nota:"la nostra, fatta in Blender"},
+  {id:"classica",nome:"Classica",prezzo:0,nota:"l'omino coi vestiti dei mestieri"},
+  {id:"realista-uomo",nome:"Realista · uomo",prezzo:800,file:()=>"modelli/skin/realista-uomo.glb",ossa:[["thigh_l","thigh_r"],["upperarm_l","upperarm_r"]],colori:true,nota:"corpo vero (MakeHuman)"},
+  {id:"realista-donna",nome:"Realista · donna",prezzo:800,file:()=>"modelli/skin/realista-donna.glb",ossa:[["thigh_l","thigh_r"],["upperarm_l","upperarm_r"]],colori:true,nota:"corpo vero (MakeHuman)"},
+  {id:"avventuriera",nome:"L'Avventuriera",prezzo:1500,file:()=>"modelli/skin/avventuriera.glb",ossa:[["upperleg.l","upperleg.r"],["upperarm.l","upperarm.r"]],nota:"stile gioco (KayKit)"},
+  {id:"cavaliere",nome:"Il Cavaliere",prezzo:2000,file:()=>"modelli/skin/cavaliere.glb",ossa:[["upperleg.l","upperleg.r"],["upperarm.l","upperarm.r"]],nota:"stile gioco (KayKit)"}];
+if(!SKIN.some(k=>k.id===citta.skin)) citta.skin="base";
+if(!Array.isArray(citta.skinMie)) citta.skinMie=["base","classica"];
+const MODELLI={}, caricatore=new GLTFLoader();
+function caricaModello(url){ if(MODELLI[url]) return MODELLI[url];
+  MODELLI[url]={pronto:false}; caricatore.load(url,g=>{ MODELLI[url]={pronto:true,scena:g.scene}; rivesti(); if(scena.rivestiDentro) scena.rivestiDentro(); },undefined,e=>{ MODELLI[url]={pronto:false,errore:String(e&&e.message||e)}; });
+  return MODELLI[url]; }
+// l'avatar dal modello della skin, con gli ossi al posto dei gruppi: gambe e braccia sono «maniglie» che il passo gira,
+// e a ogni passo la rotazione si applica all'osso sopra la sua posa di riposo
+function avatarDaSkin(st){
+  const k=SKIN.find(x=>x.id===(st.skin||"base")); if(!k||!k.file) return null;
+  const m=caricaModello(k.file(st)); if(!m.pronto) return null;
+  const g=new THREE.Group(), copia=SkeletonUtils.clone(m.scena); g.add(copia);
+  const ossi={}; copia.traverse(o=>{ if(o.isBone) ossi[o.name]=o; if(o.isMesh){ o.frustumCulled=false; o.material=o.material.clone(); } });
+  copia.updateMatrixWorld(true); const qw=new THREE.Quaternion();
+  // three toglie i punti dai nomi (upperleg.l → upperlegl). L'asse del passo è l'asse X del mondo (destra-sinistra),
+  // riportato dentro l'osso: così il passo va avanti-indietro qualunque sia l'orientamento dell'osso nel modello
+  const maniglia=nome=>{ const b=ossi[nome]||ossi[nome.replace(/[.:\[\]]/g,"")]; let asse=null;
+    if(b){ b.getWorldQuaternion(qw); asse=new THREE.Vector3(1,0,0).applyQuaternion(qw.clone().invert()).normalize(); }
+    return {rotation:{x:0}, osso:b, riposo:b?b.quaternion.clone():null, asse}; };
+  const gambe=k.ossa[0].map(maniglia), braccia=k.ossa[1].map(maniglia);
+  if(k.colori){ const v=VESTITI[st.vestito]||VESTITI.altro, maglia=(typeof st.colore==="number")?st.colore:v.maglia, pant=(typeof st.pantaloni==="number")?st.pantaloni:v.pantaloni;
+    copia.traverse(o=>{ if(!o.isMesh) return; const n=o.material.name; if(n==="maglia") o.material.color.setHex(maglia); else if(n==="pantaloni") o.material.color.setHex(pant);
+      else if(n==="pelle") o.material.color.setHex(PELLI[st.pelle??1]); else if(n==="capelli") o.material.color.setHex(COLORI_CAPELLI[st.capelliColore??0]??COLORI_CAPELLI[0]); }); }
+  g.userData={gambe,braccia,tessuti:[],skin:k.id,corpo:st.corpo==="donna"?"donna":"uomo",capelli:{tipo:"modello"},fase:Math.random()*6,ossa:[...gambe,...braccia]};
+  return g;
+}
+const qX=new THREE.Quaternion(), asseX=new THREE.Vector3(1,0,0);
+function applicaOssa(av){ const o=av.userData.ossa; if(!o) return; for(const h of o) if(h.osso){ qX.setFromAxisAngle(h.asse||asseX,h.rotation.x); h.osso.quaternion.copy(h.riposo).multiply(qX); } }
 function cammina(av, passo){
   const u=av.userData; u.fase+=passo; const a=Math.sin(u.fase)*0.6*Math.min(1,passo*20);
   u.gambe[0].rotation.x=a; u.gambe[1].rotation.x=-a;
   if(!u.ferme){ u.braccia[0].rotation.x=-a*0.8; if(!u.alzato) u.braccia[1].rotation.x=a*0.8; }
-  pieghe(av);
+  pieghe(av); applicaOssa(av);
 }
-function fermo(av){ const u=av.userData; u.gambe.forEach(g=>g.rotation.x*=0.8); if(!u.ferme){ u.braccia[0].rotation.x*=0.8; if(!u.alzato) u.braccia[1].rotation.x*=0.8; } pieghe(av); }
+function fermo(av){ const u=av.userData; u.gambe.forEach(g=>g.rotation.x*=0.8); if(!u.ferme){ u.braccia[0].rotation.x*=0.8; if(!u.alzato) u.braccia[1].rotation.x*=0.8; } pieghe(av); applicaOssa(av); }
 
 // ── insegne e facciate, disegnate nel telefono ──
 const INSEGNE=new Map();
@@ -2136,7 +2191,7 @@ async function costruisci(){
   scena.siediAlBar=()=>{ if(!attiva||!attiva.S.userData.posti||!tuStanza) return; const p=tuStanza.position;
     const posto=attiva.S.userData.posti.slice().sort((a,b)=>Math.hypot(a.x-p.x,a.z-p.z)-Math.hypot(b.x-p.x,b.z-p.z))[0];
     alBar=posto; dentro.meta=null; tuStanza.position.set(posto.x,posto.y??-0.38,posto.z); tuStanza.rotation.y=Math.atan2(posto.tx-posto.x,posto.tz-posto.z);
-    tuStanza.userData.gambe.forEach(g=>g.rotation.x=-1.45); pieghe(tuStanza); scena.vassoioAlTavolo(); };
+    tuStanza.userData.gambe.forEach(g=>g.rotation.x=-1.45); pieghe(tuStanza); applicaOssa(tuStanza); scena.vassoioAlTavolo(); };
   scena.alzatiDalBar=()=>{ if(!alBar) return; alBar=null; if(tuStanza){ tuStanza.position.y=0; spingiDentro(tuStanza.position,0.4); } scena.vassoioAlTavolo(); };
   scena.vassoioAlTavolo=()=>{ if(!attiva||!attiva.S) return; piatti.splice(0).forEach(m=>m.parent&&m.parent.remove(m)); if(!alBar || alBar.y!==undefined) return;   // al Cinema niente vassoio
     vassoio.forEach((c,k)=>{ const a=Math.atan2(alBar.x-alBar.tx,alBar.z-alBar.tz)+(k-(vassoio.length-1)/2)*0.5, r=0.32, x=alBar.tx+Math.sin(a)*r, z=alBar.tz+Math.cos(a)*r;
@@ -2329,7 +2384,8 @@ async function costruisci(){
       r[k]={pezzi:u.tessuti.length, latiGiusti, provati, fuori, aperto, daSpalleA:[+yMax.toFixed(2),+yMin.toFixed(2)], copre, bracciaFuori:braccio>largo+0.001, curvo:tubi.length>0 && xs.size>20}; }
     return r; };
   // per il collaudo: il tuo avatar com'è adesso, e se gli avatar hanno forma di persona
-  scena.tuo=()=>({corpo:tu.userData.corpo, pantaloni:"#"+tu.userData.gambe[0].children[0].material.color.getHexString(), maglia:"#"+tu.children.find(c=>c.geometry&&c.geometry.type==="CylinderGeometry"&&c.position.y>1.2).material.color.getHexString(), capelli:tu.userData.capelli.tipo});
+  scena.tuo=()=>tu.userData.skin? (()=>{ const c={}; tu.traverse(o=>{ if(o.isMesh&&o.material&&o.material.name) c[o.material.name]="#"+o.material.color.getHexString(); });
+      return {corpo:tu.userData.corpo, pantaloni:c.pantaloni||null, maglia:c.maglia||null, capelli:"modello", skin:tu.userData.skin}; })() : ({corpo:tu.userData.corpo, pantaloni:"#"+tu.userData.gambe[0].children[0].material.color.getHexString(), maglia:"#"+tu.children.find(c=>c.geometry&&c.geometry.type==="CylinderGeometry"&&c.position.y>1.2).material.color.getHexString(), capelli:tu.userData.capelli.tipo});
   scena.formaUmana=()=>{ const r={}; for(const corpo of ["uomo","donna"]){ const av=avatar({vestito:"altro",corpo}), u=av.userData;
       const tipo=m=>m&&m.geometry?m.geometry.type:null;
       r[corpo]={gambe:u.gambe.map(gb=>tipo(gb.children[0])), braccia:u.braccia.map(b=>tipo(b.children[0])),
@@ -2352,6 +2408,16 @@ async function costruisci(){
   scena.vistaSpecchio=()=>dentro&&tuStanza?+camStanza.position.distanceTo(tuStanza.position).toFixed(2):null;
   scena.radio=()=>({stazioni:citta.radio.slice(), partenza:PRESELEZIONI_APP.slice(), inOnda:radio.inOnda, src:radio.src, stato:radio.stato, antenna:!!Object.values(porte).length && S.children.some(o=>o.userData&&o.userData.antenna)});
   scena.incorpora=u=>incorporaVideo(u);
+  scena.skinTua=()=>({skin:tu.userData.skin||"classica", ossi:tu.userData.ossa?tu.userData.ossa.every(h=>!!h.osso):null, gettoni:citta.gettoni, mie:citta.skinMie.slice()});
+  // per il collaudo: carica una skin, la fa camminare mezzo passo e misura quanto si sposta il piede e da che parte
+  scena.provaSkin=id=>new Promise(ok=>{ const st={...citta,skin:id}; const k=SKIN.find(x=>x.id===id); const url=k.file(st);
+    const prova=()=>{ const av=avatarDaSkin(st); if(!av) return setTimeout(prova,200); const u=av.userData, gb=u.gambe[0].osso;
+      // un punto mezzo metro giù lungo l'osso della gamba (negli ossi esportati da Blender l'osso va lungo la sua Y)
+      const giu=()=>gb.localToWorld(new THREE.Vector3(0,0.5/Math.max(1e-6,gb.getWorldScale(new THREE.Vector3()).y),0));
+      av.updateMatrixWorld(true); const z0=giu().z;
+      u.gambe[0].rotation.x=-0.6; applicaOssa(av); av.updateMatrixWorld(true); const piede=giu();
+      ok({ossi:u.ossa.every(h=>!!h.osso), passo:+Math.abs(piede.z-z0).toFixed(3), avanti:piede.z>z0}); };
+    caricaModello(url); prova(); });
   scena.lotti=()=>Object.values(porte).filter(P=>P.id==="lotto").length;
   scena.dove=()=>({x:tu.position.x,z:tu.position.z});
   scena.nelMuro=()=>solidi.some(s=>dentroUno(tu.position.x,tu.position.z,s));
@@ -2438,7 +2504,7 @@ async function costruisci(){
     else if(!cartaAperta && dentro.meta){ const r=versoTappa(tuStanza,dentro,dt,4.2,()=>{ const c=R.cose[dentro.metaId]; tuStanza.rotation.y=Math.atan2(c.x-tuStanza.position.x,c.z-tuStanza.position.z); apriCosa(dentro.metaId); });
       if(r){ [vx,vz,vel]=r; const ya=Math.atan2(-vx,-vz); let dy=ya-stato.yaw; dy=Math.atan2(Math.sin(dy),Math.cos(dy)); stato.yaw+=dy*Math.min(1,dt*2.5); } }
     if(alBar && vel>0){ scena.alzatiDalBar(); }   // muovendo il cerchio ci si alza dal tavolino
-    if(alBar){ tuStanza.userData.gambe.forEach(g=>g.rotation.x=-1.45); pieghe(tuStanza); tuStanza.userData.braccia[1].rotation.x=tStanza<boccaFino?-2.1:0; }
+    if(alBar){ tuStanza.userData.gambe.forEach(g=>g.rotation.x=-1.45); pieghe(tuStanza); applicaOssa(tuStanza); tuStanza.userData.braccia[1].rotation.x=tStanza<boccaFino?-2.1:0; }
     if(vel>0){ tuStanza.position.x+=vx*vel*dt; tuStanza.position.z+=vz*vel*dt; spingiDentro(tuStanza.position,0.4);
       const ry=Math.atan2(vx,vz); let dr=ry-tuStanza.rotation.y; dr=Math.atan2(Math.sin(dr),Math.cos(dr)); tuStanza.rotation.y+=dr*Math.min(1,dt*12); cammina(tuStanza,vel*dt*1.9); }
     else if(!alBar) fermo(tuStanza);
@@ -2473,7 +2539,7 @@ async function costruisci(){
   let seduto=null;
   scena.siedi=i=>{ const b=panchine[i]; if(!b) return; seduto=b; stato.meta=null;
     const fx=Math.sin(b.rot), fz=Math.cos(b.rot); tu.position.set(b.x+fx*0.08,-0.38,b.z+fz*0.08); tu.rotation.y=b.rot;
-    tu.userData.gambe.forEach(g=>g.rotation.x=-1.45); pieghe(tu); $("entra").hidden=true; vicinoPrima="seduto"; };
+    tu.userData.gambe.forEach(g=>g.rotation.x=-1.45); pieghe(tu); applicaOssa(tu); $("entra").hidden=true; vicinoPrima="seduto"; };
   scena.seduto=()=>({seduto:!!seduto, y:+tu.position.y.toFixed(2), gamba:+tu.userData.gambe[0].rotation.x.toFixed(2)});
   scena.panchine=()=>panchine.map(b=>({x:+b.x.toFixed(2),z:+b.z.toFixed(2)}));
   scena.albero=()=>scena._albero;
@@ -2496,7 +2562,7 @@ async function costruisci(){
       if(r){ [vx,vz,vel]=r; // la telecamera gira dolce dietro a dove vai
         const ya=Math.atan2(-vx,-vz); let dy=ya-stato.yaw; dy=Math.atan2(Math.sin(dy),Math.cos(dy)); stato.yaw+=dy*Math.min(1,dt*2.2); } }
     if(seduto && vel>0){ seduto=null; tu.position.y=0; vicinoPrima=null; }   // muovendo il cerchio ci si alza
-    if(seduto){ tu.userData.gambe.forEach(g=>g.rotation.x=-1.45); pieghe(tu); }
+    if(seduto){ tu.userData.gambe.forEach(g=>g.rotation.x=-1.45); pieghe(tu); applicaOssa(tu); }
     if(vel>0){ tu.position.x+=vx*vel*dt; tu.position.z+=vz*vel*dt;
       if(sulTetto){ const T=porte.torre, P=PALAZZI.find(q=>q.id==="torre"), c=Math.cos(P.rot), s2=Math.sin(P.rot), lim=P.w/2-0.7;
         let lx=(tu.position.x-T.cx)*c-(tu.position.z-T.cz)*s2, lz=(tu.position.x-T.cx)*s2+(tu.position.z-T.cz)*c;

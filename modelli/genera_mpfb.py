@@ -50,6 +50,7 @@ dec = h.modifiers.new("leggero", "DECIMATE"); dec.ratio = 0.25
 bpy.ops.object.select_all(action="DESELECT"); h.select_set(True); bpy.context.view_layer.objects.active = h
 bpy.ops.object.modifier_move_to_index(modifier="leggero", index=0); bpy.ops.object.modifier_apply(modifier="leggero")
 out = f"/home/claude/mpfb-{CORPO}.glb"
-bpy.ops.object.select_all(action="DESELECT"); h.select_set(True); arm.select_set(True)
-bpy.ops.export_scene.gltf(filepath=out, export_format="GLB", export_yup=True, export_skins=True, export_animations=False, use_selection=True)
-print("scritto", out, round(os.path.getsize(out) / 1024), "kB", len(h.data.vertices), "punti", h.dimensions)
+if __name__ != "<run_path>":
+  bpy.ops.object.select_all(action="DESELECT"); h.select_set(True); arm.select_set(True)
+  bpy.ops.export_scene.gltf(filepath=out, export_format="GLB", export_yup=True, export_skins=True, export_animations=False, use_selection=True)
+  print("scritto", out, round(os.path.getsize(out) / 1024), "kB", len(h.data.vertices), "punti", h.dimensions)
