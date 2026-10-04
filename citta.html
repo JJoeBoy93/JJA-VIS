@@ -93,6 +93,11 @@ body.in-sartoria #foglio{max-height:56vh} /* sopra si deve vedere l'avatar inter
 .scelta[aria-pressed="true"]{background:#0D2A3E;border-color:var(--accento);box-shadow:0 0 10px color-mix(in srgb,var(--accento) 35%,transparent) inset}
 .tinte{display:flex;flex-wrap:wrap;gap:9px}
 .riga-radio{display:flex;align-items:center;gap:10px;margin:6px 0}
+.campo{display:flex;flex-direction:column;gap:6px;margin:12px 0 0;font-size:15px;color:var(--tenue)}
+.campo input,.campo textarea{font:500 16px/1.35 var(--f-testo);color:var(--testo);background:var(--input,#0a1622);border:1px solid var(--bordo);padding:10px}
+.campo textarea{min-height:84px;resize:vertical}
+.campo.consenso{flex-direction:row;align-items:flex-start;gap:10px;color:var(--testo)}
+.campo.consenso input{width:22px;height:22px;flex:none;margin-top:2px}
 .riga-radio input{flex:1;font:500 16px/1.3 var(--f-testo);color:var(--testo);background:var(--input,#0a1622);border:1px solid var(--bordo);padding:10px}
 .tinta{width:38px;height:38px;border:2px solid var(--bordo);cursor:pointer;padding:0}
 .tinta[aria-pressed="true"]{border-color:var(--oro);box-shadow:0 0 0 2px var(--bg) inset}
@@ -557,7 +562,9 @@ const LUOGHI={
     testa:()=>[...TESTA("I prodotti di JJA-VIS","Bottega","Quello che puoi avere già adesso, senza aspettare l'app. Un prodotto pronto per un mestiere, un sopralluogo gratis, i lavori su misura. Man mano che le mie funzioni diventano pronte per tutti, arrivano qui."),
       citta.mestiere?NOTA(`In ordine per il tuo mestiere: ${citta.mestiere}. Lo cambi in Sartoria.`):NOTA("Dimmi il tuo mestiere in Sartoria, e te li metto in ordine.")],
     parti(){ const v=vestitoDi(citta.mestiere); const ordine=ORDINE[v]||["sopralluogo","sumisura","athena","clio"];
-      return ordine.map(k=>({id:k,nome:PRODOTTI[k].titolo,breve:PRODOTTI[k].breve,dentro:()=>[bloccoProdotto(k, PER_TE[v]===k)]})); }},
+      // sugli scaffali i prodotti pronti; sopralluogo e su misura (e la Forgia) si chiedono al commesso, al bancone (JJ, 4/10)
+      return [...ordine.filter(k=>k==="clio"||k==="athena").map(k=>({id:k,nome:PRODOTTI[k].titolo,breve:PRODOTTI[k].breve,dentro:()=>[bloccoProdotto(k, PER_TE[v]===k)]})),
+        {id:"bancone",nome:"Il bancone",breve:"chiedi al commesso",dentro:()=>bancone()}]; }},
   forgia:{nome:"La Forgia",ic:"🔨",breve:"costruiscimi qualcosa su misura",
     testa:()=>TESTA("Su commissione, adesso","La Forgia","Qui si lavora su misura. Queste cose non aspettano l'app: le realizza chi mi costruisce, adesso."),
     parti:()=>[
@@ -676,7 +683,7 @@ const LUOGHI={
       {id:"punto",nome:"A che punto è",dentro(){ const n=nomeAssistente(); return [BLOCCO(H3("A che punto è"), P("È un progetto: arriva con l'app. Oggi le foglie sono la promessa."), NOTA(n?`La foglia d'oro è quella di ${n}.`:"Quando dai un nome al tuo assistente, una foglia d'oro diventa la sua."))]; }}],
     fine:()=>[AZIONI(vai(PAGINA+"#chi-sono","Chi sono, nella pagina",true))]},
 };
-const ELENCO=["torre","radio","sartoria","bottega","forgia","albero","giochi","voci","cinema","borsa","athena","ristorante","palestra","lotto"];
+const ELENCO=["torre","radio","sartoria","bottega","albero","giochi","voci","cinema","borsa","athena","ristorante","palestra","lotto"];
 let cinemaChiesto=false;
 const schedaIntera=L=>[...L.testa(), ...L.parti().flatMap(p=>p.dentro()), ...(L.fine?L.fine():[])].filter(Boolean);
 const parteDi=(L,k)=>L.parti().find(p=>p.id===k);
@@ -730,6 +737,67 @@ function specchio(){
     b.style.background="#"+t.toString(16).padStart(6,"0"); b.addEventListener("click",()=>{ citta.pelle=i; rifai(); }); pel.appendChild(b); });
   out.push(el("div",{class:"sezione",testo:"Pelle"}), pel);
   return out;
+}
+
+// ── il bancone della Bottega: il commesso prende le richieste di sopralluogo e di lavoro su misura, come i moduli
+// della pagina (#sopralluogo e #costruisci), con gli stessi campi, la stessa porta e la stessa conversazione: la richiesta
+// finisce in jjavis-io.chat come nella pagina, e la risposta arriva anche in città. Dentro c'è anche la Forgia.
+const BANCO={so:{cosa:""}, cm:{cosa:""}};
+const MAIL_OK=m=>/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(m);
+async function mandaBancone(da_dove, testo, contatto, extra){
+  if(!leggiIo().id) scriviIo(f=>{ f.id=[...crypto.getRandomValues(new Uint8Array(8))].map(x=>x.toString(16).padStart(2,"0")).join(""); });
+  io=leggiIo();
+  const r=await fetch(PORTA+"/parla",{method:"POST",headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({chi:io.id, nome_assistente:io.nome||"", tema:io.tema||"tech", tuo:io.tuo||"", da_dove, ...(extra||{}),
+      profilo:{mestiere:io.mestiere||"", tempo:io.tempo||"", conosciute:{}}, testo, contatto})});
+  const d=await r.json().catch(()=>({}));
+  if(!r.ok||!d.id) throw new Error(d.errore||("errore "+r.status));
+  scriviIo(f=>{ f.chat=f.chat||[]; f.chat.push({ruolo:"tu", testo, id:d.id, attesa:true}); f.chat=f.chat.slice(-20); if(!f.chatDa) f.chatDa=Date.now(); });
+  novaDa=Date.now(); giroNova(); segnaNovita();
+}
+function campo(etichetta,id,tipo="text",max=120){ const w=el("label",{class:"campo"}); w.append(el("span",{testo:etichetta}));
+  const i=tipo==="area"?el("textarea",{id,maxlength:String(max)}):el("input",{id,type:tipo,maxlength:String(max)}); w.append(i); return w; }
+function modulo(chiave,titolo,intro,scelte,campi,consenso,bottoneTesto,manda){
+  const st=BANCO[chiave], box=el("div",{class:"scelte",role:"group","aria-label":titolo,id:chiave+"-cosa-c"});
+  scelte.forEach(n=>{ const b=el("button",{class:"scelta",type:"button","aria-pressed":String(st.cosa===n),testo:n});
+    b.addEventListener("click",()=>{ st.cosa=n; box.querySelectorAll(".scelta").forEach(x=>x.setAttribute("aria-pressed",String(x===b))); }); box.appendChild(b); });
+  const ok=el("label",{class:"campo consenso"}); const cb=el("input",{type:"checkbox",id:chiave+"-ok-c"}); ok.append(cb, el("span",{testo:consenso}));
+  const esito=el("p",{class:"nota",id:chiave+"-esito-c",role:"status"});
+  const invia=bottone(bottoneTesto,async()=>{ esito.textContent=""; const msg=await manda(); if(msg) esito.textContent=msg; });
+  invia.id=chiave+"-manda-c";
+  return BLOCCO(H3(titolo), P(intro), box, ...campi, ok, AZIONI(invia), esito);
+}
+function bancone(){
+  const so=modulo("so","Il sopralluogo, gratis","Il sito della tua attività, il tuo profilo, o un concorrente che vuoi capire meglio. Ti scrivo per mail cosa funziona, cosa no e da dove partirei. Li faccio uno per uno, e ognuno lo guarda anche chi mi costruisce prima che parta.",
+    ["La mia attività","Il mio profilo","Un concorrente"],
+    [campo("Il link","so-link-c","url",300), campo("Cosa ti preoccupa (facoltativo)","so-note-c","area",400), campo("Come ti chiami","so-nome-c","text",60), campo("Dove ti mando il sopralluogo","so-mail-c","email",120)],
+    "Potete guardare il link, anche con un'intelligenza artificiale, e scrivermi a questa mail. Nome e mail non vanno a nessun altro.","Fammi il sopralluogo",
+    async()=>{ let link=$("so-link-c").value.trim(); if(link && !/^https?:\/\//i.test(link)) link="https://"+link;
+      const mail=$("so-mail-c").value.trim(); let buono=false; try{ const u=new URL(link); buono=/^https?:$/.test(u.protocol) && u.hostname.includes("."); }catch(_){}
+      if(!BANCO.so.cosa) return "Dimmi cosa guardo: la tua attività, il tuo profilo o un concorrente.";
+      if(!buono) return "Il link non sembra un indirizzo web: copialo dalla barra del browser.";
+      if(!MAIL_OK(mail)) return "La mail non sembra completa: controlla la parte dopo la chiocciola.";
+      if(!$("so-ok-c").checked) return "Per guardare il link e scriverti mi serve la spunta sul consenso.";
+      const note=$("so-note-c").value.trim(), testo=(`🔎 ${BANCO.so.cosa}: ${link}`+(note?` — ${note}`:"")).slice(0,800);
+      try{ await mandaBancone("sopralluogo", testo, {nome:$("so-nome-c").value.trim(), societa:"", mail, consenso:true}, {link});
+        ["so-link-c","so-note-c","so-nome-c","so-mail-c"].forEach(id=>$(id).value=""); $("so-ok-c").checked=false; return "Arrivato. Il sopralluogo ti arriva per mail; la conversazione la ritrovi anche nella chat 💬."; }
+      catch(e){ return "Non è partito ("+e.message+"). Riprova fra un minuto."; } });
+  const cm=modulo("cm","Su misura: chiedi un preventivo","Pagine e siti per la tua attività, piccoli strumenti web (calcolatori, preventivi, listini, prenotazioni), bot Telegram, isole di Fortnite. Li realizza chi mi costruisce, adesso.",
+    ["Sito o pagina web","Strumento web","Bot Telegram","Isola Fortnite","Altro"],
+    [campo("Raccontamelo: cosa deve fare, per quando, un esempio che ti piace","cm-descrizione-c","area",700), campo("Come ti chiami","cm-nome-c","text",60), campo("Attività o azienda (facoltativo)","cm-societa-c","text",80), campo("Mail","cm-mail-c","email",120)],
+    "Potete conservare questi dati e scrivermi a questa mail per il preventivo. Non vanno a nessun altro.","Chiedi un preventivo",
+    async()=>{ const mail=$("cm-mail-c").value.trim(), desc=$("cm-descrizione-c").value.trim();
+      if(!BANCO.cm.cosa) return "Dimmi cosa ti serve: sito, strumento, bot, isola o altro.";
+      if(!desc) return "Raccontami cosa deve fare: anche due righe.";
+      if(!MAIL_OK(mail)) return "La mail non sembra completa: controlla la parte dopo la chiocciola.";
+      if(!$("cm-ok-c").checked) return "Per mandarti il preventivo mi serve la spunta sul consenso.";
+      const testo=`🛠 ${BANCO.cm.cosa} — ${desc}`.slice(0,800);
+      try{ await mandaBancone("commissione", testo, {nome:$("cm-nome-c").value.trim(), societa:$("cm-societa-c").value.trim(), mail, consenso:true});
+        ["cm-descrizione-c","cm-nome-c","cm-societa-c","cm-mail-c"].forEach(id=>$(id).value=""); $("cm-ok-c").checked=false; return "Arrivato. Il preventivo ti arriva per mail; la conversazione la ritrovi anche nella chat 💬."; }
+      catch(e){ return "Non è partito ("+e.message+"). Riprova fra un minuto."; } });
+  // la Forgia, qui al bancone: cosa si costruisce, come si lavora, il primo lavoro
+  const forgia=LUOGHI.forgia.parti().flatMap(p=>p.dentro());
+  return [P("Il commesso ti ascolta: chiedigli un sopralluogo o un lavoro su misura."), so, cm, ...forgia];
 }
 
 // ── la Radio (JJ, 3/10: «l'antenna Radio, che è un servizio che abbiamo già in Jarvis, e se si può fare accendere
@@ -1310,7 +1378,8 @@ async function costruisci(){
     {id:"giochi",   ang:154,w:10,d:9,h:8,muro:"#24123a",porta:true,tetto:"piano",titolo:"SALA GIOCHI",sotto:"i giochi di chi mi costruisce",colore:"#ff4fd8",neon:true},
     {id:"torre",    ang:180,w:9, d:9,h:30,muro:"#0f2d47",porta:true,tetto:"piano",titolo:"LA TORRE",sotto:"chi sono · cosa so fare",luce:0.85,r:33.4},
     {id:"lotto",    ang:206,w:9, d:8,h:0,titolo:"LOTTO LIBERO",sotto:"la tua attività, qui"},
-    {id:"forgia",   ang:234,w:11,d:9,h:7,muro:"#4a3b33",porta:true,tetto:"falde",titolo:"LA FORGIA",sotto:"su misura, adesso",camino:true},
+    // la Forgia è entrata nella Bottega, al bancone (JJ, 4/10): al suo posto un lotto libero
+    {id:"lotto",    ang:234,w:9, d:8,h:0,titolo:"LOTTO LIBERO",sotto:"la tua attività, qui"},
     {id:"bottega",  ang:268,w:13,d:9,h:7,muro:"#e3cfa8",vetrine:1,tetto:"falde",titolo:"BOTTEGA",sotto:"i prodotti di JJA-VIS",tenda:true},
     {id:"athena",   ang:302,w:11,d:10,h:6,r:34,muro:"#9aa3ad",serranda:true,tetto:"piano",titolo:"ATHENA TRASPORTI",sotto:"consegne · urgenze · sgomberi",furgone:true},
   ];
@@ -1371,8 +1440,8 @@ async function costruisci(){
       const tenda=new THREE.Mesh(new THREE.BoxGeometry(P.w*0.95,0.08,1.8), new THREE.MeshLambertMaterial({map:tex(c)}));
       tenda.position.set(0,3.0,P.d/2+0.85); tenda.rotation.x=0.28; g.add(tenda); }
     if(P.tenda){ // in vetrina, i prodotti
-      ["CLIO","SOPRALLUOGO","SU MISURA"].forEach((n,i)=>{ const v=insegna(n,"",2.2,"#FFD60A"); v.position.set((i-1)*2.6,1.15,P.d/2+0.4); v.rotation.x=-0.15;
-        const sup=scatola(2.3,0.08,0.5,0x5a3b22); sup.position.set((i-1)*2.6,0.85,P.d/2+0.45); g.add(sup, v); }); }
+      // JJ, 4/10: fuori niente cartelli dei prodotti: i prodotti si vedono dentro, sugli scaffali
+    }
     if(P.ristorante){ // le lanterne e la lavagna del menù accanto alla porta
       for(const s of [-1,1]){ const l=palla(0.22,0xffc46b,true,8); l.position.set(s*3.4,3.7,P.d/2+0.5); g.add(l); }
       const lav=insegna("MENÙ","primi · pizze · dolci",1.6,"#FFD60A"); lav.position.set(-4.4,1.4,P.d/2+0.08); g.add(lav);
@@ -1626,13 +1695,18 @@ async function costruisci(){
       h.metti(cilindro(0.04,0.04,3,0x888888,8),5.2,1.9,1.5).rotation.x=Math.PI/2;
       [0xe63946,0x2f8f5b,0xffd60a,0x6a4fb5,0x2f5d8c].forEach((c,i)=>h.metti(scatola(0.5,0.9,0.12,c),5.2,1.35,0.3+i*0.55)); h.solido(5.2,1.5,0.7,3.2); },
     bottega(S2,h){ h.insegnaFondo("BOTTEGA","i prodotti di JJA-VIS");
-      for(const s of [-1,1]){ for(let r=0;r<3;r++){ h.metti(scatola(4,0.08,0.7,0x5a3b22),s*4.4,0.8+r*0.9,-5.5);
-        for(let k=0;k<5;k++) h.metti(scatola(0.5,0.55,0.45,[0x00B4D8,0xFFD60A,0xe63946,0x2ECC71,0xf2f2f2][(k+r)%5]),s*4.4-1.6+k*0.8,1.12+r*0.9,-5.5); } h.solido(s*4.4,-5.5,4,0.8); }
+      // gli scaffali coi prodotti pronti, lungo le pareti: a sinistra Clio, a destra Athena Trasporti (quello per il tuo mestiere è più chiaro)
       const tuo=PER_TE[vestitoDi(citta.mestiere)];
-      [["clio","CLIO"],["sopralluogo","SOPRALLUOGO"],["sumisura","SU MISURA"],["athena","ATHENA"]].forEach(([k,n],i)=>{ const x=-4.2+i*2.8;
-        const banco=scatola(1.6,0.9,0.9,k===tuo?0x6b5a1e:0x3a2a1e); h.metti(banco,x,0.45,-1.6); h.solido(x,-1.6,1.6,0.9);
-        const ins=insegna(n,"",2.2,"#FFD60A"); h.metti(ins,x,1.5,-1.6); ins.rotation.x=-0.2;
-        h.cosa(k,[banco,ins],x,-1.6,{x,z:-0.35},2.5); }); },
+      [["clio",-1],["athena",1]].forEach(([k,s])=>{ const x=s*6.4, tinte=k==="clio"?[0xFFD60A,0x00B4D8,0xf2f2f2]:[0xe63946,0xf2f2f2,0x2ECC71];
+        const fondo=scatola(0.1,2.8,4.2,k===tuo?0x6b5a1e:0x3a2a1e); h.metti(fondo,s*6.85,1.4,-2);
+        for(let r=0;r<3;r++){ h.metti(scatola(0.8,0.08,4,0x5a3b22),x,0.8+r*0.9,-2);
+          for(let q=0;q<5;q++) h.metti(scatola(0.45,0.55,0.5,tinte[(q+r)%3]),x,1.12+r*0.9,-3.6+q*0.8); }
+        h.solido(x,-2,0.8,4); h.cosa(k,[fondo],x,-2,{x:s*5.3,z:-2},3.4); });
+      // il bancone a metà stanza, col commesso dietro: qui si chiede il sopralluogo e il lavoro su misura
+      const bc=scatola(3,1.05,0.9,0x5a3b22); h.metti(bc,0,0.525,-1.2); h.metti(scatola(3.1,0.06,1,0xc8a165),0,1.08,-1.2); h.solido(0,-1.2,3,0.9);
+      h.metti(scatola(0.5,0.3,0.4,0x222222),1,1.25,-1.2);
+      const commesso=avatar({vestito:"negozio",corpo:"donna",capelli:"coda",capelliColore:2,pelle:2}); commesso.position.set(0,0,-2.2); S2.add(commesso); h.solido(0,-2.2,0.8,0.6);
+      h.cosa("bancone",[bc,commesso],0,-1.2,{x:0,z:0.2},2.6); },
     forgia(S2,h){ h.insegnaFondo("LA FORGIA","su misura, adesso");
       const i1=scatola(1.4,0.6,0.7,0x2a2a2a), i2=scatola(0.7,0.55,0.6,0x2a2a2a); h.metti(i1,-3.5,0.85,-2.5); h.metti(i2,-3.5,0.28,-2.5); h.solido(-3.5,-2.5,1.4,0.7);
       h.cosa("incudine",[i1,i2],-3.5,-2.5,{x:-3.5,z:-1.2},2.1);

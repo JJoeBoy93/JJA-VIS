@@ -155,7 +155,7 @@ async def main():
         prova("si entra in piazza, a sud dell'albero (dove l'ha voluto JJ), e non dentro niente", await p.evaluate("window.CITTA.dove()") == {"x": 0, "z": 18} and not await p.evaluate("window.CITTA.nelMuro()"))
         m = await p.evaluate("window.CITTA.misure()")
         storti = {k: v for k, v in m["tetti"].items() if v["angoli"] != 4 or abs(v["largo"] - v["w"] * 1.08) > 0.05 or abs(v["profondo"] - v["d"] * 1.08) > 0.05}
-        prova("i tetti a falde sono dritti: la base è il rettangolo del palazzo, con quattro angoli veri", len(m["tetti"]) == m["falde"] >= 4 and "ristorante" in m["tetti"] and not storti, storti or m["tetti"])
+        prova("i tetti a falde sono dritti: la base è il rettangolo del palazzo, con quattro angoli veri", len(m["tetti"]) == m["falde"] >= 3 and "ristorante" in m["tetti"] and not storti, storti or m["tetti"])
         prova("Borsa: l'insegna sta davanti alle colonne", m["borsa"]["davantiColonne"] is not None and m["borsa"]["davantiColonne"] > m["borsa"]["colonne"], m["borsa"])
         prova("Torre: il logo JJA-VIS in cima, sui quattro lati", m["logoTorre"] == 4, m["logoTorre"])
         prova("nessun palazzo, lotto, lampione o albero sta sulla strada", await p.evaluate("window.CITTA.sullaStrada()") == [], await p.evaluate("window.CITTA.sullaStrada()"))
@@ -227,7 +227,7 @@ async def main():
         prova("il giro segna la Sartoria", await p.evaluate("document.querySelectorAll('#giro .f.fatta').length===1"))
 
         # 3. ogni luogo: si apre e ogni link interno porta a un id vero della pagina
-        nomi = ["Radio", "Bottega", "La Forgia", "La Torre", "L'Albero della Vita", "Piazza delle voci", "Cinema", "Borsa", "Athena Trasporti", "Lotto libero", "Sala giochi", "Ristorante", "Palestra"]
+        nomi = ["Radio", "Bottega", "La Torre", "L'Albero della Vita", "Piazza delle voci", "Cinema", "Borsa", "Athena Trasporti", "Lotto libero", "Sala giochi", "Ristorante", "Palestra"]
         senza_salti = []
         rotti = []
         for n in nomi:
@@ -340,6 +340,35 @@ async def main():
         prova("pagare dice chiaro che il pagamento non è acceso", await p.is_visible("#pagamento-spento") and "nessun soldo si è mosso" in await p.inner_text("#pagamento-spento"))
         prova("pagando non parte nessuna richiesta: nessun ordine, nessun soldo", not partite, partite)
         await foto(p, "15-ristorante-pagato")
+        await p.click("#esci-stanza"); await p.wait_for_timeout(400)
+
+        # 3d1. la Bottega (JJ, 4/10): fuori niente cartelli; dentro gli scaffali coi prodotti e il bancone col commesso,
+        # dove si chiedono sopralluogo e lavoro su misura senza uscire dalla città; la Forgia è lì
+        await vai(p, "Bottega")
+        cose_b = await p.evaluate("window.CITTA.cose()")
+        prova("in Bottega: scaffali coi prodotti (Clio, Athena) e il bancone; la Forgia non è più un palazzo", set(cose_b) == {"clio", "athena", "bancone"}
+              and not await p.evaluate("[...document.querySelectorAll('#foglio .elenco-vai button')].some(b=>b.textContent.includes('Forgia'))"), cose_b)
+        await usa(p, "bancone", "Il bancone")
+        tb = await p.inner_text("#stanza-carta")
+        prova("al bancone ci sono il sopralluogo, il su misura e la Forgia", "Il sopralluogo, gratis" in tb and "Su misura" in tb and "Cosa si forgia" in tb, tb[:200])
+        await p.click("#so-cosa-c .scelta:has-text('La mia attività')")
+        await p.fill("#so-link-c", "pizzeriadaluca.it"); await p.fill("#so-nome-c", "Luca"); await p.fill("#so-mail-c", "luca@esempio")
+        await p.click("#so-ok-c"); await p.click("#so-manda-c"); await p.wait_for_timeout(500)
+        prova("sopralluogo: una mail incompleta non parte e lo dice", "La mail non sembra completa" in await p.inner_text("#so-esito-c") and not any(x.get("da_dove") == "sopralluogo" for x in parlate))
+        await p.fill("#so-mail-c", "luca@esempio.it"); await p.click("#so-manda-c")
+        await p.wait_for_function("document.getElementById('so-esito-c').textContent.startsWith('Arrivato')", timeout=15000)
+        ul = [x for x in parlate if x.get("da_dove") == "sopralluogo"][-1:]
+        prova("il sopralluogo parte dalla città: stessa porta, come la pagina (link, mail, consenso)", ul and ul[0]["link"] == "https://pizzeriadaluca.it" and ul[0]["contatto"]["mail"] == "luca@esempio.it"
+              and ul[0]["contatto"]["consenso"] and ul[0]["testo"].startswith("🔎 La mia attività"), ul)
+        await p.click("#cm-cosa-c .scelta:has-text('Bot Telegram')")
+        await p.fill("#cm-descrizione-c", "Un bot che mi ricorda le consegne"); await p.fill("#cm-mail-c", "luca@esempio.it"); await p.click("#cm-ok-c"); await p.click("#cm-manda-c")
+        await p.wait_for_function("document.getElementById('cm-esito-c').textContent.startsWith('Arrivato')", timeout=15000)
+        uc = [x for x in parlate if x.get("da_dove") == "commissione"][-1:]
+        io_b = await p.evaluate("JSON.parse(localStorage.getItem('jjavis-io')||'{}')")
+        prova("il su misura parte dalla città come «commissione», e tutte e due le richieste finiscono nella stessa chat della pagina", uc and uc[0]["testo"] == "🛠 Bot Telegram — Un bot che mi ricorda le consegne"
+              and sum(1 for m in io_b.get("chat", []) if m["ruolo"] == "tu" and m["testo"].startswith(("🔎", "🛠"))) == 2, [uc, io_b.get("chat")])
+        prova("al bancone nessun collegamento porta fuori dalla città", not await p.evaluate("[...document.querySelectorAll('#stanza-carta a')].some(a=>a.getAttribute('href').startsWith('index.html'))"))
+        await foto(p, "16a-bancone")
         await p.click("#esci-stanza"); await p.wait_for_timeout(400)
 
         # 3d2. la Radio sotto l'antenna (JJ, 3/10): le sei stazioni dell'app, e si accendono davvero
