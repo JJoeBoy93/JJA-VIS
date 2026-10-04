@@ -813,11 +813,26 @@ function iconaJJAVIS(px=256){
   x.fillStyle="#0b0d12"; x.beginPath(); x.arc(m,m,R*0.55,0,Math.PI*2); x.fill();
   x.strokeStyle="#c8642a"; x.lineWidth=px*0.01; for(const r of [0.53,0.38]){ x.beginPath(); x.arc(m,m,R*r,0,Math.PI*2); x.stroke(); }
   for(let i=0;i<12;i++){ const a=i/12*Math.PI*2; x.beginPath(); x.moveTo(m+Math.cos(a)*R*0.38,m+Math.sin(a)*R*0.38); x.lineTo(m+Math.cos(a)*R*0.53,m+Math.sin(a)*R*0.53); x.stroke(); }
-  x.fillStyle="#ffffff"; x.font=`700 ${Math.round(px*0.1)}px system-ui,sans-serif`; x.textAlign="center"; x.textBaseline="middle"; x.fillText("JJA-VIS",m,m);
+  // gli dèi: sono loro gli agenti (JJ, 4/10: «terrei lo stesso gli dèi»). I nomi in greco intorno al disco, e in ogni casella
+  // il simbolo, preso dagli emblemi dell'app (Jarvis-app-guscio/assets/olimpo, copiati in immagini/olimpo), color bronzo
+  const passo=Math.PI*2/12;
+  x.fillStyle="#c8642a"; x.font=`600 ${Math.round(px*0.026)}px system-ui,sans-serif`; x.textAlign="center"; x.textBaseline="middle";
+  DEI.forEach((d,i)=>{ const a=-Math.PI/2+i*passo+passo/2; x.save(); x.translate(m+Math.cos(a)*R*0.585,m+Math.sin(a)*R*0.585); x.rotate(a+Math.PI/2); x.fillText(d.greco,0,0); x.restore();
+    const img=EMBLEMI[d.file]; if(img&&img.complete&&img.naturalWidth){ const t=document.createElement("canvas"); t.width=t.height=64; const tx=t.getContext("2d"); if(tx){ tx.drawImage(img,0,0,64,64); tx.globalCompositeOperation="source-in"; tx.fillStyle="#d9773a"; tx.fillRect(0,0,64,64);
+      const s=R*0.11, cx=m+Math.cos(a)*R*0.455, cy=m+Math.sin(a)*R*0.455; x.drawImage(t,cx-s/2,cy-s/2,s,s); } } });
+  x.fillStyle="#ffffff"; x.font=`700 ${Math.round(px*0.075)}px system-ui,sans-serif`; x.fillText("J.J.A.V.I.S",m,m);
   return c;
 }
-const ICONA=iconaJJAVIS(256), ICONA_URL=ICONA.toDataURL("image/png");
-function aggiornaGettoni(){ const n=$("gettoni-n"); if(n) n.textContent=citta.gettoni; const i=$("gettone-img"); if(i && !i.src) i.src=ICONA_URL; }
+// i dodici dell'Olimpo, nell'ordine dell'icona di JARVIS
+const DEI=[["ΖΕΥΣ","zeus"],["ΠΟΣΕΙΔΩΝ","poseidone"],["ΗΡΑ","hera"],["ΔΗΜΗΤΗΡ","demetra"],["ΑΘΗΝΑ","athena"],["ΑΠΟΛΛΩΝ","apollo"],
+  ["ΑΡΗΣ","ares"],["ΑΡΤΕΜΙΣ","artemide"],["ΕΡΜΗΣ","hermes"],["ΑΦΡΟΔΙΤΗ","afrodite"],["ΕΣΤΙΑ","hestia"],["ΗΦΑΙΣΤΟΣ","efesto"]].map(([greco,file])=>({greco,file}));
+const EMBLEMI={};
+let ICONA=iconaJJAVIS(256), ICONA_URL=ICONA.toDataURL("image/png");
+// gli emblemi arrivano dopo: quando ci sono tutti si ridisegna l'icona, in testata, sui gettoni e per terra nella Torre
+{ let mancano=DEI.length; DEI.forEach(d=>{ const im=new Image(); im.onload=im.onerror=()=>{ if(--mancano===0){ const n=iconaJJAVIS(256); const ctx=ICONA.getContext("2d"); if(ctx){ ctx.clearRect(0,0,256,256); ctx.drawImage(n,0,0); }
+      ICONA_URL=ICONA.toDataURL("image/png"); const i=$("gettone-img"); if(i) i.src=ICONA_URL; if(scena._iconeTex) scena._iconeTex.forEach(t=>t.needsUpdate=true); scena._iconaPronta=true; } };
+    im.src=`immagini/olimpo/${d.file}.png`; EMBLEMI[d.file]=im; }); }
+function aggiornaGettoni(){ const n=$("gettoni-n"); if(n) n.textContent=citta.gettoni; const i=$("gettone-img"); if(i && i.src!==ICONA_URL) i.src=ICONA_URL; }
 function spendi(n){ if(citta.gettoni<n) return false; citta.gettoni-=n; salva(); aggiornaGettoni(); return true; }
 function guadagna(n){ citta.gettoni+=n; salva(); aggiornaGettoni(); }
 
@@ -1988,7 +2003,7 @@ async function costruisci(){
       // il globo sopra il bancone è l'assistente: si tocca lui, e dice tutto
       // per terra, nel cerchio azzurro, l'icona di JJA-VIS (JJ, 4/10)
       const g=h.metti(ologlobo(0.9),0,2.6,-3.4); h.metti(new THREE.Mesh(new THREE.RingGeometry(1.2,1.35,48),mat(0x00B4D8,true)),0,0.03,-1.2).rotation.x=-Math.PI/2;
-      const ico=new THREE.Mesh(new THREE.CircleGeometry(1.18,48), new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(ICONA)})); ico.material.map.colorSpace=THREE.SRGBColorSpace; h.metti(ico,0,0.035,-1.2).rotation.x=-Math.PI/2; S2.userData.icona=ico;
+      const ico=new THREE.Mesh(new THREE.CircleGeometry(1.18,48), new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(ICONA)})); ico.material.map.colorSpace=THREE.SRGBColorSpace; (scena._iconeTex=scena._iconeTex||[]).push(ico.material.map); h.metti(ico,0,0.035,-1.2).rotation.x=-Math.PI/2; S2.userData.icona=ico;
       h.cosa("globo",[g,banco],0,-3.4,{x:0,z:-1.9},3.9);
       vetrate(S2,h); pianoComune(S2,h); },
     torre1(S2,h){ h.insegnaFondo("1° PIANO","cosa so fare");

@@ -389,6 +389,8 @@ async def main():
         prova("il bar ha il bancone, la lavagna delle recensioni, i tavolini e il caffè da offrire", set(await p.evaluate("window.CITTA.cose()")) == {"banco-bar", "recensioni", "tavolini", "caffe"})
         # i gettoni (JJ, 4/10): 100 alla partenza, la colazione si paga, arriva al tavolino, si beve a sorsi e si mangia a morsi
         g0 = await p.evaluate("window.CITTA.gettoni()")
+        await p.wait_for_function("window.CITTA._iconaPronta", timeout=30000)
+        prova("l'icona dei gettoni ha i dodici dèi dell'app (gli emblemi di immagini/olimpo sono arrivati)", await p.evaluate("window.CITTA._iconaPronta===true"))
         prova("si parte con 100 gettoni, e in testata c'è l'icona di JJA-VIS", g0 == 100 and await p.evaluate("(document.getElementById('gettone-img').src||'').startsWith('data:image/png')"), g0)
         await usa(p, "banco-bar", "Il bancone del bar")
         await p.click("#bar-menu .scelta[data-voce='Caffè']"); await p.click("#bar-menu .scelta[data-voce='Brioche']"); await p.click("#bar-menu .scelta[data-voce='Biscotto']"); await p.wait_for_timeout(300)
