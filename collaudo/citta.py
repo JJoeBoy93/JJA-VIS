@@ -157,6 +157,10 @@ async def main():
         prova("il camice è aperto davanti, va dalle spalle al ginocchio, copre spalle e fianchi, e le braccia non ci passano dentro (JJ: «manca tutto il pezzo sulle spalle e sui fianchi»)",
               st["sanita"]["aperto"] and st["sanita"]["daSpalleA"][0] >= 1.55 and st["sanita"]["daSpalleA"][1] <= 0.5
               and st["sanita"]["copre"] == {"fianchi": True, "spalle": True} and st["sanita"]["bracciaFuori"], st["sanita"])
+        dt_ = await p.evaluate("window.CITTA.dettagli()")
+        prova("niente del vestito JJA-VIS esce dalla sagoma del busto (JJ: «escono ancora dalla sagoma»)", dt_["sagoma"] == [], dt_["sagoma"])
+        prova("i capelli non scendono davanti agli occhi: davanti finiscono sopra le sopracciglia (1,975)", all(v is None or v > 1.975 for v in dt_["frangia"].values()), dt_["frangia"])
+        prova("il camice non è un quadrato: segue il corpo con superfici curve (JJ: «il camice è rimasto un quadrato»)", st["sanita"]["curvo"], st["sanita"])
         aq = await p.evaluate("window.CITTA.anelloQuadrato()")
         prova("il secondo anello è quadrato: quattro lati dritti che si chiudono", aq["lati"] == 4 and aq["coprono"], aq)
         prova("intorno, i quartieri: isolati di palazzi fra le vie", m["isolati"] >= 40, m["isolati"])
@@ -192,6 +196,8 @@ async def main():
         prova("allo specchio si sceglie il corpo, i capelli, il loro colore e il colore dei pantaloni, e l'avatar cambia davvero",
               st.get("corpo") == "donna" and st.get("capelli") == "coda" and st.get("capelliColore") == 3 and st.get("pantaloni") == 0xE63946
               and tu_["corpo"] == "donna" and tu_["capelli"] == "coda" and tu_["pantaloni"] == "#e63946" and tu_["maglia"] != tu_["pantaloni"], [st, tu_])
+        await p.wait_for_timeout(2500)
+        prova("allo specchio con la carta aperta la telecamera si allontana: l'avatar si vede intero (JJ: «è tagliato»)", (await p.evaluate("window.CITTA.vistaSpecchio()") or 0) > 6.5, await p.evaluate("window.CITTA.vistaSpecchio()"))
         fu = await p.evaluate("window.CITTA.formaUmana()")
         prova("gli avatar hanno forma di persona: gambe e braccia tonde, busto che si stringe, una faccia (occhi, naso, bocca)",
               all(v["gambe"] == ["CapsuleGeometry"] * 2 and v["braccia"] == ["CapsuleGeometry"] * 2 and v["busto"] == "CylinderGeometry" and v["viso"] >= 6 for v in fu.values())
