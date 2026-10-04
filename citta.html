@@ -100,10 +100,18 @@ body.in-sartoria #foglio{max-height:56vh} /* sopra si deve vedere l'avatar inter
 .barra-twitch .cose-tavolo{display:flex;flex-wrap:wrap;gap:6px}
 .barra-twitch .cose-tavolo button{font:600 13px/1 var(--f-testo);color:#efeff1;background:#26262c;border:1px solid #3a3a44;padding:8px 10px;cursor:pointer}
 #strato-gioco{position:fixed;inset:0;z-index:1000;background:#07131f;display:flex;flex-direction:column;padding:calc(env(safe-area-inset-top,0px) + 8px) 0 env(safe-area-inset-bottom,0px);color:#e6f6ff}
-#strato-gioco .barra{display:flex;justify-content:space-between;align-items:center;padding:6px 12px 10px;font:700 16px/1.2 var(--f-titoli)}
+#strato-gioco .barra-gioco{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:8px 14px 10px;font:700 18px/1.2 var(--f-titoli);background:#0b1a2a;border-bottom:1px solid #1f3a52}
+#strato-gioco .barra-gioco button{font:700 16px/1 var(--f-titoli);color:#e6f6ff;background:#13283b;border:1px solid #2c5577;padding:10px 16px;cursor:pointer}
+#classifica{margin:6px auto 14px;width:min(92%,420px);border-collapse:collapse;font:500 16px/1.3 var(--f-testo)}
+#classifica td{padding:7px 10px;border-bottom:1px solid #1f3a52}
+#classifica tr.nuovo td{color:#FFD60A;font-weight:700}
+#strato-gioco .fondo{display:flex;justify-content:center;gap:10px;margin-bottom:12px}
+#strato-gioco .fondo button{font:700 16px/1 var(--f-titoli);color:#07131f;background:#00B4D8;border:0;padding:12px 18px;cursor:pointer}
 #campo-gioco{position:relative;flex:1;overflow:hidden;touch-action:none}
 #campo-gioco img{position:absolute;width:64px;height:64px;border-radius:50%;cursor:pointer;filter:drop-shadow(0 0 10px #00B4D8)}
 /* la chat di Twitch: uno strato suo, a tutto schermo, niente sopra, niente trasformazioni né trasparenze (Twitch spegne lo scrivere se è coperta) */
+#strato-cinema{position:fixed;inset:0;z-index:1000;display:flex;flex-direction:column;background:#000;padding:calc(env(safe-area-inset-top,0px) + 8px) 0 env(safe-area-inset-bottom,0px)}
+#strato-cinema iframe{flex:1;width:100%;border:0;display:block;background:#000}
 #strato-twitch{position:fixed;inset:0;z-index:1000;display:flex;flex-direction:column;background:#0e0e10;padding:calc(env(safe-area-inset-top,0px) + 8px) 0 env(safe-area-inset-bottom,0px)}
 #strato-twitch .barra-twitch{flex:none;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:6px 12px 8px;color:#efeff1;font:700 16px/1.2 var(--f-titoli)}
 #strato-twitch iframe{flex:1;width:100%;border:0;display:block;background:#0e0e10}
@@ -627,8 +635,14 @@ const LUOGHI={
       if(VIDEO===null){ elenco.append(NOTA("Prendo l'elenco dei video…"));
         if(!cinemaChiesto){ cinemaChiesto=true; fetch(PORTA+"/video").then(r=>r.ok?r.json():{video:[]}).then(d=>{ VIDEO=(d.video||[]).filter(v=>v && /^https:\/\//.test(v.url||"")); }).catch(()=>{ VIDEO=[]; }).then(()=>{ if(stanzaAperta==="cinema") ridisegnaCarta(); }); } }
       else if(!VIDEO.length) elenco.append(NOTA("Non riesco a prendere l'elenco dei video in questo momento: li trovi nella pagina."));
-      else VIDEO.forEach(v=>elenco.append(el("a",{class:"video",href:v.url,target:"_blank",rel:"noopener"}, el("b",{testo:v.titolo||"Un video"}), el("span",{testo:`Guardalo su ${({instagram:"Instagram",youtube:"YouTube",tiktok:"TikTok"})[v.piattaforma]||v.piattaforma} ↗`}))));
-      return [BLOCCO(H3("In programmazione"), elenco), NOTA("I video si aprono sulla loro piattaforma: da lì valgono le sue regole e i suoi cookie.")]; }},
+      // JJ, 4/10: «vedere i video nel cinema»: si guardano dentro la città, sul grande schermo (uno strato a tutto schermo),
+      // con l'incorporamento delle piattaforme (Instagram: indirizzo del post + /embed; YouTube: youtube.com/embed/<id>).
+      // Quelli che non si sanno incorporare si aprono sulla loro piattaforma, in un'altra scheda.
+      else VIDEO.forEach(v=>{ const dentro=incorporaVideo(v.url), nomeP=({instagram:"Instagram",youtube:"YouTube",tiktok:"TikTok"})[v.piattaforma]||v.piattaforma||"web";
+        const a=el("a",{class:"video",href:v.url,target:"_blank",rel:"noopener"}, el("b",{testo:v.titolo||"Un video"}), el("span",{testo:dentro?"Guardalo qui, sullo schermo":`Guardalo su ${nomeP}`}));
+        if(dentro){ a.dataset.dentro=dentro; a.addEventListener("click",e=>{ e.preventDefault(); proietta(dentro, v.titolo||"Un video"); }); }
+        elenco.append(a); });
+      return [BLOCCO(H3("In programmazione"), elenco), NOTA("I video sono delle loro piattaforme: anche guardati qui valgono le loro regole e i loro cookie.")]; }},
       {id:"biglietteria",nome:"La biglietteria",dentro:()=>[BLOCCO(H3("Il biglietto"),
         P("Qui si entra gratis. Ogni video è un pezzo di lavoro vero: il giro del mattino, il codice della notte, quello che va storto e come si sistema."),
         P("Se vuoi un video su una cosa precisa, chiedilo: le domande arrivano a chi mi costruisce."),
@@ -806,14 +820,25 @@ const GIOCO={durata:25, massimo:15};
 function giocaAcchiappa(){
   let L=$("strato-gioco"); if(L) L.remove();
   L=document.createElement("div"); L.id="strato-gioco";
-  L.innerHTML='<div class="barra"><span>🪙 <b id="gioco-punti">0</b> · <span id="gioco-tempo">25</span> s</span><button type="button" class="pulsante" id="gioco-esci">Esci</button></div><div id="campo-gioco"></div><p id="gioco-esito" style="text-align:center;margin:10px;min-height:1.2em"></p>';
+  L.innerHTML='<div class="barra-gioco"><span>🪙 <b id="gioco-punti">0</b> · <span id="gioco-tempo">25</span> s</span><button type="button" id="gioco-esci">Esci</button></div><div id="campo-gioco"></div><p id="gioco-esito" style="text-align:center;margin:10px;min-height:1.2em"></p><div id="gioco-fine"></div>';
   document.body.appendChild(L); document.body.classList.add("con-twitch");
   const st={punti:0, fine:Date.now()+GIOCO.durata*1000, finito:false}; scena._gioco=st;
   const campo=$("campo-gioco"), metti=()=>{ if(st.finito) return; const r=campo.getBoundingClientRect(), im=new Image(); im.src=ICONA_URL;
     im.style.left=Math.random()*Math.max(1,r.width-64)+"px"; im.style.top=Math.random()*Math.max(1,r.height-64)+"px";
     const via=setTimeout(()=>im.remove(),1100); im.addEventListener("pointerdown",()=>{ clearTimeout(via); im.remove(); st.punti++; $("gioco-punti").textContent=st.punti; }); campo.appendChild(im); };
   const fine=()=>{ if(st.finito) return; st.finito=true; clearInterval(st.t1); clearInterval(st.t2); const vinti=Math.min(st.punti,GIOCO.massimo); guadagna(vinti);
-    $("gioco-esito").textContent=`Fine! Hai preso ${st.punti} gettoni: ne vinci ${vinti}. Ora ne hai ${citta.gettoni}.`; campo.textContent=""; };
+    $("gioco-esito").textContent=`Fine! Hai preso ${st.punti} gettoni: ne vinci ${vinti}. Ora ne hai ${citta.gettoni}.`; campo.textContent=""; campo.style.flex="0 0 0";
+    // la classifica (JJ, 4/10: «manca la classifica alla fine»): i tuoi migliori cinque, in questo telefono
+    const voce={punti:st.punti, data:new Date().toISOString().slice(0,10), t:Date.now()};
+    citta.record=[...(citta.record||[]), voce].sort((a,b)=>b.punti-a.punti||a.t-b.t).slice(0,5); salva();
+    const pos=citta.record.findIndex(r=>r.t===voce.t);
+    const tab=document.createElement("table"); tab.id="classifica";
+    citta.record.forEach((r,i)=>{ const tr=tab.insertRow(); if(r.t===voce.t) tr.className="nuovo"; tr.insertCell().textContent=`${i+1}°`; tr.insertCell().textContent=`${r.punti} gettoni`; tr.insertCell().textContent=r.t===voce.t?"adesso":r.data; });
+    const f=$("gioco-fine"); f.textContent="";
+    const h=document.createElement("h3"); h.style.cssText="text-align:center;margin:4px 0 6px;font:800 20px/1.2 var(--f-titoli)"; h.textContent=pos===0&&citta.record.length>1?"🏆 Nuovo record!":"La tua classifica";
+    const nota=document.createElement("p"); nota.style.cssText="text-align:center;margin:0 16px 12px;color:#8fb3c8;font-size:14px"; nota.textContent="I tuoi migliori cinque, in questo telefono. La classifica con tutti i giocatori arriva quando c'è un posto dove tenerla.";
+    const fondo=document.createElement("div"); fondo.className="fondo"; const ancora=document.createElement("button"); ancora.type="button"; ancora.id="gioco-ancora"; ancora.textContent="Gioca ancora"; ancora.addEventListener("click",giocaAcchiappa); fondo.append(ancora);
+    f.append(h,tab,fondo,nota); };
   st.prendi=()=>{ st.punti++; }; st.fine2=fine;
   st.t1=setInterval(metti,700); st.t2=setInterval(()=>{ const s=Math.max(0,Math.ceil((st.fine-Date.now())/1000)); $("gioco-tempo").textContent=s; if(s<=0) fine(); },250);
   $("gioco-esci").addEventListener("click",()=>{ fine(); L.remove(); document.body.classList.remove("con-twitch"); ridisegnaCarta(); });
@@ -951,6 +976,20 @@ function tavolini(){
     out.push(BLOCCO(H3("Sul tuo tavolino"), v), AZIONI(bottone("Apri la chat",apriChatTwitch), bottone("Alzati",()=>{ if(scena.alzatiDalBar) scena.alzatiDalBar(); ridisegnaCarta(); },true)),
       NOTA("La chat si apre a tutto schermo: da lì valgono le regole e i cookie di Twitch. In alto «Torna al Café», e le tue cose da bere e mangiare.")); }
   return out;
+}
+// l'indirizzo per guardare un video dentro la città, o null se la piattaforma non si sa incorporare
+function incorporaVideo(u){ try{ const x=new URL(u); if(x.protocol!=="https:") return null;
+    if(/(^|\.)instagram\.com$/.test(x.hostname)){ const m=x.pathname.match(/^\/(reel|p|tv)\/([A-Za-z0-9_-]+)/); return m?`https://www.instagram.com/${m[1]}/${m[2]}/embed/`:null; }
+    if(/(^|\.)youtube\.com$/.test(x.hostname)){ const id=x.searchParams.get("v")||(x.pathname.match(/^\/(shorts|embed)\/([A-Za-z0-9_-]+)/)||[])[2]; return id?`https://www.youtube.com/embed/${id}`:null; }
+    if(x.hostname==="youtu.be"){ const id=x.pathname.slice(1).split("/")[0]; return id?`https://www.youtube.com/embed/${id}`:null; }
+  }catch(_){} return null; }
+function proietta(src,titolo){
+  let L=$("strato-cinema"); if(L) L.remove();
+  L=document.createElement("div"); L.id="strato-cinema"; L.className="strato-pieno";
+  const barra=document.createElement("div"); barra.className="barra-twitch"; const t=document.createElement("b"); t.textContent="🎬 "+titolo;
+  const b=document.createElement("button"); b.type="button"; b.id="chiudi-cinema"; b.className="pulsante"; b.textContent="Torna in sala"; b.addEventListener("click",()=>{ L.remove(); document.body.classList.remove("con-twitch"); });
+  barra.append(t,b); const f=document.createElement("iframe"); f.id="video-cinema"; f.title=titolo; f.src=src; f.allow="autoplay; encrypted-media; picture-in-picture; fullscreen"; f.allowFullscreen=true;
+  L.append(barra,f); document.body.appendChild(L); document.body.classList.add("con-twitch");
 }
 function apriChatTwitch(){
   let L=$("strato-twitch");
