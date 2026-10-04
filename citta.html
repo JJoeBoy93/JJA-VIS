@@ -92,6 +92,8 @@ body.in-sartoria #foglio{max-height:56vh} /* sopra si deve vedere l'avatar inter
 .scelta{font:600 15px/1 var(--f-testo);padding:10px 12px;border:1px solid var(--bordo);background:color-mix(in srgb,var(--accento) 5%,transparent);color:var(--testo);cursor:pointer}
 .scelta[aria-pressed="true"]{background:#0D2A3E;border-color:var(--accento);box-shadow:0 0 10px color-mix(in srgb,var(--accento) 35%,transparent) inset}
 .tinte{display:flex;flex-wrap:wrap;gap:9px}
+.riga-radio{display:flex;align-items:center;gap:10px;margin:6px 0}
+.riga-radio input{flex:1;font:500 16px/1.3 var(--f-testo);color:var(--testo);background:var(--input,#0a1622);border:1px solid var(--bordo);padding:10px}
 .tinta{width:38px;height:38px;border:2px solid var(--bordo);cursor:pointer;padding:0}
 .tinta[aria-pressed="true"]{border-color:var(--oro);box-shadow:0 0 0 2px var(--bg) inset}
 .tinta.originale{background:repeating-linear-gradient(45deg,#0D3A5C 0 6px,#030E1E 6px 12px)}
@@ -311,6 +313,7 @@ const TINTE=[null,0x00B4D8,0xE63946,0xFFD60A,0x2ECC71,0x8E44AD,0xF5F5F5,0x1B1B1B
 const vestitoDi=m=>{ const t=MESTIERI.find(x=>x[0]===m); return t?t[1]:"altro"; };
 if(!citta.vestito) citta.vestito=citta.mestiere?vestitoDi(citta.mestiere):"altro";
 if(typeof citta.pelle!=="number") citta.pelle=1;
+if(citta.giro && citta.giro.reception && !citta.giro.torre) citta.giro.torre=true;
 if(!CORPI.some(c=>c[0]===citta.corpo)) citta.corpo="uomo";
 if(!CAPELLI.some(c=>c[0]===citta.capelli)) citta.capelli=citta.corpo==="donna"?"lunghi":"corti";
 if(typeof citta.capelliColore!=="number") citta.capelliColore=0;
@@ -338,7 +341,8 @@ const STRADE=[0,40,74,109,250,286,320];
 const QUARTIERI={sud:"Viale delle Botteghe", est:"Quartiere del Gusto", ovest:"Quartiere dello Sport", nord:"Quartiere dei Mestieri"};
 
 // ── il primo giro: tre fermate, come un giro di consegne ──
-const FERMATE=[["sartoria","Sartoria"],["reception","Reception"],["bottega","Bottega"]];
+// la Reception è dentro la Torre (JJ, 3/10): il giro passa dalla Torre; chi l'aveva già fatto alla Reception, l'ha fatto
+const FERMATE=[["sartoria","Sartoria"],["torre","La Torre"],["bottega","Bottega"]];
 function disegnaGiro(){
   const g=$("giro"); g.textContent="";
   const fatte=FERMATE.filter(f=>citta.giro[f[0]]).length;
@@ -562,9 +566,14 @@ const LUOGHI={
         "Si costruisce, e prima di andare online passa dai controlli: cosa carica, quanto pesa, come si vede su un telefono vero."]))]},
       {id:"lavoro",nome:"Il primo lavoro",dentro:()=>[BLOCCO(H3("Il primo lavoro uscito da qui"), P("Il sito di Athena Trasporti, una ditta di trasporti appena nata: cinque schede comode dal telefono e il preventivo che arriva alla ditta."), AZIONI(vai(PRODOTTI.athena.link,"Guardalo",true,true)))]}],
     fine:()=>[AZIONI(vai(PAGINA+"#costruisci","Chiedi un preventivo"))]},
-  torre:{nome:"La Torre",ic:"🌐",breve:"chi sono e cosa so fare",
-    testa:()=>TESTA("In cima c'è il globo","La Torre","Sono JJA-VIS, un sistema personale intelligente. Non rispondo: anticipo. Non archivio: imparo. Non servo il settore: servo la persona."),
-    parti:()=>[
+  radio:{nome:"Radio",ic:"📻",breve:"accendi le tue stazioni",
+    testa:()=>TESTA("Sotto l'antenna","Radio","La stessa radio che ho nell'app sul furgone: sei stazioni, una per tasto. Qui le accendi mentre giri per la città."),
+    parti:()=>[{id:"radio",nome:"La radio",dentro:()=>laRadio()},{id:"stazioni",nome:"Le tue stazioni",dentro:()=>leTueStazioni()}]},
+  torre:{nome:"La Torre",ic:"🌐",breve:"la reception, chi sono, cosa so fare",
+    // la Reception sta al piano terra della Torre (JJ, 3/10: «sposterei all'interno della torre la reception»)
+    testa(){ const n=nomeAssistente(); return [...TESTA("Al piano terra la Reception, in cima il globo","La Torre", n?`Bentornato. ${n} ti aspetta: è il tuo, con il nome che gli hai dato tu.`:"Benvenuto in città. Qui nasce il tuo assistente personale: un minuto, e comincio a imparare te."),
+      P("Sono JJA-VIS, un sistema personale intelligente. Non rispondo: anticipo. Non archivio: imparo. Non servo il settore: servo la persona.")]; },
+    parti:()=>[...LUOGHI.reception.parti(),
       {id:"globo",nome:"Il globo",dentro:()=>[BLOCCO(H3("Imparo te"), P("Un assistente professionale conosce un lavoro. Io imparo chi sei: le tue abitudini, le tue giornate, quello che ti preoccupa e quello che vuoi. Il lavoro è solo una parte di te. Più mi usi, più divento tuo. Uguale per tutti, diverso per ognuno.")),
         BLOCCO(H3("Da dove nasco"), P("Chi mi costruisce ha molte vite insieme: una ditta di trasporti, il furgone da corriere ogni mattina, il codice la notte, le isole di Fortnite di cui è creatore ufficiale. Cercava qualcosa che lo aiutasse in tutte. Non l'ha trovato, e ha deciso di costruirlo."))]},
       {id:"sa",nome:"Cosa so fare",dentro:()=>[BLOCCO(H3("Cosa so già fare, oggi"), P("Su un telefono solo: quello di chi mi costruisce, ogni giorno sul furgone."),
@@ -665,7 +674,7 @@ const LUOGHI={
       {id:"punto",nome:"A che punto è",dentro(){ const n=nomeAssistente(); return [BLOCCO(H3("A che punto è"), P("È un progetto: arriva con l'app. Oggi le foglie sono la promessa."), NOTA(n?`La foglia d'oro è quella di ${n}.`:"Quando dai un nome al tuo assistente, una foglia d'oro diventa la sua."))]; }}],
     fine:()=>[AZIONI(vai(PAGINA+"#chi-sono","Chi sono, nella pagina",true))]},
 };
-const ELENCO=["reception","sartoria","bottega","forgia","torre","albero","giochi","voci","cinema","borsa","athena","ristorante","palestra","lotto"];
+const ELENCO=["torre","radio","sartoria","bottega","forgia","albero","giochi","voci","cinema","borsa","athena","ristorante","palestra","lotto"];
 let cinemaChiesto=false;
 const schedaIntera=L=>[...L.testa(), ...L.parti().flatMap(p=>p.dentro()), ...(L.fine?L.fine():[])].filter(Boolean);
 const parteDi=(L,k)=>L.parti().find(p=>p.id===k);
@@ -718,6 +727,59 @@ function specchio(){
   PELLI.forEach((t,i)=>{ const b=el("button",{class:"tinta",type:"button","aria-label":"tono della pelle "+(i+1),"aria-pressed":String(citta.pelle===i)});
     b.style.background="#"+t.toString(16).padStart(6,"0"); b.addEventListener("click",()=>{ citta.pelle=i; rifai(); }); pel.appendChild(b); });
   out.push(el("div",{class:"sezione",testo:"Pelle"}), pel);
+  return out;
+}
+
+// ── la Radio (JJ, 3/10: «l'antenna Radio, che è un servizio che abbiamo già in Jarvis, e se si può fare accendere
+// la radio già anche con le preselezioni che abbiamo nell'app»). Le sei di partenza sono COPIATE da
+// Jarvis-app-guscio/lib/services/preselezioni.dart (nomiDiPartenza): quelle che uno risalva nell'app restano nell'app,
+// una pagina web non ci arriva. Le stazioni si cercano come le cerca l'app, su Radio Browser (prima in Italia), e
+// passano solo i flussi https (la pagina è https: un flusso http il telefono non lo suona). Se una stazione non si
+// trova la casella lo dice: niente «la più simile».
+const PRESELEZIONI_APP=["Radio 105","Radio Italia","Radio Deejay","RTL 102.5","m2o","Radio Sportiva"];   // la sesta: Radio Sportiva (JJ, 4/10: «Inter Radio non esiste»)
+const RADIO_API="https://all.api.radio-browser.info/json/stations/search";
+const radio={audio:null, inOnda:null, cerca:null, stato:"", src:""};
+const normaNome=t=>(t||"").toLowerCase().replace(/[^a-z0-9]/g,"");
+if(!Array.isArray(citta.radio)||citta.radio.length!==6) citta.radio=PRESELEZIONI_APP.slice();
+async function cercaStazione(nome){
+  for(const paese of ["IT",""]){
+    const r=await fetch(RADIO_API+"?name="+encodeURIComponent(nome)+(paese?"&countrycode="+paese:"")+"&hidebroken=true&order=votes&reverse=true&limit=20");
+    if(!r.ok) throw new Error("risposta "+r.status);
+    const lista=await r.json(), q=normaNome(nome);
+    const s=lista.find(x=>normaNome(x.name).includes(q) && /^https:\/\//.test(x.url_resolved||x.url||""));
+    if(s) return {nome:s.name, url:s.url_resolved||s.url};
+  }
+  return null;
+}
+async function accendiRadio(nome){
+  radio.cerca=nome; radio.stato=`Cerco ${nome}…`; ridisegnaRadio();
+  let s; try{ s=await cercaStazione(nome); }
+  catch(e){ radio.cerca=null; radio.stato=`Non sono riuscito a cercare la stazione (${e.message}): la radio resta spenta.`; ridisegnaRadio(); return; }
+  radio.cerca=null;
+  if(!s){ radio.stato=`Non ho trovato «${nome}» con un collegamento sicuro: la radio resta spenta.`; ridisegnaRadio(); return; }
+  radio.audio=radio.audio||new Audio(); radio.audio.src=s.url; radio.src=s.url; radio.inOnda=nome;
+  try{ await radio.audio.play(); radio.stato=`In onda: ${s.nome}`; }
+  catch(e){ radio.stato=`Ho trovato ${s.nome}, ma il telefono non l'ha fatta partire: tocca di nuovo.`; }
+  ridisegnaRadio();
+}
+function spegniRadio(){ if(radio.audio){ radio.audio.pause(); radio.audio.removeAttribute("src"); radio.audio.load(); } radio.inOnda=null; radio.src=""; radio.stato="Spenta."; ridisegnaRadio(); }
+function ridisegnaRadio(){ if(cartaAperta==="radio"||cartaAperta==="stazioni"||cartaAperta==="scheda") ridisegnaCarta(); }
+function laRadio(){
+  const box=el("div",{class:"scelte",role:"group","aria-label":"Le stazioni",id:"radio-stazioni"});
+  citta.radio.forEach((n,i)=>{ const b=el("button",{class:"scelta",type:"button","aria-pressed":String(radio.inOnda===n),testo:(i+1)+" · "+n});
+    b.addEventListener("click",()=>accendiRadio(n)); box.appendChild(b); });
+  const out=[BLOCCO(H3("Le sei stazioni"), box, el("p",{id:"radio-stato",class:"nota",testo:radio.stato||"Tocca una stazione e parte. La radio resta accesa anche se esci a camminare."}))];
+  if(radio.inOnda) out.push(AZIONI(bottone("Spegni",spegniRadio)));
+  return out;
+}
+function leTueStazioni(){
+  const out=[], lista=el("div",{id:"radio-caselle"});
+  citta.radio.forEach((n,i)=>{ const riga=el("div",{class:"riga-radio"}), inp=el("input",{type:"text",value:n,"aria-label":"Stazione "+(i+1)});
+    inp.value=n; inp.addEventListener("change",()=>{ citta.radio[i]=inp.value.trim()||PRESELEZIONI_APP[i]; salva(); });
+    riga.append(el("span",{testo:(i+1)+"."}),inp); lista.appendChild(riga); });
+  out.push(BLOCCO(H3("Le tue stazioni"), P("Sono sei caselle, come nell'app. Partono con le stesse sei; scrivi il nome di un'altra stazione al posto di una, e resta in questo telefono."), lista,
+    AZIONI(bottone("Rimetti le sei di partenza",()=>{ citta.radio=PRESELEZIONI_APP.slice(); salva(); ridisegnaCarta(); },true))));
+  out.push(NOTA("Le stazioni che hai risalvato nell'app JARVIS restano nell'app: la città non le vede. Le cerco su Radio Browser, un elenco pubblico di radio; suonano solo quelle con un collegamento sicuro."));
   return out;
 }
 
@@ -901,7 +963,7 @@ fetch(PORTA+"/vetrina").then(r=>r.ok?r.json():{}).then(v=>{
 disegnaGiro();
 
 // ══ LA SCENA ══
-const scena={pronta:false, modo(){}, vaiVerso(){}, carta(){}};
+const scena={pronta:false, modo(){}, vaiVerso(){}, carta(){}, _luci:[]};
 window.CITTA=scena;
 
 const MAT=new Map();
@@ -1236,7 +1298,8 @@ async function costruisci(){
   // ── i palazzi intorno alla piazza: sull'anello, la facciata verso l'albero ──
   const R=31;
   const PALAZZI=[
-    {id:"reception",ang:-22,w:11,d:7,h:6,muro:"#1b3a57",vetro:true,tetto:"piano",titolo:"RECEPTION",sotto:"qui nasce il tuo assistente"},
+    // dove c'era la Reception (ora dentro la Torre) c'è la Radio: il palazzo fa da base all'antenna (JJ, 3/10)
+    {id:"radio",ang:-22,w:11,d:7,h:6,muro:"#1b3a57",vetro:true,tetto:"piano",titolo:"RADIO",sotto:"accendi le tue stazioni",antenna:true},
     {id:"sartoria", ang:22, w:9, d:7,h:7,muro:"#c99a8a",vetrine:1,tetto:"falde",titolo:"SARTORIA",sotto:"vesti il tuo avatar"},
     {id:"borsa",    ang:58, w:9, d:9,h:10,muro:"#d9d2c2",porta:true,tetto:"piano",titolo:"BORSA",sotto:"investi in JJA-VIS",colonne:true},
     {id:"voci",     ang:92, w:11,d:9,h:9,muro:"#b5654a",porta:true,tetto:"piano",titolo:"PIAZZA DELLE VOCI",sotto:"cosa ti fa perdere tempo?",orologio:true},
@@ -1340,6 +1403,25 @@ async function costruisci(){
         solidi.push({cerchio:true,x:px+Math.cos(g.rotation.y)*m.position.x+Math.sin(g.rotation.y)*m.position.z,z:pz-Math.sin(g.rotation.y)*m.position.x+Math.cos(g.rotation.y)*m.position.z,r:0.6}); }); }
     if(P.id==="cinema"){ const mq=scatola(P.w*0.9,0.3,2,0x1a1024); mq.position.set(0,3.1,P.d/2+1); g.add(mq);
       for(let i=0;i<14;i++){ const l=palla(0.08,0xffd60a,true,6); l.position.set(-P.w*0.43+i*(P.w*0.86/13),2.92,P.d/2+2); g.add(l); } }
+    if(P.antenna){
+      // l'antenna della Radio: un traliccio a fasce bianche e rosse sul tetto, quattro gambe che si stringono verso l'alto,
+      // anelli ogni 2 m, e in cima una luce rossa che lampeggia
+      const base=1.6, alto=14, cima=0.25, y0=P.h+0.5, tr=new THREE.Group(); tr.position.y=y0; g.add(tr);
+      const punto=(k,t)=>{ const r=base+(cima-base)*t, a=Math.PI/4+k*Math.PI/2; return new THREE.Vector3(Math.cos(a)*r,t*alto,Math.sin(a)*r); };
+      // le aste si uniscono in tre forme sole (bianco, rosso, grigio): 84 pezzi separati rallentavano il disegno
+      const pezzi={}, o=new THREE.Object3D();
+      const asta=(a,b,c,sp)=>{ const d=b.clone().sub(a), gg=new THREE.CylinderGeometry(sp,sp,d.length(),6).toNonIndexed();
+        o.position.copy(a).add(b).multiplyScalar(0.5); o.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),d.normalize()); o.updateMatrix(); gg.applyMatrix4(o.matrix);
+        (pezzi[c]=pezzi[c]||[]).push(gg); };
+      const passi=7;
+      for(let i=0;i<passi;i++){ const c=i%2?0xffffff:0xd62828, t0=i/passi, t1=(i+1)/passi;
+        for(let k=0;k<4;k++){ asta(punto(k,t0),punto(k,t1),c,0.07); asta(punto(k,t1),punto((k+1)%4,t1),c,0.04); asta(punto(k,t0),punto((k+1)%4,t1),0x8a8f98,0.025); } }
+      for(const [c,gs] of Object.entries(pezzi)){ const n=gs.reduce((t,x)=>t+x.attributes.position.array.length,0), pos=new Float32Array(n); let q=0;
+        gs.forEach(x=>{ pos.set(x.attributes.position.array,q); q+=x.attributes.position.array.length; x.dispose(); });
+        const geo=new THREE.BufferGeometry(); geo.setAttribute("position",new THREE.BufferAttribute(pos,3)); geo.computeVertexNormals(); tr.add(new THREE.Mesh(geo,mat(+c))); }
+      const luce=palla(0.28,0xff2a2a,true); luce.position.y=alto+0.3; tr.add(luce); scena._luci.push(luce);
+      g.userData.antenna={alto:y0+alto+0.3};
+    }
     if(P.id==="torre"){
       // 2 ottobre, JJ: «in alto alla torre, dove c'è la luce spenta, metterei il logo di JJA-VIS». Sui quattro lati
       for(let k=0;k<4;k++){ const lg=insegna("JJA-VIS","",P.w*0.96); const a=k*Math.PI/2, r=P.w/2+0.07;
@@ -1524,12 +1606,13 @@ async function costruisci(){
   const aParete=(m,lato,z,y)=>{ m.position.set(lato*(LARGO/2-0.08),y,z); m.rotation.y=-lato*Math.PI/2; return m; };
 
   const ARREDI={
-    reception(S2,h){ h.insegnaFondo("RECEPTION","qui nasce il tuo assistente");
-      const banco=scatola(5,1.1,1,0x0D2A3E); h.metti(banco,0,0.55,-2.6); h.metti(scatola(5.02,0.06,1.02,0x00B4D8,true),0,1.12,-2.6); h.solido(0,-2.6,5,1);
-      h.metti(ologlobo(0.75),0,2.2,-2.6);
-      h.cosa("banco",[banco],0,-2.6,{x:0,z:-1.4},3.4);
-      for(const s of [-1,1]){ const d=scatola(2.6,0.45,0.9,0x2a3f57); h.metti(d,s*5.0,0.25,1.5,s*Math.PI/2); const sch=scatola(2.6,0.7,0.2,0x2a3f57); h.metti(sch,s*5.45,0.7,1.5,s*Math.PI/2);
-        h.solido(s*5.15,1.5,1.2,2.6); h.cosa(s<0?"chat":"dati",[d,sch],s*5.1,1.5,{x:s*3.9,z:1.5},1.9); }
+    radio(S2,h){ h.insegnaFondo("RADIO","sotto l'antenna");
+      // il banco della radio: una consolle con sei tasti luminosi, come i sei tasti dell'app
+      const cons=scatola(4,1,1.2,0x1b2633); h.metti(cons,0,0.5,-3.2); h.solido(0,-3.2,4,1.2);
+      for(let i=0;i<6;i++){ h.metti(scatola(0.42,0.08,0.3,[0x00B4D8,0xFFD60A,0xE63946,0x2ECC71,0x8E44AD,0xF5F5F5][i],true),-1.35+i*0.54,1.04,-3.0); }
+      const rad=scatola(1.4,0.8,0.5,0x3a2a20); h.metti(rad,0,1.45,-3.4); h.metti(palla(0.25,0x111111),-0.35,1.45,-3.14).scale.z=0.2; h.metti(scatola(0.5,0.3,0.02,0xFFD60A,true),0.3,1.5,-3.14);
+      h.cosa("radio",[cons,rad],0,-3.2,{x:0,z:-1.9},2.4);
+      const sch=aParete(schermo(2.6,1.4,"#00B4D8","LE TUE STAZIONI"),1,1.5,1.5); sch.position.x-=0.1; S2.add(sch); h.cosa("stazioni",[sch],6.6,1.5,{x:5.3,z:1.5},3.3);
       h.metti(new THREE.Mesh(new THREE.CylinderGeometry(1.4,1.4,0.02,32),mat(0x00B4D8,true)),0,0.02,0); },
     sartoria(S2,h){ h.insegnaFondo("SARTORIA","vestiti come vuoi");
       const man=[]; ["corriere","negozio","sanita","ufficio"].forEach((v,i)=>{ const m=avatar({vestito:v,pelle:i%5,corpo:i%2?"donna":"uomo",capelli:i%2?"lunghi":"corti",capelliColore:i}); const x=-4.5+i*3; h.metti(cilindro(0.45,0.5,0.25,0x0D3A5C,14),x,0.125,-4); h.metti(m,x,0.25,-4); man.push(m); h.tondo(x,-4,0.55); });
@@ -1556,7 +1639,14 @@ async function costruisci(){
       for(const [x,c,t] of [[2.6,"#00B4D8","</>"],[4.2,"#FFD60A","SITO"]]){ const s=schermo(1.3,0.8,c,t); h.metti(s,x,1.55,-3.7); sch.push(s); h.metti(scatola(0.08,0.4,0.08,0x222222),x,1.15,-3.75); }
       h.cosa("banco",[tav,...sch],3.4,-3.4,{x:3.4,z:-2.1},2.5);
       const lav=aParete(schermo(2.4,1.4,"#FFD60A","ATHENA"),1,1.5,2.0); S2.add(lav); h.cosa("lavoro",[lav],6.6,1.5,{x:5.3,z:1.5},3.3); },
-    torre(S2,h){ h.insegnaFondo("LA TORRE","chi sono · cosa so fare");
+    torre(S2,h){ h.insegnaFondo("LA TORRE","la reception · chi sono · cosa so fare");
+      // la Reception al piano terra: il banco a destra in fondo, il salottino e i dati ai lati della porta
+      const banco=scatola(3,1.1,0.9,0x0D2A3E); h.metti(banco,3.8,0.55,-3.8); h.metti(scatola(3.02,0.06,0.92,0x00B4D8,true),3.8,1.12,-3.8); h.solido(3.8,-3.8,3,0.9);
+      h.cosa("banco",[banco],3.8,-3.8,{x:3.8,z:-2.6},2.4);
+      const div=scatola(1.2,0.45,2,0x2a3f57); h.metti(div,-5.5,0.25,4.6); const sch=scatola(0.2,0.7,2,0x2a3f57); h.metti(sch,-6.05,0.7,4.6); h.solido(-5.5,4.6,1.2,2);
+      h.cosa("chat",[div,sch],-5.5,4.6,{x:-4.3,z:4.4},1.9);
+      const term=scatola(0.8,1.2,0.6,0x0D2A3E); h.metti(term,5.5,0.6,4.6); const sc2=scatola(0.7,0.45,0.04,0x00B4D8,true); h.metti(sc2,5.5,1.1,4.28); h.solido(5.5,4.6,0.8,0.6);
+      h.cosa("dati",[term,sc2],5.5,4.6,{x:4.3,z:4.4},1.9);
       const g=h.metti(ologlobo(1.2),0,1.7,-1.5); h.metti(new THREE.Mesh(new THREE.RingGeometry(1.7,1.9,48),mat(0x00B4D8,true)),0,0.03,-1.5).rotation.x=-Math.PI/2; h.tondo(0,-1.5,1.3);
       h.cosa("globo",[g],0,-1.5,{x:0,z:0.7},3.5);
       for(const s of [-1,1]){ const v=facciata(PROFONDO,ALTO,{muro:"#0f2d47",luce:0.85,seme:s>0?7:9}); const m=new THREE.Mesh(new THREE.PlaneGeometry(PROFONDO-0.2,ALTO-0.2),new THREE.MeshBasicMaterial({map:v.emi}));
@@ -1842,6 +1932,7 @@ async function costruisci(){
       r.frangia[corpo+"-"+cap]=+basso.toFixed(3); }
     return r; };
   scena.vistaSpecchio=()=>dentro&&tuStanza?+camStanza.position.distanceTo(tuStanza.position).toFixed(2):null;
+  scena.radio=()=>({stazioni:citta.radio.slice(), partenza:PRESELEZIONI_APP.slice(), inOnda:radio.inOnda, src:radio.src, stato:radio.stato, antenna:!!Object.values(porte).length && S.children.some(o=>o.userData&&o.userData.antenna)});
   scena.lotti=()=>Object.values(porte).filter(P=>P.id==="lotto").length;
   scena.dove=()=>({x:tu.position.x,z:tu.position.z});
   scena.nelMuro=()=>solidi.some(s=>dentroUno(tu.position.x,tu.position.z,s));
@@ -2010,7 +2101,7 @@ async function costruisci(){
   }
   // si disegna solo se la pagina si vede
   let fotogrammi=0;
-  renderer.setAnimationLoop(()=>{ if(document.hidden) return; passo(); fotogrammi++; if(fotogrammi===2) $("carica").classList.add("via"); });
+  renderer.setAnimationLoop(()=>{ if(document.hidden) return; const ora=performance.now(); scena._luci.forEach(l=>{ l.visible=(ora%1400)<700; }); passo(); fotogrammi++; if(fotogrammi===2) $("carica").classList.add("via"); });
   scena.pronta=true; scena.fotogrammi=()=>fotogrammi;
 }
 let rivesti=()=>{};

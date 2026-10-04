@@ -48,6 +48,15 @@ async def instrada(route):
     if u.startswith(PORTA + "/risposte"):
         return await route.fulfill(body=json.dumps({"risposte": [{"id": "q1", "domanda": "Ciao dalla città", "risposta": "Risposta vera di chi mi costruisce"}] if parlate else []}),
                                    content_type="application/json", headers={"Access-Control-Allow-Origin": "https://jjoeboy93.github.io"})
+    if u.startswith("https://all.api.radio-browser.info/json/stations/search"):   # Radio Browser finto
+        from urllib.parse import urlparse, parse_qs
+        nome = parse_qs(urlparse(u).query).get("name", [""])[0]
+        if nome == "RTL 102.5": return await route.abort()           # la ricerca che non va: deve dirlo
+        lista = {"Radio Deejay": [{"name": "Radio Deejay", "url_resolved": "https://radio.finta/deejay.mp3"}],
+                 "m2o": [{"name": "m2o", "url_resolved": "http://solo-http.finto/m2o"}]}.get(nome, [])
+        return await route.fulfill(body=json.dumps(lista), content_type="application/json", headers={"Access-Control-Allow-Origin": "*"})
+    if u.startswith("https://radio.finta/"):   # il flusso: c'è, ma vuoto (il telefono non lo suona: deve dirlo, non sbagliare)
+        return await route.fulfill(status=200, body=b"", content_type="audio/mpeg")
     if u.startswith(PORTA + "/vetrina"):
         return await route.fulfill(body=json.dumps({"attrezzi": 42, "canzoni": 4639}), content_type="application/json",
                                    headers={"Access-Control-Allow-Origin": "https://jjoeboy93.github.io"})
@@ -218,7 +227,7 @@ async def main():
         prova("il giro segna la Sartoria", await p.evaluate("document.querySelectorAll('#giro .f.fatta').length===1"))
 
         # 3. ogni luogo: si apre e ogni link interno porta a un id vero della pagina
-        nomi = ["Reception", "Bottega", "La Forgia", "La Torre", "L'Albero della Vita", "Piazza delle voci", "Cinema", "Borsa", "Athena Trasporti", "Lotto libero", "Sala giochi", "Ristorante", "Palestra"]
+        nomi = ["Radio", "Bottega", "La Forgia", "La Torre", "L'Albero della Vita", "Piazza delle voci", "Cinema", "Borsa", "Athena Trasporti", "Lotto libero", "Sala giochi", "Ristorante", "Palestra"]
         senza_salti = []
         rotti = []
         for n in nomi:
@@ -238,8 +247,9 @@ async def main():
                     if await p.evaluate("window.CITTA.nelMuroDentro()"): senza_salti.append((n, k, "nel muro"))
                 if await p.evaluate("window.CITTA.saltiDentro()") != s0: senza_salti.append((n, "salti", await p.evaluate("window.CITTA.saltiDentro()") - s0))
                 await p.click("#chiudi-carta"); await p.wait_for_timeout(300); f = await foglio(p)   # di nuovo la scheda intera
-            if n == "Reception":
-                prova("la Reception saluta col nome dato nella pagina", "Ettore" in f["testo"], f["testo"][:80])
+            if n == "La Torre":
+                prova("la Reception è dentro la Torre e saluta col nome dato nella pagina; ci sono banco, salottino e dati", "Ettore" in f["testo"]
+                      and {"banco", "chat", "dati", "globo"} <= set(await p.evaluate("window.CITTA.cose()")), f["testo"][:80])
                 await p.click("#stanza button:has-text('Parla con Ettore')"); await p.wait_for_timeout(400)
                 prova("«Parla con Ettore» apre la chat in città, non la pagina", await p.is_visible("#nova") and p.url.endswith("citta.html")
                       and await p.inner_text("#nova-titolo") == "Ettore", p.url)
@@ -284,7 +294,7 @@ async def main():
             await p.wait_for_timeout(400)
         prova("tutti i link dei palazzi portano a un posto che esiste", not rotti, rotti)
         prova("dentro ogni palazzo si arriva a ogni cosa camminando: niente salti, niente muri", not senza_salti, senza_salti)
-        prova("il giro è chiuso dopo Sartoria, Reception e Bottega", "Giro chiuso" in await p.inner_text("#giro"))
+        prova("il giro è chiuso dopo Sartoria, Torre e Bottega", "Giro chiuso" in await p.inner_text("#giro"))
         await p.wait_for_timeout(500); await foto(p, "05-dopo-il-giro")
 
         # 3b. la città è più grande: i lotti dell'anello 2, e ci si arriva per strada senza saltare
@@ -331,6 +341,32 @@ async def main():
         prova("pagare dice chiaro che il pagamento non è acceso", await p.is_visible("#pagamento-spento") and "nessun soldo si è mosso" in await p.inner_text("#pagamento-spento"))
         prova("pagando non parte nessuna richiesta: nessun ordine, nessun soldo", not partite, partite)
         await foto(p, "15-ristorante-pagato")
+        await p.click("#esci-stanza"); await p.wait_for_timeout(400)
+
+        # 3d2. la Radio sotto l'antenna (JJ, 3/10): le sei stazioni dell'app, e si accendono davvero
+        rd = await p.evaluate("window.CITTA.radio()")
+        prova("sul palazzo della vecchia Reception c'è l'antenna della Radio, e le sei stazioni sono quelle di partenza dell'app", rd["antenna"]
+              and rd["stazioni"] == ["Radio 105", "Radio Italia", "Radio Deejay", "RTL 102.5", "m2o", "Radio Sportiva"] and rd["partenza"] == rd["stazioni"], rd)
+        prima = sum(1 for u in richieste if "radio-browser" in u)
+        await vai(p, "Radio")
+        await usa(p, "radio", "La radio")
+        prova("entrando non parte niente da solo: nessuna ricerca prima di toccare una stazione", sum(1 for u in richieste if "radio-browser" in u) == prima)
+        await p.click("#radio-stazioni .scelta:has-text('Radio Deejay')")
+        await p.wait_for_function("window.CITTA.radio().src!==''", timeout=15000); await p.wait_for_timeout(600)
+        rd = await p.evaluate("window.CITTA.radio()")
+        prova("toccando Radio Deejay la cerca su Radio Browser e mette il suo flusso https", rd["src"] == "https://radio.finta/deejay.mp3" and rd["inOnda"] == "Radio Deejay"
+              and ("In onda" in rd["stato"] or "non l'ha fatta partire" in rd["stato"]), rd)
+        await p.click("#radio-stazioni .scelta:has-text('m2o')")
+        await p.wait_for_function("document.getElementById('radio-stato') && document.getElementById('radio-stato').textContent.includes('m2o') && !document.getElementById('radio-stato').textContent.startsWith('Cerco')", timeout=15000)
+        prova("una stazione solo http non suona e lo dice (niente «la più simile»)", "Non ho trovato «m2o»" in await p.inner_text("#radio-stato"), await p.inner_text("#radio-stato"))
+        await p.click("#radio-stazioni .scelta:has-text('RTL 102.5')")
+        await p.wait_for_function("document.getElementById('radio-stato').textContent.includes('Non sono riuscito')", timeout=15000)
+        prova("se la ricerca non va, lo dice: non è uguale a «non c'è»", "Non sono riuscito a cercare" in await p.inner_text("#radio-stato"))
+        await foto(p, "16b-radio")
+        await usa(p, "stazioni", "Le tue stazioni")
+        await p.fill("#radio-caselle input >> nth=0", "Radio Capital"); await p.press("#radio-caselle input >> nth=0", "Tab"); await p.wait_for_timeout(300)
+        st = await p.evaluate("JSON.parse(localStorage.getItem('jjavis-citta')||'{}')")
+        prova("le tue stazioni: una casella si riscrive e resta nel telefono", st.get("radio", [None])[0] == "Radio Capital", st.get("radio"))
         await p.click("#esci-stanza"); await p.wait_for_timeout(400)
 
         # 3e. la Palestra: il test di forma dà un livello, si salva nel telefono, e gli esercizi sono del livello
@@ -395,8 +431,9 @@ async def main():
         await p.goto(BASE + "citta.html")
         await p.wait_for_function("window.CITTA && window.CITTA.pronta && window.CITTA.fotogrammi()>3", timeout=30000)
         prova("chi ha già fatto il giro non lo rivede", await p.evaluate("document.getElementById('giro').hidden"))
-        await vai(p, "Reception")
-        prova("senza nome, la Reception manda a darne uno", "Dai un nome" in (await foglio(p))["testo"])
+        prova("chi aveva fatto il giro alla vecchia Reception non lo rifà: vale per la Torre", "Giro chiuso" in await p.inner_text("#giro") or await p.evaluate("document.getElementById('giro').hidden"))
+        await vai(p, "La Torre")
+        prova("senza nome, la Reception nella Torre manda a darne uno", "Dai un nome" in (await foglio(p))["testo"])
         prova("nessun errore JavaScript (ritorno)", not err, err[:3])
         await ctx.close()
 
