@@ -1,0 +1,77 @@
+# Hera: i collaudi della città li fa lei (JJ, 5 ottobre 2026: «tu non devi fare il collaudo, deve farli Hera,
+# scrivigli i file di collaudo dentro, è inutile che stai attiva mezz'ora ad aspettare»).
+#
+# Athena spinge sul ramo «prova». Hera fa girare collaudo/piazza.py e collaudo/citta.py (~30 min, SwiftShader).
+# Solo se sono VERDI porta «prova» su main — avanti veloce, mai sovrascrivendo: se main nel frattempo è andato
+# avanti, si ferma e lo dice — e chiede a GitHub Pages di ripubblicare. Rosso: main non si tocca, arriva la mail
+# di fallimento, e i registri restano negli artefatti della corsa. Repository pubblico: i minuti non si pagano.
+name: Hera
+
+on:
+  push:
+    branches: [prova]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+
+concurrency:
+  group: hera
+  cancel-in-progress: false
+
+jobs:
+  collaudo:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: il browser
+        run: |
+          pip install --quiet playwright==1.56.0
+          python -m playwright install --with-deps chromium
+
+      - name: la piazza (collaudo/piazza.py)
+        run: |
+          set -o pipefail
+          python -u collaudo/piazza.py citta.html 2>&1 | tee piazza.log
+          tail -1 piazza.log | grep -qx VERDE || { echo "::error::Hera: la piazza è ROSSA — $(grep -E '^  NO' piazza.log | head -3 | tr '\n' '|')"; exit 1; }
+          echo "::notice::Hera: piazza $(tail -2 piazza.log | head -1)"
+
+      - name: la città (collaudo/citta.py)
+        run: |
+          set -o pipefail
+          python -u collaudo/citta.py citta.html 2>&1 | tee citta.log
+          tail -1 citta.log | grep -qx VERDE || { echo "::error::Hera: la città è ROSSA — $(grep -E '^  NO' citta.log | head -3 | tr '\n' '|')"; exit 1; }
+          echo "::notice::Hera: città $(tail -2 citta.log | head -1)"
+
+      - name: verde → main
+        run: |
+          git fetch origin main
+          if ! git merge-base --is-ancestor origin/main HEAD; then
+            echo "::error::Hera: main è andato avanti mentre collaudavo: «prova» va rifatto sopra main, non lo sovrascrivo"; exit 1; fi
+          git push origin HEAD:main
+          echo "::notice::Hera: VERDE, $(git rev-parse --short HEAD) è su main"
+
+      - name: GitHub Pages ripubblica
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          R=$(curl -s -o /dev/null -w '%{http_code}' -X POST -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json" \
+              "https://api.github.com/repos/${{ github.repository }}/pages/builds")
+          [ "$R" = "201" ] && echo "::notice::Hera: pubblicazione chiesta a GitHub Pages" || echo "::warning::Hera: GitHub Pages ha risposto $R alla richiesta di pubblicare: se la pagina non cambia, un push qualunque su main la ripubblica"
+
+      - name: i registri
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: registri-hera
+          path: "*.log"
+          if-no-files-found: ignore

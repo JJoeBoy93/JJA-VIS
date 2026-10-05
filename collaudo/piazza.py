@@ -1,0 +1,190 @@
+"""Collaudo della piazza: in città si vedono gli altri, col soprannome sopra, e ci si scrive (JJ, 5 ottobre 2026).
+
+    python3 collaudo/piazza.py citta.html
+
+La piazza vera (worker jjavis-piazza sull'account di JJA-VIS, sorgente in JJA-VIS-Porta/piazza) qui è finta:
+Playwright prende il WebSocket e risponde lui, così si prova cosa fa la città quando arriva qualcuno, quando si
+muove, scrive, se ne va, quando la piazza è piena, non risponde o non è ancora accesa. Il server vero ha la sua
+prova (filtro compreso): JJA-VIS-Porta/piazza/collaudo.mjs, contro workerd. Nato il 5/10 (Athena).
+Verde = 0 errori JavaScript e tutte le prove passate.
+"""
+import json, asyncio, sys, os, time
+from playwright.async_api import async_playwright
+
+CITTA = os.path.abspath(sys.argv[1]); CASA = os.path.dirname(CITTA)
+BASE = "https://jjoeboy93.github.io/JJA-VIS/"
+PORTA = "https://jjavis-porta.19-jjardito93.workers.dev"
+PIAZZA = "wss://jjavis-piazza.finta.workers.dev/entra"   # finto: quello vero sta in piazza.json dopo la consegna
+CAMPI = {"skin", "vestito", "corpo", "pelle", "capelli", "capelliColore", "colore", "pantaloni"}
+BRUNO = {"skin": "classica", "vestito": "corriere", "corpo": "uomo", "pelle": 2, "capelli": "corti", "capelliColore": 0, "colore": None, "pantaloni": None}
+
+prove = []
+def prova(nome, ok, dettaglio=""):
+    prove.append(bool(ok)); print(("  ok  " if ok else "  NO  ") + nome + (f" — {dettaglio}" if dettaglio and not ok else ""))
+
+def instradatore(indirizzo):
+    async def instrada(route):
+        u = route.request.url
+        if u.startswith(BASE + "piazza.json"):
+            return await route.fulfill(body=json.dumps({"indirizzo": indirizzo}), content_type="application/json")
+        if u.startswith(BASE):
+            f = os.path.join(CASA, u[len(BASE):].split("#")[0].split("?")[0] or "index.html")
+            if os.path.isfile(f):
+                tipo = "text/html" if f.endswith(".html") else "text/javascript" if f.endswith(".js") else "application/octet-stream" if f.endswith(".glb") else "application/json"
+                return await route.fulfill(body=open(f, "rb").read(), content_type=tipo)
+            return await route.fulfill(status=404, body="")
+        if u.startswith(PORTA + "/vetrina"):
+            return await route.fulfill(body='{"attrezzi":42}', content_type="application/json", headers={"Access-Control-Allow-Origin": "https://jjoeboy93.github.io"})
+        return await route.abort()
+    return instrada
+
+class Finta:
+    """la piazza finta: modo «uno» (c'è già Bruno), «piena» (4001), «muta» (si chiude subito)"""
+    def __init__(s, modo): s.modo, s.arrivati, s.chiusi, s.linee = modo, [], 0, []
+    def __call__(s, ws):
+        s.linee.append(ws)
+        if s.modo == "piena": asyncio.ensure_future(ws.close(code=4001, reason="piena")); return
+        if s.modo == "muta": asyncio.ensure_future(ws.close(code=1011, reason="giù")); return
+        def msg(m):
+            if m == "ping": ws.send("pong"); return
+            d = json.loads(m); d["_t"] = time.monotonic(); s.arrivati.append(d)
+            if d.get("t") == "ciao":
+                ws.send(json.dumps({"t": "tu", "id": "io1", "n": d.get("n"), "max": 40, "altri": [{"id": "b1", "n": "Bruno", "a": BRUNO, "p": {"x": 3, "z": 15, "r": 0, "y": 0, "s": 0, "l": ""}}]}))
+            if d.get("t") == "di":   # la piazza rimanda il messaggio anche a chi l'ha scritto
+                ws.send(json.dumps({"t": "di", "id": "io1", "n": "Ada", "x": d["x"], "ora": 1}))
+        def chiuso(c, r): s.chiusi += 1
+        ws.on_message(msg); ws.on_close(chiuso)
+    def manda(s, d): s.linee[-1].send(json.dumps(d))
+
+async def nuova(b, modo, piccola=False, soprannome=None, indirizzo=PIAZZA):
+    ctx = await b.new_context(viewport={"width": 120, "height": 220} if piccola else {"width": 390, "height": 844}, device_scale_factor=1 if piccola else 2, is_mobile=True, has_touch=True)
+    await ctx.route("**/*", instradatore(indirizzo))
+    f = Finta(modo); await ctx.route_web_socket(PIAZZA, f)
+    if soprannome: await ctx.add_init_script(f"if(!sessionStorage.getItem('gia')){{sessionStorage.setItem('gia','1');localStorage.setItem('jjavis-citta',JSON.stringify({{soprannome:{json.dumps(soprannome)}}}));}}")
+    p = await ctx.new_page(); errori = []
+    p.on("pageerror", lambda e: errori.append(str(e)))
+    p.on("console", lambda m: errori.append(m.text) if m.type == "error" and "ERR_FAILED" not in m.text else None)
+    await p.goto(BASE + "citta.html", timeout=60000)
+    await p.wait_for_function("window.CITTA && window.CITTA.pronta && window.CITTA.fotogrammi()>3", timeout=90000)
+    return ctx, p, f, errori
+
+async def altri(p): return await p.evaluate("window.CITTA.altri()")
+async def aspetta(p, cond, ms=20000):
+    try: await p.wait_for_function(f"(()=>{{const A=window.CITTA.altri(); return {cond};}})()", timeout=ms); return True
+    except Exception: return False
+
+async def main():
+    async with async_playwright() as pw:
+        b = await pw.chromium.launch(executable_path=os.environ.get("CHROMIUM") or None, args=["--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--ignore-gpu-blocklist"])
+
+        # 1. si entra col soprannome
+        ctx, p, f, err = await nuova(b, "uno")
+        await p.wait_for_timeout(1500)
+        A = await altri(p)
+        prova("senza soprannome non si entra in piazza: il tasto lo chiede, e nessuna linea si apre", A["stato"] == "nome" and "soprannome" in A["chip"] and not f.linee, (A, len(f.linee)))
+        await p.click("#altri"); await p.wait_for_selector("#piazza-soprannome")
+        prova("toccandolo si apre la piazza, che chiede un soprannome e non il nome", "Non il tuo nome vero" in await p.inner_text("#piazza"))
+        await p.fill("#piazza-soprannome", "ab"); await p.click("#piazza button:has-text('Entra in piazza')")
+        prova("un soprannome troppo corto non va, e lo dice", "non va" in await p.inner_text("#esito-piazza") and not f.linee)
+        await p.fill("#piazza-soprannome", "  Ada  "); await p.click("#piazza button:has-text('Entra in piazza')")
+        prova("col soprannome si entra", await aspetta(p, "A.stato==='dentro'"), await altri(p))
+        prova("il soprannome resta nel telefono", await p.evaluate("JSON.parse(localStorage.getItem('jjavis-citta')).soprannome") == "Ada")
+        ciao = next((m for m in f.arrivati if m.get("t") == "ciao"), None)
+        prova("al saluto passano il soprannome (ripulito), l'aspetto (otto campi, niente nome vero) e dove sei: in piazza",
+              ciao and ciao["n"] == "Ada" and set(ciao["a"]) == CAMPI and ciao["p"]["l"] == "" and abs(ciao["p"]["z"] - 18) < 0.5, ciao)
+        A = await altri(p); v = A["visti"]
+        prova("il tasto dice quanti siete", "siete 2" in A["chip"], A["chip"])
+        prova("chi c'era già si vede, in città, dove sta", len(v) == 1 and v[0]["dentro"] == "citta" and abs(v[0]["x"] - 3) < 0.3 and abs(v[0]["z"] - 15) < 0.3, v)
+        prova("sopra la testa ha il suo soprannome, ai piedi l'anello", v and v[0]["n"] == "Bruno" and v[0]["cartello"] and v[0]["anello"], v)
+        prova("nel pannello si vede chi c'è", "Bruno" in await p.inner_text("#piazza-gente"))
+        # la chat
+        await p.fill("#piazza-scrivi", "Ciao a tutti"); await p.click("#piazza-manda"); await p.wait_for_timeout(600)
+        di = [m for m in f.arrivati if m.get("t") == "di"]
+        prova("scrivendo, il messaggio va alla piazza", di and di[-1]["x"] == "Ciao a tutti", di[-1:])
+        prova("e torna nella chat come tuo", (await altri(p))["chat"][-1:] == [{"n": "Ada", "x": "Ciao a tutti", "mio": True}], (await altri(p))["chat"])
+        await p.click("#piazza-scrivi"); await p.keyboard.down("w"); await p.wait_for_timeout(1500); await p.keyboard.up("w"); await p.wait_for_timeout(300)   # tenuto premuto: camminerebbe un metro e più
+        prova("scrivendo «w» nella chat non si cammina", await p.evaluate("window.CITTA.dove()") == {"x": 0, "z": 18}, await p.evaluate("window.CITTA.dove()"))
+        await p.fill("#piazza-scrivi", "")
+        f.manda({"t": "di", "id": "b1", "n": "Bruno", "x": "Ciao Ada, ci vediamo al Café?", "ora": 2})
+        prova("un messaggio di Bruno arriva nella chat", await aspetta(p, "A.chat.some(c=>c.n==='Bruno'&&!c.mio)", 5000), (await altri(p))["chat"])
+        prova("e gli compare il fumetto sopra la testa", await aspetta(p, "A.visti[0].fumetto===true", 3000))
+        prova("il fumetto se ne va da solo (7 s), resta il soprannome", await aspetta(p, "A.visti[0].fumetto===false&&A.visti[0].cartello", 15000))
+        await p.click("#piazza-gente button:has-text('Bruno')")
+        f.manda({"t": "di", "id": "b1", "n": "Bruno", "x": "messaggio da non leggere", "ora": 3}); await p.wait_for_timeout(800)
+        A = await altri(p)
+        prova("toccando il suo soprannome lo silenzi: i suoi messaggi non arrivano, niente fumetto", A["visti"][0]["silenziato"] and not any("non leggere" in c["x"] for c in A["chat"]) and not A["visti"][0]["fumetto"], A)
+        await p.click("#piazza-gente button:has-text('Bruno')")
+        await p.click("#chiudi-piazza")
+        f.manda({"t": "di", "id": "b1", "n": "Bruno", "x": "ci sei?", "ora": 4})
+        prova("a pannello chiuso il tasto conta i messaggi nuovi", await aspetta(p, "A.chip.includes('💬 1')", 5000), (await altri(p))["chip"])
+        await p.click("#altri"); await p.wait_for_timeout(300)
+        prova("riaprendo, i nuovi si azzerano", "💬" not in (await altri(p))["chip"], (await altri(p))["chip"])
+        await p.click("#chiudi-piazza")
+        # Bruno cammina, si siede
+        f.manda({"t": "qui", "id": "b1", "p": {"x": 6, "z": 12, "r": 1, "y": 0, "s": 0, "l": ""}})
+        prova("si muove: arriva dove dice la piazza, camminando", await aspetta(p, "Math.abs(A.visti[0].x-6)<0.3&&Math.abs(A.visti[0].z-12)<0.3"), (await altri(p))["visti"])
+        f.manda({"t": "qui", "id": "b1", "p": {"x": 6, "z": 12, "r": 1, "y": -0.38, "s": 2, "l": ""}})
+        prova("si siede", await aspetta(p, "A.visti[0].seduto===true", 5000))
+        f.manda({"t": "qui", "id": "b1", "p": {"x": 1e999, "z": "x"}}); await p.wait_for_timeout(500)
+        prova("una posizione assurda non lo sposta", abs((await altri(p))["visti"][0]["x"] - 6) < 0.3)
+        n0 = len([m for m in f.arrivati if m.get("t") == "qui"])
+        await p.keyboard.down("w"); await p.wait_for_timeout(2500); await p.keyboard.up("w"); await p.wait_for_timeout(600)
+        qui = [m for m in f.arrivati if m.get("t") == "qui"][n0:]
+        prova("camminando, la tua posizione va alla piazza", len(qui) >= 2 and qui[-1]["p"]["z"] < 17.5, qui[-2:])
+        await p.wait_for_timeout(1500); n1 = len(f.arrivati); await p.wait_for_timeout(1500)
+        prova("da fermo non manda niente", len(f.arrivati) == n1, f.arrivati[n1:])
+        f.manda({"t": "arriva", "id": "b2", "n": "Cleo", "a": {**BRUNO, "skin": "cavaliere"}, "p": {"x": -3, "z": 15, "r": 0, "y": 0, "s": 0, "l": ""}})
+        prova("arriva un'altra: siete 3", await aspetta(p, "A.visti.length===2&&A.chip.includes('siete 3')", 5000), await altri(p))
+        prova("ha la sua skin (il Cavaliere), e sopra il suo soprannome", await aspetta(p, "A.visti.some(x=>x.id==='b2'&&x.skin==='cavaliere'&&x.n==='Cleo'&&x.cartello)", 60000), await altri(p))
+        f.manda({"t": "qui", "id": "b2", "p": {"x": 0, "z": 0, "r": 0, "y": 0, "s": 0, "l": "sartoria"}})
+        prova("chi entra in un palazzo sparisce dalla città", await aspetta(p, "A.visti.some(x=>x.id==='b2'&&!x.inScena)", 5000), await altri(p))
+        f.manda({"t": "va", "id": "b1"})
+        prova("chi se ne va sparisce, e siete di nuovo 2", await aspetta(p, "A.visti.length===1&&A.visti[0].id==='b2'&&A.chip.includes('siete 2')", 5000), await altri(p))
+        # da solo, e di nuovo in piazza (dal pannello)
+        await p.click("#altri"); await p.click("#piazza button:has-text('Stai da solo')"); await p.wait_for_timeout(800)
+        A = await altri(p)
+        prova("«Stai da solo»: la linea si chiude, gli altri spariscono, e resta salvato", A["stato"] == "solo" and not A["visti"] and f.chiusi >= 1
+              and await p.evaluate("JSON.parse(localStorage.getItem('jjavis-citta')).daSolo===true"), A)
+        await p.click("#piazza button:has-text('Torna in piazza')")
+        prova("«Torna in piazza» rientra e risaluta", await aspetta(p, "A.stato==='dentro'", 10000) and len([m for m in f.arrivati if m.get("t") == "ciao"]) == 2)
+        # la piazza rifiuta il soprannome: si torna a sceglierlo
+        f.manda({"t": "no", "perche": "soprannome"})
+        prova("se la piazza rifiuta il soprannome, lo dice e lo richiede", await aspetta(p, "A.stato==='nome'", 5000) and await p.is_visible("#piazza-soprannome")
+              and "non va" in await p.inner_text("#esito-piazza"), await altri(p))
+        prova("nessun errore JavaScript (piazza)", not err, err[:3])
+        await ctx.close()
+
+        # 1b. il freno: in una finestra minuscola SwiftShader disegna abbastanza fotogrammi perché il freno si veda
+        ctx, p, f, err = await nuova(b, "uno", piccola=True, soprannome="Ada")
+        await aspetta(p, "A.stato==='dentro'")
+        fa = await p.evaluate("window.CITTA.fotogrammi()"); n0 = len(f.arrivati)
+        await p.keyboard.down("w"); await p.wait_for_timeout(3000); await p.keyboard.up("w"); await p.wait_for_timeout(300)
+        fps = (await p.evaluate("window.CITTA.fotogrammi()") - fa) / 3.3
+        qui = [m for m in f.arrivati[n0:] if m.get("t") == "qui"]
+        gap = min((b_["_t"] - a_["_t"] for a_, b_ in zip(qui, qui[1:])), default=None)
+        if fps > 6: prova(f"al massimo 4 posizioni al secondo ({fps:.0f} fotogrammi/s, {len(qui)} posizioni, intervallo minimo {gap:.2f} s)", len(qui) >= 3 and gap >= 0.2, (len(qui), gap))
+        else: print(f"  --  il freno delle posizioni NON è verificato: {fps:.1f} fotogrammi/s anche nella finestra piccola")
+        await ctx.close()
+
+        # 2. la piazza è piena
+        ctx, p, f, err = await nuova(b, "piena", soprannome="Ada")
+        prova("piazza piena: lo dice, e la città resta tua", await aspetta(p, "A.stato==='piena'&&A.chip.includes('piena')", 15000), await altri(p))
+        await ctx.close()
+
+        # 3. la piazza non risponde: un guasto si dice, non si tace
+        ctx, p, f, err = await nuova(b, "muta", soprannome="Ada")
+        prova("piazza giù: «da solo · la piazza non risponde»", await aspetta(p, "A.stato==='giu'&&A.chip.includes('non risponde')", 15000), await altri(p))
+        fa = await p.evaluate("window.CITTA.fotogrammi()"); await p.wait_for_timeout(4000)
+        prova("e la città continua a girare", await p.evaluate("window.CITTA.fotogrammi()") > fa)
+        prova("riprova da sola (dopo 2 s, poi 4, 8… fino a un minuto)", len(f.linee) >= 2, len(f.linee))
+        prova("nessun errore JavaScript (piazza giù)", not err, err[:3])
+        await ctx.close()
+
+        # 4. la piazza non è ancora accesa (piazza.json senza indirizzo): lo dice, e non prova a collegarsi
+        ctx, p, f, err = await nuova(b, "uno", soprannome="Ada", indirizzo=None)
+        prova("piazza non ancora accesa: «la piazza non è ancora accesa», nessuna linea", await aspetta(p, "A.stato==='chiusa'", 15000) and not f.linee, await altri(p))
+        await ctx.close()
+        await b.close()
+    print(f"\n{sum(prove)}/{len(prove)} prove"); print("VERDE" if all(prove) else "ROSSO")
+
+asyncio.run(main())

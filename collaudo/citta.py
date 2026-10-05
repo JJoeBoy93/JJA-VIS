@@ -62,9 +62,17 @@ async def instrada(route):
                                    headers={"Access-Control-Allow-Origin": "https://jjoeboy93.github.io"})
     return await route.abort()
 
+PIAZZA = "wss://jjavis-piazza.19-jjardito93.workers.dev/entra"
+def piazza_vuota(ws):
+    def msg(m):
+        if m == "ping": ws.send("pong")
+        elif json.loads(m).get("t") == "ciao": ws.send(json.dumps({"t": "tu", "id": "io1", "max": 40, "altri": []}))
+    ws.on_message(msg)
+
 async def nuova(b, profilo=None, citta=None, webgl=True):
     ctx = await b.new_context(viewport={"width": 390, "height": 844}, device_scale_factor=2, is_mobile=True, has_touch=True)
     await ctx.route("**/*", instrada)
+    await ctx.route_web_socket(PIAZZA, piazza_vuota)   # la piazza vera non si tocca: qui in città ci sei solo tu (gli altri: collaudo/piazza.py)
     script = ""
     if profilo is not None: script += f"localStorage.setItem('jjavis-io', {json.dumps(json.dumps(profilo))});"
     if citta is not None: script += f"localStorage.setItem('jjavis-citta', {json.dumps(json.dumps(citta))});"
