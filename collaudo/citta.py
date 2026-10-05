@@ -30,6 +30,8 @@ richieste = []   # tutto quello che la pagina chiede: il ristorante non deve chi
 async def instrada(route):
     u = route.request.url
     richieste.append(u)
+    if u.startswith(BASE + "insieme.json"):   # mai il server vero dal collaudo: un indirizzo finto, preso dal finto qui sotto
+        return await route.fulfill(body=json.dumps({"indirizzo": INSIEME}), content_type="application/json")
     if u.startswith(BASE):
         nome = u[len(BASE):].split("#")[0].split("?")[0] or "index.html"
         f = os.path.join(CASA, nome)
