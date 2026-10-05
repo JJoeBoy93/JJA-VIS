@@ -98,26 +98,26 @@ body.in-sartoria #foglio{max-height:56vh} /* sopra si deve vedere l'avatar inter
 .gettoni b{color:var(--oro);font-weight:700}
 .altri{display:block;margin-top:4px;padding:0;border:0;background:none;font:400 12px/1.3 var(--f-mono);color:var(--tenue);text-align:left;cursor:pointer}
 .altri[data-stato="dentro"]{color:var(--accento)}
-#piazza{position:fixed;left:0;right:0;bottom:0;top:18vh;z-index:41;display:flex;flex-direction:column;padding:14px 14px calc(env(safe-area-inset-bottom,0px) + 12px);
+#insieme{position:fixed;left:0;right:0;bottom:0;top:18vh;z-index:41;display:flex;flex-direction:column;padding:14px 14px calc(env(safe-area-inset-bottom,0px) + 12px);
   border-bottom:0;background:var(--panel);-webkit-user-select:text;user-select:text}
-#piazza[hidden]{display:none}
-#piazza .testa-nova{display:flex;align-items:center;gap:10px;margin-bottom:8px}
-#piazza .testa-nova b{font:800 22px/1.1 var(--f-titoli);flex:1}
-#piazza .testa-nova small{display:block;font:400 12px/1.3 var(--f-mono);color:var(--tenue);letter-spacing:.06em}
-#piazza .riga-p{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:4px 0;font-size:14px}
-#piazza .riga-p input{flex:1;min-width:0;font:500 16px/1.3 var(--f-testo);color:var(--testo);background:var(--input);border:1px solid var(--bordo);padding:10px}
-#piazza .manda{font:800 15px/1 var(--f-titoli);color:var(--bg);background:var(--accento);border:0;padding:12px 14px;cursor:pointer}
-#piazza .seconda{font:600 13px/1 var(--f-mono);color:var(--accento);background:none;border:1px solid var(--bordo);padding:8px 10px;cursor:pointer}
-#piazza .nota{font:400 12px/1.4 var(--f-mono);color:var(--tenue);margin:4px 0}
-#piazza-gente{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0}
-#piazza-gente .tipo{font:500 13px/1 var(--f-testo);border:1px solid var(--bordo);padding:6px 8px;background:none;color:var(--testo);cursor:pointer}
-#piazza-gente .tipo[aria-pressed="true"]{opacity:.45;text-decoration:line-through}
-#piazza-chat{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column;gap:6px;padding:4px 2px;touch-action:pan-y;border-top:1px solid var(--bordo);margin-top:6px}
-#piazza-chat .msg{font-size:15px;line-height:1.4;word-break:break-word}
-#piazza-chat .msg b{color:var(--accento);margin-right:6px}
-#piazza-chat .msg.mio b{color:var(--oro)}
-#esito-piazza{font:400 12px/1.4 var(--f-mono);color:var(--oro);min-height:1.2em}
-body.con-piazza #joy,body.con-piazza #entra,body.con-piazza #vai{opacity:0;pointer-events:none}
+#insieme[hidden]{display:none}
+#insieme .testa-nova{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+#insieme .testa-nova b{font:800 22px/1.1 var(--f-titoli);flex:1}
+#insieme .testa-nova small{display:block;font:400 12px/1.3 var(--f-mono);color:var(--tenue);letter-spacing:.06em}
+#insieme .riga-p{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:4px 0;font-size:14px}
+#insieme .riga-p input{flex:1;min-width:0;font:500 16px/1.3 var(--f-testo);color:var(--testo);background:var(--input);border:1px solid var(--bordo);padding:10px}
+#insieme .manda{font:800 15px/1 var(--f-titoli);color:var(--bg);background:var(--accento);border:0;padding:12px 14px;cursor:pointer}
+#insieme .seconda{font:600 13px/1 var(--f-mono);color:var(--accento);background:none;border:1px solid var(--bordo);padding:8px 10px;cursor:pointer}
+#insieme .nota{font:400 12px/1.4 var(--f-mono);color:var(--tenue);margin:4px 0}
+#insieme-gente{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0}
+#insieme-gente .tipo{font:500 13px/1 var(--f-testo);border:1px solid var(--bordo);padding:6px 8px;background:none;color:var(--testo);cursor:pointer}
+#insieme-gente .tipo[aria-pressed="true"]{opacity:.45;text-decoration:line-through}
+#insieme-chat{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column;gap:6px;padding:4px 2px;touch-action:pan-y;border-top:1px solid var(--bordo);margin-top:6px}
+#insieme-chat .msg{font-size:15px;line-height:1.4;word-break:break-word}
+#insieme-chat .msg b{color:var(--accento);margin-right:6px}
+#insieme-chat .msg.mio b{color:var(--oro)}
+#esito-insieme{font:400 12px/1.4 var(--f-mono);color:var(--oro);min-height:1.2em}
+body.con-insieme #joy,body.con-insieme #entra,body.con-insieme #vai{opacity:0;pointer-events:none}
 .vassoio .riga{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:8px 0;font-size:16px}
 .barra-twitch .cose-tavolo{display:flex;flex-wrap:wrap;gap:6px}
 .barra-twitch .cose-tavolo button{font:600 13px/1 var(--f-testo);color:#efeff1;background:#26262c;border:1px solid #3a3a44;padding:8px 10px;cursor:pointer}
@@ -204,7 +204,7 @@ body.in-stanza.con-carta #joy,body.in-stanza.con-carta #entra{opacity:0;pointer-
 #nova .testa-nova{display:flex;align-items:center;gap:10px;margin-bottom:10px}
 #nova .testa-nova b{font:800 22px/1.1 var(--f-titoli);flex:1}
 #nova .testa-nova small{display:block;font:400 12px/1.3 var(--f-mono);color:var(--tenue);letter-spacing:.06em}
-#chiudi-nova,#chiudi-piazza{width:42px;height:42px;font:400 26px/1 var(--f-testo);color:var(--testo);background:transparent;border:1px solid var(--bordo);cursor:pointer}
+#chiudi-nova,#chiudi-insieme{width:42px;height:42px;font:400 26px/1 var(--f-testo);color:var(--testo);background:transparent;border:1px solid var(--bordo);cursor:pointer}
 #nova-chat{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column;gap:8px;padding:4px 2px;touch-action:pan-y}
 #nova .bolla{max-width:86%;padding:10px 12px;font-size:16px;line-height:1.45;border:1px solid var(--bordo);white-space:pre-wrap}
 #nova .bolla.tu{align-self:flex-end;background:var(--utente,#0D2A3E)}
@@ -262,7 +262,7 @@ body.con-nova #joy,body.con-nova #entra,body.con-nova #vai{opacity:0;pointer-eve
     <div class="titolo">La città di JJA-VIS</div>
     <div class="sotto" id="numeri">il tuo assistente, in carne e palazzi</div>
     <div class="gettoni" id="gettoni" title="I tuoi gettoni"><img id="gettone-img" alt=""><b id="gettoni-n">100</b> gettoni</div>
-    <button class="altri" id="altri" type="button" title="La piazza: chi è in città con te, e la chat">👥 la piazza…</button>
+    <button class="altri" id="altri" type="button" title="Gli altri: chi è in città con te, e la chat">👥 gli altri…</button>
     <button id="giro" type="button" aria-label="Il tuo primo giro"></button>
   </div>
   <div class="pulsanti-hud"><button class="pulsante apri-nova" type="button" id="apri-nova">💬 <span class="nome-nova">Nova</span><i class="nuovo" hidden></i></button>
@@ -292,12 +292,12 @@ body.con-nova #joy,body.con-nova #entra,body.con-nova #vai{opacity:0;pointer-eve
   <div id="esito-nova" role="status"></div>
 </section>
 
-<section id="piazza" class="cornice" hidden role="dialog" aria-labelledby="piazza-titolo">
-  <div class="testa-nova"><div style="flex:1"><b id="piazza-titolo">La piazza</b><small>chi è in città, e cosa si dice</small></div><button id="chiudi-piazza" type="button" aria-label="Chiudi la piazza">×</button></div>
-  <div id="piazza-corpo"></div>
-  <div id="piazza-chat" aria-live="polite"></div>
-  <div class="riga-p" id="piazza-scrivi-riga"><input id="piazza-scrivi" maxlength="200" autocomplete="off" placeholder="Scrivi a chi c'è…" aria-label="Il tuo messaggio in piazza"><button class="manda" id="piazza-manda" type="button">Invia</button></div>
-  <div id="esito-piazza" role="status"></div>
+<section id="insieme" class="cornice" hidden role="dialog" aria-labelledby="insieme-titolo">
+  <div class="testa-nova"><div style="flex:1"><b id="insieme-titolo">Gli altri in città</b><small>chi c'è, e cosa si dice</small></div><button id="chiudi-insieme" type="button" aria-label="Chiudi">×</button></div>
+  <div id="insieme-corpo"></div>
+  <div id="insieme-chat" aria-live="polite"></div>
+  <div class="riga-p" id="insieme-scrivi-riga"><input id="insieme-scrivi" maxlength="200" autocomplete="off" placeholder="Scrivi a chi c'è…" aria-label="Il tuo messaggio a chi c'è"><button class="manda" id="insieme-manda" type="button">Invia</button></div>
+  <div id="esito-insieme" role="status"></div>
 </section>
 
 <div id="carica" role="status" aria-live="polite">
@@ -335,9 +335,10 @@ import * as SkeletonUtils from "./lib/addons/utils/SkeletonUtils.js";
 const $=id=>document.getElementById(id);
 const PAGINA="index.html";
 const PORTA="https://jjavis-porta.19-jjardito93.workers.dev";
-// la piazza: chi è in città vede gli altri e ci scrive (JJ, 5/10). Worker jjavis-piazza sull'account di JJA-VIS, sorgente in
-// JJA-VIS-Porta/piazza. L'indirizzo sta in piazza.json, scritto dopo la consegna: finché è vuoto la città lo dice
-const PIAZZA_JSON="piazza.json";
+// la città insieme: chi è in città vede gli altri e ci scrive (JJ, 5/10: «non è una piazza... è la città»). Worker jjavis-citta
+// sull'account di JJA-VIS, sorgente in JJA-VIS-Porta/citta. L'indirizzo sta in insieme.json, scritto dopo la consegna: finché è
+// vuoto la città lo dice
+const INSIEME_JSON="insieme.json";
 
 // Il profilo della pagina (nome dell'assistente, mestiere): lo si LEGGE soltanto.
 let io={}; try{ io=JSON.parse(localStorage.getItem("jjavis-io")||"{}")||{}; }catch(_){ io={}; }
@@ -611,8 +612,8 @@ const LUOGHI={
         "Il nome che mi dai resta nel tuo telefono.",
         "Il mestiere e le risposte servono solo a capire cosa costruire: non vanno a nessun altro.",
         "Il tuo avatar, i tuoi vestiti e il tuo test di forma della città restano in questo telefono.",
-        "In piazza gli altri vedono il tuo avatar, dove cammini e il soprannome che scegli tu (mai il tuo nome), finché sei dentro: nessuno lo conserva.",
-        "La chat della piazza non si salva: i messaggi li legge chi c'è in quel momento. Niente link, numeri di telefono, parolacce. Dal tasto 👥 in alto stai da solo."]))]}],
+        "In città gli altri vedono il tuo avatar, dove cammini e il soprannome che scegli tu (mai il tuo nome), finché sei dentro: nessuno lo conserva.",
+        "La chat della città non si salva: i messaggi li legge chi c'è in quel momento. Niente link, numeri di telefono, parolacce. Dal tasto 👥 in alto stai da solo."]))]}],
     fine(){ const n=nomeAssistente(); return [AZIONI(parlaQui(`Parla con ${n}`,""))]; }},
   sartoria:{nome:"Sartoria",ic:"🧵",breve:"vesti il tuo avatar",
     testa:()=>TESTA("Il tuo avatar","Sartoria","Dimmi che lavoro fai: serve a me, per capire cosa costruirti. Poi vestiti come vuoi: non deve per forza essere la divisa del tuo lavoro."),
@@ -2649,8 +2650,8 @@ async function costruisci(){
   }
   // ══ GLI ALTRI ══ — JJ, 5/10: «bisogna fare in modo che si possa entrare nella città insieme ad altri, serve un server».
   // Poi: «farei vedere il nickname sopra all'avatar, non il nome personale, e la chat tra persone indipendente da quella
-  // di Twitch». La piazza riceve l'aspetto dell'avatar, dove cammini, il soprannome e i messaggi, e li passa a chi c'è.
-  // Senza soprannome non si entra: entrare è una scelta. Se la piazza non risponde la città resta tua, e il tasto 👥 lo dice.
+  // di Twitch». Il server della città (jjavis-citta) riceve l'aspetto dell'avatar, dove cammini, il soprannome e i messaggi, e li passa a chi c'è.
+  // Senza soprannome non si entra: entrare è una scelta. Se il server non risponde la città resta tua, e il tasto 👥 lo dice.
   const altri=new Map(), chipAltri=$("altri"), silenziati=new Set(), chat=[];
   const PZ={ws:null, stato:"spenta", ritardo:2000, timer:null, ping:null, id:null, t:0, ul:null, aspetto:"", ultimo:performance.now(), url:undefined, nuovi:0, aperta:false, errore:""};
   const ANELLO_G=new THREE.RingGeometry(0.42,0.52,28), ANELLO_M=new THREE.MeshBasicMaterial({color:0x00B4D8,transparent:true,opacity:0.75,side:THREE.DoubleSide});
@@ -2664,11 +2665,11 @@ async function costruisci(){
     return {x:+m.position.x.toFixed(2), z:+m.position.z.toFixed(2), r:+Math.atan2(Math.sin(r),Math.cos(r)).toFixed(2), y:+m.position.y.toFixed(2),
       s:(st?alBar:seduto)?2:0, l:st?String(stanzaAperta||""):""}; }
   function segna(stato){ PZ.stato=stato; const n=altri.size+1; chipAltri.dataset.stato=stato;
-    const testo=({entro:"👥 entro in piazza…", dentro:n>1?`👥 in città siete ${n}`:"👤 in città ci sei solo tu",
-      giu:"👤 da solo · la piazza non risponde", persa:"👤 da solo · linea persa, riprovo", piena:"👤 da solo · la piazza è piena, riprovo",
-      solo:"👤 da solo · tocca per la piazza", spenta:"👤 da solo", nome:"👥 scegli un soprannome per la piazza", chiusa:"👤 da solo · la piazza non è ancora accesa"})[stato]||"👤 da solo";
+    const testo=({entro:"👥 mi collego agli altri…", dentro:n>1?`👥 in città siete ${n}`:"👤 in città ci sei solo tu",
+      giu:"👤 da solo · il collegamento non risponde", persa:"👤 da solo · linea persa, riprovo", piena:"👤 da solo · la città è piena, riprovo",
+      solo:"👤 da solo · tocca per gli altri", spenta:"👤 da solo", nome:"👥 scegli un soprannome per vedere gli altri", chiusa:"👤 da solo · il collegamento non è ancora acceso"})[stato]||"👤 da solo";
     chipAltri.textContent=testo+(PZ.nuovi&&!PZ.aperta?` · 💬 ${PZ.nuovi}`:"");
-    if(PZ.aperta) disegnaPiazza(); }
+    if(PZ.aperta) disegnaInsieme(); }
   function manda(o){ if(PZ.ws&&PZ.ws.readyState===1){ try{ PZ.ws.send(JSON.stringify(o)); return true; }catch(_){} } return false; }
 
   // ── il soprannome sopra la testa, e il fumetto quando scrive ──
@@ -2705,13 +2706,13 @@ async function costruisci(){
   function togli(id){ const r=altri.get(id); if(!r) return; if(r.m&&r.m.parent) r.m.parent.remove(r.m); if(r.cartello&&r.cartello.material.map) r.cartello.material.map.dispose(); altri.delete(id); }
   function svuota(){ [...altri.keys()].forEach(togli); }
   const PERCHE={soprannome:"Questo soprannome non va: 3–16 lettere o numeri, niente parolacce né numeri di telefono.", piano:"Un attimo: un messaggio alla volta.",
-    link:"I link in piazza non passano.", numero:"I numeri di telefono in piazza non passano: i dati personali tienili per te.", parole:"Quel messaggio non passa: niente parolacce né offese.",
+    link:"I link in chat non passano.", numero:"I numeri di telefono in chat non passano: i dati personali tienili per te.", parole:"Quel messaggio non passa: niente parolacce né offese.",
     lungo:"Troppo lungo: al massimo 200 caratteri.", vuoto:"", zitto:"Per un po' non puoi scrivere: troppe parole pesanti."};
   function ricevi(m){
     if(m.t==="tu"){ PZ.id=m.id; svuota(); (m.altri||[]).forEach(aggiungi); PZ.errore=""; segna("dentro"); return; }
     if(m.t==="arriva"){ aggiungi(m); segna("dentro"); }
     else if(m.t==="qui"){ const r=altri.get(m.id); if(r&&posOk(m.p)) r.p=normale(m.p); }
-    else if(m.t==="aspetto"){ const r=altri.get(m.id); if(r){ r.a=m.a||r.a; r.n=nomeDi(m)||r.n; vestiAltro(r); if(PZ.aperta) disegnaPiazza(); } }
+    else if(m.t==="aspetto"){ const r=altri.get(m.id); if(r){ r.a=m.a||r.a; r.n=nomeDi(m)||r.n; vestiAltro(r); if(PZ.aperta) disegnaInsieme(); } }
     else if(m.t==="va"){ togli(m.id); segna("dentro"); }
     else if(m.t==="di"&&typeof m.x==="string"){ const mio=m.id===PZ.id, r=altri.get(m.id);
       if(!mio&&silenziati.has(m.id)) return;
@@ -2719,72 +2720,72 @@ async function costruisci(){
       if(r){ r.fumetto=m.x.slice(0,200); r.fumettoFino=performance.now()+7000; cartello(r); }
       if(!PZ.aperta&&!mio) PZ.nuovi++; segna(PZ.stato); if(PZ.aperta) disegnaChat(); }
     else if(m.t==="no"){ PZ.errore=PERCHE[m.perche]??""; 
-      if(m.perche==="soprannome"){ delete citta.soprannome; salva(); esciDallaPiazza("nome"); apriPiazza(); }
-      const e=$("esito-piazza"); if(e) e.textContent=PZ.errore; } }
+      if(m.perche==="soprannome"){ delete citta.soprannome; salva(); scollegati("nome"); apriInsieme(); }
+      const e=$("esito-insieme"); if(e) e.textContent=PZ.errore; } }
 
   async function indirizzo(){ if(PZ.url!==undefined) return PZ.url;
-    try{ const r=await fetch(PIAZZA_JSON,{cache:"no-store"}); const d=r.ok?await r.json():{}; PZ.url=(typeof d.indirizzo==="string"&&/^wss:\/\//.test(d.indirizzo))?d.indirizzo:null; }
+    try{ const r=await fetch(INSIEME_JSON,{cache:"no-store"}); const d=r.ok?await r.json():{}; PZ.url=(typeof d.indirizzo==="string"&&/^wss:\/\//.test(d.indirizzo))?d.indirizzo:null; }
     catch(_){ return null; }   // non lo so: riprovo la prossima volta
     return PZ.url; }
-  async function entraInPiazza(){ clearTimeout(PZ.timer);
+  async function collegati(){ clearTimeout(PZ.timer);
     if(!SOPRANNOME_OK(citta.soprannome)){ segna("nome"); return; }
     if(citta.daSolo){ segna("solo"); return; } if(document.hidden||PZ.ws) return;
     if(typeof WebSocket==="undefined"){ segna("giu"); return; }
-    const url=await indirizzo(); if(url===null&&PZ.url===null){ segna("chiusa"); return; } if(!url){ segna("giu"); PZ.timer=setTimeout(entraInPiazza,PZ.ritardo); return; }
+    const url=await indirizzo(); if(url===null&&PZ.url===null){ segna("chiusa"); return; } if(!url){ segna("giu"); PZ.timer=setTimeout(collegati,PZ.ritardo); return; }
     if(PZ.ws||citta.daSolo||document.hidden) return;
     let ws; try{ ws=new WebSocket(url); }catch(_){ segna("giu"); return; }
     PZ.ws=ws; segna("entro");
     ws.onopen=()=>{ PZ.ritardo=2000; PZ.aspetto=JSON.stringify([aspettoMio(),citta.soprannome]); PZ.ul=doveSono(); ws.send(JSON.stringify({t:"ciao",n:citta.soprannome.trim(),a:aspettoMio(),p:PZ.ul}));
-      PZ.ping=setInterval(()=>{ if(ws.readyState===1) ws.send("ping"); },30000); };   // «pong» lo risponde Cloudflare: la piazza non si sveglia
+      PZ.ping=setInterval(()=>{ if(ws.readyState===1) ws.send("ping"); },30000); };   // «pong» lo risponde Cloudflare: il server non si sveglia
     ws.onmessage=e=>{ if(e.data==="pong") return; let m; try{ m=JSON.parse(e.data); }catch(_){ return; } if(m&&typeof m==="object") ricevi(m); };
     ws.onerror=()=>{};
     ws.onclose=e=>{ clearInterval(PZ.ping); const eraDentro=PZ.stato==="dentro"; if(PZ.ws!==ws) return; PZ.ws=null; PZ.id=null; svuota();
       if(!SOPRANNOME_OK(citta.soprannome)){ segna("nome"); return; }
       if(citta.daSolo){ segna("solo"); return; }
       if(document.hidden){ segna("spenta"); return; }
-      if(e.code===4001){ segna("piena"); PZ.timer=setTimeout(entraInPiazza,60000); return; }
-      segna(eraDentro?"persa":"giu"); PZ.timer=setTimeout(entraInPiazza,PZ.ritardo); PZ.ritardo=Math.min(60000,PZ.ritardo*2); }; }
-  function esciDallaPiazza(stato){ clearTimeout(PZ.timer); const ws=PZ.ws; PZ.ws=null; if(ws){ clearInterval(PZ.ping); try{ ws.close(1000,"esco"); }catch(_){} } PZ.id=null; svuota(); segna(stato); }
+      if(e.code===4001){ segna("piena"); PZ.timer=setTimeout(collegati,60000); return; }
+      segna(eraDentro?"persa":"giu"); PZ.timer=setTimeout(collegati,PZ.ritardo); PZ.ritardo=Math.min(60000,PZ.ritardo*2); }; }
+  function scollegati(stato){ clearTimeout(PZ.timer); const ws=PZ.ws; PZ.ws=null; if(ws){ clearInterval(PZ.ping); try{ ws.close(1000,"esco"); }catch(_){} } PZ.id=null; svuota(); segna(stato); }
 
-  // ── il pannello della piazza: soprannome, chi c'è, la chat ──
-  function disegnaChat(){ const box=$("piazza-chat"); box.textContent="";
-    if(!chat.length) box.append(el("p",{class:"nota",testo:PZ.stato==="dentro"?"Ancora nessun messaggio. Quelli scritti prima che entrassi non li vedi: la piazza non li tiene.":"La chat c'è quando sei in piazza."}));
+  // ── il pannello degli altri: soprannome, chi c'è, la chat ──
+  function disegnaChat(){ const box=$("insieme-chat"); box.textContent="";
+    if(!chat.length) box.append(el("p",{class:"nota",testo:PZ.stato==="dentro"?"Ancora nessun messaggio. Quelli scritti prima che arrivassi non li vedi: non si salvano.":"La chat c'è quando sei con gli altri."}));
     chat.forEach(c=>{ if(!c.mio&&silenziati.has(c.id)) return; box.append(el("div",{class:"msg"+(c.mio?" mio":"")}, el("b",{testo:c.n||"…"}), el("span",{testo:c.x}))); });
     box.scrollTop=box.scrollHeight; }
-  function disegnaPiazza(){ const corpo=$("piazza-corpo"); corpo.textContent=""; const dentro=PZ.stato==="dentro";
+  function disegnaInsieme(){ const corpo=$("insieme-corpo"); corpo.textContent=""; const dentro=PZ.stato==="dentro";
     const s=citta.soprannome, cambia=!SOPRANNOME_OK(s)||PZ.cambia;
-    if(cambia){ const inp=el("input",{id:"piazza-soprannome",maxlength:"16",autocomplete:"off",placeholder:"Il tuo soprannome","aria-label":"Il tuo soprannome"}); inp.value=SOPRANNOME_OK(s)?s:"";
+    if(cambia){ const inp=el("input",{id:"insieme-soprannome",maxlength:"16",autocomplete:"off",placeholder:"Il tuo soprannome","aria-label":"Il tuo soprannome"}); inp.value=SOPRANNOME_OK(s)?s:"";
       inp.addEventListener("keydown",e=>{ e.stopPropagation(); if(e.key==="Enter") salvaSoprannome(); }); inp.addEventListener("keyup",e=>e.stopPropagation());
-      corpo.append(el("p",{class:"nota",testo:"Per entrare in piazza scegli un soprannome: lo vedono tutti sopra il tuo avatar. Non il tuo nome vero."}),
-        el("div",{class:"riga-p"}, inp, bottone("Entra in piazza",salvaSoprannome)));
-      if(SOPRANNOME_OK(s)) corpo.append(el("div",{class:"riga-p"}, bottone("Lascia com'era",()=>{ PZ.cambia=false; disegnaPiazza(); },true))); }
+      corpo.append(el("p",{class:"nota",testo:"Per stare in città con gli altri scegli un soprannome: lo vedono tutti sopra il tuo avatar. Non il tuo nome vero."}),
+        el("div",{class:"riga-p"}, inp, bottone("Entra con gli altri",salvaSoprannome)));
+      if(SOPRANNOME_OK(s)) corpo.append(el("div",{class:"riga-p"}, bottone("Lascia com'era",()=>{ PZ.cambia=false; disegnaInsieme(); },true))); }
     else { corpo.append(el("div",{class:"riga-p"}, el("span",{testo:`Sei «${s}» · ${chipAltri.textContent.replace(/ · 💬 \d+$/,"")}`}),
-        bottone("Cambia soprannome",()=>{ PZ.cambia=true; disegnaPiazza(); },true),
-        bottone(citta.daSolo?"Torna in piazza":"Stai da solo",()=>{ citta.daSolo=!citta.daSolo; salva(); if(citta.daSolo) esciDallaPiazza("solo"); else entraInPiazza(); disegnaPiazza(); },true)));
-      if(dentro&&altri.size){ const g=el("div",{id:"piazza-gente"});
+        bottone("Cambia soprannome",()=>{ PZ.cambia=true; disegnaInsieme(); },true),
+        bottone(citta.daSolo?"Torna con gli altri":"Stai da solo",()=>{ citta.daSolo=!citta.daSolo; salva(); if(citta.daSolo) scollegati("solo"); else collegati(); disegnaInsieme(); },true)));
+      if(dentro&&altri.size){ const g=el("div",{id:"insieme-gente"});
         altri.forEach(r=>{ const b=el("button",{class:"tipo",type:"button","aria-pressed":String(silenziati.has(r.id)),title:silenziati.has(r.id)?"Tocca per sentirlo di nuovo":"Tocca per non leggere più i suoi messaggi",testo:r.n||"…"});
-          b.addEventListener("click",()=>{ silenziati.has(r.id)?silenziati.delete(r.id):silenziati.add(r.id); r.fumettoFino=0; cartello(r); disegnaPiazza(); }); g.append(b); });
+          b.addEventListener("click",()=>{ silenziati.has(r.id)?silenziati.delete(r.id):silenziati.add(r.id); r.fumettoFino=0; cartello(r); disegnaInsieme(); }); g.append(b); });
         corpo.append(el("p",{class:"nota",testo:"Tocca un soprannome per silenziarlo: non leggi più i suoi messaggi."}), g); } }
     corpo.append(el("p",{class:"nota",testo:"Niente link, numeri di telefono, parolacce. La chat non si salva: legge chi c'è adesso. Con Nova parli dal tasto 💬, con la chat di Twitch al Café."}));
-    $("piazza-scrivi-riga").hidden=!dentro; disegnaChat(); $("esito-piazza").textContent=PZ.errore; }
-  function salvaSoprannome(){ const v=($("piazza-soprannome")||{}).value||""; const n=v.normalize("NFC").replace(/\s+/g," ").trim();
-    if(!SOPRANNOME_OK(n)){ PZ.errore=PERCHE.soprannome; $("esito-piazza").textContent=PZ.errore; return; }
+    $("insieme-scrivi-riga").hidden=!dentro; disegnaChat(); $("esito-insieme").textContent=PZ.errore; }
+  function salvaSoprannome(){ const v=($("insieme-soprannome")||{}).value||""; const n=v.normalize("NFC").replace(/\s+/g," ").trim();
+    if(!SOPRANNOME_OK(n)){ PZ.errore=PERCHE.soprannome; $("esito-insieme").textContent=PZ.errore; return; }
     const prima=citta.soprannome; citta.soprannome=n; citta.daSolo=false; salva(); PZ.cambia=false; PZ.errore="";
     if(PZ.stato==="dentro"&&prima!==n){ PZ.aspetto=JSON.stringify([aspettoMio(),n]); manda({t:"aspetto",a:aspettoMio(),n}); }
-    else if(!PZ.ws) entraInPiazza();
-    disegnaPiazza(); }
-  function mandaChat(){ const i=$("piazza-scrivi"), t=i.value.replace(/\s+/g," ").trim(); if(!t) return;
-    if(t.length>200){ $("esito-piazza").textContent=PERCHE.lungo; return; }
-    if(manda({t:"di",x:t})){ i.value=""; PZ.errore=""; $("esito-piazza").textContent=""; } else $("esito-piazza").textContent="Non sei in piazza: il messaggio non è partito."; }
-  function apriPiazza(){ PZ.aperta=true; PZ.nuovi=0; $("piazza").hidden=false; document.body.classList.add("con-piazza"); segna(PZ.stato); disegnaPiazza(); }
-  function chiudiPiazza(){ PZ.aperta=false; $("piazza").hidden=true; document.body.classList.remove("con-piazza"); segna(PZ.stato); }
-  chipAltri.addEventListener("click",()=>PZ.aperta?chiudiPiazza():apriPiazza());
-  $("chiudi-piazza").addEventListener("click",chiudiPiazza);
-  $("piazza-manda").addEventListener("click",mandaChat);
-  $("piazza-scrivi").addEventListener("keydown",e=>{ e.stopPropagation(); if(e.key==="Enter"){ e.preventDefault(); mandaChat(); } });
-  $("piazza-scrivi").addEventListener("keyup",e=>e.stopPropagation());   // scrivendo «w» non si cammina
+    else if(!PZ.ws) collegati();
+    disegnaInsieme(); }
+  function mandaChat(){ const i=$("insieme-scrivi"), t=i.value.replace(/\s+/g," ").trim(); if(!t) return;
+    if(t.length>200){ $("esito-insieme").textContent=PERCHE.lungo; return; }
+    if(manda({t:"di",x:t})){ i.value=""; PZ.errore=""; $("esito-insieme").textContent=""; } else $("esito-insieme").textContent="Non sei collegato agli altri: il messaggio non è partito."; }
+  function apriInsieme(){ PZ.aperta=true; PZ.nuovi=0; $("insieme").hidden=false; document.body.classList.add("con-insieme"); segna(PZ.stato); disegnaInsieme(); }
+  function chiudiInsieme(){ PZ.aperta=false; $("insieme").hidden=true; document.body.classList.remove("con-insieme"); segna(PZ.stato); }
+  chipAltri.addEventListener("click",()=>PZ.aperta?chiudiInsieme():apriInsieme());
+  $("chiudi-insieme").addEventListener("click",chiudiInsieme);
+  $("insieme-manda").addEventListener("click",mandaChat);
+  $("insieme-scrivi").addEventListener("keydown",e=>{ e.stopPropagation(); if(e.key==="Enter"){ e.preventDefault(); mandaChat(); } });
+  $("insieme-scrivi").addEventListener("keyup",e=>e.stopPropagation());   // scrivendo «w» non si cammina
   // a pagina nascosta il telefono non disegna: gli altri vedrebbero una statua. Si esce, e si rientra quando torni
-  document.addEventListener("visibilitychange",()=>{ if(document.hidden) esciDallaPiazza("spenta"); else entraInPiazza(); });
+  document.addEventListener("visibilitychange",()=>{ if(document.hidden) scollegati("spenta"); else collegati(); });
   const rivestiPrima=rivesti;
   rivesti=()=>{ rivestiPrima(); for(const r of altri.values()) if(r.attende) vestiAltro(r);
     const a=aspettoMio(), k=JSON.stringify([a,citta.soprannome]); if(PZ.stato==="dentro"&&k!==PZ.aspetto){ PZ.aspetto=k; manda({t:"aspetto",a}); } };
@@ -2806,7 +2807,7 @@ async function costruisci(){
   scena.altri=()=>({stato:PZ.stato, id:PZ.id, chip:chipAltri.textContent, chat:chat.map(c=>({n:c.n,x:c.x,mio:c.mio})), visti:[...altri.values()].map(r=>({id:r.id, n:r.n, inScena:!!(r.m&&r.m.parent), dentro:r.m&&r.m.parent===S?"citta":(r.m&&r.m.parent?"stanza":null),
     x:r.m?+r.m.position.x.toFixed(2):null, z:r.m?+r.m.position.z.toFixed(2):null, skin:r.m&&r.m.userData.skin||"classica", seduto:r.p.s===2, anello:!!(r.m&&r.m.children.some(c=>c.geometry===ANELLO_G)),
     cartello:!!(r.cartello&&r.cartello.parent===r.m), fumetto:!!r.fumettoDisegnato, silenziato:silenziati.has(r.id)}))});
-  entraInPiazza();
+  collegati();
 
   // si disegna solo se la pagina si vede
   let fotogrammi=0;

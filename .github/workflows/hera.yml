@@ -1,7 +1,7 @@
 # Hera: i collaudi della città li fa lei (JJ, 5 ottobre 2026: «tu non devi fare il collaudo, deve farli Hera,
 # scrivigli i file di collaudo dentro, è inutile che stai attiva mezz'ora ad aspettare»).
 #
-# Athena spinge sul ramo «prova». Hera fa girare collaudo/piazza.py e collaudo/citta.py (~30 min, SwiftShader).
+# Athena spinge sul ramo «prova». Hera fa girare collaudo/insieme.py e collaudo/citta.py (~30 min, SwiftShader).
 # Solo se sono VERDI porta «prova» su main — avanti veloce, mai sovrascrivendo: se main nel frattempo è andato
 # avanti, si ferma e lo dice — e chiede a GitHub Pages di ripubblicare. Rosso: main non si tocca, arriva la mail
 # di fallimento, e i registri restano negli artefatti della corsa. Repository pubblico: i minuti non si pagano.
@@ -38,14 +38,14 @@ jobs:
           pip install --quiet playwright==1.56.0 pillow   # pillow: il collaudo della città guarda i colori delle foto
           python -m playwright install --with-deps chromium
 
-      - name: la piazza (collaudo/piazza.py)
+      - name: la città insieme (collaudo/insieme.py)
         run: |
           # niente pipefail: se il collaudo cade, Hera deve arrivare a dire PERCHÉ (i registri da fuori non si leggono)
-          python -u collaudo/piazza.py citta.html > piazza.log 2>&1; cat piazza.log
-          if ! tail -1 piazza.log | grep -qx VERDE; then
-            NO=$(grep -E '^  NO' piazza.log | head -3 | tr '\n' '|')
-            echo "::error::Hera: la piazza è ROSSA — ${NO:-nessuna prova rossa: è caduto. Ultime righe: $(tail -6 piazza.log | tr '\n' '|' | cut -c1-900)}"; exit 1; fi
-          echo "::notice::Hera: piazza $(tail -2 piazza.log | head -1)"
+          python -u collaudo/insieme.py citta.html > insieme.log 2>&1; cat insieme.log
+          if ! tail -1 insieme.log | grep -qx VERDE; then
+            NO=$(grep -E '^  NO' insieme.log | head -3 | tr '\n' '|')
+            echo "::error::Hera: la città insieme è ROSSA — ${NO:-nessuna prova rossa: è caduto. Ultime righe: $(tail -6 insieme.log | tr '\n' '|' | cut -c1-900)}"; exit 1; fi
+          echo "::notice::Hera: città insieme $(tail -2 insieme.log | head -1)"
 
       - name: la città (collaudo/citta.py)
         run: |
