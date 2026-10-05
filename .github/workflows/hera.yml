@@ -35,21 +35,25 @@ jobs:
 
       - name: il browser
         run: |
-          pip install --quiet playwright==1.56.0
+          pip install --quiet playwright==1.56.0 pillow   # pillow: il collaudo della città guarda i colori delle foto
           python -m playwright install --with-deps chromium
 
       - name: la piazza (collaudo/piazza.py)
         run: |
-          set -o pipefail
-          python -u collaudo/piazza.py citta.html 2>&1 | tee piazza.log
-          tail -1 piazza.log | grep -qx VERDE || { echo "::error::Hera: la piazza è ROSSA — $(grep -E '^  NO' piazza.log | head -3 | tr '\n' '|')"; exit 1; }
+          # niente pipefail: se il collaudo cade, Hera deve arrivare a dire PERCHÉ (i registri da fuori non si leggono)
+          python -u collaudo/piazza.py citta.html > piazza.log 2>&1; cat piazza.log
+          if ! tail -1 piazza.log | grep -qx VERDE; then
+            NO=$(grep -E '^  NO' piazza.log | head -3 | tr '\n' '|')
+            echo "::error::Hera: la piazza è ROSSA — ${NO:-nessuna prova rossa: è caduto. Ultime righe: $(tail -6 piazza.log | tr '\n' '|' | cut -c1-900)}"; exit 1; fi
           echo "::notice::Hera: piazza $(tail -2 piazza.log | head -1)"
 
       - name: la città (collaudo/citta.py)
         run: |
-          set -o pipefail
-          python -u collaudo/citta.py citta.html 2>&1 | tee citta.log
-          tail -1 citta.log | grep -qx VERDE || { echo "::error::Hera: la città è ROSSA — $(grep -E '^  NO' citta.log | head -3 | tr '\n' '|')"; exit 1; }
+          # niente pipefail: se il collaudo cade, Hera deve arrivare a dire PERCHÉ (i registri da fuori non si leggono)
+          python -u collaudo/citta.py citta.html > citta.log 2>&1; cat citta.log
+          if ! tail -1 citta.log | grep -qx VERDE; then
+            NO=$(grep -E '^  NO' citta.log | head -3 | tr '\n' '|')
+            echo "::error::Hera: la città è ROSSA — ${NO:-nessuna prova rossa: è caduto. Ultime righe: $(tail -6 citta.log | tr '\n' '|' | cut -c1-900)}"; exit 1; fi
           echo "::notice::Hera: città $(tail -2 citta.log | head -1)"
 
       - name: verde → main
