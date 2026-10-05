@@ -1,4 +1,4 @@
 {
-  "nota": "L indirizzo del server della citta (worker jjavis-citta sull account di JJA-VIS): con gli altri in citta. Vuoto finche la consegna non e fatta: la citta dice che il collegamento non e ancora acceso.",
-  "indirizzo": null
+  "nota": "L indirizzo del server della citta (worker jjavis-citta sull account di JJA-VIS), scritto dalla consegna del 5/10: con gli altri in citta.",
+  "indirizzo": "wss://jjavis-citta.jjavis.workers.dev/entra"
 }
