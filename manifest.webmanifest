@@ -1,0 +1,58 @@
+{
+  "id": "./",
+  "name": "JJA-VIS",
+  "short_name": "JJA-VIS",
+  "description": "JJA-VIS, il tuo assistente personale: impara il tuo lavoro e cosa ti fa perdere tempo. Primo prototipo dell'assistente per tutti, con la sua città dove trovi gli altri.",
+  "lang": "it",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#020B18",
+  "theme_color": "#020B18",
+  "icons": [
+    {
+      "src": "immagini/app/icona-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "immagini/app/icona-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "immagini/app/icona-mascherabile-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Il tuo assistente",
+      "short_name": "Assistente",
+      "url": "./",
+      "icons": [
+        {
+          "src": "immagini/app/icona-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "La città",
+      "short_name": "Città",
+      "url": "./citta.html",
+      "icons": [
+        {
+          "src": "immagini/app/icona-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    }
+  ]
+}

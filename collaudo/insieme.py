@@ -31,7 +31,7 @@ def instradatore(indirizzo):
         if u.startswith(BASE):
             f = os.path.join(CASA, u[len(BASE):].split("#")[0].split("?")[0] or "index.html")
             if os.path.isfile(f):
-                tipo = "text/html" if f.endswith(".html") else "text/javascript" if f.endswith(".js") else "application/octet-stream" if f.endswith(".glb") else "application/json"
+                tipo = "text/html" if f.endswith(".html") else "text/javascript" if f.endswith(".js") else "application/octet-stream" if f.endswith(".glb") else "image/png" if f.endswith(".png") else "application/manifest+json" if f.endswith(".webmanifest") else "application/json"
                 return await route.fulfill(body=open(f, "rb").read(), content_type=tipo)
             return await route.fulfill(status=404, body="")
         if u.startswith(PORTA + "/vetrina"):

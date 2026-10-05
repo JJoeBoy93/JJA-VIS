@@ -34,7 +34,7 @@ async def instrada(route):
         nome = u[len(BASE):].split("#")[0].split("?")[0] or "index.html"
         f = os.path.join(CASA, nome)
         if os.path.isfile(f):
-            tipo = "text/html" if f.endswith(".html") else "text/javascript" if f.endswith(".js") else "application/json"
+            tipo = "text/html" if f.endswith(".html") else "text/javascript" if f.endswith(".js") else "image/png" if f.endswith(".png") else "application/manifest+json" if f.endswith(".webmanifest") else "application/json"
             return await route.fulfill(body=open(f, "rb").read(), content_type=tipo)
         return await route.fulfill(status=404, body="")
     if u.startswith(PORTA + "/video"):
@@ -134,6 +134,16 @@ async def main():
         b = await pw.chromium.launch(executable_path=os.environ.get("CHROMIUM") or None,
                                      args=["--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--ignore-gpu-blocklist"])
 
+        # 0a. l'app (JJ, 5/10): il manifest c'è, le due pagine lo citano, e ogni icona esiste con la misura che dice
+        from PIL import Image as _Im
+        man = json.load(open(os.path.join(CASA, "manifest.webmanifest"), encoding="utf-8"))
+        icone = man["icons"] + [i for s_ in man.get("shortcuts", []) for i in s_.get("icons", [])]
+        sbagliate = [i["src"] for i in icone if not os.path.isfile(os.path.join(CASA, i["src"])) or "%dx%d" % _Im.open(os.path.join(CASA, i["src"])).size != i["sizes"]]
+        prova("l'app: il manifest ha nome, avvio, icone 192 e 512 e quella mascherabile, e ogni icona esiste della misura giusta",
+              man["name"] == "JJA-VIS" and man["display"] == "standalone" and {"192x192", "512x512"} <= {i["sizes"] for i in man["icons"]}
+              and any(i.get("purpose") == "maskable" for i in man["icons"]) and not sbagliate, sbagliate)
+        prova("l'app: la pagina e la città citano il manifest e l'icona", all('rel="manifest" href="manifest.webmanifest"' in open(os.path.join(CASA, f_), encoding="utf-8").read()
+              and 'rel="apple-touch-icon"' in open(os.path.join(CASA, f_), encoding="utf-8").read() for f_ in ("index.html", "citta.html")))
         # 0. le liste della Piazza delle voci sono quelle di index.html, parola per parola
         citta = open(CITTA, encoding="utf-8").read(); i = citta.find("const TEMPO_PER_MESTIERE={"); j = citta.find("\n};", i)
         copia = json.loads("{" + citta[i + len("const TEMPO_PER_MESTIERE={"):j].strip().rstrip(",") + "}")
