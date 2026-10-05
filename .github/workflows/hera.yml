@@ -22,7 +22,7 @@ concurrency:
 
 jobs:
   collaudo:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04   # 5/10: con ubuntu-latest le macchine non arrivavano (annullate dopo 15 min)
     timeout-minutes: 90
     steps:
       - uses: actions/checkout@v5
