@@ -23,9 +23,15 @@ prove = []
 def prova(nome, ok, dettaglio=""):
     prove.append(bool(ok)); print(("  ok  " if ok else "  NO  ") + nome + (f" — {dettaglio}" if dettaglio and not ok else ""))
 
-def instradatore(indirizzo):
+CONTO_SRV = "https://jjavis-citta.finta.workers.dev/conto"
+def instradatore(indirizzo, conto=None):
     async def instrada(route):
         u = route.request.url
+        if u.startswith(CONTO_SRV):   # l'account (6/10: «niente account, niente altri»): GET /conto risponde come il server
+            h = {"Access-Control-Allow-Origin": "https://jjoeboy93.github.io", "Access-Control-Allow-Headers": "Content-Type, Authorization", "Access-Control-Allow-Methods": "GET, POST, OPTIONS"}
+            if route.request.method == "OPTIONS": return await route.fulfill(status=204, headers=h)
+            if not conto: return await route.fulfill(status=401, body='{"no":"sessione"}', content_type="application/json", headers=h)
+            return await route.fulfill(body=json.dumps({"conto": {"nome": "Ada Prova", "mail": "ada@prova.it", "soprannome": None, "gettoni": 100, "skin": [], "portato": True, "admin": conto == "admin"}}), content_type="application/json", headers=h)
         if u.startswith(BASE + "insieme.json"):
             return await route.fulfill(body=json.dumps({"indirizzo": indirizzo}), content_type="application/json")
         if u.startswith(BASE):
@@ -53,15 +59,18 @@ class Finta:
                 ws.send(json.dumps({"t": "tu", "id": "io1", "n": d.get("n"), "max": 40, "altri": [{"id": "b1", "n": "Bruno", "a": BRUNO, "p": {"x": 3, "z": 15, "r": 0, "y": 0, "s": 0, "l": ""}}]}))
             if d.get("t") == "di":   # il server rimanda il messaggio anche a chi l'ha scritto
                 ws.send(json.dumps({"t": "di", "id": "io1", "n": "Ada", "x": d["x"], "ora": 1}))
+            if d.get("t") == "modera":
+                ws.send(json.dumps({"t": "moderato", "ok": True, "azione": d["azione"], "n": "Bruno"}))
             if d.get("t") == "segnala":   # il server risponde come quello vero; s.esito_segnala decide come va
                 ws.send(json.dumps({"t": "segnalato", **s.esito_segnala}))
         def chiuso(c, r): s.chiusi += 1
         ws.on_message(msg); ws.on_close(chiuso)
     def manda(s, d): s.linee[-1].send(json.dumps(d))
 
-async def nuova(b, modo, piccola=False, soprannome=None, indirizzo=INSIEME):
+async def nuova(b, modo, piccola=False, soprannome=None, indirizzo=INSIEME, conto="utente"):
     ctx = await b.new_context(viewport={"width": 120, "height": 220} if piccola else {"width": 390, "height": 844}, device_scale_factor=1 if piccola else 2, is_mobile=True, has_touch=True)
-    await ctx.route("**/*", instradatore(indirizzo))
+    await ctx.route("**/*", instradatore(indirizzo, conto))
+    if conto: await ctx.add_init_script("localStorage.setItem('jjavis-conto','c'.repeat(64));")
     f = Finta(modo); await ctx.route_web_socket(INSIEME, f)
     if soprannome: await ctx.add_init_script(f"if(!sessionStorage.getItem('gia')){{sessionStorage.setItem('gia','1');localStorage.setItem('jjavis-citta',JSON.stringify({{soprannome:{json.dumps(soprannome)},regole:true}}));}}")
     p = await ctx.new_page(); errori = []
@@ -96,6 +105,7 @@ async def main():
         prova("col soprannome si entra", await aspetta(p, "A.stato==='dentro'"), await altri(p))
         prova("il soprannome e le regole accettate restano nel telefono", await p.evaluate("(()=>{const c=JSON.parse(localStorage.getItem('jjavis-citta'));return c.soprannome==='Ada'&&c.regole===true;})()"))
         ciao = next((m for m in f.arrivati if m.get("t") == "ciao"), None)
+        prova("al saluto va anche il token dell'account", ciao and ciao.get("tok") == "c" * 64, ciao and ciao.get("tok"))
         prova("al saluto passano il soprannome (ripulito), l'aspetto (otto campi, niente nome vero) e dove sei: in città",
               ciao and ciao["n"] == "Ada" and set(ciao["a"]) == CAMPI and ciao["p"]["l"] == "" and abs(ciao["p"]["z"] - 18) < 0.5, ciao)
         A = await altri(p); v = A["visti"]
@@ -103,6 +113,7 @@ async def main():
         prova("chi c'era già si vede, in città, dove sta", len(v) == 1 and v[0]["dentro"] == "citta" and abs(v[0]["x"] - 3) < 0.3 and abs(v[0]["z"] - 15) < 0.3, v)
         prova("sopra la testa ha il suo soprannome, ai piedi l'anello", v and v[0]["n"] == "Bruno" and v[0]["cartello"] and v[0]["anello"], v)
         prova("nel pannello si vede chi c'è", "Bruno" in await p.inner_text("#insieme-gente"))
+        prova("un utente qualsiasi non ha «Zittisci» e «Blocca»", await p.locator("#insieme-modera").count() == 0)
         # la chat
         await p.fill("#insieme-scrivi", "Ciao a tutti"); await p.click("#insieme-manda"); await p.wait_for_timeout(600)
         di = [m for m in f.arrivati if m.get("t") == "di"]
@@ -175,6 +186,46 @@ async def main():
         prova("se il server rifiuta il soprannome, lo dice e lo richiede", await aspetta(p, "A.stato==='nome'", 5000) and await p.is_visible("#insieme-soprannome")
               and "non va" in await p.inner_text("#esito-insieme"), await altri(p))
         prova("nessun errore JavaScript (insieme)", not err, err[:3])
+        await ctx.close()
+
+        # 1a. l'amministratore (6/10): la corona sopra gli altri, e la moderazione
+        ctx, p, f, err = await nuova(b, "uno", soprannome="Ada", conto="admin")
+        await aspetta(p, "A.stato==='dentro'")
+        f.manda({"t": "arriva", "id": "re1", "n": "JJoe", "re": True, "a": BRUNO, "p": {"x": -2, "z": 12, "r": 0, "y": 0, "s": 0, "l": ""}})
+        prova("chi è amministratore ha la corona sopra la testa, gli altri no", await aspetta(p, "A.visti.some(x=>x.id==='re1'&&x.re)&&A.visti.some(x=>x.id==='b1'&&!x.re)", 5000), await altri(p))
+        await p.click("#altri"); await p.click("#insieme-gente button:has-text('Bruno')")
+        prova("all'amministratore, toccando qualcuno, compaiono «Zittisci» e «Blocca»", await p.locator("#insieme-modera button").count() == 2)
+        await p.click("#insieme-modera button:has-text('Zittisci')"); await p.wait_for_timeout(500)
+        md = [m for m in f.arrivati if m.get("t") == "modera"]
+        prova("«Zittisci» manda al server chi e per quanto (un'ora)", md and md[-1]["id"] == "b1" and md[-1]["azione"] == "zittisci" and md[-1]["minuti"] == 60, md[-1:])
+        prova("e dice com'è andata", "non può scrivere per un'ora" in await p.inner_text("#esito-insieme"))
+        await p.click("#insieme-modera button:has-text('Blocca')"); await p.wait_for_timeout(300)
+        prova("«Blocca» chiede conferma prima", "Sicuro" in await p.inner_text("#insieme-modera") and len([m for m in f.arrivati if m.get("t") == "modera"]) == 1)
+        await p.click("#insieme-modera button:has-text('Sicuro')"); await p.wait_for_timeout(500)
+        md = [m for m in f.arrivati if m.get("t") == "modera"]
+        prova("al secondo tocco il blocco parte", len(md) == 2 and md[-1]["azione"] == "blocca", md[-1:])
+        await p.click("#insieme-gente button:has-text('JJoe')")
+        prova("un amministratore non vede «Zittisci» e «Blocca» su un altro amministratore", await p.locator("#insieme-modera").count() == 0)
+        prova("nessun errore JavaScript (amministratore)", not err, err[:3])
+        await ctx.close()
+
+        # 1c. senza account (6/10: «niente account, niente altri»)
+        ctx, p, f, err = await nuova(b, "uno", soprannome="Ada", conto=None)
+        await p.wait_for_timeout(2500)
+        A = await altri(p)
+        prova("senza account non ci si collega: il tasto dice «entra con Google»", A["stato"] == "account" and "entra con Google" in A["chip"] and not f.linee, (A, len(f.linee)))
+        await p.click("#altri")
+        prova("il pannello spiega perché e porta all'accesso", "serve l'account" in await p.inner_text("#insieme") and await p.locator("#insieme button:has-text('Entra con Google')").count() == 1)
+        await p.click("#insieme button:has-text('Entra con Google')")
+        prova("…che apre il pannello dell'account", await p.is_visible("#conto") and not await p.is_visible("#insieme"))
+        await ctx.close()
+
+        # 1d. bloccato: il server chiude con 4003 e non si riprova
+        ctx, p, f, err = await nuova(b, "uno", soprannome="Ada")
+        await aspetta(p, "A.stato==='dentro'")
+        n0 = len(f.linee); f.manda({"t": "no", "perche": "bloccato"}); await asyncio.ensure_future(f.linee[-1].close(code=4003, reason="bloccato")); await p.wait_for_timeout(4000)
+        A = await altri(p)
+        prova("bloccato: lo dice, e non riprova a collegarsi", A["stato"] == "bloccato" and "non può stare con gli altri" in A["chip"] and len(f.linee) == n0, (A["stato"], A["chip"], len(f.linee), n0))
         await ctx.close()
 
         # 1b. il freno: in una finestra minuscola SwiftShader disegna abbastanza fotogrammi perché il freno si veda

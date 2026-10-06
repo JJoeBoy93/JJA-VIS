@@ -955,14 +955,15 @@ async function chiamaConto(via,corpo,metodo="POST",token){ const tok=token===und
     if(r.status===401&&via!=="/conto/google"&&via!=="/conto/esci"&&t===contoToken()) esciDalConto(false,"La sessione è scaduta: rientra con Google.");   // un guasto si dice
     return {stato:r.status,...d}; }
   catch(_){ return {no:"rete"}; } }
-function applicaConto(c){ conto=c||null; if(!conto){ aggiornaTastoConto(); return; }
+function applicaConto(c){ const giaDentro=!!conto; conto=c||null; if(!conto){ aggiornaTastoConto(); window.dispatchEvent(new Event("jjavis-conto")); return; }
   citta.gettoni=conto.gettoni;
   citta.skinMie=conto.admin?SKIN.map(k=>k.id):[...new Set([...(conto.skin||[]),...(SKIN.filter(k=>!k.prezzo).map(k=>k.id))])];   // all'amministratore tutte
   if(conto.soprannome&&!citta.soprannome) citta.soprannome=conto.soprannome;
-  salva(); aggiornaGettoni(); aggiornaTastoConto(); if(contoAperto) disegnaConto(); }
+  salva(); aggiornaGettoni(); aggiornaTastoConto(); if(contoAperto) disegnaConto();
+  if(!giaDentro) window.dispatchEvent(new Event("jjavis-conto")); }
 function esciDalConto(chiama=true,esito=""){ const t=contoToken(); if(chiama&&t) chiamaConto("/conto/esci",{},"POST",t);
   try{ localStorage.removeItem(CONTO_CHIAVE); }catch(_){}
-  conto=null; contoEsito=esito; aggiornaTastoConto(); if(contoAperto) disegnaConto(); }
+  conto=null; contoEsito=esito; aggiornaTastoConto(); if(contoAperto) disegnaConto(); window.dispatchEvent(new Event("jjavis-conto")); }
 function aggiornaTastoConto(){ const b=$("conto-tasto"); if(!b) return;
   b.dataset.stato=conto?(conto.admin?"admin":"dentro"):"fuori";
   b.textContent=!conto?"🔑 Accedi con Google":`${conto.admin?"👑":"👤"} ${conto.soprannome||conto.nome||"il tuo account"}${conto.admin?" · amministratore":""}`; }
@@ -2800,7 +2801,7 @@ async function costruisci(){
   function segna(stato){ PZ.stato=stato; const n=altri.size+1; chipAltri.dataset.stato=stato;
     const testo=({entro:"👥 mi collego agli altri…", dentro:n>1?`👥 in città siete ${n}`:"👤 in città ci sei solo tu",
       giu:"👤 da solo · il collegamento non risponde", persa:"👤 da solo · linea persa, riprovo", piena:"👤 da solo · la città è piena, riprovo",
-      solo:"👤 da solo · tocca per gli altri", spenta:"👤 da solo", nome:"👥 scegli un soprannome per vedere gli altri", chiusa:"👤 da solo · il collegamento non è ancora acceso"})[stato]||"👤 da solo";
+      solo:"👤 da solo · tocca per gli altri", spenta:"👤 da solo", nome:"👥 scegli un soprannome per vedere gli altri", account:"👤 da solo · entra con Google per vedere gli altri", bloccato:"👤 il tuo account non può stare con gli altri", chiusa:"👤 da solo · il collegamento non è ancora acceso"})[stato]||"👤 da solo";
     chipAltri.textContent=testo+(PZ.nuovi&&!PZ.aperta?` · 💬 ${PZ.nuovi}`:"");
     if(PZ.aperta) disegnaInsieme(); }
   function manda(o){ if(PZ.ws&&PZ.ws.readyState===1){ try{ PZ.ws.send(JSON.stringify(o)); return true; }catch(_){} } return false; }
@@ -2810,7 +2811,7 @@ async function costruisci(){
     const fum=r.fumetto&&r.fumettoFino>performance.now()&&!silenziati.has(r.id)?r.fumetto:"";
     const c=tela(512,fum?260:96), x=c.getContext("2d"), H=c.height;
     x.font='700 44px "DM Mono", monospace'; x.textAlign="center"; x.textBaseline="middle";
-    const n=r.n||"…", w=Math.min(500,x.measureText(n).width+36);
+    const n=(r.re?"👑 ":"")+(r.n||"…"), w=Math.min(500,x.measureText(n).width+36);
     x.fillStyle="rgba(2,11,24,.82)"; x.fillRect(256-w/2,H-80,w,64); x.fillStyle=silenziati.has(r.id)?"#6b7b8c":"#CAF0F8"; x.fillText(n,256,H-48);
     if(fum){ x.font='600 36px Archivo, sans-serif'; const parole=fum.split(" "), righe=[""];
       for(const p of parole){ const prova_=(righe[righe.length-1]+" "+p).trim(); if(x.measureText(prova_).width<460) righe[righe.length-1]=prova_; else if(righe.length<3) righe.push(p); else { righe[2]=righe[2].replace(/.?$/,"…"); break; } }
@@ -2835,12 +2836,12 @@ async function costruisci(){
   function aggiungi(o){ if(!o||typeof o.id!=="string"||o.id===PZ.id) return;
     const p=posOk(o.p)?normale(o.p):{x:PARTENZA.x,z:PARTENZA.z,r:Math.PI,y:0,s:0,l:""};
     let r=altri.get(o.id); if(r){ r.a=o.a||r.a; r.n=nomeDi(o)||r.n; r.p=p; vestiAltro(r); return; }
-    r={id:o.id,n:nomeDi(o),a:o.a||{},p,m:null}; vestiAltro(r); altri.set(o.id,r); }
+    r={id:o.id,n:nomeDi(o),a:o.a||{},p,m:null,re:o.re===true}; vestiAltro(r); altri.set(o.id,r); }
   function togli(id){ const r=altri.get(id); if(!r) return; if(r.m&&r.m.parent) r.m.parent.remove(r.m); if(r.cartello&&r.cartello.material.map) r.cartello.material.map.dispose(); altri.delete(id); }
   function svuota(){ [...altri.keys()].forEach(togli); }
   const PERCHE={soprannome:"Questo soprannome non va: 3–16 lettere o numeri, niente parolacce né numeri di telefono.", piano:"Un attimo: un messaggio alla volta.",
     link:"I link in chat non passano.", numero:"I numeri di telefono in chat non passano: i dati personali tienili per te.", parole:"Quel messaggio non passa: niente parolacce né offese.",
-    lungo:"Troppo lungo: al massimo 200 caratteri.", vuoto:"", zitto:"Per un po' non puoi scrivere: troppe parole pesanti."};
+    lungo:"Troppo lungo: al massimo 200 caratteri.", vuoto:"", account:"Per stare con gli altri serve l'account: entra con Google.", bloccato:"Il tuo account è stato bloccato: con gli altri non puoi più stare.", zitto:"Per un po' non puoi scrivere: troppe parole pesanti."};
   function ricevi(m){
     if(m.t==="tu"){ PZ.id=m.id; svuota(); (m.altri||[]).forEach(aggiungi); PZ.errore=""; segna("dentro"); return; }
     if(m.t==="arriva"){ aggiungi(m); segna("dentro"); }
@@ -2852,6 +2853,8 @@ async function costruisci(){
       chat.push({id:m.id,n:nomeDi(m),x:m.x.slice(0,200),mio}); if(chat.length>80) chat.shift();
       if(r){ r.fumetto=m.x.slice(0,200); r.fumettoFino=performance.now()+7000; cartello(r); }
       if(!PZ.aperta&&!mio) PZ.nuovi++; segna(PZ.stato); if(PZ.aperta) disegnaChat(); }
+    else if(m.t==="moderato"){ PZ.errore=m.ok?(m.azione==="blocca"?`«${m.n}» è bloccato: fuori dalla città, e non rientra.`:`«${m.n}» non può scrivere per un'ora.`):`Non ci sono riuscito (${m.perche||"errore"}).`;
+      if(PZ.aperta) disegnaInsieme(); else $("esito-insieme").textContent=PZ.errore; }
     else if(m.t==="segnalato"){ const r=altri.get(PZ.segnalando)||altri.get(PZ.scelto);
       PZ.errore=m.ok?`Segnalazione arrivata a chi gestisce JJA-VIS. ${r&&!silenziati.has(r.id)?"Se vuoi, intanto silenzialo.":""}`
         :m.perche==="troppe"?"Hai già mandato tre segnalazioni da poco: aspetta qualche minuto."
@@ -2859,6 +2862,8 @@ async function costruisci(){
       if(m.ok){ PZ.segnalando=null; PZ.nota=""; PZ.motivo=null; } if(PZ.aperta) disegnaInsieme(); else $("esito-insieme").textContent=PZ.errore; }
     else if(m.t==="no"){ PZ.errore=PERCHE[m.perche]??""; 
       if(m.perche==="soprannome"){ delete citta.soprannome; salva(); scollegati("nome"); apriInsieme(); }
+      if(m.perche==="account"){ scollegati("account"); }
+      if(m.perche==="bloccato"){ PZ.bloccato=true; scollegati("bloccato"); }
       const e=$("esito-insieme"); if(e) e.textContent=PZ.errore; } }
 
   async function indirizzo(){ if(PZ.url!==undefined) return PZ.url;
@@ -2866,6 +2871,8 @@ async function costruisci(){
     catch(_){ return null; }   // non lo so: riprovo la prossima volta
     return PZ.url; }
   async function collegati(){ clearTimeout(PZ.timer);
+    if(!conto){ segna("account"); return; }   // JJ, 6/10: «niente account, niente altri»
+    if(PZ.bloccato){ segna("bloccato"); return; }
     if(!SOPRANNOME_OK(citta.soprannome)||citta.regole!==true){ segna("nome"); return; }   // 6/10: anche le regole accettate
     if(citta.daSolo){ segna("solo"); return; } if(document.hidden||PZ.ws) return;
     if(typeof WebSocket==="undefined"){ segna("giu"); return; }
@@ -2873,7 +2880,7 @@ async function costruisci(){
     if(PZ.ws||citta.daSolo||document.hidden) return;
     let ws; try{ ws=new WebSocket(url); }catch(_){ segna("giu"); return; }
     PZ.ws=ws; segna("entro");
-    ws.onopen=()=>{ PZ.ritardo=2000; PZ.aspetto=JSON.stringify([aspettoMio(),citta.soprannome]); PZ.ul=doveSono(); ws.send(JSON.stringify({t:"ciao",n:citta.soprannome.trim(),a:aspettoMio(),p:PZ.ul}));
+    ws.onopen=()=>{ PZ.ritardo=2000; PZ.aspetto=JSON.stringify([aspettoMio(),citta.soprannome]); PZ.ul=doveSono(); ws.send(JSON.stringify({t:"ciao",n:citta.soprannome.trim(),a:aspettoMio(),p:PZ.ul,tok:contoToken()}));
       PZ.ping=setInterval(()=>{ if(ws.readyState===1) ws.send("ping"); },30000); };   // «pong» lo risponde Cloudflare: il server non si sveglia
     ws.onmessage=e=>{ if(e.data==="pong") return; let m; try{ m=JSON.parse(e.data); }catch(_){ return; } if(m&&typeof m==="object") ricevi(m); };
     ws.onerror=()=>{};
@@ -2882,6 +2889,7 @@ async function costruisci(){
       if(citta.daSolo){ segna("solo"); return; }
       if(document.hidden){ segna("spenta"); return; }
       if(e.code===4001){ segna("piena"); PZ.timer=setTimeout(collegati,60000); return; }
+      if(e.code===4003||PZ.bloccato){ PZ.bloccato=true; segna("bloccato"); return; }   // bloccato dall'amministratore: non si riprova
       segna(eraDentro?"persa":"giu"); PZ.timer=setTimeout(collegati,PZ.ritardo); PZ.ritardo=Math.min(60000,PZ.ritardo*2); }; }
   function scollegati(stato){ clearTimeout(PZ.timer); const ws=PZ.ws; PZ.ws=null; if(ws){ clearInterval(PZ.ping); try{ ws.close(1000,"esco"); }catch(_){} } PZ.id=null; svuota(); segna(stato); }
 
@@ -2891,6 +2899,10 @@ async function costruisci(){
     chat.forEach(c=>{ if(!c.mio&&silenziati.has(c.id)) return; box.append(el("div",{class:"msg"+(c.mio?" mio":"")}, el("b",{testo:c.n||"…"}), el("span",{testo:c.x}))); });
     box.scrollTop=box.scrollHeight; }
   function disegnaInsieme(){ const corpo=$("insieme-corpo"); corpo.textContent=""; const dentro=PZ.stato==="dentro";
+    if(!conto){ corpo.append(el("p",{testo:"Per stare in città con gli altri serve l'account: così ogni soprannome ha dietro una persona, e chi non rispetta le regole non torna."}),
+        el("div",{class:"riga-p"}, bottone("Entra con Google",()=>{ chiudiInsieme(); apriConto(); })));
+      $("insieme-scrivi-riga").hidden=true; disegnaChat(); $("esito-insieme").textContent=PZ.errore; return; }
+    if(PZ.bloccato){ corpo.append(el("p",{testo:PERCHE.bloccato})); $("insieme-scrivi-riga").hidden=true; disegnaChat(); return; }
     const s=citta.soprannome, cambia=!SOPRANNOME_OK(s)||PZ.cambia||citta.regole!==true;
     if(cambia){ const inp=el("input",{id:"insieme-soprannome",maxlength:"16",autocomplete:"off",placeholder:"Il tuo soprannome","aria-label":"Il tuo soprannome"}); inp.value=SOPRANNOME_OK(s)?s:"";
       inp.addEventListener("keydown",e=>{ e.stopPropagation(); if(e.key==="Enter") salvaSoprannome(); }); inp.addEventListener("keyup",e=>e.stopPropagation());
@@ -2911,6 +2923,11 @@ async function costruisci(){
         if(r&&!PZ.segnalando) corpo.append(el("div",{class:"riga-p",id:"insieme-azioni"},
           bottone(silenziati.has(r.id)?`Togli il silenzio a «${r.n}»`:`Silenzia «${r.n}»`,()=>{ silenziati.has(r.id)?silenziati.delete(r.id):silenziati.add(r.id); r.fumettoFino=0; cartello(r); disegnaInsieme(); },true),
           bottone(`⚑ Segnala «${r.n}»`,()=>{ PZ.segnalando=r.id; PZ.motivo=null; PZ.errore=""; disegnaInsieme(); },true)));
+        // l'amministratore (JJ, 6/10): zittisci e blocca, che restano sull'account
+        if(r&&!PZ.segnalando&&conto&&conto.admin&&!r.re) corpo.append(el("div",{class:"riga-p",id:"insieme-modera"},
+          bottone(`👑 Zittisci «${r.n}» 1 ora`,()=>{ if(manda({t:"modera",id:r.id,azione:"zittisci",minuti:60})) PZ.errore="Un attimo…"; disegnaInsieme(); },true),
+          bottone(PZ.bloccando===r.id?"Sicuro? Tocca di nuovo: non rientra più":`👑 Blocca «${r.n}»`,()=>{ if(PZ.bloccando!==r.id){ PZ.bloccando=r.id; disegnaInsieme(); return; }
+            PZ.bloccando=null; if(manda({t:"modera",id:r.id,azione:"blocca"})) PZ.errore="Un attimo…"; disegnaInsieme(); },true)));
         if(r&&PZ.segnalando===r.id){ const box=el("div",{id:"insieme-segnala"});
           box.append(el("p",{testo:`Perché segnali «${r.n}»? Arriva a chi gestisce JJA-VIS, con le sue ultime frasi.`}));
           const m=el("div",{class:"riga-p"});
@@ -2946,6 +2963,7 @@ async function costruisci(){
   $("insieme-scrivi").addEventListener("keydown",e=>{ e.stopPropagation(); if(e.key==="Enter"){ e.preventDefault(); mandaChat(); } });
   $("insieme-scrivi").addEventListener("keyup",e=>e.stopPropagation());   // scrivendo «w» non si cammina
   // a pagina nascosta il telefono non disegna: gli altri vedrebbero una statua. Si esce, e si rientra quando torni
+  window.addEventListener("jjavis-conto",()=>{ if(conto){ if(!PZ.ws) collegati(); } else scollegati("account"); if(PZ.aperta) disegnaInsieme(); });
   document.addEventListener("visibilitychange",()=>{ if(document.hidden) scollegati("spenta"); else collegati(); });
   const rivestiPrima=rivesti;
   rivesti=()=>{ rivestiPrima(); for(const r of altri.values()) if(r.attende) vestiAltro(r);
@@ -2966,7 +2984,7 @@ async function costruisci(){
       if(r.p.s===2){ m.userData.gambe.forEach(g=>g.rotation.x=-1.45); pieghe(m); applicaOssa(m); }
       else if(fatto>0.002) cammina(m,fatto*1.9); else fermo(m); } }
   scena.altri=()=>({stato:PZ.stato, id:PZ.id, chip:chipAltri.textContent, chat:chat.map(c=>({n:c.n,x:c.x,mio:c.mio})), visti:[...altri.values()].map(r=>({id:r.id, n:r.n, inScena:!!(r.m&&r.m.parent), dentro:r.m&&r.m.parent===S?"citta":(r.m&&r.m.parent?"stanza":null),
-    x:r.m?+r.m.position.x.toFixed(2):null, z:r.m?+r.m.position.z.toFixed(2):null, skin:r.m&&r.m.userData.skin||"classica", seduto:r.p.s===2, anello:!!(r.m&&r.m.children.some(c=>c.geometry===ANELLO_G)),
+    x:r.m?+r.m.position.x.toFixed(2):null, z:r.m?+r.m.position.z.toFixed(2):null, skin:r.m&&r.m.userData.skin||"classica", seduto:r.p.s===2, re:!!r.re, anello:!!(r.m&&r.m.children.some(c=>c.geometry===ANELLO_G)),
     cartello:!!(r.cartello&&r.cartello.parent===r.m), fumetto:!!r.fumettoDisegnato, silenziato:silenziati.has(r.id)}))});
   collegati();
 
