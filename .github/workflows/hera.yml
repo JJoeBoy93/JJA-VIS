@@ -1,7 +1,7 @@
 # Hera: i collaudi della città li fa lei (JJ, 5 ottobre 2026: «tu non devi fare il collaudo, deve farli Hera,
 # scrivigli i file di collaudo dentro, è inutile che stai attiva mezz'ora ad aspettare»).
 #
-# Athena spinge sul ramo «prova». Hera fa girare collaudo/insieme.py e collaudo/citta.py (~30 min, SwiftShader).
+# Athena spinge sul ramo «prova». Hera fa girare collaudo/insieme.py, collaudo/conto.py e collaudo/citta.py (~30 min, SwiftShader).
 # Solo se sono VERDI porta «prova» su main — avanti veloce, mai sovrascrivendo: se main nel frattempo è andato
 # avanti, si ferma e lo dice — e chiede a GitHub Pages di ripubblicare. Rosso: main non si tocca, arriva la mail
 # di fallimento, e i registri restano negli artefatti della corsa. Repository pubblico: i minuti non si pagano.
@@ -46,6 +46,14 @@ jobs:
             NO=$(grep -E '^  NO' insieme.log | head -3 | tr '\n' '|')
             echo "::error::Hera: la città insieme è ROSSA — ${NO:-nessuna prova rossa: è caduto. Ultime righe: $(tail -6 insieme.log | tr '\n' '|' | cut -c1-900)}"; exit 1; fi
           echo "::notice::Hera: città insieme $(tail -2 insieme.log | head -1)"
+
+      - name: l'account (collaudo/conto.py)
+        run: |
+          python -u collaudo/conto.py citta.html > conto.log 2>&1; cat conto.log
+          if ! tail -1 conto.log | grep -qx VERDE; then
+            NO=$(grep -E '^  NO' conto.log | head -3 | tr '\n' '|')
+            echo "::error::Hera: l'account è ROSSO — ${NO:-nessuna prova rossa: è caduto. Ultime righe: $(tail -6 conto.log | tr '\n' '|' | cut -c1-900)}"; exit 1; fi
+          echo "::notice::Hera: account $(tail -2 conto.log | head -1)"
 
       - name: la città (collaudo/citta.py)
         run: |

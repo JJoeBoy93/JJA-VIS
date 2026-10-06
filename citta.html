@@ -124,6 +124,31 @@ body.in-sartoria #foglio{max-height:56vh} /* sopra si deve vedere l'avatar inter
 #insieme-chat .msg b{color:var(--accento);margin-right:6px}
 #insieme-chat .msg.mio b{color:var(--oro)}
 #esito-insieme{font:400 12px/1.4 var(--f-mono);color:var(--oro);min-height:1.2em}
+#conto{position:fixed;left:0;right:0;bottom:0;top:18vh;z-index:41;display:flex;flex-direction:column;padding:14px 14px calc(env(safe-area-inset-bottom,0px) + 12px);
+  border-bottom:0;background:var(--panel);-webkit-user-select:text;user-select:text}
+#conto[hidden]{display:none}
+#conto .testa-nova{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+#conto .testa-nova b{font:800 22px/1.1 var(--f-titoli);flex:1}
+#conto .testa-nova small{display:block;font:400 12px/1.3 var(--f-mono);color:var(--tenue);letter-spacing:.06em}
+#conto .riga-p{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:4px 0;font-size:14px}
+#conto .riga-p input{flex:1;min-width:0;font:500 16px/1.3 var(--f-testo);color:var(--testo);background:var(--input);border:1px solid var(--bordo);padding:10px}
+#conto .manda{font:800 15px/1 var(--f-titoli);color:var(--bg);background:var(--accento);border:0;padding:12px 14px;cursor:pointer}
+#conto .seconda{font:600 13px/1 var(--f-mono);color:var(--accento);background:none;border:1px solid var(--bordo);padding:8px 10px;cursor:pointer}
+#conto .nota{font:400 12px/1.4 var(--f-mono);color:var(--tenue);margin:4px 0}
+#conto-gente-non-usato{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0}
+#conto-gente-non-usato .tipo{font:500 13px/1 var(--f-testo);border:1px solid var(--bordo);padding:6px 8px;background:none;color:var(--testo);cursor:pointer}
+#conto-gente-non-usato .tipo[aria-pressed="true"]{opacity:.45;text-decoration:line-through}
+#conto-chat-non-usato{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column;gap:6px;padding:4px 2px;touch-action:pan-y;border-top:1px solid var(--bordo);margin-top:6px}
+#conto-chat-non-usato .msg{font-size:15px;line-height:1.4;word-break:break-word}
+#conto-chat-non-usato .msg b{color:var(--accento);margin-right:6px}
+#conto-chat-non-usato .msg.mio b{color:var(--oro)}
+#esito-insieme{font:400 12px/1.4 var(--f-mono);color:var(--oro);min-height:1.2em}
+#conto .spunta{display:flex;gap:10px;align-items:center;font-size:15px;margin:8px 0}
+#conto .spunta input{width:22px;height:22px}
+#conto-google{min-height:44px;margin:8px 0}
+#esito-conto{font:400 12px/1.4 var(--f-mono);color:var(--oro);min-height:1.2em}
+#chiudi-conto{width:42px;height:42px;font:400 26px/1 var(--f-testo);color:var(--testo);background:transparent;border:1px solid var(--bordo);cursor:pointer}
+body.con-conto #joy,body.con-conto #entra,body.con-conto #vai{opacity:0;pointer-events:none}
 body.con-insieme #joy,body.con-insieme #entra,body.con-insieme #vai{opacity:0;pointer-events:none}
 .vassoio .riga{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:8px 0;font-size:16px}
 .barra-twitch .cose-tavolo{display:flex;flex-wrap:wrap;gap:6px}
@@ -269,6 +294,7 @@ body.con-nova #joy,body.con-nova #entra,body.con-nova #vai{opacity:0;pointer-eve
     <div class="titolo">La città di JJA-VIS</div>
     <div class="sotto" id="numeri">il tuo assistente, in carne e palazzi</div>
     <div class="gettoni" id="gettoni" title="I tuoi gettoni"><img id="gettone-img" alt=""><b id="gettoni-n">100</b> gettoni</div>
+    <button class="altri" id="conto-tasto" type="button" title="Il tuo account: gettoni, skin e soprannome su ogni telefono">🔑 Accedi con Google</button>
     <button class="altri" id="altri" type="button" title="Gli altri: chi è in città con te, e la chat">👥 gli altri…</button>
     <button id="giro" type="button" aria-label="Il tuo primo giro"></button>
   </div>
@@ -297,6 +323,12 @@ body.con-nova #joy,body.con-nova #entra,body.con-nova #vai{opacity:0;pointer-eve
   <div id="nova-chat" aria-live="polite"></div>
   <div class="scrivi"><textarea id="nova-scrivi" rows="2" placeholder="Scrivimi…" aria-label="Il tuo messaggio"></textarea><button class="manda" id="nova-manda" type="button">Invia</button></div>
   <div id="esito-nova" role="status"></div>
+</section>
+
+<section id="conto" class="cornice" hidden role="dialog" aria-labelledby="conto-titolo">
+  <div class="testa-nova"><div style="flex:1"><b id="conto-titolo">Il tuo account</b><small>gettoni, skin e soprannome, su ogni telefono</small></div><button id="chiudi-conto" type="button" aria-label="Chiudi">×</button></div>
+  <div id="conto-corpo"></div>
+  <div id="esito-conto" role="status"></div>
 </section>
 
 <section id="insieme" class="cornice" hidden role="dialog" aria-labelledby="insieme-titolo">
@@ -821,7 +853,13 @@ function specchio(){
   SKIN.forEach(k=>{ const mia=citta.skinMie.includes(k.id), su=citta.skin===k.id, r=el("div",{class:"riga"}); r.dataset.skin=k.id;
     r.append(el("span",{testo:`${k.nome} · ${k.nota}`}));
     const b=su?el("span",{class:"nota",testo:"indossata"}):mia?bottone("Indossa",()=>{ citta.skin=k.id; rifai(); },true)
-      :bottone(`Sblocca · ${k.prezzo} 🪙`,()=>{ if(!spendi(k.prezzo)){ esitoSkin=`Ti servono ${k.prezzo} gettoni, ne hai ${citta.gettoni}: si vincono in Sala giochi.`; ridisegnaCarta(); return; }
+      :bottone(`Sblocca · ${k.prezzo} 🪙`,()=>{ if(conto){ esitoSkin="Un attimo…"; ridisegnaCarta();
+          chiamaConto("/conto/skin",{id:k.id,prezzo:k.prezzo}).then(r=>{ if(r.conto) applicaConto(r.conto);
+            if(r.no==="pochi") esitoSkin=`Ti servono ${k.prezzo} gettoni, ne hai ${citta.gettoni}: si vincono in Sala giochi.`;
+            else if(r.conto&&r.conto.skin.includes(k.id)){ citta.skin=k.id; esitoSkin=`${k.nome}: è tua.`; salva(); rivesti(); }
+            else esitoSkin="Non ci sono riuscito: il server non risponde. Riprova fra poco.";
+            ridisegnaCarta(); }); return; }
+        if(!spendi(k.prezzo)){ esitoSkin=`Ti servono ${k.prezzo} gettoni, ne hai ${citta.gettoni}: si vincono in Sala giochi.`; ridisegnaCarta(); return; }
         citta.skinMie.push(k.id); citta.skin=k.id; esitoSkin=`${k.nome}: è tua.`; rifai(); });
     r.append(b); sk.appendChild(r); });
   out.push(el("div",{class:"sezione",testo:`Le skin · hai ${citta.gettoni} gettoni`}), sk, el("p",{class:"nota",id:"esito-skin",testo:esitoSkin||"La base è fatta in Blender; «Classica» ha i vestiti dei mestieri. Le altre si sbloccano coi gettoni."}));
@@ -887,8 +925,92 @@ let ICONA=iconaJJAVIS(256), ICONA_URL=ICONA.toDataURL("image/png");
       ICONA_URL=ICONA.toDataURL("image/png"); const i=$("gettone-img"); if(i) i.src=ICONA_URL; if(scena._iconeTex) scena._iconeTex.forEach(t=>t.needsUpdate=true); scena._iconaPronta=true; } };
     im.src=`immagini/olimpo/${d.file}.png`; EMBLEMI[d.file]=im; }); }
 function aggiornaGettoni(){ const n=$("gettoni-n"); if(n) n.textContent=citta.gettoni; const i=$("gettone-img"); if(i && i.src!==ICONA_URL) i.src=ICONA_URL; }
-function spendi(n){ if(citta.gettoni<n) return false; citta.gettoni-=n; salva(); aggiornaGettoni(); return true; }
-function guadagna(n){ citta.gettoni+=n; salva(); aggiornaGettoni(); }
+// con l'account (JJ, 5/10) i gettoni li tiene il server: qui si scala subito per non far aspettare, il server conferma o corregge.
+// L'amministratore (JJ: «può fare tutto senza gettoni, anche se li ho») non spende mai
+function spendi(n){ if(conto&&conto.admin) return true;
+  if(citta.gettoni<n) return false; citta.gettoni-=n; salva(); aggiornaGettoni();
+  if(conto) chiamaConto("/conto/spendi",{n}).then(r=>{ if(r.conto) applicaConto(r.conto); });
+  return true; }
+function guadagna(n){ citta.gettoni+=n; salva(); aggiornaGettoni();
+  if(conto) for(let resto=n; resto>0; resto-=100) chiamaConto("/conto/guadagna",{n:Math.min(100,resto)}).then(r=>{ if(r.conto) applicaConto(r.conto); }); }
+
+// ══ L'ACCOUNT ══ — JJ, 5/10: «bisogna che ognuno abbia un suo account, e fondamentale il mio deve essere quello che può fare
+// tutto senza gettoni, anche se li ho». Si entra con Google (Google fa da portiere: ci dice chi sei); l'account vero sta sul
+// server della città (worker jjavis-citta, JJA-VIS-Porta/citta/conti.js): soprannome, gettoni, skin. Senza account la città
+// funziona come prima, tutto nel telefono.
+const GOOGLE_ID="644831505498-sb1lrkalu9maun2f8vcv2e7l3au31akm.apps.googleusercontent.com", CONTO_CHIAVE="jjavis-conto";
+let conto=null, contoServer=null, contoEsito="", contoCancella=false, contoAperto=false, gisCaricata=false;
+const contoToken=()=>{ try{ return localStorage.getItem(CONTO_CHIAVE)||""; }catch(_){ return ""; } };
+async function serverConto(){ if(contoServer!==null) return contoServer;
+  try{ const r=await fetch(INSIEME_JSON,{cache:"no-store"}); const d=r.ok?await r.json():{};
+    contoServer=(typeof d.indirizzo==="string"&&/^wss:\/\//.test(d.indirizzo))?d.indirizzo.replace(/^wss:/,"https:").replace(/\/entra$/,""):""; }
+  catch(_){ return ""; }
+  return contoServer; }
+async function chiamaConto(via,corpo,metodo="POST",token){ const tok=token===undefined?contoToken():token;   // il token si legge SUBITO: chi esce lo toglie dopo
+  const srv=await serverConto(); if(!srv) return {no:"server"};
+  try{ const t=tok, r=await fetch(srv+via,{method:metodo,headers:{"Content-Type":"application/json",...(t&&via!=="/conto/google"?{Authorization:"Bearer "+t}:{})},body:metodo==="POST"?JSON.stringify(corpo||{}):undefined});
+    const d=await r.json().catch(()=>({}));
+    if(r.status===401&&via!=="/conto/google"&&via!=="/conto/esci"&&t===contoToken()) esciDalConto(false,"La sessione è scaduta: rientra con Google.");   // un guasto si dice
+    return {stato:r.status,...d}; }
+  catch(_){ return {no:"rete"}; } }
+function applicaConto(c){ conto=c||null; if(!conto){ aggiornaTastoConto(); return; }
+  citta.gettoni=conto.gettoni;
+  citta.skinMie=conto.admin?SKIN.map(k=>k.id):[...new Set([...(conto.skin||[]),...(SKIN.filter(k=>!k.prezzo).map(k=>k.id))])];   // all'amministratore tutte
+  if(conto.soprannome&&!citta.soprannome) citta.soprannome=conto.soprannome;
+  salva(); aggiornaGettoni(); aggiornaTastoConto(); if(contoAperto) disegnaConto(); }
+function esciDalConto(chiama=true,esito=""){ const t=contoToken(); if(chiama&&t) chiamaConto("/conto/esci",{},"POST",t);
+  try{ localStorage.removeItem(CONTO_CHIAVE); }catch(_){}
+  conto=null; contoEsito=esito; aggiornaTastoConto(); if(contoAperto) disegnaConto(); }
+function aggiornaTastoConto(){ const b=$("conto-tasto"); if(!b) return;
+  b.dataset.stato=conto?(conto.admin?"admin":"dentro"):"fuori";
+  b.textContent=!conto?"🔑 Accedi con Google":`${conto.admin?"👑":"👤"} ${conto.soprannome||conto.nome||"il tuo account"}${conto.admin?" · amministratore":""}`; }
+async function entraConGoogle(risp){ const eta=!!($("conto-eta")&&$("conto-eta").checked);
+  contoEsito="Entro…"; disegnaConto();
+  const r=await chiamaConto("/conto/google",{credential:risp&&risp.credential,eta14:eta});
+  if(!r.token){ contoEsito=r.no==="eta"?"Per creare l'account devi avere almeno 14 anni: spunta la casella.":r.no==="google"?"Google non ha confermato l'accesso: riprova.":"Il server non risponde: riprova fra poco."; disegnaConto(); return; }
+  try{ localStorage.setItem(CONTO_CHIAVE,r.token); }catch(_){}
+  let c=r.conto;
+  if(!c.portato){ const p=await chiamaConto("/conto/porta",{gettoni:citta.gettoni|0,skin:citta.skinMie||[]}); if(p.conto) c=p.conto; }   // una volta: quello che il telefono aveva
+  contoEsito=r.nuovo?"Account creato: i gettoni e le skin di questo telefono sono passati nel tuo account.":"Bentornato.";
+  applicaConto(c); }
+function caricaGoogle(){ const box=$("conto-google"); if(!box) return;
+  const disegna=()=>{ try{ google.accounts.id.initialize({client_id:GOOGLE_ID,callback:entraConGoogle});
+      box.textContent=""; google.accounts.id.renderButton(box,{theme:"filled_black",size:"large",text:"signin_with",shape:"rectangular",locale:"it"}); }
+    catch(_){ box.textContent="Il bottone di Google non si è caricato: controlla la connessione e riapri."; } };
+  if(window.google&&google.accounts&&google.accounts.id) return disegna();
+  if(gisCaricata) return; gisCaricata=true;
+  const sc=document.createElement("script"); sc.src="https://accounts.google.com/gsi/client?hl=it"; sc.async=true;
+  sc.onload=()=>{ gisCaricata=false; if(contoAperto&&!conto) disegnaConto(); };
+  sc.onerror=()=>{ gisCaricata=false; box.textContent="Google non risponde: controlla la connessione e riapri."; };
+  document.head.appendChild(sc); }
+function disegnaConto(){ const c=$("conto-corpo"); c.textContent="";
+  if(!conto){
+    const eta=el("input",{type:"checkbox",id:"conto-eta"}); eta.checked=!!citta.eta14;
+    eta.addEventListener("change",()=>{ citta.eta14=eta.checked; salva(); disegnaConto(); });
+    c.append(el("p",{testo:"Entra con Google: gettoni, skin e soprannome restano tuoi, su ogni telefono."}),
+      el("p",{class:"nota",testo:"Google ci dice solo chi sei (nome e mail). Il resto sta sul server di JJA-VIS, e lo puoi cancellare quando vuoi da qui."}),
+      el("label",{class:"spunta"},eta,el("span",{testo:"Ho almeno 14 anni"})));
+    const box=el("div",{id:"conto-google"}); c.append(box);
+    if(eta.checked){ box.textContent="Carico il bottone di Google…"; caricaGoogle(); }
+    else box.append(el("p",{class:"nota",testo:"Spunta la casella per vedere il bottone di Google."}));
+  } else {
+    c.append(el("p",{testo:`Sei ${conto.nome||conto.soprannome||"dentro"}${conto.mail?" · "+conto.mail:""}`}));
+    if(conto.admin) c.append(el("p",{class:"nota",testo:"👑 Amministratore: non spendi gettoni, anche se li hai, e tutte le skin sono tue."}));
+    c.append(el("p",{class:"nota",testo:`${conto.gettoni} gettoni · ${conto.skin.length} skin sbloccate${conto.soprannome?" · in città sei «"+conto.soprannome+"»":""}`}));
+    c.append(el("div",{class:"riga-p"}, bottone("Esci",()=>{ esciDalConto(true,"Sei uscito: i gettoni restano nel tuo account."); },true),
+      bottone(contoCancella?"Sicuro? Tocca di nuovo: è per sempre":"Cancella l'account",async()=>{
+        if(!contoCancella){ contoCancella=true; disegnaConto(); return; }
+        contoCancella=false; const r=await chiamaConto("/conto/elimina",{});
+        if(r.fatto) esciDalConto(false,"Account cancellato: sul server di te non resta niente."); else { contoEsito="Non ci sono riuscito: riprova."; disegnaConto(); } },true)));
+  }
+  $("esito-conto").textContent=contoEsito; }
+function apriConto(){ contoAperto=true; contoCancella=false; $("conto").hidden=false; document.body.classList.add("con-conto"); disegnaConto(); }
+function chiudiConto(){ contoAperto=false; contoEsito=""; $("conto").hidden=true; document.body.classList.remove("con-conto"); }
+$("conto-tasto").addEventListener("click",()=>contoAperto?chiudiConto():apriConto());
+$("chiudi-conto").addEventListener("click",chiudiConto);
+aggiornaTastoConto();
+if(contoToken()) chiamaConto("/conto",null,"GET").then(r=>{ if(r.conto) applicaConto(r.conto); else if(r.no==="rete"||r.no==="server") contoEsito="Il server non risponde: i gettoni che vedi sono quelli del telefono."; });
+window.CONTO_PROVA={ stato:()=>({conto, gettoni:citta.gettoni, tasto:$("conto-tasto").textContent, skinMie:citta.skinMie.slice()}), spendi:n=>spendi(n), guadagna:n=>guadagna(n) };   // per il collaudo
 
 // ── Acchiappa i gettoni (Sala giochi, cabinato 1): uno strato a tutto schermo, 25 secondi.
 // JJ, 4/10: «rendi un po' difficile il prendi monete: qualche bomba che ti fa perdere le monete guadagnate se prendi quella al
