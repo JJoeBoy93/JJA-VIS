@@ -41,7 +41,8 @@ jobs:
       - name: la città insieme (collaudo/insieme.py)
         run: |
           # niente pipefail: se il collaudo cade, Hera deve arrivare a dire PERCHÉ (i registri da fuori non si leggono)
-          python -u collaudo/insieme.py citta.html > insieme.log 2>&1; cat insieme.log
+          python -u collaudo/insieme.py citta.html > insieme.log 2>&1 || true   # mai fermarsi qui: l'annotazione sotto deve dire PERCHÉ
+          cat insieme.log
           if ! tail -1 insieme.log | grep -qx VERDE; then
             NO=$(grep -E '^  NO' insieme.log | head -3 | tr '\n' '|')
             echo "::error::Hera: la città insieme è ROSSA — ${NO:-nessuna prova rossa: è caduto. Ultime righe: $(tail -6 insieme.log | tr '\n' '|' | cut -c1-900)}"; exit 1; fi
@@ -49,7 +50,8 @@ jobs:
 
       - name: l'account (collaudo/conto.py)
         run: |
-          python -u collaudo/conto.py citta.html > conto.log 2>&1; cat conto.log
+          python -u collaudo/conto.py citta.html > conto.log 2>&1 || true   # mai fermarsi qui: l'annotazione sotto deve dire PERCHÉ
+          cat conto.log
           if ! tail -1 conto.log | grep -qx VERDE; then
             NO=$(grep -E '^  NO' conto.log | head -3 | tr '\n' '|')
             echo "::error::Hera: l'account è ROSSO — ${NO:-nessuna prova rossa: è caduto. Ultime righe: $(tail -6 conto.log | tr '\n' '|' | cut -c1-900)}"; exit 1; fi
@@ -58,7 +60,8 @@ jobs:
       - name: la città (collaudo/citta.py)
         run: |
           # niente pipefail: se il collaudo cade, Hera deve arrivare a dire PERCHÉ (i registri da fuori non si leggono)
-          python -u collaudo/citta.py citta.html > citta.log 2>&1; cat citta.log
+          python -u collaudo/citta.py citta.html > citta.log 2>&1 || true   # mai fermarsi qui: l'annotazione sotto deve dire PERCHÉ
+          cat citta.log
           if ! tail -1 citta.log | grep -qx VERDE; then
             NO=$(grep -E '^  NO' citta.log | head -3 | tr '\n' '|')
             echo "::error::Hera: la città è ROSSA — ${NO:-nessuna prova rossa: è caduto. Ultime righe: $(tail -6 citta.log | tr '\n' '|' | cut -c1-900)}"; exit 1; fi
