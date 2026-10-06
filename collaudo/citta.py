@@ -339,7 +339,11 @@ async def main():
             prova(f"{n}: c'è l'interno o il luogo in 3D", await colori_in_alto(p) > 12)
             if n == "Cinema":
                 prima = await p.evaluate("window.CITTA.dove()")
-                await p.mouse.click(195, 150); await p.wait_for_timeout(800)
+                # un punto dove c'è davvero la scena 3D: non un punto fisso (il 6/10 il (195, 150) è finito sul tasto «Gli altri»)
+                punto = await p.evaluate("(()=>{ const c=document.getElementById('scena'); for(let y=120;y<800;y+=20) for(const x of [195,120,270]) if(document.elementFromPoint(x,y)===c) return [x,y]; return null; })()")
+                prova("in stanza c'è un punto libero dove toccare la vista", punto is not None)
+                await p.mouse.click(*(punto or [195, 450])); await p.wait_for_timeout(800)
+                prova("toccando la vista non si apre nessun pannello", await p.evaluate("document.getElementById('insieme').hidden && document.getElementById('conto').hidden"))
                 prova("in stanza toccare la vista non fa camminare fuori", await p.evaluate("window.CITTA.dove()") == prima)
             await p.click("#esci-stanza")
             await p.wait_for_timeout(400)
