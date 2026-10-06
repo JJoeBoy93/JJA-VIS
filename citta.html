@@ -2782,6 +2782,7 @@ async function costruisci(){
   // di Twitch». Il server della città (jjavis-citta) riceve l'aspetto dell'avatar, dove cammini, il soprannome e i messaggi, e li passa a chi c'è.
   // Senza soprannome non si entra: entrare è una scelta. Se il server non risponde la città resta tua, e il tasto 👥 lo dice.
   const altri=new Map(), chipAltri=$("altri"), silenziati=new Set(), chat=[];
+  const SEGNALA_MOTIVI=[["insulti","Insulti o offese"],["molestie","Molestie"],["sessuale","Contenuti sessuali"],["odio","Odio o discriminazione"],["spam","Spam o pubblicità"],["minore","Riguarda un minore"],["altro","Altro"]];
   const PZ={ws:null, stato:"spenta", ritardo:2000, timer:null, ping:null, id:null, t:0, ul:null, aspetto:"", ultimo:performance.now(), url:undefined, nuovi:0, aperta:false, errore:""};
   const ANELLO_G=new THREE.RingGeometry(0.42,0.52,28), ANELLO_M=new THREE.MeshBasicMaterial({color:0x00B4D8,transparent:true,opacity:0.75,side:THREE.DoubleSide});
   const intero=v=>Number.isInteger(v)?v:null;
@@ -2848,6 +2849,11 @@ async function costruisci(){
       chat.push({id:m.id,n:nomeDi(m),x:m.x.slice(0,200),mio}); if(chat.length>80) chat.shift();
       if(r){ r.fumetto=m.x.slice(0,200); r.fumettoFino=performance.now()+7000; cartello(r); }
       if(!PZ.aperta&&!mio) PZ.nuovi++; segna(PZ.stato); if(PZ.aperta) disegnaChat(); }
+    else if(m.t==="segnalato"){ const r=altri.get(PZ.segnalando)||altri.get(PZ.scelto);
+      PZ.errore=m.ok?`Segnalazione arrivata a chi gestisce JJA-VIS. ${r&&!silenziati.has(r.id)?"Se vuoi, intanto silenzialo.":""}`
+        :m.perche==="troppe"?"Hai già mandato tre segnalazioni da poco: aspetta qualche minuto."
+        :m.perche==="invio"?"La segnalazione NON è arrivata: il server non è riuscito a mandarla. Riprova fra poco.":"La segnalazione non è partita: scegli un motivo.";
+      if(m.ok){ PZ.segnalando=null; PZ.nota=""; PZ.motivo=null; } if(PZ.aperta) disegnaInsieme(); else $("esito-insieme").textContent=PZ.errore; }
     else if(m.t==="no"){ PZ.errore=PERCHE[m.perche]??""; 
       if(m.perche==="soprannome"){ delete citta.soprannome; salva(); scollegati("nome"); apriInsieme(); }
       const e=$("esito-insieme"); if(e) e.textContent=PZ.errore; } }
@@ -2892,9 +2898,27 @@ async function costruisci(){
         bottone("Cambia soprannome",()=>{ PZ.cambia=true; disegnaInsieme(); },true),
         bottone(citta.daSolo?"Torna con gli altri":"Stai da solo",()=>{ citta.daSolo=!citta.daSolo; salva(); if(citta.daSolo) scollegati("solo"); else collegati(); disegnaInsieme(); },true)));
       if(dentro&&altri.size){ const g=el("div",{id:"insieme-gente"});
-        altri.forEach(r=>{ const b=el("button",{class:"tipo",type:"button","aria-pressed":String(silenziati.has(r.id)),title:silenziati.has(r.id)?"Tocca per sentirlo di nuovo":"Tocca per non leggere più i suoi messaggi",testo:r.n||"…"});
-          b.addEventListener("click",()=>{ silenziati.has(r.id)?silenziati.delete(r.id):silenziati.add(r.id); r.fumettoFino=0; cartello(r); disegnaInsieme(); }); g.append(b); });
-        corpo.append(el("p",{class:"nota",testo:"Tocca un soprannome per silenziarlo: non leggi più i suoi messaggi."}), g); } }
+        altri.forEach(r=>{ const b=el("button",{class:"tipo",type:"button","aria-pressed":String(silenziati.has(r.id)),"aria-expanded":String(PZ.scelto===r.id),title:"Tocca per silenziarlo o segnalarlo",testo:(silenziati.has(r.id)?"🔇 ":"")+(r.n||"…")});
+          b.addEventListener("click",()=>{ PZ.scelto=PZ.scelto===r.id?null:r.id; PZ.segnalando=null; disegnaInsieme(); }); g.append(b); });
+        corpo.append(el("p",{class:"nota",testo:"Tocca un soprannome per silenziarlo (non leggi più i suoi messaggi) o per segnalarlo a chi gestisce JJA-VIS."}), g);
+        // silenzia, segnala (JJ, 6/10: «fai anche il segnala e arriva a me»)
+        const r=altri.get(PZ.scelto);
+        if(r&&!PZ.segnalando) corpo.append(el("div",{class:"riga-p",id:"insieme-azioni"},
+          bottone(silenziati.has(r.id)?`Togli il silenzio a «${r.n}»`:`Silenzia «${r.n}»`,()=>{ silenziati.has(r.id)?silenziati.delete(r.id):silenziati.add(r.id); r.fumettoFino=0; cartello(r); disegnaInsieme(); },true),
+          bottone(`⚑ Segnala «${r.n}»`,()=>{ PZ.segnalando=r.id; PZ.motivo=null; PZ.errore=""; disegnaInsieme(); },true)));
+        if(r&&PZ.segnalando===r.id){ const box=el("div",{id:"insieme-segnala"});
+          box.append(el("p",{testo:`Perché segnali «${r.n}»? Arriva a chi gestisce JJA-VIS, con le sue ultime frasi.`}));
+          const m=el("div",{class:"riga-p"});
+          SEGNALA_MOTIVI.forEach(([k,t])=>{ const b=el("button",{class:"tipo",type:"button","aria-pressed":String(PZ.motivo===k),testo:t}); b.dataset.motivo=k; b.addEventListener("click",()=>{ PZ.motivo=k; disegnaInsieme(); }); m.append(b); });
+          const nota=el("input",{id:"insieme-nota",maxlength:"300",autocomplete:"off",placeholder:"Vuoi aggiungere qualcosa? (facoltativo)","aria-label":"Nota per chi legge la segnalazione"}); nota.value=PZ.nota||"";
+          nota.addEventListener("input",()=>{ PZ.nota=nota.value; }); nota.addEventListener("keydown",e=>e.stopPropagation()); nota.addEventListener("keyup",e=>e.stopPropagation());
+          box.append(m, el("div",{class:"riga-p"},nota), el("div",{class:"riga-p"},
+            bottone("Manda la segnalazione",()=>{ if(!PZ.motivo){ PZ.errore="Scegli un motivo."; disegnaInsieme(); return; }
+              const visti=chat.filter(c=>c.id===r.id).slice(-5).map(c=>c.x);
+              if(manda({t:"segnala",id:r.id,motivo:PZ.motivo,nota:PZ.nota||"",visti})){ PZ.errore="Mando…"; } else PZ.errore="Non sei collegato: la segnalazione non è partita.";
+              disegnaInsieme(); }),
+            bottone("Annulla",()=>{ PZ.segnalando=null; PZ.errore=""; disegnaInsieme(); },true)));
+          corpo.append(box); } } }
     corpo.append(el("p",{class:"nota",testo:"Niente link, numeri di telefono, parolacce. La chat non si salva: legge chi c'è adesso. Con Nova parli dal tasto 💬, con la chat di Twitch al Café."}));
     $("insieme-scrivi-riga").hidden=!dentro; disegnaChat(); $("esito-insieme").textContent=PZ.errore; }
   function salvaSoprannome(){ const v=($("insieme-soprannome")||{}).value||""; const n=v.normalize("NFC").replace(/\s+/g," ").trim();

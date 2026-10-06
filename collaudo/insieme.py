@@ -41,7 +41,7 @@ def instradatore(indirizzo):
 
 class Finta:
     """il server finto: modo «uno» (c'è già Bruno), «piena» (4001), «muta» (si chiude subito)"""
-    def __init__(s, modo): s.modo, s.arrivati, s.chiusi, s.linee = modo, [], 0, []
+    def __init__(s, modo): s.modo, s.arrivati, s.chiusi, s.linee, s.esito_segnala = modo, [], 0, [], {"ok": True, "fatto": ["telegram", "mail"]}
     def __call__(s, ws):
         s.linee.append(ws)
         if s.modo == "piena": asyncio.ensure_future(ws.close(code=4001, reason="piena")); return
@@ -53,6 +53,8 @@ class Finta:
                 ws.send(json.dumps({"t": "tu", "id": "io1", "n": d.get("n"), "max": 40, "altri": [{"id": "b1", "n": "Bruno", "a": BRUNO, "p": {"x": 3, "z": 15, "r": 0, "y": 0, "s": 0, "l": ""}}]}))
             if d.get("t") == "di":   # il server rimanda il messaggio anche a chi l'ha scritto
                 ws.send(json.dumps({"t": "di", "id": "io1", "n": "Ada", "x": d["x"], "ora": 1}))
+            if d.get("t") == "segnala":   # il server risponde come quello vero; s.esito_segnala decide come va
+                ws.send(json.dumps({"t": "segnalato", **s.esito_segnala}))
         def chiuso(c, r): s.chiusi += 1
         ws.on_message(msg); ws.on_close(chiuso)
     def manda(s, d): s.linee[-1].send(json.dumps(d))
@@ -111,10 +113,27 @@ async def main():
         prova("e gli compare il fumetto sopra la testa", await aspetta(p, "A.visti[0].fumetto===true", 3000))
         prova("il fumetto se ne va da solo (7 s), resta il soprannome", await aspetta(p, "A.visti[0].fumetto===false&&A.visti[0].cartello", 15000))
         await p.click("#insieme-gente button:has-text('Bruno')")
+        prova("toccando il suo soprannome compaiono «Silenzia» e «Segnala»", await p.locator("#insieme-azioni button:has-text('Silenzia')").count() == 1 and await p.locator("#insieme-azioni button:has-text('Segnala')").count() == 1)
+        # il segnala (6/10)
+        await p.click("#insieme-azioni button:has-text('Segnala')")
+        n0 = len([m for m in f.arrivati if m.get("t") == "segnala"])
+        await p.click("#insieme-segnala button:has-text('Manda la segnalazione')"); await p.wait_for_timeout(300)
+        prova("segnalare senza motivo: lo chiede, e non parte niente", "Scegli un motivo" in await p.inner_text("#esito-insieme") and len([m for m in f.arrivati if m.get("t") == "segnala"]) == n0)
+        await p.click("#insieme-segnala button[data-motivo='molestie']"); await p.fill("#insieme-nota", "mi chiede dove abito")
+        await p.click("#insieme-segnala button:has-text('Manda la segnalazione')"); await p.wait_for_timeout(700)
+        sg = [m for m in f.arrivati if m.get("t") == "segnala"]
+        prova("la segnalazione parte: chi, motivo, nota e le sue frasi che hai visto", sg and sg[-1]["id"] == "b1" and sg[-1]["motivo"] == "molestie" and sg[-1]["nota"] == "mi chiede dove abito" and "Ciao Ada, ci vediamo al Café?" in sg[-1]["visti"], sg[-1:])
+        prova("e chi segnala sa che è arrivata", "arrivata" in await p.inner_text("#esito-insieme"))
+        f.esito_segnala = {"ok": False, "perche": "invio"}
+        await p.click("#insieme-azioni button:has-text('Segnala')"); await p.click("#insieme-segnala button[data-motivo='spam']")
+        await p.click("#insieme-segnala button:has-text('Manda la segnalazione')"); await p.wait_for_timeout(700)
+        prova("se il server non riesce a mandarla, lo dice forte: NON è arrivata", "NON è arrivata" in await p.inner_text("#esito-insieme"))
+        await p.click("#insieme-segnala button:has-text('Annulla')")
+        await p.click("#insieme-azioni button:has-text('Silenzia')")
         f.manda({"t": "di", "id": "b1", "n": "Bruno", "x": "messaggio da non leggere", "ora": 3}); await p.wait_for_timeout(800)
         A = await altri(p)
         prova("toccando il suo soprannome lo silenzi: i suoi messaggi non arrivano, niente fumetto", A["visti"][0]["silenziato"] and not any("non leggere" in c["x"] for c in A["chat"]) and not A["visti"][0]["fumetto"], A)
-        await p.click("#insieme-gente button:has-text('Bruno')")
+        await p.click("#insieme-azioni button:has-text('Togli il silenzio')")
         await p.click("#chiudi-insieme")
         f.manda({"t": "di", "id": "b1", "n": "Bruno", "x": "ci sei?", "ora": 4})
         prova("a pannello chiuso il tasto conta i messaggi nuovi", await aspetta(p, "A.chip.includes('💬 1')", 5000), (await altri(p))["chip"])
