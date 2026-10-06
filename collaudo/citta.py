@@ -147,6 +147,7 @@ async def main():
         # privacy e regole (6/10): ci sono, hanno la mail di contatto di JJA-VIS, e la città le collega
         pr = open(os.path.join(CASA, "privacy.html"), encoding="utf-8").read(); rg = open(os.path.join(CASA, "regole.html"), encoding="utf-8").read()
         prova("privacy e regole esistono, con la mail di contatto di JJA-VIS, e si citano a vicenda", "19.jja.vis.93@gmail.com" in pr and "19.jja.vis.93@gmail.com" in rg and 'href="regole.html"' in pr and 'href="privacy.html"' in rg)
+        prova("i crediti dei simboli degli dèi ci sono (CC BY 3.0: lorc, delapouite, carl-olsen)", all(t in rg for t in ("lorc", "delapouite", "carl-olsen", "game-icons.net", "creativecommons.org/licenses/by/3.0")))
         prova("la privacy dice titolare, cosa, chi altro, per quanto, età e diritti", all(t in pr for t in ("Chi è il titolare", "Cosa raccogliamo", "Chi altro tocca i dati", "Per quanto tempo", "Età", "I tuoi diritti", "Garante")))
         _c = open(CITTA, encoding="utf-8").read()
         prova("la città collega privacy e regole", 'href:"privacy.html"' in _c and 'href:"regole.html"' in _c)
