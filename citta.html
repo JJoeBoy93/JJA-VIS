@@ -143,6 +143,7 @@ body.in-sartoria #foglio{max-height:56vh} /* sopra si deve vedere l'avatar inter
 #conto-chat-non-usato .msg b{color:var(--accento);margin-right:6px}
 #conto-chat-non-usato .msg.mio b{color:var(--oro)}
 #esito-insieme{font:400 12px/1.4 var(--f-mono);color:var(--oro);min-height:1.2em}
+#insieme .spunta-regole{font-size:14px} #insieme .spunta-regole input{width:22px;height:22px}
 #conto .spunta{display:flex;gap:10px;align-items:center;font-size:15px;margin:8px 0}
 #conto .spunta input{width:22px;height:22px}
 #conto-google{min-height:44px;margin:8px 0}
@@ -652,7 +653,8 @@ const LUOGHI={
         "Il mestiere e le risposte servono solo a capire cosa costruire: non vanno a nessun altro.",
         "Il tuo avatar, i tuoi vestiti e il tuo test di forma della città restano in questo telefono.",
         "In città gli altri vedono il tuo avatar, dove cammini e il soprannome che scegli tu (mai il tuo nome), finché sei dentro: nessuno lo conserva.",
-        "La chat della città non si salva: i messaggi li legge chi c'è in quel momento. Niente link, numeri di telefono, parolacce. Dal tasto 👥 in alto stai da solo."]))]}],
+        "La chat della città non si salva: i messaggi li legge chi c'è in quel momento. Niente link, numeri di telefono, parolacce. Dal tasto 👥 in alto stai da solo.",
+        "Tutto per intero: privacy.html e regole.html, dal pannello «Gli altri» o «Il tuo account»."]))]}],
     fine(){ const n=nomeAssistente(); return [AZIONI(parlaQui(`Parla con ${n}`,""))]; }},
   sartoria:{nome:"Sartoria",ic:"🧵",breve:"vesti il tuo avatar",
     testa:()=>TESTA("Il tuo avatar","Sartoria","Dimmi che lavoro fai: serve a me, per capire cosa costruirti. Poi vestiti come vuoi: non deve per forza essere la divisa del tuo lavoro."),
@@ -988,7 +990,8 @@ function disegnaConto(){ const c=$("conto-corpo"); c.textContent="";
     const eta=el("input",{type:"checkbox",id:"conto-eta"}); eta.checked=!!citta.eta14;
     eta.addEventListener("change",()=>{ citta.eta14=eta.checked; salva(); disegnaConto(); });
     c.append(el("p",{testo:"Entra con Google: gettoni, skin e soprannome restano tuoi, su ogni telefono."}),
-      el("p",{class:"nota",testo:"Google ci dice solo chi sei (nome e mail). Il resto sta sul server di JJA-VIS, e lo puoi cancellare quando vuoi da qui."}),
+      el("p",{class:"nota"},"Google ci dice solo chi sei (nome e mail). Il resto sta sul server di JJA-VIS, e lo puoi cancellare quando vuoi da qui. ",
+        el("a",{href:"privacy.html",target:"_blank",rel:"noopener"},"Come tratto i tuoi dati"), " · ", el("a",{href:"regole.html",target:"_blank",rel:"noopener"},"Le regole")),
       el("label",{class:"spunta"},eta,el("span",{testo:"Ho almeno 14 anni"})));
     const box=el("div",{id:"conto-google"}); c.append(box);
     if(eta.checked){ box.textContent="Carico il bottone di Google…"; caricaGoogle(); }
@@ -2863,7 +2866,7 @@ async function costruisci(){
     catch(_){ return null; }   // non lo so: riprovo la prossima volta
     return PZ.url; }
   async function collegati(){ clearTimeout(PZ.timer);
-    if(!SOPRANNOME_OK(citta.soprannome)){ segna("nome"); return; }
+    if(!SOPRANNOME_OK(citta.soprannome)||citta.regole!==true){ segna("nome"); return; }   // 6/10: anche le regole accettate
     if(citta.daSolo){ segna("solo"); return; } if(document.hidden||PZ.ws) return;
     if(typeof WebSocket==="undefined"){ segna("giu"); return; }
     const url=await indirizzo(); if(url===null&&PZ.url===null){ segna("chiusa"); return; } if(!url){ segna("giu"); PZ.timer=setTimeout(collegati,PZ.ritardo); return; }
@@ -2888,10 +2891,12 @@ async function costruisci(){
     chat.forEach(c=>{ if(!c.mio&&silenziati.has(c.id)) return; box.append(el("div",{class:"msg"+(c.mio?" mio":"")}, el("b",{testo:c.n||"…"}), el("span",{testo:c.x}))); });
     box.scrollTop=box.scrollHeight; }
   function disegnaInsieme(){ const corpo=$("insieme-corpo"); corpo.textContent=""; const dentro=PZ.stato==="dentro";
-    const s=citta.soprannome, cambia=!SOPRANNOME_OK(s)||PZ.cambia;
+    const s=citta.soprannome, cambia=!SOPRANNOME_OK(s)||PZ.cambia||citta.regole!==true;
     if(cambia){ const inp=el("input",{id:"insieme-soprannome",maxlength:"16",autocomplete:"off",placeholder:"Il tuo soprannome","aria-label":"Il tuo soprannome"}); inp.value=SOPRANNOME_OK(s)?s:"";
       inp.addEventListener("keydown",e=>{ e.stopPropagation(); if(e.key==="Enter") salvaSoprannome(); }); inp.addEventListener("keyup",e=>e.stopPropagation());
       corpo.append(el("p",{class:"nota",testo:"Per stare in città con gli altri scegli un soprannome: lo vedono tutti sopra il tuo avatar. Non il tuo nome vero."}),
+        el("label",{class:"riga-p spunta-regole"}, (()=>{ const c=el("input",{type:"checkbox",id:"insieme-regole"}); c.checked=citta.regole===true; c.addEventListener("change",()=>{ PZ.regoleSpuntate=c.checked; }); PZ.regoleSpuntate=c.checked; return c; })(),
+          el("span",{},"Ho letto e accetto ", el("a",{href:"regole.html",target:"_blank",rel:"noopener"},"le regole della città"))),
         el("div",{class:"riga-p"}, inp, bottone("Entra con gli altri",salvaSoprannome)));
       if(SOPRANNOME_OK(s)) corpo.append(el("div",{class:"riga-p"}, bottone("Lascia com'era",()=>{ PZ.cambia=false; disegnaInsieme(); },true))); }
     else { corpo.append(el("div",{class:"riga-p"}, el("span",{testo:`Sei «${s}» · ${chipAltri.textContent.replace(/ · 💬 \d+$/,"")}`}),
@@ -2919,10 +2924,13 @@ async function costruisci(){
               disegnaInsieme(); }),
             bottone("Annulla",()=>{ PZ.segnalando=null; PZ.errore=""; disegnaInsieme(); },true)));
           corpo.append(box); } } }
-    corpo.append(el("p",{class:"nota",testo:"Niente link, numeri di telefono, parolacce. La chat non si salva: legge chi c'è adesso. Con Nova parli dal tasto 💬, con la chat di Twitch al Café."}));
+    corpo.append(el("p",{class:"nota"},"Niente link, numeri di telefono, parolacce. La chat non si salva: legge chi c'è adesso. Con Nova parli dal tasto 💬, con la chat di Twitch al Café. ",
+      el("a",{href:"regole.html",target:"_blank",rel:"noopener"},"Le regole"), " · ", el("a",{href:"privacy.html",target:"_blank",rel:"noopener"},"Privacy")));
     $("insieme-scrivi-riga").hidden=!dentro; disegnaChat(); $("esito-insieme").textContent=PZ.errore; }
   function salvaSoprannome(){ const v=($("insieme-soprannome")||{}).value||""; const n=v.normalize("NFC").replace(/\s+/g," ").trim();
     if(!SOPRANNOME_OK(n)){ PZ.errore=PERCHE.soprannome; $("esito-insieme").textContent=PZ.errore; return; }
+    if(!PZ.regoleSpuntate&&citta.regole!==true){ PZ.errore="Per entrare con gli altri accetta le regole della città."; $("esito-insieme").textContent=PZ.errore; return; }
+    citta.regole=true;
     const prima=citta.soprannome; citta.soprannome=n; citta.daSolo=false; salva(); PZ.cambia=false; PZ.errore="";
     if(PZ.stato==="dentro"&&prima!==n){ PZ.aspetto=JSON.stringify([aspettoMio(),n]); manda({t:"aspetto",a:aspettoMio(),n}); }
     else if(!PZ.ws) collegati();

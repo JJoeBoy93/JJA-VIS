@@ -63,7 +63,7 @@ async def nuova(b, modo, piccola=False, soprannome=None, indirizzo=INSIEME):
     ctx = await b.new_context(viewport={"width": 120, "height": 220} if piccola else {"width": 390, "height": 844}, device_scale_factor=1 if piccola else 2, is_mobile=True, has_touch=True)
     await ctx.route("**/*", instradatore(indirizzo))
     f = Finta(modo); await ctx.route_web_socket(INSIEME, f)
-    if soprannome: await ctx.add_init_script(f"if(!sessionStorage.getItem('gia')){{sessionStorage.setItem('gia','1');localStorage.setItem('jjavis-citta',JSON.stringify({{soprannome:{json.dumps(soprannome)}}}));}}")
+    if soprannome: await ctx.add_init_script(f"if(!sessionStorage.getItem('gia')){{sessionStorage.setItem('gia','1');localStorage.setItem('jjavis-citta',JSON.stringify({{soprannome:{json.dumps(soprannome)},regole:true}}));}}")
     p = await ctx.new_page(); errori = []
     p.on("pageerror", lambda e: errori.append(str(e)))
     p.on("console", lambda m: errori.append(m.text) if m.type == "error" and "ERR_FAILED" not in m.text else None)
@@ -90,8 +90,11 @@ async def main():
         await p.fill("#insieme-soprannome", "ab"); await p.click("#insieme button:has-text('Entra con gli altri')")
         prova("un soprannome troppo corto non va, e lo dice", "non va" in await p.inner_text("#esito-insieme") and not f.linee)
         await p.fill("#insieme-soprannome", "  Ada  "); await p.click("#insieme button:has-text('Entra con gli altri')")
+        prova("senza accettare le regole non si entra, e lo dice (6/10, Play Store)", "accetta le regole" in await p.inner_text("#esito-insieme") and not f.linee)
+        prova("le regole si aprono da lì (regole.html)", await p.locator("#insieme a[href='regole.html']").count() >= 1)
+        await p.check("#insieme-regole"); await p.click("#insieme button:has-text('Entra con gli altri')")
         prova("col soprannome si entra", await aspetta(p, "A.stato==='dentro'"), await altri(p))
-        prova("il soprannome resta nel telefono", await p.evaluate("JSON.parse(localStorage.getItem('jjavis-citta')).soprannome") == "Ada")
+        prova("il soprannome e le regole accettate restano nel telefono", await p.evaluate("(()=>{const c=JSON.parse(localStorage.getItem('jjavis-citta'));return c.soprannome==='Ada'&&c.regole===true;})()"))
         ciao = next((m for m in f.arrivati if m.get("t") == "ciao"), None)
         prova("al saluto passano il soprannome (ripulito), l'aspetto (otto campi, niente nome vero) e dove sei: in città",
               ciao and ciao["n"] == "Ada" and set(ciao["a"]) == CAMPI and ciao["p"]["l"] == "" and abs(ciao["p"]["z"] - 18) < 0.5, ciao)

@@ -144,6 +144,12 @@ async def main():
         prova("l'app: il manifest ha nome, avvio, icone 192 e 512 e quella mascherabile, e ogni icona esiste della misura giusta",
               man["name"] == "JJA-VIS" and man["display"] == "standalone" and {"192x192", "512x512"} <= {i["sizes"] for i in man["icons"]}
               and any(i.get("purpose") == "maskable" for i in man["icons"]) and not sbagliate, sbagliate)
+        # privacy e regole (6/10): ci sono, hanno la mail di contatto di JJA-VIS, e la città le collega
+        pr = open(os.path.join(CASA, "privacy.html"), encoding="utf-8").read(); rg = open(os.path.join(CASA, "regole.html"), encoding="utf-8").read()
+        prova("privacy e regole esistono, con la mail di contatto di JJA-VIS, e si citano a vicenda", "19.jja.vis.93@gmail.com" in pr and "19.jja.vis.93@gmail.com" in rg and 'href="regole.html"' in pr and 'href="privacy.html"' in rg)
+        prova("la privacy dice titolare, cosa, chi altro, per quanto, età e diritti", all(t in pr for t in ("Chi è il titolare", "Cosa raccogliamo", "Chi altro tocca i dati", "Per quanto tempo", "Età", "I tuoi diritti", "Garante")))
+        _c = open(CITTA, encoding="utf-8").read()
+        prova("la città collega privacy e regole", 'href:"privacy.html"' in _c and 'href:"regole.html"' in _c)
         prova("l'app: la pagina e la città citano il manifest e l'icona", all('rel="manifest" href="manifest.webmanifest"' in open(os.path.join(CASA, f_), encoding="utf-8").read()
               and 'rel="apple-touch-icon"' in open(os.path.join(CASA, f_), encoding="utf-8").read() for f_ in ("index.html", "citta.html")))
         # 0. le liste della Piazza delle voci sono quelle di index.html, parola per parola
