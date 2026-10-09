@@ -126,7 +126,7 @@ async def main():
         g = next((c for v, c in srv.chiamate if v == "/conto/google"), {})
         prova("entrando, al server va il biglietto di Google con l'età", g.get("credential") == "buono" and g.get("eta14") is True, g)
         porta = next((c for v, c in srv.chiamate if v == "/conto/porta"), None)
-        prova("al primo accesso il telefono porta i suoi gettoni e le sue skin", porta == {"gettoni": 261, "skin": ["base", "classica", "cavaliere", "corriere"]}, porta)   # il Corriere è gratis: ce l'ha ogni telefono (9/10)
+        prova("al primo accesso il telefono porta i suoi gettoni e le sue skin", porta == {"gettoni": 261, "skin": ["base", "classica", "cavaliere"]}, porta)
         prova("ora i gettoni sono quelli dell'account, e il tasto dice chi sei", S["gettoni"] == 261 and "Anna Prova" in S["tasto"] and "amministratore" not in S["tasto"], S)
         prova("il token della sessione resta nel telefono", len(await p.evaluate("localStorage.getItem('jjavis-conto')") or "") == 64)
         ok = await p.evaluate("window.CONTO_PROVA.spendi(61)"); await p.wait_for_timeout(500)

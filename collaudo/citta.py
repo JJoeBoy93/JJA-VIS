@@ -234,7 +234,7 @@ async def main():
         # indossa). Toccando una scheda la skin ti va addosso in prova, gratis: «le skin se non hai gettoni non le puoi neanche vedere... non va bene»
         await usa(p, "manichini", "Il negozio")
         schede = await p.evaluate("[...document.querySelectorAll('#negozio .scheda-skin')].map(b=>[b.dataset.skin,b.querySelector('.prezzo').textContent])")
-        prova("il negozio è una griglia con tutte le skin, ognuna col suo prezzo (o «è tua»)", len(schede) == 7 and dict(schede).get("corriere") == "è tua" and dict(schede).get("cavaliere") == "2000 🪙" and dict(schede).get("base") == "è tua", schede)
+        prova("il negozio è una griglia con tutte le skin, ognuna col suo prezzo (o «è tua»)", len(schede) == 6 and dict(schede).get("cavaliere") == "2000 🪙" and dict(schede).get("base") == "è tua", schede)
         prova("al negozio non si indossa: niente «Indossa»", not await p.evaluate("[...document.querySelectorAll('#stanza-carta button')].some(b=>/Indossa/.test(b.textContent))"))
         await p.click("#negozio .scheda-skin[data-skin='cavaliere']")
         prova("toccando una scheda la skin ti va addosso in prova, e i gettoni restano quelli",
@@ -257,14 +257,14 @@ async def main():
         prezzi = await p.evaluate("[...document.querySelectorAll('#negozio .scheda-skin .prezzo')].map(b=>b.textContent)")
         prova("i prezzi delle skin da comprare sono fra 800 e 2000 gettoni", all(800 <= int(x.split()[0]) <= 2000 for x in prezzi if "🪙" in x) and len([x for x in prezzi if "🪙" in x]) == 3, prezzi)
         # tutte le skin si caricano e trovano i loro ossi (anche quelle coi punti nei nomi, che three toglie)
-        tutte = await p.evaluate("""(async()=>{ const r={}; for(const id of ['base','corriere','realista-uomo','realista-donna','avventuriera','cavaliere']){ r[id]=await window.CITTA.provaSkin(id); } return r; })()""")
-        prova("le sei skin di Blender si caricano, coi loro ossi, e il passo muove davvero le gambe avanti e indietro", all(v["ossi"] and v["passo"] > 0.05 and v["avanti"] for v in tutte.values()), tutte)
+        tutte = await p.evaluate("""(async()=>{ const r={}; for(const id of ['base','classica','realista-uomo','realista-donna','avventuriera','cavaliere']){ r[id]=await window.CITTA.provaSkin(id); } return r; })()""")
+        prova("le sei skin di Blender (le persone Base e Classica, Realista, KayKit) si caricano, coi loro ossi, e il passo muove davvero le gambe avanti e indietro", all(v["ossi"] and v["passo"] > 0.05 and v["avanti"] for v in tutte.values()), tutte)
         # l'armadietto (JJ, 6/10: lo specchio diventa l'armadietto): ci sono solo le tue, e lì si indossano
         await usa(p, "specchio", "L'armadietto")
         mie = await p.evaluate("[...document.querySelectorAll('#armadietto .scheda-skin')].map(b=>b.dataset.skin)")
-        prova("all'armadietto ci sono solo le skin che hai", sorted(mie) == ["base", "classica", "corriere", "realista-uomo"], mie)
+        prova("all'armadietto ci sono solo le skin che hai", sorted(mie) == ["base", "classica", "realista-uomo"], mie)
         await p.click("#armadietto .scheda-skin[data-skin='classica']"); await p.wait_for_timeout(1200)
-        prova("la Classica (l'omino coi vestiti dei mestieri) si rimette dall'armadietto", (await p.evaluate("window.CITTA.skinTua()"))["skin"] == "classica")
+        prova("la Classica (la persona vestita normale) si rimette dall'armadietto", (await p.evaluate("window.CITTA.skinTua()"))["skin"] == "classica")
         await p.evaluate("window.CITTA.gettoni(100)")
         # JJ, 4/10: l'avatar si sceglie tutto, come nei Sims — corpo, capelli, colore dei pantaloni
         await p.click("#scelta-corpo .scelta:has-text('Donna')"); await p.wait_for_timeout(300)
@@ -274,7 +274,7 @@ async def main():
         st = await p.evaluate("JSON.parse(localStorage.getItem('jjavis-citta')||'{}')"); tu_ = await p.evaluate("window.CITTA.tuo()")
         prova("allo specchio si sceglie il corpo, i capelli, il loro colore e il colore dei pantaloni, e l'avatar cambia davvero",
               st.get("corpo") == "donna" and st.get("capelli") == "coda" and st.get("capelliColore") == 3 and st.get("pantaloni") == 0xE63946
-              and tu_["corpo"] == "donna" and tu_["capelli"] == "coda" and tu_["pantaloni"] == "#e63946" and tu_["maglia"] != tu_["pantaloni"], [st, tu_])
+              and tu_["corpo"] == "donna" and (tu_["capelli"] == "coda" or tu_.get("skin") in ("base", "classica")) and tu_["pantaloni"] == "#e63946" and tu_["maglia"] != tu_["pantaloni"], [st, tu_])
         await p.wait_for_timeout(2500)
         prova("allo specchio con la carta aperta la telecamera si allontana: l'avatar si vede intero (JJ: «è tagliato»)", (await p.evaluate("window.CITTA.vistaSpecchio()") or 0) > 6.5, await p.evaluate("window.CITTA.vistaSpecchio()"))
         fu = await p.evaluate("window.CITTA.formaUmana()")
@@ -282,12 +282,17 @@ async def main():
               all(v["gambe"] == ["CapsuleGeometry"] * 2 and v["braccia"] == ["CapsuleGeometry"] * 2 and v["busto"] == "CylinderGeometry" and v["viso"] >= 6 for v in fu.values())
               and fu["donna"]["spalle"] < fu["uomo"]["spalle"], fu)
         await p.wait_for_timeout(600); await foto(p, "03b-sartoria-donna")
-        # i vestiti stanno all'armadietto («Come ti vesti?», dove c'erano già); col mestiere già detto niente spiegazione
+        # i mestieri (JJ, 9/10): si scelgono sotto «Base JJA-VIS», solo con la Base addosso; con la Classica non ci sono
+        testo_c = await p.inner_text("#stanza-carta")
+        prova("con la Classica addosso i mestieri non si vedono", "il tuo mestiere" not in testo_c and not await p.query_selector("#prova-vestito"), testo_c[:200])
+        await p.click("#armadietto .scheda-skin[data-skin='base']"); await p.wait_for_timeout(600)
         testo_m = await p.inner_text("#stanza-carta")
-        prova("all'armadietto ci sono i vestiti, e col mestiere già detto non si rispiega", "Perché ti chiedo il mestiere" not in testo_m and "Come ti vesti" in testo_m, testo_m[:200])
+        prova("toccata la Base, sotto si apre la scelta del mestiere; col mestiere già detto non si rispiega", "Perché ti chiedo il mestiere" not in testo_m and "il tuo mestiere" in testo_m, testo_m[:200])
         await p.click("#prova-vestito .scelta:has-text('Camice')"); await p.wait_for_timeout(400)
         st = await p.evaluate("JSON.parse(localStorage.getItem('jjavis-citta')||'{}')")
         prova("toccando un vestito te lo metti", st.get("vestito") == "sanita", st)
+        await p.wait_for_function("(window.CITTA.skinTua().file||'').includes('persona-sanita-donna') && window.CITTA.skinTua().ossi===true", timeout=60000)
+        prova("la Base col Camice è la persona vestita da sanità (il suo file), e prende i colori scelti", (await p.evaluate("window.CITTA.coloriTua()")).get("pantaloni") == "#e63946", [await p.evaluate("window.CITTA.skinTua()"), await p.evaluate("window.CITTA.coloriTua()")])
         await p.click("#prova-vestito .scelta:has-text('Creator')"); await p.wait_for_timeout(300)
         await p.wait_for_timeout(900); await foto(p, "03-sartoria-creator")
         await p.click("#stanza button:has-text('Fatto')")
@@ -360,7 +365,7 @@ async def main():
                 await usa(p, "poltrone", "Le poltrone")
                 await p.click("#stanza-carta button:has-text('Siediti in poltrona')"); await p.wait_for_timeout(1000)
                 pb = await p.evaluate("window.CITTA.bar()")
-                prova("al Cinema ci si siede in poltrona, e da seduti c'è l'elenco dei video", pb["seduto"] and pb["y"] < 0 and await p.evaluate("document.querySelectorAll('#stanza-carta .video').length") == 1, pb)
+                prova("al Cinema ci si siede in poltrona, e da seduti c'è l'elenco dei video", pb["seduto"] and (pb["y"] < 0 or (pb.get("clip") == "Sitting_Idle_Loop" and pb.get("anca", 0) > 0.3)) and await p.evaluate("document.querySelectorAll('#stanza-carta .video').length") == 1, pb)
                 await p.click("#stanza-carta button:has-text('Alzati')"); await p.wait_for_timeout(300)
                 await foto(p, "09-stanza-cinema")
 
@@ -475,7 +480,7 @@ async def main():
         await usa(p, "tavolini", "I tavolini")
         await p.click("#stanza-carta button:has-text('Siediti al tavolino')"); await p.wait_for_timeout(1200)
         b2 = await p.evaluate("window.CITTA.bar()")
-        prova("al tavolino ci si siede davvero, e sul tavolo arriva quello che hai ordinato", b2["seduto"] and b2["y"] < -0.2 and b2["sulTavolo"] == 3, b2)
+        prova("al tavolino ci si siede davvero, e sul tavolo arriva quello che hai ordinato", b2["seduto"] and (b2["y"] < -0.2 or (b2.get("clip") == "Sitting_Idle_Loop" and 0.42 <= b2.get("anca", 0) <= 0.62)) and b2["sulTavolo"] == 3, b2)   # le persone animate (9/10): conta l'anca sul sedile, non quanto si abbassa l'avatar
         n = 0
         while n < 10 and await p.evaluate("window.CITTA.bar().vassoio.some(v=>v.nome==='Caffè')"):
             await p.click("#vassoio button[data-consuma='Caffè']"); await p.wait_for_timeout(250); n += 1
@@ -669,7 +674,7 @@ async def main():
         prova("le panchine sono sei, fuori dal muretto e più distanziate (almeno 8 m l'una dall'altra)", len(pa) == 6 and all(math.hypot(b_["x"], b_["z"]) >= 10 for b_ in pa) and dmin >= 8, [pa, dmin])
         await p.evaluate("window.CITTA.siedi(0)"); await p.wait_for_timeout(1200)
         sd = await p.evaluate("window.CITTA.seduto()")
-        prova("in panchina ci si siede: più in basso, le gambe in avanti, e resta così", sd["seduto"] and sd["y"] < -0.2 and sd["gamba"] < -1.2, sd)
+        prova("in panchina ci si siede: più in basso, le gambe in avanti, e resta così", sd["seduto"] and ((sd["y"] < -0.2 and sd["gamba"] < -1.2) or (sd.get("clip") == "Sitting_Idle_Loop" and 0.42 <= sd.get("anca", 0) <= 0.62)), sd)
         await p.mouse.move(cx, cy); await p.mouse.down(); await p.mouse.move(cx, cy + 50, steps=4); await p.wait_for_timeout(1500); await p.mouse.up()
         sd2 = await p.evaluate("window.CITTA.seduto()")
         prova("muovendo il cerchio ci si alza e si cammina", not sd2["seduto"] and sd2["y"] == 0, sd2)
@@ -679,19 +684,20 @@ async def main():
 
         # 4c. il sedersi delle skin (JJ, 6/10): le skin di Blender piegano il ginocchio, e ognuna ha il bacino sul sedile
         # (0,55 m) qualunque sia la lunghezza delle sue gambe — prima le KayKit si sedevano per terra attraverso la panchina
-        for sk in ("base", "corriere", "realista-uomo", "avventuriera"):
+        for sk in ("base", "classica", "realista-uomo", "avventuriera"):
             ctx, p, err = await nuova(b, citta={"skin": sk, "skinMie": ["base", "classica", sk], "corpo": "uomo", "giroVisto": True})
             await p.goto(BASE + "citta.html", timeout=60000)
             await p.wait_for_function(f"window.CITTA && window.CITTA.pronta && window.CITTA.skinTua().skin==={json.dumps(sk)} && window.CITTA.skinTua().ossi===true", timeout=60000)
             await p.evaluate("window.CITTA.siedi(0)"); await p.wait_for_timeout(1200)
             sd = await p.evaluate("window.CITTA.seduto()")
             prova(f"{sk}: seduta, col bacino sul sedile e il ginocchio piegato (lo stinco scende verso terra)",
-                  sd["seduto"] and 0.45 <= sd.get("anca", 0) <= 0.6 and abs(sd.get("ginocchio", 0) - sd["anca"]) < 0.12
+                  sd["seduto"] and 0.42 <= sd.get("anca", 0) <= 0.62 and abs(sd.get("ginocchio", 0) - sd["anca"]) < 0.12
                   and sd.get("piede", 9) < sd.get("ginocchio", 0) - 0.1, sd)
             j = await p.query_selector("#joy"); bb = await j.bounding_box(); cx, cy = bb["x"] + bb["width"] / 2, bb["y"] + bb["height"] / 2
             await p.mouse.move(cx, cy); await p.mouse.down(); await p.mouse.move(cx, cy + 50, steps=4); await p.wait_for_timeout(1500); await p.mouse.up()
             await p.wait_for_timeout(800); sd2 = await p.evaluate("window.CITTA.seduto()")
-            prova(f"{sk}: alzandosi il ginocchio torna dritto", not sd2["seduto"] and sd2["y"] == 0 and abs(sd2.get("stinco", 9)) < 0.2, sd2)
+            prova(f"{sk}: alzandosi il ginocchio torna dritto", not sd2["seduto"] and sd2["y"] == 0 and abs(sd2.get("stinco", 9)) < 0.2
+                  and (sd2.get("clip") is None or (sd2["clip"] != "Sitting_Idle_Loop" and sd2.get("anca", 0) > 0.75)), sd2)   # con le animazioni: non è più seduta, e l'anca è risalita
             prova(f"{sk}: nessun errore JavaScript", not err, err[:3])
             await ctx.close()
 

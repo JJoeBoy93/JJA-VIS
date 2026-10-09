@@ -179,7 +179,9 @@ async def main():
         qui = [m for m in f.arrivati if m.get("t") == "qui"][n0:]
         prova("camminando, la tua posizione va al server", len(qui) >= 2 and qui[-1]["p"]["z"] < 17.5, qui[-2:])
         await p.wait_for_timeout(1500); n1 = len(f.arrivati); await p.wait_for_timeout(1500)
-        prova("da fermo non manda niente", len(f.arrivati) == n1, f.arrivati[n1:])
+        # l'appello («elenco», ogni APPELLO_MS) è il battito per tenere sveglio il server, non una posizione: può cadere
+        # nella finestra (9/10, una volta su due in sandbox)
+        prova("da fermo non manda niente", not [m for m in f.arrivati[n1:] if m.get("t") != "elenco"], f.arrivati[n1:])
         f.manda({"t": "arriva", "id": "b2", "n": "Cleo", "a": {**BRUNO, "skin": "cavaliere"}, "p": {"x": -3, "z": 15, "r": 0, "y": 0, "s": 0, "l": ""}})
         prova("arriva un'altra: siete 3", await aspetta(p, "A.visti.length===2&&A.chip.includes('siete 3')", 5000), await altri(p))
         prova("ha la sua skin (il Cavaliere), e sopra il suo soprannome", await aspetta(p, "A.visti.some(x=>x.id==='b2'&&x.skin==='cavaliere'&&x.n==='Cleo'&&x.cartello)", 60000), await altri(p))
