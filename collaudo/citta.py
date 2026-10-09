@@ -670,6 +670,24 @@ async def main():
         prova("nessun errore JavaScript (accesa)", not err, err[:3])
         await ctx.close()
 
+        # 4c. il sedersi delle skin (JJ, 6/10): le skin di Blender piegano il ginocchio, e ognuna ha il bacino sul sedile
+        # (0,55 m) qualunque sia la lunghezza delle sue gambe — prima le KayKit si sedevano per terra attraverso la panchina
+        for sk in ("base", "realista-uomo", "avventuriera"):
+            ctx, p, err = await nuova(b, citta={"skin": sk, "skinMie": ["base", "classica", sk], "corpo": "uomo", "giroVisto": True})
+            await p.goto(BASE + "citta.html", timeout=60000)
+            await p.wait_for_function(f"window.CITTA && window.CITTA.pronta && window.CITTA.skinTua().skin==={json.dumps(sk)} && window.CITTA.skinTua().ossi===true", timeout=60000)
+            await p.evaluate("window.CITTA.siedi(0)"); await p.wait_for_timeout(1200)
+            sd = await p.evaluate("window.CITTA.seduto()")
+            prova(f"{sk}: seduta, col bacino sul sedile e il ginocchio piegato (lo stinco scende verso terra)",
+                  sd["seduto"] and 0.45 <= sd.get("anca", 0) <= 0.6 and abs(sd.get("ginocchio", 0) - sd["anca"]) < 0.12
+                  and sd.get("piede", 9) < sd.get("ginocchio", 0) - 0.1, sd)
+            j = await p.query_selector("#joy"); bb = await j.bounding_box(); cx, cy = bb["x"] + bb["width"] / 2, bb["y"] + bb["height"] / 2
+            await p.mouse.move(cx, cy); await p.mouse.down(); await p.mouse.move(cx, cy + 50, steps=4); await p.wait_for_timeout(1500); await p.mouse.up()
+            await p.wait_for_timeout(800); sd2 = await p.evaluate("window.CITTA.seduto()")
+            prova(f"{sk}: alzandosi il ginocchio torna dritto", not sd2["seduto"] and sd2["y"] == 0 and abs(sd2.get("stinco", 9)) < 0.2, sd2)
+            prova(f"{sk}: nessun errore JavaScript", not err, err[:3])
+            await ctx.close()
+
         # 5. di nuovo: il vestito è rimasto, il giro chiuso non si ripete per sempre
         ctx, p, err = await nuova(b, citta={"mestiere": "Sanità", "vestito": "sanita", "pelle": 0, "giro": {"sartoria": True, "reception": True, "bottega": True}, "giroVisto": True})
         await p.goto(BASE + "citta.html", timeout=60000)

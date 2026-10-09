@@ -1723,12 +1723,12 @@ function capigliatura(g, cappello){
 // nella Sartoria, e costano come nel negozio di Fortnite, dalle 800 alle 2000 monete per skin»). I modelli sono fatti in
 // Blender da modelli/prepara_skin.py. «Classica» è l'omino fatto nel codice, con tutti i vestiti dei mestieri (camice compreso).
 const SKIN=[
-  {id:"base",nome:"Base JJA-VIS",prezzo:0,file:c=>`modelli/skin/base-${c.corpo==="donna"?"donna":"uomo"}.glb`,ossa:[["gamba_s","gamba_d"],["braccio_s","braccio_d"]],colori:true,nota:"la nostra, fatta in Blender"},
+  {id:"base",nome:"Base JJA-VIS",prezzo:0,file:c=>`modelli/skin/base-${c.corpo==="donna"?"donna":"uomo"}.glb`,ossa:[["gamba_s","gamba_d"],["braccio_s","braccio_d"],["stinco_s","stinco_d"]],colori:true,nota:"la nostra, fatta in Blender"},
   {id:"classica",nome:"Classica",prezzo:0,nota:"l'omino coi vestiti dei mestieri"},
-  {id:"realista-uomo",nome:"Realista · uomo",prezzo:800,file:()=>"modelli/skin/realista-uomo.glb",ossa:[["thigh_l","thigh_r"],["upperarm_l","upperarm_r"]],colori:true,nota:"corpo vero (MakeHuman)"},
-  {id:"realista-donna",nome:"Realista · donna",prezzo:800,file:()=>"modelli/skin/realista-donna.glb",ossa:[["thigh_l","thigh_r"],["upperarm_l","upperarm_r"]],colori:true,nota:"corpo vero (MakeHuman)"},
-  {id:"avventuriera",nome:"L'Avventuriera",prezzo:1500,file:()=>"modelli/skin/avventuriera.glb",ossa:[["upperleg.l","upperleg.r"],["upperarm.l","upperarm.r"]],nota:"stile gioco (KayKit)"},
-  {id:"cavaliere",nome:"Il Cavaliere",prezzo:2000,file:()=>"modelli/skin/cavaliere.glb",ossa:[["upperleg.l","upperleg.r"],["upperarm.l","upperarm.r"]],nota:"stile gioco (KayKit)"}];
+  {id:"realista-uomo",nome:"Realista · uomo",prezzo:800,file:()=>"modelli/skin/realista-uomo.glb",ossa:[["thigh_l","thigh_r"],["upperarm_l","upperarm_r"],["calf_l","calf_r"]],colori:true,nota:"corpo vero (MakeHuman)"},
+  {id:"realista-donna",nome:"Realista · donna",prezzo:800,file:()=>"modelli/skin/realista-donna.glb",ossa:[["thigh_l","thigh_r"],["upperarm_l","upperarm_r"],["calf_l","calf_r"]],colori:true,nota:"corpo vero (MakeHuman)"},
+  {id:"avventuriera",nome:"L'Avventuriera",prezzo:1500,file:()=>"modelli/skin/avventuriera.glb",ossa:[["upperleg.l","upperleg.r"],["upperarm.l","upperarm.r"],["lowerleg.l","lowerleg.r"]],nota:"stile gioco (KayKit)"},
+  {id:"cavaliere",nome:"Il Cavaliere",prezzo:2000,file:()=>"modelli/skin/cavaliere.glb",ossa:[["upperleg.l","upperleg.r"],["upperarm.l","upperarm.r"],["lowerleg.l","lowerleg.r"]],nota:"stile gioco (KayKit)"}];
 if(!SKIN.some(k=>k.id===citta.skin)) citta.skin="base";
 if(!Array.isArray(citta.skinMie)) citta.skinMie=["base","classica"];
 const MODELLI={}, caricatore=new GLTFLoader();
@@ -1748,22 +1748,35 @@ function avatarDaSkin(st){
   const maniglia=nome=>{ const b=ossi[nome]||ossi[nome.replace(/[.:\[\]]/g,"")]; let asse=null;
     if(b){ b.getWorldQuaternion(qw); asse=new THREE.Vector3(1,0,0).applyQuaternion(qw.clone().invert()).normalize(); }
     return {rotation:{x:0}, osso:b, riposo:b?b.quaternion.clone():null, asse}; };
-  const gambe=k.ossa[0].map(maniglia), braccia=k.ossa[1].map(maniglia);
+  const gambe=k.ossa[0].map(maniglia), braccia=k.ossa[1].map(maniglia), ginocchia=(k.ossa[2]||[]).map(maniglia);
+  // l'altezza dell'anca di questa skin: da seduti il bacino va sul sedile, qualunque sia la lunghezza delle gambe (JJ, 6/10:
+  // le KayKit, con le gambe corte, si sedevano per terra attraverso la panchina)
+  const anca=gambe[0].osso?gambe[0].osso.getWorldPosition(new THREE.Vector3()).y:ANCA;
   if(k.colori){ const v=VESTITI[st.vestito]||VESTITI.altro, maglia=(typeof st.colore==="number")?st.colore:v.maglia, pant=(typeof st.pantaloni==="number")?st.pantaloni:v.pantaloni;
     copia.traverse(o=>{ if(!o.isMesh) return; const n=o.material.name; if(n==="maglia") o.material.color.setHex(maglia); else if(n==="pantaloni") o.material.color.setHex(pant);
       else if(n==="pelle") o.material.color.setHex(PELLI[st.pelle??1]); else if(n==="capelli") o.material.color.setHex(COLORI_CAPELLI[st.capelliColore??0]??COLORI_CAPELLI[0]); }); }
-  g.userData={gambe,braccia,tessuti:[],skin:k.id,corpo:st.corpo==="donna"?"donna":"uomo",capelli:{tipo:"modello"},fase:Math.random()*6,ossa:[...gambe,...braccia]};
+  g.userData={gambe,braccia,tessuti:[],skin:k.id,corpo:st.corpo==="donna"?"donna":"uomo",capelli:{tipo:"modello"},fase:Math.random()*6,ginocchia,anca,ossa:[...gambe,...braccia,...ginocchia]};
   return g;
 }
 const qX=new THREE.Quaternion(), asseX=new THREE.Vector3(1,0,0);
 function applicaOssa(av){ const o=av.userData.ossa; if(!o) return; for(const h of o) if(h.osso){ qX.setFromAxisAngle(h.asse||asseX,h.rotation.x); h.osso.quaternion.copy(h.riposo).multiply(qX); } }
+// seduti: la coscia in avanti e lo stinco giù (il ginocchio si piega solo nelle skin che ce l'hanno: l'omino del codice no),
+// e il bacino all'altezza del sedile: y è dove sta l'avatar se l'anca è a 0,9 m (ANCA), corretta per l'anca vera della skin
+const SEDUTO=1.45;
+function posaSeduta(av){ const u=av.userData; u.gambe.forEach(g=>g.rotation.x=-SEDUTO); (u.ginocchia||[]).forEach(g=>g.rotation.x=SEDUTO); pieghe(av); applicaOssa(av); }
+function altezzaSeduta(av, y){ return (y??-0.38)+ANCA-(av.userData.anca??ANCA); }
+// per il collaudo: dove stanno davvero anca, ginocchio e piede (solo nelle skin: l'omino del codice non ha ossi)
+function misuraGambe(av){ const u=av.userData, gb=u.gambe[0]&&u.gambe[0].osso, gn=u.ginocchia&&u.ginocchia[0]&&u.ginocchia[0].osso; if(!gb) return {};
+  av.updateMatrixWorld(true); const v=new THREE.Vector3(), r={anca:+gb.getWorldPosition(v).y.toFixed(2)};
+  if(gn){ r.ginocchio=+gn.getWorldPosition(v).y.toFixed(2); const pd=gn.children.find(c=>c.isBone); if(pd) r.piede=+pd.getWorldPosition(v).y.toFixed(2); }
+  return r; }
 function cammina(av, passo){
   const u=av.userData; u.fase+=passo; const a=Math.sin(u.fase)*0.6*Math.min(1,passo*20);
   u.gambe[0].rotation.x=a; u.gambe[1].rotation.x=-a;
   if(!u.ferme){ u.braccia[0].rotation.x=-a*0.8; if(!u.alzato) u.braccia[1].rotation.x=a*0.8; }
-  pieghe(av); applicaOssa(av);
+  (u.ginocchia||[]).forEach(g=>g.rotation.x*=0.7); pieghe(av); applicaOssa(av);
 }
-function fermo(av){ const u=av.userData; u.gambe.forEach(g=>g.rotation.x*=0.8); if(!u.ferme){ u.braccia[0].rotation.x*=0.8; if(!u.alzato) u.braccia[1].rotation.x*=0.8; } pieghe(av); applicaOssa(av); }
+function fermo(av){ const u=av.userData; u.gambe.forEach(g=>g.rotation.x*=0.8); (u.ginocchia||[]).forEach(g=>g.rotation.x*=0.7); if(!u.ferme){ u.braccia[0].rotation.x*=0.8; if(!u.alzato) u.braccia[1].rotation.x*=0.8; } pieghe(av); applicaOssa(av); }
 
 // ── insegne e facciate, disegnate nel telefono ──
 const INSEGNE=new Map();
@@ -2434,8 +2447,8 @@ const COLLINA={r:4.2,h:1.0}, ACQUA=[4.2,6.13], MURETTO={r:6.25,alto:0.55}, PANCH
   scena.sedutoAlBar=()=>!!alBar;
   scena.siediAlBar=()=>{ if(!attiva||!attiva.S.userData.posti||!tuStanza) return; const p=tuStanza.position;
     const posto=attiva.S.userData.posti.slice().sort((a,b)=>Math.hypot(a.x-p.x,a.z-p.z)-Math.hypot(b.x-p.x,b.z-p.z))[0];
-    alBar=posto; dentro.meta=null; tuStanza.position.set(posto.x,posto.y??-0.38,posto.z); tuStanza.rotation.y=Math.atan2(posto.tx-posto.x,posto.tz-posto.z);
-    tuStanza.userData.gambe.forEach(g=>g.rotation.x=-1.45); pieghe(tuStanza); applicaOssa(tuStanza); scena.vassoioAlTavolo(); };
+    alBar=posto; dentro.meta=null; tuStanza.position.set(posto.x,altezzaSeduta(tuStanza,posto.y),posto.z); tuStanza.rotation.y=Math.atan2(posto.tx-posto.x,posto.tz-posto.z);
+    posaSeduta(tuStanza); scena.vassoioAlTavolo(); };
   scena.alzatiDalBar=()=>{ if(!alBar) return; alBar=null; if(tuStanza){ tuStanza.position.y=0; spingiDentro(tuStanza.position,0.4); } scena.vassoioAlTavolo(); };
   scena.vassoioAlTavolo=()=>{ if(!attiva||!attiva.S) return; piatti.splice(0).forEach(m=>m.parent&&m.parent.remove(m)); if(!alBar || alBar.y!==undefined) return;   // al Cinema niente vassoio
     vassoio.forEach((c,k)=>{ const a=Math.atan2(alBar.x-alBar.tx,alBar.z-alBar.tz)+(k-(vassoio.length-1)/2)*0.5, r=0.32, x=alBar.tx+Math.sin(a)*r, z=alBar.tz+Math.cos(a)*r;
@@ -2748,7 +2761,7 @@ const COLLINA={r:4.2,h:1.0}, ACQUA=[4.2,6.13], MURETTO={r:6.25,alto:0.55}, PANCH
     else if(!cartaAperta && dentro.meta){ const r=versoTappa(tuStanza,dentro,dt,4.2,()=>{ const c=R.cose[dentro.metaId]; tuStanza.rotation.y=Math.atan2(c.x-tuStanza.position.x,c.z-tuStanza.position.z); apriCosa(dentro.metaId); });
       if(r){ [vx,vz,vel]=r; const ya=Math.atan2(-vx,-vz); let dy=ya-stato.yaw; dy=Math.atan2(Math.sin(dy),Math.cos(dy)); stato.yaw+=dy*Math.min(1,dt*2.5); } }
     if(alBar && vel>0){ scena.alzatiDalBar(); }   // muovendo il cerchio ci si alza dal tavolino
-    if(alBar){ tuStanza.userData.gambe.forEach(g=>g.rotation.x=-1.45); pieghe(tuStanza); applicaOssa(tuStanza); tuStanza.userData.braccia[1].rotation.x=tStanza<boccaFino?-2.1:0; }
+    if(alBar){ tuStanza.position.y=altezzaSeduta(tuStanza,alBar.y); posaSeduta(tuStanza); tuStanza.userData.braccia[1].rotation.x=tStanza<boccaFino?-2.1:0; }
     if(vel>0){ tuStanza.position.x+=vx*vel*dt; tuStanza.position.z+=vz*vel*dt; spingiDentro(tuStanza.position,0.4);
       const ry=Math.atan2(vx,vz); let dr=ry-tuStanza.rotation.y; dr=Math.atan2(Math.sin(dr),Math.cos(dr)); tuStanza.rotation.y+=dr*Math.min(1,dt*12); cammina(tuStanza,vel*dt*1.9); }
     else if(!alBar) fermo(tuStanza);
@@ -2782,9 +2795,9 @@ const COLLINA={r:4.2,h:1.0}, ACQUA=[4.2,6.13], MURETTO={r:6.25,alto:0.55}, PANCH
 
   let seduto=null;
   scena.siedi=i=>{ const b=panchine[i]; if(!b) return; seduto=b; stato.meta=null;
-    const fx=Math.sin(b.rot), fz=Math.cos(b.rot); tu.position.set(b.x+fx*0.08,-0.38,b.z+fz*0.08); tu.rotation.y=b.rot;
-    tu.userData.gambe.forEach(g=>g.rotation.x=-1.45); pieghe(tu); applicaOssa(tu); $("entra").hidden=true; vicinoPrima="seduto"; };
-  scena.seduto=()=>({seduto:!!seduto, y:+tu.position.y.toFixed(2), gamba:+tu.userData.gambe[0].rotation.x.toFixed(2)});
+    const fx=Math.sin(b.rot), fz=Math.cos(b.rot); tu.position.set(b.x+fx*0.08,altezzaSeduta(tu),b.z+fz*0.08); tu.rotation.y=b.rot;
+    posaSeduta(tu); $("entra").hidden=true; vicinoPrima="seduto"; };
+  scena.seduto=()=>({seduto:!!seduto, y:+tu.position.y.toFixed(2), gamba:+tu.userData.gambe[0].rotation.x.toFixed(2), skin:tu.userData.skin||"classica", stinco:+((tu.userData.ginocchia||[])[0]?.rotation.x??0).toFixed(2), ...misuraGambe(tu)});
   scena.panchine=()=>panchine.map(b=>({x:+b.x.toFixed(2),z:+b.z.toFixed(2)}));
   scena.albero=()=>scena._albero;
   let sulTetto=false; const TETTO=(PALAZZI.find(P=>P.id==="torre").h)+0.4;
@@ -2807,7 +2820,7 @@ const COLLINA={r:4.2,h:1.0}, ACQUA=[4.2,6.13], MURETTO={r:6.25,alto:0.55}, PANCH
       if(r){ [vx,vz,vel]=r; // la telecamera gira dolce dietro a dove vai
         const ya=Math.atan2(-vx,-vz); let dy=ya-stato.yaw; dy=Math.atan2(Math.sin(dy),Math.cos(dy)); stato.yaw+=dy*Math.min(1,dt*2.2); } }
     if(seduto && vel>0){ seduto=null; tu.position.y=0; vicinoPrima=null; }   // muovendo il cerchio ci si alza
-    if(seduto){ tu.userData.gambe.forEach(g=>g.rotation.x=-1.45); pieghe(tu); applicaOssa(tu); }
+    if(seduto){ tu.position.y=altezzaSeduta(tu); posaSeduta(tu); }   // ogni fotogramma: se la skin arriva dopo, l'anca cambia
     if(vel>0){ tu.position.x+=vx*vel*dt; tu.position.z+=vz*vel*dt;
       if(sulTetto){ const T=porte.torre, P=PALAZZI.find(q=>q.id==="torre"), c=Math.cos(P.rot), s2=Math.sin(P.rot), lim=P.w/2-0.7;
         let lx=(tu.position.x-T.cx)*c-(tu.position.z-T.cz)*s2, lz=(tu.position.x-T.cx)*s2+(tu.position.z-T.cz)*c;
@@ -3076,7 +3089,7 @@ const COLLINA={r:4.2,h:1.0}, ACQUA=[4.2,6.13], MURETTO={r:6.25,alto:0.55}, PANCH
       const m=r.m, dx=r.p.x-m.position.x, dz=r.p.z-m.position.z, d=Math.hypot(dx,dz);
       let fatto=0; if(d>8) m.position.set(r.p.x,r.p.y,r.p.z); else { const k=Math.min(1,dt*6); m.position.x+=dx*k; m.position.z+=dz*k; m.position.y+=(r.p.y-m.position.y)*k; fatto=d*k; }
       let dr=r.p.r-m.rotation.y; dr=Math.atan2(Math.sin(dr),Math.cos(dr)); m.rotation.y+=dr*Math.min(1,dt*10);
-      if(r.p.s===2){ m.userData.gambe.forEach(g=>g.rotation.x=-1.45); pieghe(m); applicaOssa(m); }
+      if(r.p.s===2) posaSeduta(m);
       else if(fatto>0.002) cammina(m,fatto*1.9); else fermo(m); } }
   scena.altri=()=>({stato:PZ.stato, id:PZ.id, appelli:PZ.appelli||0, chip:chipAltri.textContent, chat:chat.map(c=>({n:c.n,x:c.x,mio:c.mio})), visti:[...altri.values()].map(r=>({id:r.id, n:r.n, inScena:!!(r.m&&r.m.parent), dentro:r.m&&r.m.parent===S?"citta":(r.m&&r.m.parent?"stanza":null),
     x:r.m?+r.m.position.x.toFixed(2):null, z:r.m?+r.m.position.z.toFixed(2):null, skin:r.m&&r.m.userData.skin||"classica", seduto:r.p.s===2, re:!!r.re, anello:!!(r.m&&r.m.children.some(c=>c.geometry===ANELLO_G)),
