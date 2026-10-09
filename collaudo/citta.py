@@ -73,7 +73,7 @@ def nessun_altro(ws):
 
 async def nuova(b, profilo=None, citta=None, webgl=True):
     ctx = await b.new_context(viewport={"width": 390, "height": 844}, device_scale_factor=2, is_mobile=True, has_touch=True)
-    await ctx.add_init_script("sessionStorage.setItem('jjavis-conto-dopo','1')")   # 6/10: il pannello dell'account che si apre all'ingresso qui non serve (lo prova conto.py)
+    await ctx.add_init_script("try{ sessionStorage.setItem('jjavis-conto-dopo','1'); }catch(_){}")   # 6/10: il pannello dell'account che si apre all'ingresso qui non serve (lo prova conto.py)
     await ctx.route("**/*", instrada)
     await ctx.route_web_socket(INSIEME, nessun_altro)   # il server vero non si tocca: qui in città ci sei solo tu (gli altri: collaudo/insieme.py)
     script = ""

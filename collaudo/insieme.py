@@ -73,7 +73,7 @@ class Finta:
 async def nuova(b, modo, piccola=False, soprannome=None, indirizzo=INSIEME, conto="utente"):
     ctx = await b.new_context(viewport={"width": 120, "height": 220} if piccola else {"width": 390, "height": 844}, device_scale_factor=1 if piccola else 2, is_mobile=True, has_touch=True)
     await ctx.route("**/*", instradatore(indirizzo, conto))
-    await ctx.add_init_script("sessionStorage.setItem('jjavis-conto-dopo','1')")   # 6/10: il pannello dell'account che si apre all'ingresso qui non serve (lo prova conto.py)
+    await ctx.add_init_script("try{ sessionStorage.setItem('jjavis-conto-dopo','1'); }catch(_){}")   # 6/10: il pannello dell'account che si apre all'ingresso qui non serve (lo prova conto.py)
     if conto: await ctx.add_init_script("localStorage.setItem('jjavis-conto','c'.repeat(64));")
     f = Finta(modo); await ctx.route_web_socket(INSIEME, f)
     if soprannome: await ctx.add_init_script(f"if(!sessionStorage.getItem('gia')){{sessionStorage.setItem('gia','1');localStorage.setItem('jjavis-citta',JSON.stringify({{soprannome:{json.dumps(soprannome)},regole:true}}));}}")
