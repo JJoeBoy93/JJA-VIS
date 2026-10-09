@@ -1,0 +1,61 @@
+# Poly Haven: cerca e scarica modelli CC0 nel repo, senza passare dal telefono (JJ, 9/10). Si lancia a mano
+# (Actions → Poly Haven → Run workflow) o la lancia Athena dall'API. Scrive SOLO sul ramo «polyhaven»: main e prova non si
+# toccano, così Hera non trova main spostato. Quando un modello serve alla città, Athena lo copia nel suo commit su prova.
+name: Poly Haven
+
+on:
+  workflow_dispatch:
+    inputs:
+      azione:
+        description: "catalogo (l'elenco di tutti i modelli) oppure scarica"
+        required: true
+        default: catalogo
+        type: choice
+        options: [catalogo, scarica]
+      id:
+        description: "per scarica: gli id separati da virgole (es. wooden_crate_01,hard_hat_01)"
+        required: false
+        default: ""
+      risoluzione:
+        description: "risoluzione delle texture (1k basta per il telefono)"
+        required: false
+        default: 1k
+
+permissions:
+  contents: write
+
+concurrency:
+  group: polyhaven
+  cancel-in-progress: false
+
+jobs:
+  polyhaven:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: il ramo polyhaven
+        run: |
+          git config user.name "Athena"; git config user.email "athena@jja-vis.local"
+          cp strumenti/polyhaven.py /tmp/polyhaven.py
+          if git ls-remote --exit-code --heads origin polyhaven; then git checkout -B polyhaven origin/polyhaven; else git checkout --orphan polyhaven; git rm -rqf . ; fi
+          mkdir -p strumenti && cp /tmp/polyhaven.py strumenti/polyhaven.py
+      - name: ${{ inputs.azione }}
+        env:
+          AZIONE: ${{ inputs.azione }}
+          IDS: ${{ inputs.id }}
+          RIS: ${{ inputs.risoluzione }}
+        run: |
+          if [ "$AZIONE" = "scarica" ]; then python3 strumenti/polyhaven.py scarica "$IDS" "$RIS"; else python3 strumenti/polyhaven.py catalogo; fi
+      - name: nel ramo
+        if: always()
+        run: |
+          git add -A modelli strumenti
+          git diff --cached --quiet && { echo "niente di nuovo"; exit 0; }
+          git commit -q -m "Poly Haven: ${{ inputs.azione }} ${{ inputs.id }}"
+          git push -q origin HEAD:polyhaven
