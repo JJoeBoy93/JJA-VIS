@@ -47,7 +47,9 @@ def instradatore(indirizzo, conto=None):
 
 class Finta:
     """il server finto: modo «uno» (c'è già Bruno), «piena» (4001), «muta» (si chiude subito)"""
-    def __init__(s, modo): s.modo, s.arrivati, s.chiusi, s.linee, s.esito_segnala = modo, [], 0, [], {"ok": True, "fatto": ["telegram", "mail"]}
+    def __init__(s, modo):
+        s.modo, s.arrivati, s.chiusi, s.linee, s.esito_segnala = modo, [], 0, [], {"ok": True, "fatto": ["telegram", "mail"]}
+        s.presenti = {"b1": {"id": "b1", "n": "Bruno", "a": BRUNO, "p": {"x": 3, "z": 15, "r": 0, "y": 0, "s": 0, "l": ""}}}; s.elenco_forzato = None
     def __call__(s, ws):
         s.linee.append(ws)
         if s.modo == "piena": asyncio.ensure_future(ws.close(code=4001, reason="piena")); return
@@ -61,6 +63,8 @@ class Finta:
                 ws.send(json.dumps({"t": "di", "id": "io1", "n": "Ada", "x": d["x"], "ora": 1}))
             if d.get("t") == "modera":
                 ws.send(json.dumps({"t": "moderato", "ok": True, "azione": d["azione"], "n": d.get("n") or "Bruno"}))
+            if d.get("t") == "elenco":   # l'appello: chi il server finto ha annunciato; nella sezione dell'appello un elenco «corretto» a mano
+                ws.send(json.dumps({"t": "elenco", "altri": s.elenco_forzato if s.elenco_forzato is not None else list(s.presenti.values())}))
             if d.get("t") == "moderati":   # chi è bloccato o zittito: prima Molesto, dopo lo sblocco nessuno
                 sbloccato = any(m.get("t") == "modera" and m.get("azione") == "sblocca" for m in s.arrivati)
                 ws.send(json.dumps({"t": "moderati", "ok": True, "elenco": [] if sbloccato else [{"uid": "g:42", "soprannome": "Molesto", "nome": "M", "bloccato": True, "zitto_fino": 0}]}))
@@ -68,9 +72,13 @@ class Finta:
                 ws.send(json.dumps({"t": "segnalato", **s.esito_segnala}))
         def chiuso(c, r): s.chiusi += 1
         ws.on_message(msg); ws.on_close(chiuso)
-    def manda(s, d): s.linee[-1].send(json.dumps(d))
+    def manda(s, d):
+        if d.get("t") == "arriva": s.presenti[d["id"]] = {k: d[k] for k in ("id", "n", "a", "p", "re") if k in d}
+        if d.get("t") == "va": s.presenti.pop(d["id"], None)
+        if d.get("t") == "qui" and d["id"] in s.presenti: s.presenti[d["id"]]["p"] = d["p"]
+        s.linee[-1].send(json.dumps(d))
 
-async def nuova(b, modo, piccola=False, soprannome=None, indirizzo=INSIEME, conto="utente"):
+async def nuova(b, modo, piccola=False, soprannome=None, indirizzo=INSIEME, conto="utente", query=""):
     ctx = await b.new_context(viewport={"width": 120, "height": 220} if piccola else {"width": 390, "height": 844}, device_scale_factor=1 if piccola else 2, is_mobile=True, has_touch=True)
     await ctx.route("**/*", instradatore(indirizzo, conto))
     await ctx.add_init_script("try{ sessionStorage.setItem('jjavis-conto-dopo','1'); }catch(_){}")   # 6/10: il pannello dell'account che si apre all'ingresso qui non serve (lo prova conto.py)
@@ -80,7 +88,7 @@ async def nuova(b, modo, piccola=False, soprannome=None, indirizzo=INSIEME, cont
     p = await ctx.new_page(); errori = []
     p.on("pageerror", lambda e: errori.append(str(e)))
     p.on("console", lambda m: errori.append(m.text) if m.type == "error" and "ERR_FAILED" not in m.text else None)
-    await p.goto(BASE + "citta.html", timeout=60000)
+    await p.goto(BASE + "citta.html" + query, timeout=60000)
     await p.wait_for_function("window.CITTA && window.CITTA.pronta && window.CITTA.fotogrammi()>3", timeout=90000)
     return ctx, p, f, errori
 
@@ -238,6 +246,15 @@ async def main():
         n0 = len(f.linee); f.manda({"t": "no", "perche": "bloccato"}); await asyncio.ensure_future(f.linee[-1].close(code=4003, reason="bloccato")); await p.wait_for_timeout(4000)
         A = await altri(p)
         prova("bloccato: lo dice, e non riprova a collegarsi", A["stato"] == "bloccato" and "non può stare con gli altri" in A["chip"] and len(f.linee) == n0, (A["stato"], A["chip"], len(f.linee), n0))
+        await ctx.close()
+
+        # 1e. l'appello (JJ, 9/10: «quando uno entra per vederlo devo andare da solo e poi ritornare»): l'«è arrivato» si perde,
+        # l'elenco del server lo ritrova; e chi se n'è andato senza «va» sparisce
+        ctx, p, f, err = await nuova(b, "uno", soprannome="Ada", query="?appello=1500")
+        f.elenco_forzato = [{"id": "x9", "n": "Perso", "a": BRUNO, "p": {"x": 1, "z": 14, "r": 0, "y": 0, "s": 0, "l": ""}}]   # Perso mai annunciato; Bruno andato via senza «va»
+        prova("l'appello ritrova chi è arrivato senza che nessuno l'abbia detto", await aspetta(p, "A.visti.some(x=>x.id==='x9'&&x.n==='Perso')", 8000), await altri(p))
+        prova("…e toglie chi non c'è più (Bruno), senza andare «da solo» e tornare", await aspetta(p, "!A.visti.some(x=>x.id==='b1')&&A.chip.includes('siete 2')", 5000), await altri(p))
+        prova("l'appello si ripete", await aspetta(p, "A.appelli>=2", 8000) and len([m for m in f.arrivati if m.get("t") == "elenco"]) >= 2)
         await ctx.close()
 
         # 1b. il freno: in una finestra minuscola SwiftShader disegna abbastanza fotogrammi perché il freno si veda

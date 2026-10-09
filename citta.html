@@ -2861,6 +2861,7 @@ const COLLINA={r:4.2,h:1.0}, ACQUA=[4.2,6.13], MURETTO={r:6.25,alto:0.55}, PANCH
   // di Twitch». Il server della città (jjavis-citta) riceve l'aspetto dell'avatar, dove cammini, il soprannome e i messaggi, e li passa a chi c'è.
   // Senza soprannome non si entra: entrare è una scelta. Se il server non risponde la città resta tua, e il tasto 👥 lo dice.
   const altri=new Map(), chipAltri=$("altri"), silenziati=new Set(), chat=[];
+  const APPELLO_MS=+(new URLSearchParams(location.search).get("appello")||20000);   // ogni 20 s (il collaudo lo accorcia)
   const SEGNALA_MOTIVI=[["insulti","Insulti o offese"],["molestie","Molestie"],["sessuale","Contenuti sessuali"],["odio","Odio o discriminazione"],["spam","Spam o pubblicità"],["minore","Riguarda un minore"],["altro","Altro"]];
   const PZ={ws:null, stato:"spenta", ritardo:2000, timer:null, ping:null, id:null, t:0, ul:null, aspetto:"", ultimo:performance.now(), url:undefined, nuovi:0, aperta:false, errore:""};
   const ANELLO_G=new THREE.RingGeometry(0.42,0.52,28), ANELLO_M=new THREE.MeshBasicMaterial({color:0x00B4D8,transparent:true,opacity:0.75,side:THREE.DoubleSide});
@@ -2919,6 +2920,12 @@ const COLLINA={r:4.2,h:1.0}, ACQUA=[4.2,6.13], MURETTO={r:6.25,alto:0.55}, PANCH
     lungo:"Troppo lungo: al massimo 200 caratteri.", vuoto:"", account:"Per stare con gli altri serve l'account: entra con Google.", bloccato:"Il tuo account è stato bloccato: con gli altri non puoi più stare.", zitto:"Per un po' non puoi scrivere: troppe parole pesanti."};
   function ricevi(m){
     if(m.t==="tu"){ PZ.id=m.id; svuota(); (m.altri||[]).forEach(aggiungi); PZ.errore=""; segna("dentro"); return; }
+    // l'appello (JJ, 9/10: «quando uno entra per vederlo devo andare da solo e poi ritornare»): se un «è arrivato» o un «se n'è
+    // andato» si è perso, l'elenco del server lo corregge: aggiunge chi manca, toglie chi non c'è più, rimette dove sta ognuno
+    if(m.t==="elenco"&&Array.isArray(m.altri)){ const ci=new Set(m.altri.map(o=>o.id));
+      [...altri.keys()].forEach(id=>{ if(!ci.has(id)) togli(id); });
+      m.altri.forEach(o=>{ const r=altri.get(o.id); if(!r) aggiungi(o); else if(posOk(o.p)) r.p=normale(o.p); });
+      PZ.appelli=(PZ.appelli||0)+1; segna(PZ.stato); return; }
     if(m.t==="arriva"){ aggiungi(m); segna("dentro"); }
     else if(m.t==="qui"){ const r=altri.get(m.id); if(r&&posOk(m.p)) r.p=normale(m.p); }
     else if(m.t==="aspetto"){ const r=altri.get(m.id); if(r){ r.a=m.a||r.a; r.n=nomeDi(m)||r.n; vestiAltro(r); if(PZ.aperta) disegnaInsieme(); } }
@@ -2960,17 +2967,18 @@ const COLLINA={r:4.2,h:1.0}, ACQUA=[4.2,6.13], MURETTO={r:6.25,alto:0.55}, PANCH
     let ws; try{ ws=new WebSocket(url); }catch(_){ segna("giu"); return; }
     PZ.ws=ws; segna("entro");
     ws.onopen=()=>{ PZ.ritardo=2000; PZ.aspetto=JSON.stringify([aspettoMio(),citta.soprannome]); PZ.ul=doveSono(); ws.send(JSON.stringify({t:"ciao",n:citta.soprannome.trim(),a:aspettoMio(),p:PZ.ul,tok:contoToken()}));
-      PZ.ping=setInterval(()=>{ if(ws.readyState===1) ws.send("ping"); },30000); };   // «pong» lo risponde Cloudflare: il server non si sveglia
+      PZ.ping=setInterval(()=>{ if(ws.readyState===1) ws.send("ping"); },30000);
+      PZ.appello=setInterval(()=>{ if(ws.readyState===1&&PZ.stato==="dentro") ws.send(JSON.stringify({t:"elenco"})); },APPELLO_MS); };   // «pong» lo risponde Cloudflare: il server non si sveglia
     ws.onmessage=e=>{ if(e.data==="pong") return; let m; try{ m=JSON.parse(e.data); }catch(_){ return; } if(m&&typeof m==="object") ricevi(m); };
     ws.onerror=()=>{};
-    ws.onclose=e=>{ clearInterval(PZ.ping); const eraDentro=PZ.stato==="dentro"; if(PZ.ws!==ws) return; PZ.ws=null; PZ.id=null; svuota();
+    ws.onclose=e=>{ clearInterval(PZ.ping); clearInterval(PZ.appello); const eraDentro=PZ.stato==="dentro"; if(PZ.ws!==ws) return; PZ.ws=null; PZ.id=null; svuota();
       if(!SOPRANNOME_OK(citta.soprannome)){ segna("nome"); return; }
       if(citta.daSolo){ segna("solo"); return; }
       if(document.hidden){ segna("spenta"); return; }
       if(e.code===4001){ segna("piena"); PZ.timer=setTimeout(collegati,60000); return; }
       if(e.code===4003||PZ.bloccato){ PZ.bloccato=true; segna("bloccato"); return; }   // bloccato dall'amministratore: non si riprova
       segna(eraDentro?"persa":"giu"); PZ.timer=setTimeout(collegati,PZ.ritardo); PZ.ritardo=Math.min(60000,PZ.ritardo*2); }; }
-  function scollegati(stato){ clearTimeout(PZ.timer); const ws=PZ.ws; PZ.ws=null; if(ws){ clearInterval(PZ.ping); try{ ws.close(1000,"esco"); }catch(_){} } PZ.id=null; svuota(); segna(stato); }
+  function scollegati(stato){ clearTimeout(PZ.timer); const ws=PZ.ws; PZ.ws=null; if(ws){ clearInterval(PZ.ping); clearInterval(PZ.appello); try{ ws.close(1000,"esco"); }catch(_){} } PZ.id=null; svuota(); segna(stato); }
 
   // ── il pannello degli altri: soprannome, chi c'è, la chat ──
   function disegnaChat(){ const box=$("insieme-chat"); box.textContent="";
@@ -3070,7 +3078,7 @@ const COLLINA={r:4.2,h:1.0}, ACQUA=[4.2,6.13], MURETTO={r:6.25,alto:0.55}, PANCH
       let dr=r.p.r-m.rotation.y; dr=Math.atan2(Math.sin(dr),Math.cos(dr)); m.rotation.y+=dr*Math.min(1,dt*10);
       if(r.p.s===2){ m.userData.gambe.forEach(g=>g.rotation.x=-1.45); pieghe(m); applicaOssa(m); }
       else if(fatto>0.002) cammina(m,fatto*1.9); else fermo(m); } }
-  scena.altri=()=>({stato:PZ.stato, id:PZ.id, chip:chipAltri.textContent, chat:chat.map(c=>({n:c.n,x:c.x,mio:c.mio})), visti:[...altri.values()].map(r=>({id:r.id, n:r.n, inScena:!!(r.m&&r.m.parent), dentro:r.m&&r.m.parent===S?"citta":(r.m&&r.m.parent?"stanza":null),
+  scena.altri=()=>({stato:PZ.stato, id:PZ.id, appelli:PZ.appelli||0, chip:chipAltri.textContent, chat:chat.map(c=>({n:c.n,x:c.x,mio:c.mio})), visti:[...altri.values()].map(r=>({id:r.id, n:r.n, inScena:!!(r.m&&r.m.parent), dentro:r.m&&r.m.parent===S?"citta":(r.m&&r.m.parent?"stanza":null),
     x:r.m?+r.m.position.x.toFixed(2):null, z:r.m?+r.m.position.z.toFixed(2):null, skin:r.m&&r.m.userData.skin||"classica", seduto:r.p.s===2, re:!!r.re, anello:!!(r.m&&r.m.children.some(c=>c.geometry===ANELLO_G)),
     cartello:!!(r.cartello&&r.cartello.parent===r.m), fumetto:!!r.fumettoDisegnato, silenziato:silenziati.has(r.id)}))});
   collegati();
