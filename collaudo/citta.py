@@ -234,7 +234,7 @@ async def main():
         # indossa). Toccando una scheda la skin ti va addosso in prova, gratis: «le skin se non hai gettoni non le puoi neanche vedere... non va bene»
         await usa(p, "manichini", "Il negozio")
         schede = await p.evaluate("[...document.querySelectorAll('#negozio .scheda-skin')].map(b=>[b.dataset.skin,b.querySelector('.prezzo').textContent])")
-        prova("il negozio è una griglia con tutte le skin, ognuna col suo prezzo (o «è tua»)", len(schede) == 6 and dict(schede).get("cavaliere") == "2000 🪙" and dict(schede).get("base") == "è tua", schede)
+        prova("il negozio è una griglia con tutte le skin, ognuna col suo prezzo (o «è tua»)", len(schede) == 4 and dict(schede).get("cavaliere") == "2000 🪙" and dict(schede).get("base") == "è tua", schede)
         prova("al negozio non si indossa: niente «Indossa»", not await p.evaluate("[...document.querySelectorAll('#stanza-carta button')].some(b=>/Indossa/.test(b.textContent))"))
         await p.click("#negozio .scheda-skin[data-skin='cavaliere']")
         prova("toccando una scheda la skin ti va addosso in prova, e i gettoni restano quelli",
@@ -245,24 +245,27 @@ async def main():
         await p.click("#chiudi-carta"); await p.wait_for_timeout(400)
         prova("chiudendo la carta la prova finisce da sola", await p.evaluate("window.CONTO_PROVA.stato().provaSkin===null") and (await p.evaluate("window.CITTA.skinTua()"))["skin"] == "base")
         await usa(p, "manichini", "Il negozio")
-        await p.click("#negozio .scheda-skin[data-skin='realista-uomo']"); await p.click("#vetrina button:has-text('Compra')"); await p.wait_for_timeout(400)
-        prova("una skin da 800 con 100 gettoni non si compra, e dice dove vincerli", "Sala giochi" in await p.inner_text("#esito-skin")
-              and not await p.evaluate("window.CONTO_PROVA.stato().skinMie.includes('realista-uomo')"))
-        await p.evaluate("window.CITTA.gettoni(900)")
+        await p.click("#negozio .scheda-skin[data-skin='avventuriera']"); await p.click("#vetrina button:has-text('Compra')"); await p.wait_for_timeout(400)
+        prova("una skin da 1500 con 100 gettoni non si compra, e dice dove vincerli", "Sala giochi" in await p.inner_text("#esito-skin")
+              and not await p.evaluate("window.CONTO_PROVA.stato().skinMie.includes('avventuriera')"))
+        await p.evaluate("window.CITTA.gettoni(1600)")
         await usa(p, "manichini", "Il negozio")
-        await p.click("#negozio .scheda-skin[data-skin='realista-uomo']"); await p.click("#vetrina button:has-text('Compra')")
-        await p.wait_for_function("window.CITTA.skinTua().skin==='realista-uomo' && window.CITTA.skinTua().ossi===true && window.CONTO_PROVA.stato().provaSkin===null", timeout=60000)
+        await p.click("#negozio .scheda-skin[data-skin='avventuriera']"); await p.click("#vetrina button:has-text('Compra')")
+        await p.wait_for_function("window.CITTA.skinTua().skin==='avventuriera' && window.CITTA.skinTua().ossi===true && window.CONTO_PROVA.stato().provaSkin===null", timeout=60000)
         st_ = await p.evaluate("window.CITTA.skinTua()")
-        prova("con 900 gettoni la realista (800) si compra, te la tieni addosso, e restano 100 gettoni", st_["gettoni"] == 100 and "realista-uomo" in st_["mie"], st_)
+        prova("con 1600 gettoni l'Avventuriera (1500) si compra, te la tieni addosso, e restano 100 gettoni", st_["gettoni"] == 100 and "avventuriera" in st_["mie"], st_)
+        prova("le Realista senza vestiti non sono più in negozio (JJ, 9/10)", not any(k.startswith("realista") for k, _ in schede), schede)
         prezzi = await p.evaluate("[...document.querySelectorAll('#negozio .scheda-skin .prezzo')].map(b=>b.textContent)")
-        prova("i prezzi delle skin da comprare sono fra 800 e 2000 gettoni", all(800 <= int(x.split()[0]) <= 2000 for x in prezzi if "🪙" in x) and len([x for x in prezzi if "🪙" in x]) == 3, prezzi)
+        prova("i prezzi delle skin da comprare sono fra 800 e 2000 gettoni", all(800 <= int(x.split()[0]) <= 2000 for x in prezzi if "🪙" in x) and len([x for x in prezzi if "🪙" in x]) == 1, prezzi)
         # tutte le skin si caricano e trovano i loro ossi (anche quelle coi punti nei nomi, che three toglie)
-        tutte = await p.evaluate("""(async()=>{ const r={}; for(const id of ['base','classica','realista-uomo','realista-donna','avventuriera','cavaliere']){ r[id]=await window.CITTA.provaSkin(id); } return r; })()""")
-        prova("le sei skin di Blender (le persone Base e Classica, Realista, KayKit) si caricano, coi loro ossi, e il passo muove davvero le gambe avanti e indietro", all(v["ossi"] and v["passo"] > 0.05 and v["avanti"] for v in tutte.values()), tutte)
+        tutte = await p.evaluate("""(async()=>{ const r={}; for(const id of ['base','classica','avventuriera','cavaliere']){ r[id]=await window.CITTA.provaSkin(id); } return r; })()""")
+        prova("le quattro skin di Blender (le persone Base e Classica, le KayKit) si caricano, coi loro ossi, e il passo muove davvero le gambe avanti e indietro", all(v["ossi"] and v["passo"] > 0.05 and v["avanti"] for v in tutte.values()), tutte)
+        alte = await p.evaluate("window.CITTA.altezze()")
+        prova("tutte le skin sono alte più o meno uguali, 2,1-2,3 m (JJ, 9/10: «non devo vedere un puffo»)", all(v is not None and 2.1 <= v <= 2.3 for v in alte.values()), alte)
         # l'armadietto (JJ, 6/10: lo specchio diventa l'armadietto): ci sono solo le tue, e lì si indossano
         await usa(p, "specchio", "L'armadietto")
         mie = await p.evaluate("[...document.querySelectorAll('#armadietto .scheda-skin')].map(b=>b.dataset.skin)")
-        prova("all'armadietto ci sono solo le skin che hai", sorted(mie) == ["base", "classica", "realista-uomo"], mie)
+        prova("all'armadietto ci sono solo le skin che hai", sorted(mie) == ["avventuriera", "base", "classica"], mie)
         await p.click("#armadietto .scheda-skin[data-skin='classica']"); await p.wait_for_timeout(1200)
         prova("la Classica (la persona vestita normale) si rimette dall'armadietto", (await p.evaluate("window.CITTA.skinTua()"))["skin"] == "classica")
         await p.evaluate("window.CITTA.gettoni(100)")
@@ -689,7 +692,7 @@ async def main():
 
         # 4c. il sedersi delle skin (JJ, 6/10): le skin di Blender piegano il ginocchio, e ognuna ha il bacino sul sedile
         # (0,55 m) qualunque sia la lunghezza delle sue gambe — prima le KayKit si sedevano per terra attraverso la panchina
-        for sk in ("base", "classica", "realista-uomo", "avventuriera"):
+        for sk in ("base", "classica", "avventuriera", "cavaliere"):
             ctx, p, err = await nuova(b, citta={"skin": sk, "skinMie": ["base", "classica", sk], "corpo": "uomo", "giroVisto": True})
             await p.goto(BASE + "citta.html", timeout=60000)
             await p.wait_for_function(f"window.CITTA && window.CITTA.pronta && window.CITTA.skinTua().skin==={json.dumps(sk)} && window.CITTA.skinTua().ossi===true", timeout=60000)

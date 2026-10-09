@@ -160,7 +160,7 @@ async def main():
         await p.wait_for_function("window.CONTO_PROVA.stato().conto!==null", timeout=10000)
         S = await st(p)
         prova("l'amministratore lo dice il tasto (👑) e il pannello", "👑" in S["tasto"] and "amministratore" in S["tasto"] and "non spendi gettoni" in await p.inner_text("#conto"), S)
-        prova("all'amministratore tutte le skin sono sue", {"base", "classica", "realista-uomo", "realista-donna", "avventuriera", "cavaliere"} <= set(S["skinMie"]), S["skinMie"])
+        prova("all'amministratore tutte le skin sono sue", {"base", "classica", "avventuriera", "cavaliere"} <= set(S["skinMie"]), S["skinMie"])
         ok = await p.evaluate("window.CONTO_PROVA.spendi(5000)"); await p.wait_for_timeout(300)
         prova("l'amministratore «spende» 5000 gettoni: va bene, e ne ha ancora 261", ok is True and (await st(p))["gettoni"] == 261 and not any(v == "/conto/spendi" for v, c in srv.chiamate), (await st(p))["gettoni"])
         prova("nessun errore JavaScript (amministratore)", not err, err[:3])

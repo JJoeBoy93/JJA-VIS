@@ -1584,6 +1584,10 @@ function avatar(st){
   if(st===citta){ const s=provaSkin?{...st,skin:provaSkin}:st; return avatarDaSkin(s)||persona({...s}); }   // provaSkin: allo specchio, senza comprarla
   return persona(st);
 }
+// JJ, 6/10 e 9/10: tutte le skin più o meno della stessa misura («non devo vedere un puffo se metto i KayKit») e una
+// hitbox uguale per tutti nei giochi in cui ci si spara. Le misure vere in città (9/10): Base 2,22 m, Classica 2,20, KayKit
+// 1,90 → scala 1,16 = 2,20. La hitbox non dipende dalla skin: un cilindro così, per chiunque. Oggi nessun gioco la usa ancora
+const HITBOX={alto:2.2, raggio:0.4};
 const ATTESE=[];
 function persona(st){
   const s={...st, skin:(st.skin&&SKIN.some(k=>k.id===st.skin&&k.file))?st.skin:"base"};
@@ -1764,10 +1768,9 @@ const SKIN=[
   // vestita secondo il mestiere scelto sotto «Base JJA-VIS» all'armadietto; la Classica è la stessa persona vestita normale
   {id:"base",nome:"Base JJA-VIS",prezzo:0,file:c=>`modelli/skin/persona-${VESTITI[c.vestito]?c.vestito:"altro"}-${c.corpo==="donna"?"donna":"uomo"}.glb`,ossa:[["thigh_l","thigh_r"],["upperarm_l","upperarm_r"],["calf_l","calf_r"]],scala:1.17,colori:true,anim:true,nota:"una persona vera, vestita col tuo mestiere"},
   {id:"classica",nome:"Classica",prezzo:0,file:c=>`modelli/skin/persona-classica-${c.corpo==="donna"?"donna":"uomo"}.glb`,ossa:[["thigh_l","thigh_r"],["upperarm_l","upperarm_r"],["calf_l","calf_r"]],scala:1.17,colori:true,anim:true,nota:"la stessa persona, con maglietta, pantaloni e scarpe semplici"},
-  {id:"realista-uomo",nome:"Realista · uomo",prezzo:800,file:()=>"modelli/skin/realista-uomo.glb",ossa:[["thigh_l","thigh_r"],["upperarm_l","upperarm_r"],["calf_l","calf_r"]],scala:1.17,colori:true,anim:true,nota:"corpo vero (MakeHuman)"},
-  {id:"realista-donna",nome:"Realista · donna",prezzo:800,file:()=>"modelli/skin/realista-donna.glb",ossa:[["thigh_l","thigh_r"],["upperarm_l","upperarm_r"],["calf_l","calf_r"]],scala:1.17,colori:true,anim:true,nota:"corpo vero (MakeHuman)"},
-  {id:"avventuriera",nome:"L'Avventuriera",prezzo:1500,file:()=>"modelli/skin/avventuriera.glb",ossa:[["upperleg.l","upperleg.r"],["upperarm.l","upperarm.r"],["lowerleg.l","lowerleg.r"]],nota:"stile gioco (KayKit)"},
-  {id:"cavaliere",nome:"Il Cavaliere",prezzo:2000,file:()=>"modelli/skin/cavaliere.glb",ossa:[["upperleg.l","upperleg.r"],["upperarm.l","upperarm.r"],["lowerleg.l","lowerleg.r"]],nota:"stile gioco (KayKit)"}];
+  {id:"avventuriera",nome:"L'Avventuriera",prezzo:1500,file:()=>"modelli/skin/avventuriera.glb",ossa:[["upperleg.l","upperleg.r"],["upperarm.l","upperarm.r"],["lowerleg.l","lowerleg.r"]],scala:1.16,nota:"stile gioco (KayKit)"},
+  {id:"cavaliere",nome:"Il Cavaliere",prezzo:2000,file:()=>"modelli/skin/cavaliere.glb",ossa:[["upperleg.l","upperleg.r"],["upperarm.l","upperarm.r"],["lowerleg.l","lowerleg.r"]],scala:1.16,nota:"stile gioco (KayKit)"}];
+if(citta.skin==="realista-uomo"||citta.skin==="realista-donna"){ citta.skin="base"; }   // JJ, 9/10: le Realista senza vestiti non hanno senso nel negozio: tolte
 if(citta.skin==="corriere"){ citta.skin="base"; citta.vestito="corriere"; }   // la prova del 9/10 è diventata la Base vestita da corriere
 if(!SKIN.some(k=>k.id===citta.skin)) citta.skin="base";
 if(!Array.isArray(citta.skinMie)) citta.skinMie=["base","classica"];
@@ -2930,6 +2933,8 @@ const COLLINA={r:4.2,h:1.0}, ACQUA=[4.2,6.13], MURETTO={r:6.25,alto:0.55}, PANCH
         if(Math.abs(v.x)<1.1&&((v.y>0.46&&v.y<0.54&&v.z>-0.29&&v.z<0.29)||(v.y>0.56&&v.y<1.14&&v.z>-0.32&&v.z<-0.24))) dentro++;   // dentro sedile o schienale, con 1 cm di tolleranza
         if(busto&&v.y>0.65&&v.y<1.15) dietro=Math.min(dietro,v.z); } });
     return {dentro, tot, schiena:dietro===Infinity?null:+(dietro-(-0.23)).toFixed(3)}; };   // schiena: distanza dalla faccia dello schienale (0 = appoggiata)
+  // per il collaudo: l'altezza di ogni skin com'è in città (uomo), misurata sul modello
+  scena.altezze=()=>{ const r={}; for(const k of SKIN){ const m=avatarDaSkin({...citta,skin:k.id,corpo:"uomo"}); if(!m){ r[k.id]=null; continue; } m.updateMatrixWorld(true); const b=new THREE.Box3().setFromObject(m,true); r[k.id]=+(b.max.y-b.min.y).toFixed(2); } return r; };
   scena.panchine=()=>panchine.map(b=>({x:+b.x.toFixed(2),z:+b.z.toFixed(2)}));
   scena.albero=()=>scena._albero;
   let sulTetto=false; const TETTO=(PALAZZI.find(P=>P.id==="torre").h)+0.4;
