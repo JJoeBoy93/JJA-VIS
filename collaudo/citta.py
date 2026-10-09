@@ -689,10 +689,11 @@ async def main():
             await p.goto(BASE + "citta.html", timeout=60000)
             await p.wait_for_function(f"window.CITTA && window.CITTA.pronta && window.CITTA.skinTua().skin==={json.dumps(sk)} && window.CITTA.skinTua().ossi===true", timeout=60000)
             await p.evaluate("window.CITTA.siedi(0)"); await p.wait_for_timeout(1200)
-            sd = await p.evaluate("window.CITTA.seduto()")
+            sd = await p.evaluate("window.CITTA.seduto()"); sd["sedere"] = await p.evaluate("window.CITTA.sedere()")
             prova(f"{sk}: seduta, col bacino sul sedile e il ginocchio piegato (lo stinco scende verso terra)",
                   sd["seduto"] and 0.42 <= sd.get("anca", 0) <= 0.75 and abs(sd.get("ginocchio", 0) - sd["anca"]) < 0.12
-                  and sd.get("piede", 9) < sd.get("ginocchio", 0) - 0.1, sd)
+                  and sd.get("piede", 9) < sd.get("ginocchio", 0) - 0.1
+                  and (sd["sedere"] is None or sd["sedere"] >= 0.52), sd)   # il sedere sopra il sedile (0,55), non dentro (9/10)
             j = await p.query_selector("#joy"); bb = await j.bounding_box(); cx, cy = bb["x"] + bb["width"] / 2, bb["y"] + bb["height"] / 2
             await p.mouse.move(cx, cy); await p.mouse.down(); await p.mouse.move(cx, cy + 50, steps=4); await p.wait_for_timeout(1500); await p.mouse.up()
             await p.wait_for_timeout(800); sd2 = await p.evaluate("window.CITTA.seduto()")

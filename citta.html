@@ -1829,10 +1829,20 @@ function applicaOssa(av){ const o=av.userData.ossa; if(!o) return; for(const h o
 // e il bacino all'altezza del sedile: y è dove sta l'avatar se l'anca è a 0,9 m (ANCA), corretta per l'anca vera della skin
 const SEDUTO=1.45;
 function posaSeduta(av){ const u=av.userData; if(u.anim && suona(av,"Sitting_Idle_Loop")) return; u.gambe.forEach(g=>g.rotation.x=-SEDUTO); (u.ginocchia||[]).forEach(g=>g.rotation.x=SEDUTO); pieghe(av); applicaOssa(av); }
-function altezzaSeduta(av, y){ const u=av.userData, base=(y??-0.38)+ANCA;
-  // le persone hanno il sedere sotto l'anca (12 cm, per la scala): con l'anca a filo del sedile stavano dentro la panchina (JJ, 9/10)
-  if(u.mixer&&u.clip==="Sitting_Idle_Loop"&&u.gambe[0].osso){ av.updateMatrixWorld(true); const k=u.radice&&u.radice.scale?u.radice.scale.x:1; return av.position.y+base+0.12*k-u.gambe[0].osso.getWorldPosition(new THREE.Vector3()).y; }   // con l'animazione: l'anca vera sul sedile
-  return base-(u.anca??ANCA); }
+// quanto sta il sedere sotto l'anca, misurato sui pantaloni nella posa di adesso (un giro sui punti: una volta per clip)
+function sedereSottoAnca(av){ const u=av.userData, os=u.gambe[0]&&u.gambe[0].osso; if(!os||!os.parent) return null;
+  av.updateMatrixWorld(true); const v=new THREE.Vector3(), b=new THREE.Vector3(); os.parent.getWorldPosition(b); const anca=os.getWorldPosition(new THREE.Vector3()).y; let min=Infinity;
+  av.traverse(o=>{ if(!o.isSkinnedMesh||!o.material||!(o.material.name||"").startsWith("pantaloni")) return; const n=o.geometry.attributes.position.count;
+    for(let i=0;i<n;i++){ o.getVertexPosition(i,v); o.localToWorld(v); if(Math.hypot(v.x-b.x,v.z-b.z)<0.22) min=Math.min(min,v.y); } });
+  return min===Infinity?null:anca-min; }
+// l'altezza dell'avatar seduto: il sedere vero sul piano del sedile (0,93 sopra la y del posto: 0,55 in panchina). JJ, 9/10:
+// «quando fai la foto e guardi, non lo vedi che è dentro la panchina?» — prima si mettevano a occhio anca e un margine fisso,
+// e Classica e Realista restavano dentro di 5 e 13 cm. Ora si misura (sedereSottoAnca) e la prova lo controlla (sedere())
+function altezzaSeduta(av, y){ const u=av.userData, piano=(y??-0.38)+0.93, os=u.gambe[0]&&u.gambe[0].osso;
+  if(!os) return (y??-0.38)+ANCA-(u.anca??ANCA);   // l'omino (e le skin senza ossi): come sempre
+  const chiave=u.clip||"mano"; u.sedere=u.sedere||{};
+  if(u.sedere[chiave]==null){ const d=sedereSottoAnca(av); if(d==null) return (y??-0.38)+ANCA-(u.anca??ANCA); u.sedere[chiave]=d; }
+  av.updateMatrixWorld(true); return av.position.y+piano+u.sedere[chiave]-os.getWorldPosition(new THREE.Vector3()).y; }
 // per il collaudo: dove stanno davvero anca, ginocchio e piede (solo nelle skin: l'omino del codice non ha ossi)
 function misuraGambe(av){ const u=av.userData, gb=u.gambe[0]&&u.gambe[0].osso, gn=u.ginocchia&&u.ginocchia[0]&&u.ginocchia[0].osso; if(!gb) return {};
   av.updateMatrixWorld(true); const v=new THREE.Vector3(), r={anca:+gb.getWorldPosition(v).y.toFixed(2)};
@@ -2738,6 +2748,13 @@ const COLLINA={r:4.2,h:1.0}, ACQUA=[4.2,6.13], MURETTO={r:6.25,alto:0.55}, PANCH
   scena.vistaSpecchio=()=>dentro&&tuStanza?+camStanza.position.distanceTo(tuStanza.position).toFixed(2):null;
   scena.radio=()=>({stazioni:citta.radio.slice(), partenza:PRESELEZIONI_APP.slice(), inOnda:radio.inOnda, src:radio.src, stato:radio.stato, antenna:!!Object.values(porte).length && S.children.some(o=>o.userData&&o.userData.antenna)});
   scena.incorpora=u=>incorporaVideo(u);
+  // il punto più basso dei pantaloni sotto il bacino, con la posa di adesso: è il sedere. Da seduti deve stare sopra il sedile,
+  // non dentro (JJ, 9/10: «quando fai la foto e guardi, non lo vedi che è dentro la panchina?»). Misura, non foto
+  scena.sedere=()=>{ let min=Infinity; const v=new THREE.Vector3(), b=new THREE.Vector3(); const pel=tu.userData.gambe[0]&&tu.userData.gambe[0].osso&&tu.userData.gambe[0].osso.parent;
+    if(!pel) return null; tu.updateMatrixWorld(true); pel.getWorldPosition(b);
+    tu.traverse(o=>{ if(!o.isSkinnedMesh||!o.material||!(o.material.name||"").startsWith("pantaloni")) return; const n=o.geometry.attributes.position.count;
+      for(let i=0;i<n;i++){ o.getVertexPosition(i,v); o.localToWorld(v); if(Math.hypot(v.x-b.x,v.z-b.z)<0.22) min=Math.min(min,v.y); } });
+    return min===Infinity?null:+min.toFixed(3); };
   scena.coloriTua=()=>{ const r={}; tu.traverse(o=>{ if(o.isMesh&&o.material&&o.material.name){ const n=o.material.name.split(".")[0]; if(["maglia","pantaloni","pelle","capelli"].includes(n)) r[n]="#"+o.material.color.getHexString(); } }); return r; };   // per il collaudo
   scena.skinTua=()=>({file:(()=>{ const k=SKIN.find(x=>x.id===citta.skin); return k&&k.file?k.file(citta):null; })(), skin:tu.userData.skin||"classica", ossi:tu.userData.ossa?tu.userData.ossa.every(h=>!!h.osso):null, gettoni:citta.gettoni, mie:citta.skinMie.slice()});
   // per il collaudo: carica una skin, la fa camminare mezzo passo e misura quanto si sposta il piede e da che parte
