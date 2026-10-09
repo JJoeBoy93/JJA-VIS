@@ -229,11 +229,22 @@ async def main():
         # le skin (JJ, 4/10): la base fatta in Blender all'inizio; le altre si sbloccano coi gettoni (da 800 a 2000)
         await p.wait_for_function("window.CITTA.skinTua().skin==='base' && window.CITTA.skinTua().ossi===true", timeout=60000)
         prova("si comincia con la skin base fatta in Blender, e i suoi ossi ci sono", True)
-        await p.click("#skin .riga[data-skin='realista-uomo'] button"); await p.wait_for_timeout(400)
+        # la prova allo specchio (JJ, 6/10: «le skin se non hai gettoni non le puoi neanche vedere... non va bene»)
+        await p.click("#skin .riga[data-skin='cavaliere'] button:has-text('Prova')")
+        prova("senza gettoni una skin si prova: la indossi allo specchio, e i gettoni restano quelli",
+              await p.evaluate("window.CONTO_PROVA.stato().provaSkin==='cavaliere' && window.CITTA.gettoni()===100") and "in prova" in await p.inner_text("#esito-skin"))
+        await p.wait_for_function("window.CITTA.skinTua().skin==='cavaliere'", timeout=60000)
+        prova("ma non diventa tua", "cavaliere" not in (await p.evaluate("window.CITTA.skinTua()"))["mie"])
+        await p.click("#skin .riga[data-skin='cavaliere'] button:has-text('Togli')")
+        prova("«Togli» finisce la prova: torni com'eri", await p.evaluate("window.CONTO_PROVA.stato().provaSkin===null") and (await p.evaluate("window.CITTA.skinTua()"))["skin"] == "base")
+        await p.click("#skin .riga[data-skin='avventuriera'] button:has-text('Prova')"); await p.click("#chiudi-carta"); await p.wait_for_timeout(400)
+        prova("chiudendo la carta la prova finisce da sola", await p.evaluate("window.CONTO_PROVA.stato().provaSkin===null") and (await p.evaluate("window.CITTA.skinTua()"))["skin"] == "base")
+        await usa(p, "specchio", "Lo specchio")
+        await p.click("#skin .riga[data-skin='realista-uomo'] button:has-text('Sblocca')"); await p.wait_for_timeout(400)
         prova("una skin da 800 con 100 gettoni non si sblocca, e dice dove vincerli", "Sala giochi" in await p.inner_text("#esito-skin") and (await p.evaluate("window.CITTA.skinTua()"))["skin"] == "base")
         await p.evaluate("window.CITTA.gettoni(900)")
         await usa(p, "specchio", "Lo specchio")
-        await p.click("#skin .riga[data-skin='realista-uomo'] button")
+        await p.click("#skin .riga[data-skin='realista-uomo'] button:has-text('Sblocca')")
         await p.wait_for_function("window.CITTA.skinTua().skin==='realista-uomo' && window.CITTA.skinTua().ossi===true", timeout=60000)
         st_ = await p.evaluate("window.CITTA.skinTua()")
         prova("con 900 gettoni la skin realista (800) si sblocca, si indossa, e restano 100 gettoni", st_["gettoni"] == 100 and "realista-uomo" in st_["mie"], st_)
@@ -532,8 +543,15 @@ async def main():
         prova("la macchinetta dei gettoni dice che comprarli coi soldi non è ancora acceso", "Non ancora accesa" in await p.inner_text("#stanza-carta"))
         await usa(p, "cab1", "Acchiappa i gettoni")
         g1 = await p.evaluate("window.CITTA.gettoni()")
-        await p.click("#stanza-carta button:has-text('Gioca')"); await p.wait_for_timeout(1500)
-        prova("al cabinato si gioca: uno strato a tutto schermo coi gettoni da prendere", await p.evaluate("!!document.getElementById('strato-gioco') && document.querySelectorAll('#campo-gioco img').length>0"))
+        await p.click("#stanza-carta button:has-text('Gioca')")
+        # 6/10: guardava a 1,5 s se c'era un gettone, e una volta su dieci c'era solo una bomba (escono a caso): si aspetta il gettone
+        try:
+            await p.wait_for_function("!!document.getElementById('strato-gioco') && document.querySelectorAll('#campo-gioco img').length>0", timeout=15000); gioca_ok = True
+        except Exception:
+            gioca_ok = False
+        prova("al cabinato si gioca: uno strato a tutto schermo coi gettoni da prendere", gioca_ok)
+        bar = await p.evaluate("(()=>{ const b=document.querySelector('#strato-gioco .barra-gioco'), n=document.getElementById('gioco-punti'); if(!b||!n) return null; const r=b.getBoundingClientRect(), q=n.getBoundingClientRect(); return {h:r.height, punti:q.height>0&&q.top>=0&&q.bottom<=innerHeight}; })()")
+        prova("durante la partita si vedono punti e tempo (la barra c'è, alta, coi punti dentro lo schermo)", bar and bar["h"] > 30 and bar["punti"], bar)
         gc = await p.evaluate("""(()=>{ const G=window.CITTA._gioco, r={};
             for(let i=0;i<5;i++) G.prendi('gettone'); r.cinque=G.punti;
             G.prendi('bomba'); r.dopoBomba=G.punti;
@@ -542,6 +560,9 @@ async def main():
             for(let i=0;i<30;i++) G.prendi('gettone'); r.prima=G.punti; G.fine2(); return r; })()""")
         prova("la bomba fa perdere i gettoni della partita (JJ: «qualche bomba che ti fa perdere le monete guadagnate»)", gc["cinque"] == 5 and gc["dopoBomba"] == 0, gc)
         prova("col ×2 ogni gettone vale doppio, e il turbo si accende", gc["x2"] and gc["conX2"] == 4 and gc["turbo"], gc)
+        await p.wait_for_selector("#gioco-classifica", timeout=10000); await p.wait_for_timeout(1500)
+        fin = await p.inner_text("#gioco-classifica")
+        prova("a fine partita c'è il record, e la classifica o perché non c'è (qui il server è spento)", "record" in fin and ("Classifica" in fin or "non risponde" in fin), fin)
         prova("a fine partita si vincono i gettoni presi, al massimo 25", await p.evaluate("window.CITTA.gettoni()") == g1 + 25 and "ne vinci 25" in await p.inner_text("#gioco-esito"), gc)
         await foto(p, "16e-gioco")
         await p.click("#gioco-esci"); await p.wait_for_timeout(300)
@@ -633,6 +654,10 @@ async def main():
         dmin = min(math.hypot(a_["x"] - b_["x"], a_["z"] - b_["z"]) for i, a_ in enumerate(pa) for b_ in pa[i + 1:])
         prova("l'albero sta su una collinetta, circondata dall'acqua, circondata dal muretto con la staccionata", al["collina"]["h"] > 0.5 and al["acqua"][0] <= al["collina"]["r"]
               and al["acqua"][1] < al["muretto"] and al["paletti"] >= 24, al)
+        prova("l'acqua arriva fin sotto il muretto: niente pavimento a vista lungo il bordo (JJ, 6/10)", al["acqua"][1] >= al["muretto"] - 0.15, al)
+        pe1 = await p.evaluate("window.CITTA._pesci()"); await p.wait_for_timeout(1500); pe2 = await p.evaluate("window.CITTA._pesci()")
+        prova("nel laghetto nuotano dei pesci, sotto il pelo dell'acqua e dentro l'anello (JJ, 6/10)", len(pe1) >= 5 and all(al["acqua"][0] <= f["r"] <= al["acqua"][1] and f["y"] < 0.06 for f in pe1 + pe2), pe1)
+        prova("…e si muovono", sum(abs(a["x"] - b["x"]) + abs(a["z"] - b["z"]) for a, b in zip(pe1, pe2)) > 0.1, [pe1[:2], pe2[:2]])
         prova("le panchine sono sei, fuori dal muretto e più distanziate (almeno 8 m l'una dall'altra)", len(pa) == 6 and all(math.hypot(b_["x"], b_["z"]) >= 10 for b_ in pa) and dmin >= 8, [pa, dmin])
         await p.evaluate("window.CITTA.siedi(0)"); await p.wait_for_timeout(1200)
         sd = await p.evaluate("window.CITTA.seduto()")

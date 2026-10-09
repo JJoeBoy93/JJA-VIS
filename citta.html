@@ -835,6 +835,10 @@ function manichini(){
 }
 // La Sartoria, allo specchio: il mestiere serve a me, il vestito è tuo.
 let mestiereDaCambiare=false, esitoSkin="";
+// JJ, 6/10: «le skin se non hai gettoni non le puoi neanche vedere... non va bene». Allo specchio si provano tutte, gratis:
+// la prova finisce quando chiudi la carta o esci dalla Sartoria
+let provaSkin=null;
+function finisciProva(){ if(provaSkin){ provaSkin=null; rivesti(); } }
 function specchio(){
   const out=[];
   const rifai=()=>{ salva(); rivesti(); ridisegnaCarta(); };
@@ -854,8 +858,11 @@ function specchio(){
   const sk=el("div",{class:"vassoio",id:"skin"});
   SKIN.forEach(k=>{ const mia=citta.skinMie.includes(k.id), su=citta.skin===k.id, r=el("div",{class:"riga"}); r.dataset.skin=k.id;
     r.append(el("span",{testo:`${k.nome} · ${k.nota}`}));
-    const b=su?el("span",{class:"nota",testo:"indossata"}):mia?bottone("Indossa",()=>{ citta.skin=k.id; rifai(); },true)
-      :bottone(`Sblocca · ${k.prezzo} 🪙`,()=>{ if(conto){ esitoSkin="Un attimo…"; ridisegnaCarta();
+    const inProva=provaSkin===k.id;
+    if(!mia&&!su) r.append(inProva?bottone("Togli",()=>{ finisciProva(); esitoSkin=""; ridisegnaCarta(); },true)
+      :bottone("Prova",()=>{ provaSkin=k.id; esitoSkin=`${k.nome} in prova: guardati. Per tenerla, sbloccala.`; rivesti(); ridisegnaCarta(); },true));
+    const b=su?el("span",{class:"nota",testo:"indossata"}):mia?bottone("Indossa",()=>{ provaSkin=null; citta.skin=k.id; rifai(); },true)
+      :bottone(`Sblocca · ${k.prezzo} 🪙`,()=>{ provaSkin=null; if(conto){ esitoSkin="Un attimo…"; ridisegnaCarta();
           chiamaConto("/conto/skin",{id:k.id,prezzo:k.prezzo}).then(r=>{ if(r.conto) applicaConto(r.conto);
             if(r.no==="pochi") esitoSkin=`Ti servono ${k.prezzo} gettoni, ne hai ${citta.gettoni}: si vincono in Sala giochi.`;
             else if(r.conto&&r.conto.skin.includes(k.id)){ citta.skin=k.id; esitoSkin=`${k.nome}: è tua.`; salva(); rivesti(); }
@@ -970,7 +977,7 @@ function aggiornaTastoConto(){ const b=$("conto-tasto"); if(!b) return;
 async function entraConGoogle(risp){ const eta=!!($("conto-eta")&&$("conto-eta").checked);
   contoEsito="Entro…"; disegnaConto();
   const r=await chiamaConto("/conto/google",{credential:risp&&risp.credential,eta14:eta});
-  if(!r.token){ contoEsito=r.no==="eta"?"Per creare l'account devi avere almeno 14 anni: spunta la casella.":r.no==="google"?"Google non ha confermato l'accesso: riprova.":"Il server non risponde: riprova fra poco."; disegnaConto(); return; }
+  if(!r.token){ contoEsito=r.no==="eta"?"Per creare l'account devi avere almeno 14 anni: spunta la casella.":r.no==="bloccato"?"Questo account è stato bloccato: non può entrare.":r.no==="google"?"Google non ha confermato l'accesso: riprova.":"Il server non risponde: riprova fra poco."; disegnaConto(); return; }
   try{ localStorage.setItem(CONTO_CHIAVE,r.token); }catch(_){}
   let c=r.conto;
   if(!c.portato){ const p=await chiamaConto("/conto/porta",{gettoni:citta.gettoni|0,skin:citta.skinMie||[]}); if(p.conto) c=p.conto; }   // una volta: quello che il telefono aveva
@@ -1014,7 +1021,7 @@ $("conto-tasto").addEventListener("click",()=>contoAperto?chiudiConto():apriCont
 $("chiudi-conto").addEventListener("click",chiudiConto);
 aggiornaTastoConto();
 if(contoToken()) chiamaConto("/conto",null,"GET").then(r=>{ if(r.conto) applicaConto(r.conto); else if(r.no==="rete"||r.no==="server") contoEsito="Il server non risponde: i gettoni che vedi sono quelli del telefono."; });
-window.CONTO_PROVA={ stato:()=>({conto, gettoni:citta.gettoni, tasto:$("conto-tasto").textContent, skinMie:citta.skinMie.slice()}), spendi:n=>spendi(n), guadagna:n=>guadagna(n) };   // per il collaudo
+window.CONTO_PROVA={ stato:()=>({conto, provaSkin, gettoni:citta.gettoni, tasto:$("conto-tasto").textContent, skinMie:citta.skinMie.slice()}), spendi:n=>spendi(n), guadagna:n=>guadagna(n) };   // per il collaudo
 
 // ── Acchiappa i gettoni (Sala giochi, cabinato 1): uno strato a tutto schermo, 25 secondi.
 // JJ, 4/10: «rendi un po' difficile il prendi monete: qualche bomba che ti fa perdere le monete guadagnate se prendi quella al
@@ -1023,10 +1030,29 @@ window.CONTO_PROVA={ stato:()=>({conto, gettoni:citta.gettoni, tasto:$("conto-ta
 //   ⚡ turbo  per 5 s ne escono il doppio  ×2       per 6 s ogni gettone vale doppio
 // e più passa il tempo, meno restano a schermo (da 1,2 s a 0,75 s).
 const GIOCO={durata:25, massimo:25, probabilita:[["gettone",0.68],["bomba",0.2],["turbo",0.06],["x2",0.06]], turbo:5000, x2:6000};
+// la classifica a fine partita (JJ, 6/10: «non mostra la classifica a fine gioco»): la stessa per tutti, sul server della città.
+// Con l'account il record entra in classifica; senza, si vede la classifica e il record resta nel telefono
+async function mostraClassifica(campo, punti){
+  const box=el("div",{id:"gioco-classifica",style:"max-width:420px;margin:16px auto;padding:0 16px;font:500 16px/1.5 var(--f-testo)"});
+  box.append(el("p",{testo:"Classifica in arrivo…",style:"text-align:center"})); campo.append(box);
+  const prima=citta.recordAcchiappa|0; if(punti>prima){ citta.recordAcchiappa=punti; salva(); }
+  let r=conto?await chiamaConto("/conto/partita",{gioco:"acchiappa",punti:Math.min(punti,200)}):await chiamaConto("/conto/classifica?gioco=acchiappa",null,"GET");
+  box.textContent="";
+  const record=conto&&Number.isInteger(r.record)?r.record:citta.recordAcchiappa|0;
+  box.append(el("p",{style:"text-align:center;font-weight:700;font-size:18px",testo:(conto&&r.nuovoRecord)||(!conto&&punti>prima&&punti>0)?`🎉 Nuovo record: ${record}!`:`Il tuo record: ${record}`}));
+  if(!Array.isArray(r.classifica)){ box.append(el("p",{style:"text-align:center;opacity:.8",testo:"La classifica adesso non risponde: riprova alla prossima partita."})); return; }
+  box.append(el("p",{style:"margin:10px 0 4px;font-weight:700",testo:"🏆 Classifica"}));
+  if(!r.classifica.length) box.append(el("p",{testo:"Ancora nessuno: il primo posto è libero."}));
+  const io=conto&&(conto.soprannome||citta.soprannome);
+  r.classifica.forEach((x,i)=>{ const mio=io&&x.n===io;
+    box.append(el("div",{style:`display:flex;justify-content:space-between;gap:12px;padding:6px 10px;border-bottom:1px solid #1f3a52${mio?";background:#13283b;font-weight:700":""}`},
+      el("span",{testo:`${["🥇","🥈","🥉"][i]||(i+1)+"."} ${x.n}`}), el("b",{testo:String(x.punti)}))); });
+  if(!conto) box.append(el("p",{style:"margin-top:10px;opacity:.85",testo:"Per entrare in classifica serve l'account: «Accedi con Google» sotto i gettoni."}));
+}
 function giocaAcchiappa(){
   let L=$("strato-gioco"); if(L) L.remove();
   L=document.createElement("div"); L.id="strato-gioco";
-  L.innerHTML='<div class="barra"><span>🪙 <b id="gioco-punti">0</b> · <span id="gioco-tempo">25</span> s <span id="gioco-buff"></span></span><button type="button" class="pulsante" id="gioco-esci">Esci</button></div><div id="campo-gioco"></div><p id="gioco-esito" style="text-align:center;margin:10px;min-height:1.2em">Prendi i gettoni, non le bombe 💣</p>';
+  L.innerHTML='<div class="barra-gioco"><span>🪙 <b id="gioco-punti">0</b> · <span id="gioco-tempo">25</span> s <span id="gioco-buff"></span></span><button type="button" class="pulsante" id="gioco-esci">Esci</button></div><div id="campo-gioco"></div><p id="gioco-esito" style="text-align:center;margin:10px;min-height:1.2em">Prendi i gettoni, non le bombe 💣</p>';
   document.body.appendChild(L); document.body.classList.add("con-twitch");
   const ora=()=>Date.now(), inizio=ora(), st={punti:0, fine:inizio+GIOCO.durata*1000, finito:false, turboFino:0, x2Fino:0, bombe:0}; scena._gioco=st;
   const campo=$("campo-gioco"), buff=()=>{ const b=[]; if(ora()<st.turboFino) b.push("⚡ turbo"); if(ora()<st.x2Fino) b.push("×2"); $("gioco-buff").textContent=b.length?" · "+b.join(" "):""; };
@@ -1045,7 +1071,8 @@ function giocaAcchiappa(){
     e.addEventListener("pointerdown",()=>{ clearTimeout(via); e.remove(); st.prendi(tipo); }); campo.appendChild(e); };
   const giro=()=>{ if(st.finito) return; metti(); st.t1=setTimeout(giro, ora()<st.turboFino?350:700); };
   const fine=()=>{ if(st.finito) return; st.finito=true; clearTimeout(st.t1); clearInterval(st.t2); const vinti=Math.min(st.punti,GIOCO.massimo); guadagna(vinti);
-    $("gioco-esito").textContent=`Fine! Hai preso ${st.punti} gettoni: ne vinci ${vinti}. Ora ne hai ${citta.gettoni}.`; campo.textContent=""; };
+    $("gioco-esito").textContent=`Fine! Hai preso ${st.punti} gettoni: ne vinci ${vinti}. Ora ne hai ${citta.gettoni}.`; campo.textContent="";
+    mostraClassifica(campo, st.punti); };
   st.fine2=fine; st.turbo=()=>ora()<st.turboFino; st.x2=()=>ora()<st.x2Fino;
   giro(); st.t2=setInterval(()=>{ const s=Math.max(0,Math.ceil((st.fine-ora())/1000)); $("gioco-tempo").textContent=s; buff(); if(s<=0) fine(); },250);
   $("gioco-esci").addEventListener("click",()=>{ fine(); L.remove(); document.body.classList.remove("con-twitch"); ridisegnaCarta(); });
@@ -1392,7 +1419,7 @@ function mostraCarta(cosa){
   $("stanza-carta").scrollTop=0; ridisegnaCarta(); $("stanza-carta").scrollTop=0;
   if(scena.pronta) scena.carta(cosa);
 }
-function chiudiCarta(){
+function chiudiCarta(){ finisciProva();
   if(LUOGHI[stanzaAperta]?.esterno || !scena.pronta){ esciStanza(); return; }   // all'aperto e senza 3D la carta è la stanza
   cartaAperta=null; $("stanza").classList.remove("con-carta"); document.body.classList.remove("con-carta");
   if(scena.pronta) scena.carta(null);
@@ -1499,7 +1526,7 @@ const tex=c=>{ const t=new THREE.CanvasTexture(c); t.colorSpace=THREE.SRGBColorS
 // occhi, sopracciglia, naso e bocca. Le giunture restano dove le usano il passo e la stoffa: anche a 0,9 m (ANCA),
 // spalle a 1,55. Uomo o donna cambiano le proporzioni; i vestiti si appoggiano sopra.
 function avatar(st){
-  if(st===citta){ const m=avatarDaSkin(st); if(m) return m; }   // la skin vale solo per te: passanti e manichini restano fatti nel codice
+  if(st===citta){ const m=avatarDaSkin(provaSkin?{...st,skin:provaSkin}:st); if(m) return m; }   // provaSkin: allo specchio, senza comprarla   // la skin vale solo per te: passanti e manichini restano fatti nel codice
   const v=VESTITI[st.vestito]||VESTITI.altro, donna=st.corpo==="donna";
   const maglia=(typeof st.colore==="number")?st.colore:v.maglia;
   const pant=(typeof st.pantaloni==="number")?st.pantaloni:(st.vestito==="artigiano"&&typeof st.colore==="number"?maglia:v.pantaloni);
@@ -2057,11 +2084,20 @@ async function costruisci(){
   // ── l'Albero della Vita, al centro ──
   // (JJ, 4/10, col disegno: «l'albero in mezzo mettilo sopra a una piccola collinetta, circondata dall'acqua, circondata da
   // un muretto con sopra la staccionata, e un po' più distanziate le panchine, che ci si può sedere»)
-  const COLLINA={r:4.2,h:1.0}, ACQUA=[4.2,6.0], MURETTO={r:6.25,alto:0.55}, PANCHINE_R=11;
+  // 6/10: l'acqua arrivava a 6,00 e il muretto comincia a 6,10: 10 cm di pavimento a vista tutto intorno. Ora va sotto il muretto
+const COLLINA={r:4.2,h:1.0}, ACQUA=[4.2,6.13], MURETTO={r:6.25,alto:0.55}, PANCHINE_R=11, pesci=[];
   { const R=(COLLINA.r**2+COLLINA.h**2)/(2*COLLINA.h);
     const col=new THREE.Mesh(new THREE.SphereGeometry(R,40,10,0,Math.PI*2,0,Math.asin(COLLINA.r/R)), mat(0x3f8f3a)); col.position.y=COLLINA.h-R; S.add(col);
     const acqua=new THREE.Mesh(new THREE.RingGeometry(ACQUA[0]-0.1,ACQUA[1],64), new THREE.MeshLambertMaterial({color:0x1f8fbf,transparent:true,opacity:0.85,emissive:0x0b3a55}));
     acqua.rotation.x=-Math.PI/2; acqua.position.y=0.06; S.add(acqua); scena._acqua=acqua;
+    // i pesci (JJ, 6/10: «se ci puoi aggiungere dei pesci che nuotano»): sotto il pelo dell'acqua, girano intorno alla collinetta
+    const corpoG=new THREE.SphereGeometry(0.5,10,6), codaG=new THREE.ConeGeometry(0.11,0.2,4);
+    [[0xff7a2f,4.6,0.42],[0xf4f1ea,5.0,-0.33],[0xff9a3c,5.5,0.28],[0xe8452c,4.8,-0.38],[0xffd27a,5.7,0.24],[0xff7a2f,5.25,-0.3]].forEach(([colore,raggio,vel],i)=>{
+      const g=new THREE.Group(), m=mat(colore);
+      const corpo=new THREE.Mesh(corpoG,m); corpo.scale.set(0.13,0.07,0.38); g.add(corpo);
+      const coda=new THREE.Mesh(codaG,m); coda.rotation.x=Math.PI/2; coda.scale.set(1,1,0.35); coda.position.z=-0.25; g.add(coda);
+      g.position.y=0.02; S.add(g); pesci.push({g,coda,raggio,vel,ang:i*1.05,fase:i*1.7}); });
+    acqua.material.opacity=0.78;   // un po' più trasparente: i pesci si vedono
     const pietra=0x9aa3ad;
     for(const r of [MURETTO.r-0.15,MURETTO.r+0.15]){ const m=new THREE.Mesh(new THREE.CylinderGeometry(r,r,MURETTO.alto,64,1,true), new THREE.MeshLambertMaterial({color:pietra,side:THREE.DoubleSide})); m.position.y=MURETTO.alto/2; S.add(m); }
     const cima=new THREE.Mesh(new THREE.RingGeometry(MURETTO.r-0.15,MURETTO.r+0.15,64), mat(0xb7bfc8)); cima.rotation.x=-Math.PI/2; cima.position.y=MURETTO.alto; S.add(cima);
@@ -2070,6 +2106,12 @@ async function costruisci(){
     for(let i=0;i<N;i++){ const a=i/N*Math.PI*2; m4.makeTranslation(Math.sin(a)*MURETTO.r,MURETTO.alto+0.31,Math.cos(a)*MURETTO.r); pali.setMatrixAt(i,m4); } S.add(pali);
     for(const y of [MURETTO.alto+0.25,MURETTO.alto+0.55]){ const c=new THREE.Mesh(new THREE.TorusGeometry(MURETTO.r,0.035,4,72), mat(0x8a6a48)); c.rotation.x=Math.PI/2; c.position.y=y; S.add(c); }
     scena._albero={collina:COLLINA, acqua:ACQUA, muretto:MURETTO.r, paletti:N}; }
+  function nuotano(t,dt){ for(const f of pesci){ f.ang+=f.vel*dt;
+      const R=Math.max(4.5,Math.min(5.85,f.raggio+Math.sin(t*0.4+f.fase)*0.3)), x=Math.sin(f.ang)*R, z=Math.cos(f.ang)*R;
+      const dx=x-f.g.position.x, dz=z-f.g.position.z; f.g.position.x=x; f.g.position.z=z;
+      if(dx*dx+dz*dz>1e-8) f.g.rotation.y=Math.atan2(dx,dz)+Math.sin(t*3+f.fase)*0.12;   // guarda dove va, e ondeggia
+      f.coda.rotation.y=Math.sin(t*9+f.fase)*0.5; } }
+  scena._pesci=()=>pesci.map(f=>({x:+f.g.position.x.toFixed(3),z:+f.g.position.z.toFixed(3),y:f.g.position.y,r:+Math.hypot(f.g.position.x,f.g.position.z).toFixed(2)}));
   const albero=new THREE.Group(); albero.position.y=COLLINA.h-0.05; S.add(albero);   // sulla cima della collinetta
   { const tronco=cilindro(0.75,1.5,7.5,0x2a2420,10); tronco.position.y=3.75; albero.add(tronco);
     for(let i=0;i<6;i++){ const r=cilindro(0.18,0.5,3.2,0x2a2420,6); const a=i/6*Math.PI*2; r.position.set(Math.sin(a)*1.6,0.35,Math.cos(a)*1.6); r.rotation.set(Math.cos(a)*1.35,0,-Math.sin(a)*1.35); albero.add(r); }
@@ -2373,7 +2415,7 @@ async function costruisci(){
   scena.bar=()=>({seduto:!!alBar, y:tuStanza?+tuStanza.position.y.toFixed(2):null, vassoio:vassoio.map(c=>({nome:c.nome,resta:c.resta,tot:c.tot})), sulTavolo:piatti.length, gettoni:citta.gettoni});
   scena.gettoni=n=>{ if(typeof n==="number"){ citta.gettoni=n; salva(); aggiornaGettoni(); } return citta.gettoni; };
   scena.iconaPerTerra=()=>!!(attiva&&attiva.S&&attiva.S.userData.icona);
-  scena.esci=()=>{ alBar=null; piatti.splice(0).forEach(m=>m.parent&&m.parent.remove(m)); if(attiva && attiva.S && tuStanza){ attiva.S.remove(tuStanza); stato.yaw=yawFuori; } tuStanza=null; attiva=null; $("entra").hidden=true; vicinoPrima=null; };
+  scena.esci=()=>{ finisciProva(); alBar=null; piatti.splice(0).forEach(m=>m.parent&&m.parent.remove(m)); if(attiva && attiva.S && tuStanza){ attiva.S.remove(tuStanza); stato.yaw=yawFuori; } tuStanza=null; attiva=null; $("entra").hidden=true; vicinoPrima=null; };
   scena.carta=cosa=>{ if(!attiva || attiva.esterno || !tuStanza) return; dentro.meta=null;
     if(cosa==="specchio"){ const c=attiva.cose.specchio; tuStanza.position.set(c.posto.x,0,c.posto.z); } };
   const vecchioRivesti=rivesti;
@@ -2716,6 +2758,7 @@ async function costruisci(){
   let sulTetto=false; const TETTO=(PALAZZI.find(P=>P.id==="torre").h)+0.4;
   function passo(){
     const dt=Math.min(orologio.getDelta(),0.2), t=orologio.elapsedTime; // anche a pochi fotogrammi si cammina alla velocità giusta
+    nuotano(t,dt);
     if(attiva && !attiva.esterno){ passoDentro(dt); return; }
     if(attiva){ tStanza+=dt; const H=innerHeight, W=innerWidth;
       camStanza.fov=70; camStanza.aspect=W/H; camStanza.setViewOffset(W,H,0,0.34*H,W,H); camStanza.updateProjectionMatrix();
@@ -2853,7 +2896,10 @@ async function costruisci(){
       chat.push({id:m.id,n:nomeDi(m),x:m.x.slice(0,200),mio}); if(chat.length>80) chat.shift();
       if(r){ r.fumetto=m.x.slice(0,200); r.fumettoFino=performance.now()+7000; cartello(r); }
       if(!PZ.aperta&&!mio) PZ.nuovi++; segna(PZ.stato); if(PZ.aperta) disegnaChat(); }
-    else if(m.t==="moderato"){ PZ.errore=m.ok?(m.azione==="blocca"?`«${m.n}» è bloccato: fuori dalla città, e non rientra.`:`«${m.n}» non può scrivere per un'ora.`):`Non ci sono riuscito (${m.perche||"errore"}).`;
+    else if(m.t==="moderati"){ PZ.moderati=m.ok?m.elenco:null; if(!m.ok) PZ.errore="Non ci sono riuscito."; else if(PZ.errore==="Un attimo…") PZ.errore="";   // l'elenco nuovo non cancella «è sbloccato»
+      if(PZ.aperta) disegnaInsieme(); }
+    else if(m.t==="moderato"){ if(m.ok&&m.azione==="sblocca"){ PZ.moderati=(PZ.moderati||[]).filter(x=>x.n!==m.n&&x.soprannome!==m.n); manda({t:"moderati"}); }
+      PZ.errore=m.ok?(m.azione==="sblocca"?`«${m.n}» è sbloccato: può tornare in città.`:m.azione==="blocca"?`«${m.n}» è bloccato: fuori dalla città, e non rientra.`:`«${m.n}» non può scrivere per un'ora.`):`Non ci sono riuscito (${m.perche||"errore"}).`;
       if(PZ.aperta) disegnaInsieme(); else $("esito-insieme").textContent=PZ.errore; }
     else if(m.t==="segnalato"){ const r=altri.get(PZ.segnalando)||altri.get(PZ.scelto);
       PZ.errore=m.ok?`Segnalazione arrivata a chi gestisce JJA-VIS. ${r&&!silenziati.has(r.id)?"Se vuoi, intanto silenzialo.":""}`
@@ -2871,6 +2917,7 @@ async function costruisci(){
     catch(_){ return null; }   // non lo so: riprovo la prossima volta
     return PZ.url; }
   async function collegati(){ clearTimeout(PZ.timer);
+    const url0=await indirizzo(); if(url0===null&&PZ.url===null){ segna("chiusa"); return; }   // senza server neanche l'account va: si dice prima questo
     if(!conto){ segna("account"); return; }   // JJ, 6/10: «niente account, niente altri»
     if(PZ.bloccato){ segna("bloccato"); return; }
     if(!SOPRANNOME_OK(citta.soprannome)||citta.regole!==true){ segna("nome"); return; }   // 6/10: anche le regole accettate
@@ -2941,6 +2988,14 @@ async function costruisci(){
               disegnaInsieme(); }),
             bottone("Annulla",()=>{ PZ.segnalando=null; PZ.errore=""; disegnaInsieme(); },true)));
           corpo.append(box); } } }
+    if(conto&&conto.admin&&dentro){   // JJ, 6/10: «se mi blocco l'altro account senza il modo di sbloccarlo poi non posso più usarlo per provare»
+      corpo.append(el("div",{class:"riga-p"}, bottone(PZ.moderati?"👑 Aggiorna bloccati e zittiti":"👑 Bloccati e zittiti",()=>{ manda({t:"moderati"}); PZ.errore="Un attimo…"; disegnaInsieme(); },true)));
+      if(PZ.moderati){ const box=el("div",{id:"insieme-moderati"});
+        if(!PZ.moderati.length) box.append(el("p",{class:"nota",testo:"Nessuno è bloccato o zittito."}));
+        PZ.moderati.forEach(x=>{ const cosa=x.bloccato?"bloccato":`zittito fino alle ${new Date(x.zitto_fino).toLocaleTimeString("it-IT",{hour:"2-digit",minute:"2-digit"})}`;
+          box.append(el("div",{class:"riga-p"}, el("span",{testo:`${x.soprannome||x.nome||"?"} · ${cosa}`}),
+            bottone("Sblocca",()=>{ manda({t:"modera",azione:"sblocca",uid:x.uid,n:x.soprannome||x.nome||""}); PZ.errore="Un attimo…"; disegnaInsieme(); },true))); });
+        corpo.append(box); } }
     corpo.append(el("p",{class:"nota"},"Niente link, numeri di telefono, parolacce. La chat non si salva: legge chi c'è adesso. Con Nova parli dal tasto 💬, con la chat di Twitch al Café. ",
       el("a",{href:"regole.html",target:"_blank",rel:"noopener"},"Le regole"), " · ", el("a",{href:"privacy.html",target:"_blank",rel:"noopener"},"Privacy")));
     $("insieme-scrivi-riga").hidden=!dentro; disegnaChat(); $("esito-insieme").textContent=PZ.errore; }

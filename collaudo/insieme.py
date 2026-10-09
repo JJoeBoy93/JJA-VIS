@@ -60,7 +60,10 @@ class Finta:
             if d.get("t") == "di":   # il server rimanda il messaggio anche a chi l'ha scritto
                 ws.send(json.dumps({"t": "di", "id": "io1", "n": "Ada", "x": d["x"], "ora": 1}))
             if d.get("t") == "modera":
-                ws.send(json.dumps({"t": "moderato", "ok": True, "azione": d["azione"], "n": "Bruno"}))
+                ws.send(json.dumps({"t": "moderato", "ok": True, "azione": d["azione"], "n": d.get("n") or "Bruno"}))
+            if d.get("t") == "moderati":   # chi è bloccato o zittito: prima Molesto, dopo lo sblocco nessuno
+                sbloccato = any(m.get("t") == "modera" and m.get("azione") == "sblocca" for m in s.arrivati)
+                ws.send(json.dumps({"t": "moderati", "ok": True, "elenco": [] if sbloccato else [{"uid": "g:42", "soprannome": "Molesto", "nome": "M", "bloccato": True, "zitto_fino": 0}]}))
             if d.get("t") == "segnala":   # il server risponde come quello vero; s.esito_segnala decide come va
                 ws.send(json.dumps({"t": "segnalato", **s.esito_segnala}))
         def chiuso(c, r): s.chiusi += 1
@@ -108,6 +111,7 @@ async def main():
         prova("al saluto va anche il token dell'account", ciao and ciao.get("tok") == "c" * 64, ciao and ciao.get("tok"))
         prova("al saluto passano il soprannome (ripulito), l'aspetto (otto campi, niente nome vero) e dove sei: in città",
               ciao and ciao["n"] == "Ada" and set(ciao["a"]) == CAMPI and ciao["p"]["l"] == "" and abs(ciao["p"]["z"] - 18) < 0.5, ciao)
+        await aspetta(p, "A.visti.length===1&&A.visti[0].inScena", 10000)   # almeno un fotogramma dopo l'arrivo
         A = await altri(p); v = A["visti"]
         prova("il tasto dice quanti siete", "siete 2" in A["chip"], A["chip"])
         prova("chi c'era già si vede, in città, dove sta", len(v) == 1 and v[0]["dentro"] == "citta" and abs(v[0]["x"] - 3) < 0.3 and abs(v[0]["z"] - 15) < 0.3, v)
@@ -206,6 +210,13 @@ async def main():
         prova("al secondo tocco il blocco parte", len(md) == 2 and md[-1]["azione"] == "blocca", md[-1:])
         await p.click("#insieme-gente button:has-text('JJoe')")
         prova("un amministratore non vede «Zittisci» e «Blocca» su un altro amministratore", await p.locator("#insieme-modera").count() == 0)
+        # lo sblocco (JJ, 6/10: «se mi blocco l'altro account senza il modo di sbloccarlo poi non posso più usarlo per provare»)
+        await p.click("#insieme button:has-text('Bloccati e zittiti')")
+        prova("l'amministratore vede chi è bloccato", await aspetta(p, "!!document.querySelector('#insieme-moderati') && document.querySelector('#insieme-moderati').textContent.includes('Molesto · bloccato')", 5000))
+        await p.click("#insieme-moderati button:has-text('Sblocca')"); await p.wait_for_timeout(800)
+        sb = [m for m in f.arrivati if m.get("t") == "modera" and m.get("azione") == "sblocca"]
+        prova("«Sblocca» manda al server quell'account (per numero), e l'elenco si svuota", sb and sb[-1]["uid"] == "g:42" and "Nessuno è bloccato" in await p.inner_text("#insieme-moderati"), sb[-1:])
+        prova("e dice che può tornare", "può tornare in città" in await p.inner_text("#esito-insieme"))
         prova("nessun errore JavaScript (amministratore)", not err, err[:3])
         await ctx.close()
 
