@@ -45,7 +45,9 @@ os.makedirs(dove, exist_ok=True); presi = []
 for uid, nome in files:
     if not any(p in nome.lower() for p in parole): continue
     j = json.loads(vai(f"{pagina}/file/{uid}?source=game_download&key={chiave}", {"csrf_token": csrf}, xhr=True))
-    if "url" not in j: ferma(f"{nome}: nessun url ({j})")
+    if "url" not in j:   # 9/10: «invalid key» — per i giochi a prezzo libero itch dà il file anche dalla pagina del gioco
+        j = json.loads(vai(f"{pagina}/file/{uid}?source=view_game&as_props=1&after_download_lightbox=true", {"csrf_token": csrf}, xhr=True))
+    if "url" not in j: ferma(f"{nome}: nessun url ({j}); pagina dei download {d['url']}")
     b = vai(j["url"]); fuori = os.path.join(dove, re.sub(r"[^\w.\-]+", "_", nome)); open(fuori, "wb").write(b)
     presi.append(f"{os.path.basename(fuori)} ({len(b)//1024} kB)")
 print("scaricati:", presi or "nessuno")
