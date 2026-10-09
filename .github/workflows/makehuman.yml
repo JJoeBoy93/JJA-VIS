@@ -1,0 +1,50 @@
+# MakeHuman: i pacchetti di asset CC0 (corpi, vestiti, capelli, pelli) dentro una release di JJA-VIS (JJ, 9/10: «le make human
+# devono diventare le skin base, non voglio omini finti ... la skin base è una persona con i suoi vestiti da lavoro»).
+# La sandbox di Athena non raggiunge makehumancommunity.org ma raggiunge gli allegati delle release: la Action fa da ponte.
+# Prende SOLO i file «_cc0.zip» (la licenza è nel nome del file, e asset per asset nella pagina del pacchetto).
+# Scrive solo nella release «makehuman»: main e prova non si toccano.
+name: MakeHuman
+
+on:
+  workflow_dispatch:
+    inputs:
+      pacchetti:
+        description: "nomi dei pacchetti separati da virgole, come nelle pagine assetpacks (es. shirts01,pants01)"
+        required: true
+        default: "makehuman_system_assets,system_clothes_materials01,shirts01,pants01,shoes01,suits01,hats01,hats02,gloves01,glasses01,hair01,skins01,skins02,eyebrows01,eyelashes01"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: makehuman
+  cancel-in-progress: false
+
+jobs:
+  pacchetti:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    steps:
+      - name: scarica e allega
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PACCHETTI: ${{ inputs.pacchetti }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -u
+          UA="JJA-VIS-makehuman/1.0 (+https://jjoeboy93.github.io/JJA-VIS/)"
+          gh release view makehuman -R "$REPO" >/dev/null 2>&1 || gh release create makehuman -R "$REPO" --title "MakeHuman (CC0)" --notes "Pacchetti CC0 di MakeHuman per le skin di JJA-VIS. Li mette qui la Action «MakeHuman»."
+          mkdir -p p && cd p; fatti=""; mancati=""
+          for n in $(echo "$PACCHETTI" | tr ',' ' '); do
+            pagina=$(curl -fsSL -A "$UA" "https://static.makehumancommunity.org/assets/assetpacks/$n.html" || true)
+            url=$(echo "$pagina" | grep -o 'https://files\.makehumancommunity\.org/asset_packs/[^"]*\.zip' | head -1)
+            [ -z "$url" ] && url=$(echo "$pagina" | grep -o 'https://files2\.makehumancommunity\.org/asset_packs/[^"]*\.zip' | head -1)
+            if [ -z "$url" ]; then mancati="$mancati $n(nessun-link)"; continue; fi
+            case "$url" in *_cc0.zip) ;; *) mancati="$mancati $n(non-CC0:$(basename $url))"; continue;; esac
+            f=$(basename "$url")
+            if curl -fsSL -A "$UA" -o "$f" "$url" && unzip -tq "$f" >/dev/null; then
+              gh release upload makehuman -R "$REPO" "$f" --clobber && fatti="$fatti $f($(du -k $f | cut -f1)kB)"
+            else mancati="$mancati $n(scaricamento)"; fi
+          done
+          echo "ALLEGATI:$fatti"; echo "NON ALLEGATI:$mancati"
+          [ -z "$mancati" ] || exit 1
