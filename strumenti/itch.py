@@ -36,8 +36,11 @@ if "url" not in d: ferma(f"download_url non ha dato un url: {d}")
 pd = vai(d["url"]).decode("utf-8", "replace"); chiave = d["url"].rstrip("/").split("/")[-1]
 files = re.findall(r'data-upload_id="(\d+)".*?class="name"[^>]*title="([^"]+)"', pd, re.S) or \
         [(u, n) for u, n in re.findall(r'data-upload_id="(\d+)"[^>]*>.*?<strong class="name"[^>]*>([^<]+)<', pd, re.S)]
+if not files:   # 9/10, Kevin Iglesias: la pagina dei download ha un altro disegno; si prendono id e nomi separatamente
+    ids = re.findall(r'data-upload_id="(\d+)"', pd); nomi = re.findall(r'class="name"[^>]*>\s*([^<]+?)\s*<', pd)
+    files = list(zip(ids, nomi)) if ids and len(ids) == len(nomi) else [(u, f"file_{u}") for u in ids]
+    if not files: ferma("nessun upload_id nella pagina dei download " + d["url"] + " ; titolo: " + (re.search(r"<title>([^<]*)", pd) or [None, "?"])[1] + " ; pezzo: " + re.sub(r"\s+", " ", pd[pd.find("download"):pd.find("download") + 500]))
 print("file nella pagina:", [n for _, n in files])
-if not files: ferma("nessun file trovato nella pagina dei download; pezzo della pagina: " + re.sub(r"\s+", " ", pd[pd.find("upload"):pd.find("upload")+400]))
 os.makedirs(dove, exist_ok=True); presi = []
 for uid, nome in files:
     if not any(p in nome.lower() for p in parole): continue
