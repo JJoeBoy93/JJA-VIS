@@ -1,0 +1,13166 @@
+{
+"ArmChair_01": {
+"categorie": [
+"furniture",
+"seating"
+],
+"dimensioni_mm": [
+848.4309017658234,
+765.7602727413177,
+1065.087635157397
+],
+"nome": "Arm Chair 01",
+"poligoni": 5626,
+"tag": [
+"gothic",
+"vintage",
+"chair",
+"furniture",
+"victorian",
+"couch",
+"wood",
+"varnished",
+"classic"
+]
+},
+"BarberShopChair_01": {
+"categorie": [
+"furniture",
+"seating"
+],
+"dimensioni_mm": [
+756.5155327320099,
+1327.9063999652863,
+1489.0052630568675
+],
+"nome": "Barber Shop Chair 01",
+"poligoni": 4280,
+"tag": [
+"chair",
+"vintage",
+"wood",
+"leather",
+"fancy",
+"upholstery",
+"barber",
+"salon"
+]
+},
+"Barrel_01": {
+"categorie": [
+"industrial",
+"containers"
+],
+"dimensioni_mm": [
+563.0351305007935,
+563.0352199077606,
+880.0000050105155
+],
+"nome": "Barrel_01",
+"poligoni": 2682,
+"tag": [
+"barrel",
+"oil",
+"explosive",
+"radioactive",
+"metal",
+"red barrel",
+"oil barrel",
+"drums",
+"fuel barrel",
+"explosive barrel",
+"industrial"
+]
+},
+"Barrel_02": {
+"categorie": [
+"industrial",
+"containers",
+"collection: the_shed"
+],
+"dimensioni_mm": [
+488.17557096481323,
+484.6164435148239,
+879.9999924376607
+],
+"nome": "Barrel 02",
+"poligoni": 2688,
+"tag": [
+"barrel",
+"water",
+"plastic",
+"garage",
+"warehouse",
+"industrial",
+"storage",
+"drums",
+"cylindrical"
+]
+},
+"Camera_01": {
+"categorie": [
+"props",
+"electronics"
+],
+"dimensioni_mm": [
+213.90153467655182,
+262.82382383942604,
+77.84665003418922
+],
+"nome": "Camera 01",
+"poligoni": 26987,
+"tag": [
+"vintage",
+"camera",
+"antique",
+"ornate",
+"photography",
+"photography",
+"retro",
+"lens",
+"classic",
+"classic",
+"analog"
+]
+},
+"CashRegister_01": {
+"categorie": [
+"appliances",
+"props"
+],
+"dimensioni_mm": [
+600.4907041788101,
+624.2051124572754,
+621.3557496666908
+],
+"nome": "Cash Register 01",
+"poligoni": 9927,
+"tag": [
+"commercial",
+"store",
+"vintage",
+"cash",
+"transaction",
+"register",
+"money",
+"sales",
+"convenience store",
+"cashier",
+"retail",
+"business"
+]
+},
+"Chandelier_01": {
+"categorie": [
+"lighting",
+"decorative"
+],
+"dimensioni_mm": [
+746.4556992053986,
+815.5497610569,
+798.2709443223541
+],
+"nome": "Chandelier 01",
+"poligoni": 26860,
+"tag": [
+"lighting",
+"ceiling",
+"hanging",
+"fixture",
+"chandelier",
+"ornate",
+"vintage"
+]
+},
+"Chandelier_02": {
+"categorie": [
+"lighting"
+],
+"dimensioni_mm": [
+678.9563298225403,
+619.0831661224365,
+848.0727672576904
+],
+"nome": "Chandelier 02",
+"poligoni": 21514,
+"tag": [
+"lighting",
+"ceiling",
+"decorative",
+"chandelier",
+"elegant",
+"hanging",
+"ornate",
+"vintage"
+]
+},
+"Chandelier_03": {
+"categorie": [
+"lighting",
+"decorative"
+],
+"dimensioni_mm": [
+780.4270684719086,
+785.4602336883545,
+1040.6459806239354
+],
+"nome": "Chandelier 03",
+"poligoni": 29301,
+"tag": [
+"lighting",
+"ceiling",
+"hanging",
+"fixture",
+"chandelier",
+"ornate",
+"decor",
+"elegant"
+]
+},
+"CheeseBox_01": {
+"categorie": [
+"props",
+"containers",
+"collection: the_shed"
+],
+"dimensioni_mm": [
+240.39557576179504,
+135.5806179344654,
+92.68356184475124
+],
+"nome": "CheeseBox_01",
+"poligoni": 884,
+"tag": [
+"box",
+"wood",
+"storage",
+"crate",
+"wooden",
+"vintage",
+"farmhouse",
+"aged",
+"distressed",
+"weathered",
+"carpentry"
+]
+},
+"ClassicConsole_01": {
+"categorie": [
+"furniture",
+"table"
+],
+"dimensioni_mm": [
+1543.0203676223755,
+589.2754197120667,
+949.0714100943478
+],
+"nome": "Classic Console 01",
+"poligoni": 7566,
+"tag": [
+"wood",
+"vintage",
+"table",
+"gothic",
+"victorian",
+"decorative"
+]
+},
+"ClassicNightstand_01": {
+"categorie": [
+"furniture",
+"table"
+],
+"dimensioni_mm": [
+567.7522718906403,
+424.192875623703,
+699.9649838462041
+],
+"nome": "Classic Nightstand 01",
+"poligoni": 2002,
+"tag": [
+"wood",
+"vintage",
+"table",
+"gothic",
+"victorian",
+"decorative"
+]
+},
+"CoffeeCart_01": {
+"categorie": [
+"appliances",
+"props",
+"furniture",
+"office"
+],
+"dimensioni_mm": [
+2167.636811733246,
+1073.2900500297546,
+1717.6724136807024
+],
+"nome": "Coffee Cart 01",
+"poligoni": 27659,
+"tag": [
+"table",
+"metal",
+"shelf",
+"plastic",
+"cart",
+"coffee",
+"portable",
+"wheels",
+"tea",
+"coffee maker",
+"mobile",
+"catering"
+]
+},
+"CoffeeTable_01": {
+"categorie": [
+"furniture",
+"table"
+],
+"dimensioni_mm": [
+1540.0111079216003,
+972.847044467926,
+523.237330140546
+],
+"nome": "Coffee Table 01",
+"poligoni": 10404,
+"tag": [
+"wood",
+"vintage",
+"table",
+"painted",
+"old",
+"worn",
+"decorative"
+]
+},
+"Drill_01": {
+"categorie": [
+"props",
+"tools",
+"electronics",
+"collection: the_shed"
+],
+"dimensioni_mm": [
+182.8799918293953,
+52.41549015045166,
+185.06235629320145
+],
+"nome": "Drill 01",
+"poligoni": 2926,
+"tag": [
+"metal",
+"plastic",
+"tool",
+"drill",
+"prop"
+]
+},
+"GothicBed_01": {
+"categorie": [
+"furniture",
+"bed"
+],
+"dimensioni_mm": [
+1493.751883506775,
+2039.9999022483826,
+1533.8402975614968
+],
+"nome": "Gothic Bed 01",
+"poligoni": 18741,
+"tag": [
+"vintage",
+"gothic",
+"furniture",
+"bed",
+"wood",
+"decorative"
+]
+},
+"GothicCabinet_01": {
+"categorie": [
+"furniture",
+"shelves"
+],
+"dimensioni_mm": [
+1719.1437482833862,
+1128.6656260490417,
+2360.900953424988
+],
+"nome": "Gothic Cabinet 01",
+"poligoni": 12170,
+"tag": [
+"vintage",
+"wood",
+"gothic",
+"furniture",
+"table",
+"shelf",
+"decorative"
+]
+},
+"GothicCommode_01": {
+"categorie": [
+"furniture",
+"shelves"
+],
+"dimensioni_mm": [
+1201.4026641845703,
+580.6596577167511,
+1212.042630148815
+],
+"nome": "Gothic Commode 01",
+"poligoni": 3897,
+"tag": [
+"vintage",
+"wood",
+"table",
+"gothic",
+"shelf",
+"furniture",
+"decorative"
+]
+},
+"GreenChair_01": {
+"categorie": [
+"furniture",
+"seating"
+],
+"dimensioni_mm": [
+673.0944514274597,
+664.3875539302826,
+1058.5118799936026
+],
+"nome": "Green Chair 01",
+"poligoni": 4213,
+"tag": [
+"vintage",
+"wood",
+"gothic",
+"furniture",
+"chair",
+"fabric",
+"decorative"
+]
+},
+"Lantern_01": {
+"categorie": [
+"props",
+"lighting"
+],
+"dimensioni_mm": [
+122.08568677306175,
+97.18310832977295,
+294.2466139793396
+],
+"nome": "Lantern 01",
+"poligoni": 33902,
+"tag": [
+"prop",
+"metal",
+"glass",
+"lantern",
+"antique",
+"vintage",
+"hurricane",
+"lamp",
+"bronze",
+"oldfashioned",
+"brass",
+"copper"
+]
+},
+"Megaphone_01": {
+"categorie": [
+"props",
+"electronics",
+"tools"
+],
+"dimensioni_mm": [
+370.6655204296112,
+228.45355421304703,
+300.07804185152054
+],
+"nome": "Megaphone 01",
+"poligoni": 15814,
+"tag": [
+"plastic",
+"megaphone",
+"device",
+"audio",
+"amplifier",
+"loudspeaker",
+"announcement"
+]
+},
+"Ottoman_01": {
+"categorie": [
+"furniture",
+"seating"
+],
+"dimensioni_mm": [
+884.5577836036682,
+621.1484670639038,
+624.3239195573551
+],
+"nome": "Ottoman 01",
+"poligoni": 4240,
+"tag": [
+"furniture",
+"leather",
+"chair",
+"fabric",
+"ottoman",
+"upholstery",
+"interior design",
+"living room",
+"lounge"
+]
+},
+"Rockingchair_01": {
+"categorie": [
+"furniture",
+"seating"
+],
+"dimensioni_mm": [
+708.1280946731567,
+833.482027053833,
+994.9284568428993
+],
+"nome": "Rockingchair 01",
+"poligoni": 11866,
+"tag": [
+"chair",
+"vintage",
+"prop",
+"wood",
+"furniture",
+"rocking chair",
+"rocking",
+"decorative",
+"curved legs",
+"traditional",
+"solid wood",
+"armrest",
+"slatted backrest",
+"antique style"
+]
+},
+"SchoolChair_01": {
+"categorie": [
+"furniture",
+"seating"
+],
+"dimensioni_mm": [
+565.8532977104187,
+675.2548813819885,
+1006.035539903678
+],
+"nome": "School Chair 01",
+"poligoni": 5072,
+"tag": [
+"prop",
+"furniture",
+"metal",
+"plastic",
+"chair",
+"school"
+]
+},
+"SchoolDesk_01": {
+"categorie": [
+"furniture"
+],
+"dimensioni_mm": [
+711.7760181427002,
+545.9675788879395,
+882.6298794883769
+],
+"nome": "School Desk 01",
+"poligoni": 4162,
+"tag": [
+"table",
+"school",
+"desk",
+"wood",
+"metal",
+"classroom",
+"student",
+"single-seat",
+"school furniture",
+"storage-shelf",
+"metal legs",
+"student seating"
+]
+},
+"Shelf_01": {
+"categorie": [
+"furniture",
+"shelves"
+],
+"dimensioni_mm": [
+1003.443717956543,
+256.9795063869833,
+2080.310344696045
+],
+"nome": "Shelf 01",
+"poligoni": 182,
+"tag": [
+"wood",
+"shelf",
+"furniture",
+"storage",
+"home",
+"organization",
+"display",
+"wooden",
+"bookcase",
+"shelves",
+"bookshelf",
+"dirty",
+"weathered",
+"distressed",
+"aged",
+"simple"
+]
+},
+"Sofa_01": {
+"categorie": [
+"furniture",
+"seating"
+],
+"dimensioni_mm": [
+1571.4675784111023,
+658.0145359039307,
+796.515051391907
+],
+"nome": "Sofa 01",
+"poligoni": 4101,
+"tag": [
+"wood",
+"prop",
+"furniture",
+"vintage",
+"gothic",
+"chair",
+"couch",
+"victorian",
+"decorative"
+]
+},
+"Television_01": {
+"categorie": [
+"props",
+"electronics",
+"collection: the_shed"
+],
+"dimensioni_mm": [
+599.9999642372131,
+470.8106815814972,
+456.84892892313655
+],
+"nome": "Television 01",
+"poligoni": 1918,
+"tag": [
+"vintage",
+"prop",
+"furniture",
+"metal",
+"wood",
+"tv",
+"television",
+"video",
+"audio"
+]
+},
+"Ukulele_01": {
+"categorie": [
+"props",
+"instrument"
+],
+"dimensioni_mm": [
+177.8610646724701,
+50.76222866773605,
+526.9626826047897
+],
+"nome": "Ukulele 01",
+"poligoni": 8912,
+"tag": [
+"instrument",
+"wood",
+"prop",
+"guitar",
+"ukulele",
+"music"
+]
+},
+"WetFloorSign_01": {
+"categorie": [
+"props",
+"industrial",
+"office"
+],
+"dimensioni_mm": [
+300.0548481941223,
+358.5093021392822,
+629.5440040994436
+],
+"nome": "Wet Floor Sign 01",
+"poligoni": 228,
+"tag": [
+"prop",
+"plastic",
+"sign",
+"safety",
+"caution",
+"warning",
+"yellow",
+"hazard",
+"slippery",
+"slippery when wet",
+"utility"
+]
+},
+"WoodenChair_01": {
+"categorie": [
+"furniture",
+"seating"
+],
+"dimensioni_mm": [
+688.1728172302246,
+658.4618389606476,
+2273.514856118709
+],
+"nome": "Wooden Chair 01",
+"poligoni": 19992,
+"tag": [
+"wood",
+"prop",
+"vintage",
+"furniture",
+"chair",
+"gothic",
+"victorian",
+"decorative"
+]
+},
+"WoodenTable_01": {
+"categorie": [
+"furniture"
+],
+"dimensioni_mm": [
+1799.6479272842407,
+657.1746468544006,
+548.8492709302584
+],
+"nome": "Wooden Table 01",
+"poligoni": 952,
+"tag": [
+"vintage",
+"wood",
+"prop",
+"table",
+"school",
+"desk",
+"old",
+"worn"
+]
+},
+"WoodenTable_02": {
+"categorie": [
+"furniture",
+"table"
+],
+"dimensioni_mm": [
+300.67646503448486,
+300.67646503448486,
+417.6570537537643
+],
+"nome": "Wooden Table 02",
+"poligoni": 1514,
+"tag": [
+"vintage",
+"wood",
+"prop",
+"table",
+"furniture",
+"old",
+"worn",
+"small"
+]
+},
+"WoodenTable_03": {
+"categorie": [
+"furniture",
+"collection: the_shed"
+],
+"dimensioni_mm": [
+1326.8529176712036,
+561.7093443870544,
+830.0816416740417
+],
+"nome": "Wooden Table 03",
+"poligoni": 2298,
+"tag": [
+"vintage",
+"wood",
+"prop",
+"table",
+"furniture",
+"metal",
+"shelf"
+]
+},
+"adjustable_wrench": {
+"categorie": [
+"collection: project_lighthouse",
+"props",
+"industrial",
+"tools"
+],
+"dimensioni_mm": [
+68.34418512880802,
+30.590344220399857,
+254.1303038597107
+],
+"nome": "Adjustable Wrench",
+"poligoni": 5390,
+"tag": [
+"vintage",
+"worn",
+"antique",
+"aged",
+"shed",
+"garage",
+"hand tool",
+"rustic",
+"pipe wrench",
+"monkey wrench"
+]
+},
+"alarm_clock_01": {
+"categorie": [
+"props",
+"decorative",
+"rigged"
+],
+"dimensioni_mm": [
+227.71471738815308,
+168.41959953308105,
+174.15538430213928
+],
+"nome": "Alarm Clock 01",
+"poligoni": 13006,
+"tag": [
+"clock",
+"time",
+"alarm",
+"bedside",
+"old",
+"90s",
+"watch",
+"blue",
+"aqua"
+]
+},
+"all_purpose_cleaner": {
+"categorie": [
+"props",
+"containers",
+"collection: the_shed"
+],
+"dimensioni_mm": [
+156.8227931857109,
+117.41002649068832,
+319.7317017838941
+],
+"nome": "All Purpose Cleaner",
+"poligoni": 4624,
+"tag": [
+"shed",
+"cleaning",
+"home",
+"garage",
+"chemicals",
+"household",
+"janitorial",
+"cleaning supplies",
+"sanitation",
+"bottle",
+"cleaner",
+"multipurpose",
+"allpurpose",
+"plastic containers",
+"clutter"
+]
+},
+"american_football": {
+"categorie": [
+"props"
+],
+"dimensioni_mm": [
+453.26216518878937,
+255.84320724010468,
+255.84322214126587
+],
+"nome": "American Football",
+"poligoni": 4480,
+"tag": [
+"game",
+"sports",
+"sport",
+"toy",
+"ball",
+"soccer",
+"football",
+"american"
+]
+},
+"ammo_box": {
+"categorie": [
+"industrial",
+"tools",
+"collection: project_lighthouse"
+],
+"dimensioni_mm": [
+86.56343817710876,
+257.8783482313156,
+177.47706174850464
+],
+"nome": "Ammo Box",
+"poligoni": 4382,
+"tag": [
+"old",
+"vintage",
+"antique",
+"metal",
+"rusted",
+"army",
+"military",
+"box",
+"cartridge",
+"storage",
+"machinegun",
+"crate"
+]
+},
+"anthurium_botany_01": {
+"categorie": [
+"plants",
+"nature",
+"collection: the_shed",
+"collection: smugglers_cove"
+],
+"dimensioni_mm": [
+2806.4264059066772,
+1800.9886145591736,
+506.7181019112468
+],
+"nome": "Anthurium Botany 01",
+"poligoni": 4134,
+"tag": [
+"nature",
+"bush",
+"leaf",
+"shrub",
+"leaves",
+"forest",
+"plant",
+"green",
+"jungle",
+"outdoor",
+"botany"
+]
+},
+"antique_ceramic_vase_01": {
+"categorie": [
+"decorative",
+"containers",
+"vases"
+],
+"dimensioni_mm": [
+255.02996146678925,
+255.02994656562805,
+439.553053722193
+],
+"nome": "Antique Ceramic Vase 01",
+"poligoni": 9408,
+"tag": [
+"vintage",
+"antique",
+"pot",
+"fancy",
+"pattern",
+"vase"
+]
+},
+"antique_estoc": {
+"categorie": [
+"props"
+],
+"dimensioni_mm": [
+371.5190589427948,
+149.09707754850388,
+1492.3794567584991
+],
+"nome": "Antique Estoc",
+"poligoni": 8246,
+"tag": [
+"antique",
+"vintage",
+"old",
+"sword",
+"historic",
+"traditional",
+"ornamental",
+"weapon"
+]
+},
+"antique_katana_01": {
+"categorie": [
+"props"
+],
+"dimensioni_mm": [
+93.37274730205536,
+93.37274730205536,
+1002.9437839984894
+],
+"nome": "Antique Katana 01",
+"poligoni": 6670,
+"tag": [
+"antique",
+"ninja",
+"katana",
+"sword",
+"sharp",
+"blade",
+"japanese",
+"weapon"
+]
+},
+"bananas": {
+"categorie": [
+"food",
+"collection: project_lighthouse",
+"nature"
+],
+"dimensioni_mm": [
+600.0183820724487,
+244.05436217784882,
+178.7654608488083
+],
+"nome": "Bananas",
+"poligoni": 46868,
+"tag": [
+"banana bunch",
+"yellow",
+"single banana",
+"ripe",
+"fruit"
+]
+},
+"bar_chair_round_01": {
+"categorie": [
+"seating",
+"furniture"
+],
+"dimensioni_mm": [
+483.1501990556717,
+485.99570989608765,
+750.5484623070515
+],
+"nome": "Bar Chair Round 01",
+"poligoni": 14373,
+"tag": [
+"bar",
+"pub",
+"stool",
+"tall",
+"wooden",
+"classical",
+"old",
+"vintage",
+"cigar"
+]
+},
+"bark_debris_01": {
+"categorie": [
+"nature",
+"ground cover",
+"plants",
+"collection: namaqualand"
+],
+"dimensioni_mm": [
+1209.9905610084534,
+674.5080053806305,
+112.16003447771072
+],
+"nome": "Bark Debris 01",
+"poligoni": 362632,
+"tag": [
+"karoo",
+"desert",
+"dry",
+"dead tree",
+"stick"
+]
+},
+"barrel_03": {
+"categorie": [
+"industrial",
+"containers"
+],
+"dimensioni_mm": [
+633.943498134613,
+638.5995149612427,
+930.4736243899824
+],
+"nome": "Barrel 03",
+"poligoni": 1473,
+"tag": [
+"industrial",
+"barrel",
+"oil",
+"fuel",
+"truck",
+"painted",
+"blue"
+]
+},
+"barrel_stove": {
+"categorie": [
+"industrial",
+"containers",
+"collection: hidden_alley"
+],
+"dimensioni_mm": [
+599.3210971355438,
+598.1101393699646,
+855.6039333343506
+],
+"nome": "Barrel Stove",
+"poligoni": 11404,
+"tag": [
+"urban",
+"city",
+"night",
+"fire",
+"heating",
+"outdoor",
+"barrel"
+]
+},
+"baseball_01": {
+"categorie": [
+"props"
+],
+"dimensioni_mm": [
+73.97906854748726,
+75.37996023893356,
+75.57932659983635
+],
+"nome": "Baseball 01",
+"poligoni": 2712,
+"tag": [
+"ball",
+"baseball",
+"toy",
+"kids",
+"child",
+"sport",
+"stitches",
+"round"
+]
+},
+"baseball_bat": {
+"categorie": [
+"props",
+"collection: hidden_alley"
+],
+"dimensioni_mm": [
+63.5339580476284,
+63.53400647640228,
+913.1987690925598
+],
+"nome": "Baseball Bat",
+"poligoni": 2672,
+"tag": [
+"game",
+"sports",
+"baseball",
+"toy",
+"activities",
+"bat",
+"outdoor sports",
+"competition",
+"outdoor games"
+]
+},
+"bench_vice_01": {
+"categorie": [
+"tools",
+"industrial",
+"rigged",
+"collection: the_shed"
+],
+"dimensioni_mm": [
+200.48236846923828,
+395.7868218421936,
+271.6780751943588
+],
+"nome": "Bench Vice 01",
+"poligoni": 2864,
+"tag": [
+"workshop",
+"garage",
+"used",
+"metal",
+"old",
+"shed",
+"woodwork"
+]
+},
+"binder_notebook": {
+"categorie": [
+"collection: project_lighthouse",
+"books",
+"props"
+],
+"dimensioni_mm": [
+584.0288400650024,
+199.95832443237305,
+25.289426557719707
+],
+"nome": "Binder Notebook",
+"poligoni": 18077,
+"tag": [
+"old",
+"leather",
+"vintage",
+"worn",
+"paper",
+"pencil",
+"pen",
+"journal"
+]
+},
+"binoculars": {
+"categorie": [
+"collection: project_lighthouse",
+"props",
+"tools"
+],
+"dimensioni_mm": [
+166.93278402090073,
+288.1428301334381,
+76.575618237257
+],
+"nome": "Binoculars",
+"poligoni": 19248,
+"tag": [
+"leather",
+"strap",
+"vintage",
+"antique",
+"optical"
+]
+},
+"bleach_bottle": {
+"categorie": [
+"props",
+"containers",
+"collection: the_shed"
+],
+"dimensioni_mm": [
+88.39113637804985,
+61.21089309453964,
+293.7394976615906
+],
+"nome": "Bleach Bottle",
+"poligoni": 4052,
+"tag": [
+"shed",
+"cleaning",
+"garage",
+"plastic",
+"storage",
+"clutter",
+"workshop",
+"household",
+"janitorial",
+"sanitation",
+"plastic containers",
+"supplies"
+]
+},
+"bolt_action_rifle_7_62": {
+"categorie": [
+"collection: project_lighthouse",
+"weapons",
+"firearms"
+],
+"dimensioni_mm": [
+1230.9749126434326,
+66.5869489312172,
+204.51291650533676
+],
+"nome": "Bolt Action Rifle 7.62",
+"poligoni": 19985,
+"tag": [
+"vintage",
+"worn",
+"old",
+"weathered",
+"aged",
+"gun",
+"scope",
+"bullet"
+]
+},
+"bolt_cutters_01": {
+"categorie": [
+"tools",
+"industrial",
+"props",
+"rigged",
+"collection: the_shed"
+],
+"dimensioni_mm": [
+280.6978076696396,
+36.02746408432722,
+937.6180171966553
+],
+"nome": "Bolt Cutters 01",
+"poligoni": 6719,
+"tag": [
+"metal",
+"worn",
+"used",
+"large",
+"workshop",
+"shed",
+"garage"
+]
+},
+"book_encyclopedia_set_01": {
+"categorie": [
+"props",
+"decorative",
+"books"
+],
+"dimensioni_mm": [
+551.2974057346582,
+163.06233406066895,
+237.41818653931634
+],
+"nome": "Book Encyclopedia Set 01",
+"poligoni": 67306,
+"tag": [
+"bookshelf",
+"books",
+"library",
+"reading",
+"encyclopedia",
+"set"
+]
+},
+"boombox": {
+"categorie": [
+"appliances",
+"electronics",
+"collection: hidden_alley"
+],
+"dimensioni_mm": [
+723.7796187400818,
+186.46465986967087,
+470.10064125061035
+],
+"nome": "Boombox",
+"poligoni": 10168,
+"tag": [
+"loudspeaker",
+"radio",
+"cd player",
+"stereo",
+"80's",
+"sound system",
+"portable"
+]
+},
+"boulder_01": {
+"categorie": [
+"rocks",
+"nature",
+"collection: verdant_trail"
+],
+"dimensioni_mm": [
+1272.6830840110779,
+1830.7338953018188,
+1003.8918256759644
+],
+"nome": "Boulder 01",
+"poligoni": 123976,
+"tag": [
+"rocks",
+"boulder",
+"lichen",
+"landscape",
+"rock",
+"geology",
+"formation",
+"weathered",
+"rock face",
+"cliff"
+]
+},
+"brass_blowtorch": {
+"categorie": [
+"props",
+"tools"
+],
+"dimensioni_mm": [
+129.4436901807785,
+259.2874839901924,
+210.61663329601288
+],
+"nome": "Brass Blowtorch",
+"poligoni": 11750,
+"tag": [
+"blowtorch",
+"industrial",
+"workshop",
+"garage",
+"weld",
+"welding",
+"automotive",
+"repair shop"
+]
+},
+"brass_candleholders": {
+"categorie": [
+"decorative",
+"lighting"
+],
+"dimensioni_mm": [
+1052.9398620128632,
+364.6823465824127,
+835.2597653865814
+],
+"nome": "Brass Candleholders",
+"poligoni": 41936,
+"tag": [
+"vintage",
+"antique",
+"ornate",
+"fancy",
+"brass",
+"pattern",
+"candleholders",
+"elegant",
+"classic",
+"ornamental"
+]
+},
+"brass_diya_lantern": {
+"categorie": [
+"decorative",
+"lighting"
+],
+"dimensioni_mm": [
+123.00453707575798,
+123.00454080104828,
+380.8239474892616
+],
+"nome": "Brass Diya Lantern",
+"poligoni": 12742,
+"tag": [
+"lighting",
+"brass",
+"metal",
+"lamp",
+"candle",
+"light",
+"cultural",
+"hanging"
+]
+},
+"brass_goblets": {
+"categorie": [
+"props",
+"dishes",
+"decorative",
+"containers"
+],
+"dimensioni_mm": [
+453.39466631412506,
+297.6139709353447,
+273.377850651741
+],
+"nome": "Brass Goblets",
+"poligoni": 9600,
+"tag": [
+"vintage",
+"old",
+"antique",
+"fancy",
+"brass",
+"cup",
+"chalice",
+"goblet",
+"engraved",
+"ornate",
+"container"
+]
+},
+"brass_pan_01": {
+"categorie": [
+"props",
+"containers",
+"decorative",
+"dishes"
+],
+"dimensioni_mm": [
+191.2703588604927,
+449.6646225452423,
+52.509385510347784
+],
+"nome": "Brass Pan 01",
+"poligoni": 4340,
+"tag": [
+"brass",
+"pan",
+"copper",
+"old",
+"metal",
+"prop",
+"container",
+"cooking",
+"pot",
+"cookware",
+"decorative",
+"fancy",
+"gold"
+]
+},
+"brass_pot_01": {
+"categorie": [
+"props",
+"containers",
+"decorative"
+],
+"dimensioni_mm": [
+301.94565653800964,
+301.69259011745453,
+290.94765486661345
+],
+"nome": "Brass Pot 01",
+"poligoni": 3760,
+"tag": [
+"brass",
+"metal",
+"prop",
+"pot",
+"cooking",
+"container",
+"pattern",
+"decorative",
+"copper",
+"old",
+"fancy",
+"cookware"
+]
+},
+"brass_pot_02": {
+"categorie": [
+"props",
+"dishes",
+"containers",
+"decorative"
+],
+"dimensioni_mm": [
+366.66905879974365,
+302.2904098033905,
+108.54637622833252
+],
+"nome": "Brass Pot 02",
+"poligoni": 3344,
+"tag": [
+"brass",
+"metal",
+"prop",
+"cooking",
+"container",
+"pot",
+"cookware",
+"pan",
+"gold",
+"copper"
+]
+},
+"brass_vase_01": {
+"categorie": [
+"decorative",
+"vases"
+],
+"dimensioni_mm": [
+227.3191586136818,
+227.31918096542358,
+692.4719526432455
+],
+"nome": "Brass Vase 01",
+"poligoni": 21440,
+"tag": [
+"brass",
+"antique",
+"metal",
+"ancient",
+"artifact",
+"vase",
+"old",
+"clean"
+]
+},
+"brass_vase_02": {
+"categorie": [
+"decorative",
+"vases"
+],
+"dimensioni_mm": [
+210.23856103420258,
+210.2375626564026,
+528.6410981789231
+],
+"nome": "Brass Vase 02",
+"poligoni": 6890,
+"tag": [
+"brass",
+"antique",
+"metal",
+"ancient",
+"old",
+"gold",
+"container",
+"vase",
+"clean",
+"ornate",
+"decorative",
+"pattern"
+]
+},
+"brass_vase_03": {
+"categorie": [
+"containers",
+"props",
+"decorative",
+"vases"
+],
+"dimensioni_mm": [
+82.50189200043678,
+82.50195905566216,
+200.36906062159687
+],
+"nome": "Brass Vase 03",
+"poligoni": 2616,
+"tag": [
+"metal",
+"prop",
+"brass",
+"decorative",
+"ornate",
+"vase",
+"gold",
+"pitcher",
+"copper",
+"container",
+"pattern",
+"old",
+"antique",
+"fancy",
+"decor"
+]
+},
+"brass_vase_04": {
+"categorie": [
+"containers",
+"props",
+"vases",
+"dishes"
+],
+"dimensioni_mm": [
+81.96411095559597,
+61.04915961623192,
+170.27275305736111
+],
+"nome": "Brass Vase 04",
+"poligoni": 2760,
+"tag": [
+"vintage",
+"fancy",
+"metal",
+"brass",
+"copper",
+"old",
+"vase",
+"pitcher",
+"ornate",
+"pattern"
+]
+},
+"bronze_ray_statue": {
+"categorie": [
+"decorative",
+"collection: project_lighthouse"
+],
+"dimensioni_mm": [
+707.4942886829376,
+535.5483442544937,
+589.6477159112692
+],
+"nome": "Bronze Ray Statue",
+"poligoni": 1844,
+"tag": [
+"sculpture",
+"ornate",
+"artwork",
+"art",
+"statue",
+"ornamental",
+"manta ray",
+"stingray",
+"underwater"
+]
+},
+"bronze_shark_statue": {
+"categorie": [
+"decorative",
+"collection: project_lighthouse"
+],
+"dimensioni_mm": [
+351.9585132598877,
+759.7871422767639,
+431.6019620746374
+],
+"nome": "Bronze Shark Statue",
+"poligoni": 7334,
+"tag": [
+"sculpture",
+"ornate",
+"artwork",
+"art",
+"statue",
+"ornamental",
+"underwater",
+"shark",
+"fish"
+]
+},
+"bronze_whale_statue": {
+"categorie": [
+"decorative",
+"collection: project_lighthouse"
+],
+"dimensioni_mm": [
+932.0032000541687,
+1365.850269794464,
+1072.9193929582834
+],
+"nome": "Bronze Whale Statue",
+"poligoni": 3816,
+"tag": [
+"sculpture",
+"ornate",
+"artwork",
+"art",
+"statue",
+"ornamental",
+"underwater",
+"whale",
+"fish"
+]
+},
+"bull_head": {
+"categorie": [
+"decorative"
+],
+"dimensioni_mm": [
+306.3598871231079,
+280.7491421699524,
+433.00686348811723
+],
+"nome": "Bull Head",
+"poligoni": 17148,
+"tag": [
+"antique",
+"vintage",
+"old",
+"ornate",
+"statue",
+"sculpture",
+"animal",
+"art",
+"wildlife"
+]
+},
+"bunsen_burner": {
+"categorie": [
+"collection: project_lighthouse",
+"props",
+"industrial",
+"tools"
+],
+"dimensioni_mm": [
+138.89388740062714,
+138.89388740062714,
+173.1255203485489
+],
+"nome": "Bunsen Burner",
+"poligoni": 8434,
+"tag": [
+"chemistry",
+"lab",
+"equipment",
+"gas",
+"science",
+"testing",
+"laboratory"
+]
+},
+"caged_hanging_light": {
+"categorie": [
+"collection: project_lighthouse",
+"lighting",
+"industrial"
+],
+"dimensioni_mm": [
+1161.8340015411377,
+314.8960471153259,
+750.0966191291809
+],
+"nome": "Caged Hanging Light",
+"poligoni": 22893,
+"tag": [
+"industrial",
+"warehouse",
+"ceiling-mounted",
+"fluorescent",
+"chain",
+"utility",
+"infrastructure",
+"electrical",
+"bunker"
+]
+},
+"calathea_orbifolia_01": {
+"categorie": [
+"plants",
+"nature",
+"ground cover",
+"collection: smugglers_cove"
+],
+"dimensioni_mm": [
+2491.507411003113,
+1193.592220544815,
+424.2942640557885
+],
+"nome": "Calathea Orbifolia 01",
+"poligoni": 16688,
+"tag": [
+"nature",
+"bush",
+"leaf",
+"shrub",
+"green",
+"leaves",
+"forest",
+"plant",
+"jungle",
+"outdoor",
+"botany",
+"decorative"
+]
+},
+"can_rusted": {
+"categorie": [
+"containers",
+"collection: the_shed"
+],
+"dimensioni_mm": [
+124.53292682766914,
+124.67572093009949,
+151.37778513599187
+],
+"nome": "Can Rusted",
+"poligoni": 3520,
+"tag": [
+"shed",
+"rubbish",
+"dirty",
+"outdoor",
+"clutter",
+"garage",
+"used",
+"old"
+]
+},
+"cannon_01": {
+"categorie": [
+"props",
+"rigged",
+"collection: smugglers_cove"
+],
+"dimensioni_mm": [
+1233.32679271698,
+2302.3523092269897,
+786.8735939264297
+],
+"nome": "Cannon 01",
+"poligoni": 41444,
+"tag": [
+"cannon",
+"gun",
+"gunpowder",
+"pirates",
+"cove",
+"barrel",
+"old",
+"wooden",
+"prop",
+"cast iron",
+"cast",
+"iron",
+"metal",
+"colonial",
+"maritime",
+"ship",
+"weapon"
+]
+},
+"cardboard_box_01": {
+"categorie": [
+"industrial",
+"containers",
+"collection: the_shed"
+],
+"dimensioni_mm": [
+387.02359795570374,
+515.8704221248627,
+341.7995423078537
+],
+"nome": "Cardboard Box 01",
+"poligoni": 16952,
+"tag": [
+"warehouse",
+"shed",
+"storage",
+"box",
+"paper",
+"worn",
+"old",
+"broken",
+"damaged",
+"garage"
+]
+},
+"carrot_cake": {
+"categorie": [
+"food",
+"props"
+],
+"dimensioni_mm": [
+225.42137652635574,
+225.38353502750397,
+97.57296415045857
+],
+"nome": "Carrot Cake",
+"poligoni": 13790,
+"tag": [
+"baked goods",
+"cake",
+"carrot",
+"food",
+"bakery",
+"dish",
+"cooking",
+"dessert"
+]
+},
+"carved_wooden_elephant": {
+"categorie": [
+"props",
+"decorative"
+],
+"dimensioni_mm": [
+109.18296501040459,
+57.556506246328354,
+96.15053108427674
+],
+"nome": "Carved Wooden Elephant",
+"poligoni": 2752,
+"tag": [
+"wood",
+"wooden",
+"woodwork",
+"statue",
+"carved",
+"animal"
+]
+},
+"carved_wooden_plate": {
+"categorie": [
+"props",
+"decorative",
+"dishes"
+],
+"dimensioni_mm": [
+271.8309164047241,
+268.7795162200928,
+38.11051766388118
+],
+"nome": "Carved Wooden Plate",
+"poligoni": 2112,
+"tag": [
+"vintage",
+"wood",
+"antique",
+"carved",
+"hand made",
+"crafted",
+"fruitbowl",
+"plate"
+]
+},
+"cassette_player": {
+"categorie": [
+"props",
+"electronics"
+],
+"dimensioni_mm": [
+129.46044653654099,
+48.87990656585117,
+236.81782186031342
+],
+"nome": "Cassette Player",
+"poligoni": 4830,
+"tag": [
+"walkman",
+"vintage",
+"device",
+"audio",
+"retro",
+"music",
+"gadget",
+"nostalgia",
+"portable",
+"cassette tape",
+"analog",
+"old school",
+"classic"
+]
+},
+"ceiling_fan": {
+"categorie": [
+"appliances",
+"electronics"
+],
+"dimensioni_mm": [
+1462.9170894622803,
+1462.9170894622803,
+516.343355178833
+],
+"nome": "Ceiling Fan",
+"poligoni": 16356,
+"tag": [
+"utility",
+"ceiling",
+"air circulation",
+"ventilation",
+"fixture",
+"cooling",
+"fan",
+"interior"
+]
+},
+"celandine_01": {
+"categorie": [
+"nature",
+"plants",
+"ground cover",
+"flowers"
+],
+"dimensioni_mm": [
+3492.500424385071,
+933.4844052791595,
+934.6956610679626
+],
+"nome": "Celandine 01",
+"poligoni": 1746764,
+"tag": [
+"field",
+"nature",
+"green",
+"shrub",
+"plant",
+"outdoor",
+"leaf",
+"botany",
+"leaves",
+"meadow",
+"floral",
+"flower",
+"small",
+"natural",
+"celandine"
+]
+},
+"cement_bag": {
+"categorie": [
+"props",
+"collection: project_lighthouse"
+],
+"dimensioni_mm": [
+462.4738246202469,
+699.5841264724731,
+179.9098700284958
+],
+"nome": "Cement Bag",
+"poligoni": 844,
+"tag": [
+"industrial",
+"warehouse",
+"factory",
+"building",
+"construction",
+"cement",
+"cement bag",
+"building material",
+"building supply",
+"construction supply"
+]
+},
+"ceramic_pot": {
+"categorie": [
+"containers",
+"props",
+"decorative",
+"dishes",
+"collection: project_lighthouse"
+],
+"dimensioni_mm": [
+656.2502980232239,
+501.7523765563965,
+371.66545377112925
+],
+"nome": "Ceramic Pot",
+"poligoni": 3592,
+"tag": [
+"earthenware",
+"glazed",
+"aged",
+"weathered",
+"ceramic"
+]
+},
+"ceramic_vase_01": {
+"categorie": [
+"vases",
+"containers",
+"decorative"
+],
+"dimensioni_mm": [
+204.87193763256073,
+206.37669414281845,
+401.379804010503
+],
+"nome": "Ceramic Vase 01",
+"poligoni": 2548,
+"tag": [
+"pot",
+"clean",
+"tall",
+"modern",
+"fancy",
+"decor"
+]
+},
+"ceramic_vase_02": {
+"categorie": [
+"decorative",
+"containers",
+"vases"
+],
+"dimensioni_mm": [
+219.83815729618073,
+221.4527726173401,
+309.2874630820006
+],
+"nome": "Ceramic Vase 02",
+"poligoni": 2756,
+"tag": [
+"fancy",
+"modern",
+"vase",
+"decor",
+"clay",
+"pot",
+"painted"
+]
+},
+"ceramic_vase_03": {
+"categorie": [
+"containers",
+"decorative",
+"vases"
+],
+"dimensioni_mm": [
+112.45502531528473,
+112.45502158999443,
+414.438920259272
+],
+"nome": "Ceramic Vase 03",
+"poligoni": 2784,
+"tag": [
+"clay",
+"pot",
+"exterior",
+"decor",
+"painted",
+"vase",
+"tall",
+"modern",
+"fancy"
+]
+},
+"ceramic_vase_04": {
+"categorie": [
+"containers",
+"decorative",
+"vases"
+],
+"dimensioni_mm": [
+183.31684917211533,
+181.98027461767197,
+342.3411250114441
+],
+"nome": "Ceramic Vase 04",
+"poligoni": 2224,
+"tag": [
+"fancy",
+"modern",
+"vase",
+"decor",
+"painted",
+"jug",
+"clay",
+"pot"
+]
+},
+"cheiridopsis_succulent": {
+"categorie": [
+"collection: namaqualand",
+"nature",
+"plants",
+"ground cover"
+],
+"dimensioni_mm": [
+2161.4569425582886,
+958.6485624313354,
+270.7609534263611
+],
+"nome": "Cheiridopsis Succulent",
+"poligoni": 198888,
+"tag": [
+"karoo",
+"desert",
+"south africa",
+"succulent",
+"quartz",
+"tiny",
+"aloe",
+"cactus",
+"flower"
+]
+},
+"chemistry_set": {
+"categorie": [
+"collection: project_lighthouse",
+"industrial",
+"props",
+"tools"
+],
+"dimensioni_mm": [
+1078.3504843711853,
+353.92560064792633,
+429.01350278407335
+],
+"nome": "Chemistry Set",
+"poligoni": 41958,
+"tag": [
+"laboratory",
+"science",
+"chemistry",
+"glassware",
+"equipment",
+"testing",
+"lab",
+"retort stand",
+"test tubes",
+"burette clamp",
+"graduated cylinder",
+"beaker"
+]
+},
+"chess_set": {
+"categorie": [
+"decorative",
+"props"
+],
+"dimensioni_mm": [
+553.2379746437073,
+553.2379746437073,
+112.3529537471768
+],
+"nome": "Chess Set",
+"poligoni": 76920,
+"tag": [
+"boardgame",
+"game",
+"old",
+"decor",
+"home",
+"vintage",
+"antique",
+"tabletop",
+"display piece",
+"ornamental",
+"elegant"
+]
+},
+"chinese_armchair": {
+"categorie": [
+"furniture",
+"seating"
+],
+"dimensioni_mm": [
+848.2747673988342,
+788.6627614498138,
+1587.4828653213626
+],
+"nome": "Chinese Armchair",
+"poligoni": 2675,
+"tag": [
+"vintage",
+"antique",
+"ornate",
+"chinese",
+"asian",
+"varnished",
+"elegant",
+"wooden",
+"traditional"
+]
+},
+"chinese_cabinet": {
+"categorie": [
+"shelves",
+"furniture"
+],
+"dimensioni_mm": [
+1262.4960541725159,
+545.2098548412323,
+2872.0987772358058
+],
+"nome": "Chinese Cabinet",
+"poligoni": 15668,
+"tag": [
+"old",
+"wooden",
+"vintage",
+"antique",
+"ornate",
+"traditional",
+"asian",
+"elegant",
+"ornamental"
+]
+},
+"chinese_chandelier": {
+"categorie": [
+"lighting",
+"decorative"
+],
+"dimensioni_mm": [
+878.3927261829376,
+878.709465265274,
+748.2100167544559
+],
+"nome": "Chinese Chandelier",
+"poligoni": 7828,
+"tag": [
+"vintage",
+"antique",
+"old",
+"wooden",
+"ornate",
+"traditional",
+"asian"
+]
+},
+"chinese_commode": {
+"categorie": [
+"furniture",
+"shelves"
+],
+"dimensioni_mm": [
+4490.48638343811,
+1169.9001789093018,
+2019.874095916748
+],
+"nome": "Chinese Commode",
+"poligoni": 6775,
+"tag": [
+"vintage",
+"antique",
+"wooden",
+"ornate",
+"asian",
+"traditional",
+"cabinet"
+]
+},
+"chinese_console_table": {
+"categorie": [
+"table",
+"furniture"
+],
+"dimensioni_mm": [
+1719.6246981620789,
+338.7930691242218,
+660.7421338558197
+],
+"nome": "Chinese Console Table",
+"poligoni": 13648,
+"tag": [
+"vintage",
+"antique",
+"wooden",
+"ornate",
+"traditional",
+"asian"
+]
+},
+"chinese_screen_panels": {
+"categorie": [
+"furniture"
+],
+"dimensioni_mm": [
+1293.9677834510803,
+376.891165971756,
+1603.1262874603271
+],
+"nome": "Chinese Screen Panels",
+"poligoni": 784,
+"tag": [
+"vintage",
+"antique",
+"old",
+"wooden",
+"ornate",
+"asian",
+"divider",
+"wall"
+]
+},
+"chinese_sofa": {
+"categorie": [
+"furniture",
+"seating"
+],
+"dimensioni_mm": [
+2285.4329347610474,
+968.8513875007629,
+860.0191126264232
+],
+"nome": "Chinese Sofa",
+"poligoni": 704,
+"tag": [
+"vintage",
+"antique",
+"wooden",
+"ornate",
+"traditional",
+"fancy"
+]
+},
+"chinese_stool": {
+"categorie": [
+"seating",
+"furniture"
+],
+"dimensioni_mm": [
+598.9732146263123,
+506.40586018562317,
+630.5584987724009
+],
+"nome": "Chinese Stool",
+"poligoni": 1090,
+"tag": [
+"vintage",
+"antique",
+"wooden",
+"ornate",
+"traditional",
+"asian"
+]
+},
+"chinese_tea_table": {
+"categorie": [
+"table",
+"furniture"
+],
+"dimensioni_mm": [
+841.3148820400238,
+835.6219828128815,
+498.6410439014435
+],
+"nome": "Chinese Tea Table",
+"poligoni": 2508,
+"tag": [
+"vintage",
+"antique",
+"old",
+"wooden",
+"ornate",
+"traditional"
+]
+},
+"cigarette_case": {
+"categorie": [
+"collection: project_lighthouse",
+"props"
+],
+"dimensioni_mm": [
+323.31913709640503,
+100.6685458123684,
+24.480817723087966
+],
+"nome": "Cigarette Case",
+"poligoni": 16912,
+"tag": [
+"cigarette pack",
+"cigarette holder",
+"metal tin",
+"smoking",
+"accessories"
+]
+},
+"cigarette_pack": {
+"categorie": [
+"containers",
+"props",
+"collection: project_lighthouse"
+],
+"dimensioni_mm": [
+55.60000613331795,
+29.485042206943035,
+102.71518916124478
+],
+"nome": "Cigarette Pack",
+"poligoni": 7582,
+"tag": [
+"smoking",
+"tabacco",
+"cigarette pack",
+"flip-top box"
+]
+},
+"circuit_board": {
+"categorie": [
+"collection: project_lighthouse",
+"electronics"
+],
+"dimensioni_mm": [
+403.5058617591858,
+397.3844349384308,
+78.29589396715164
+],
+"nome": "Circuit Board",
+"poligoni": 14430,
+"tag": [
+"computer",
+"components",
+"chip",
+"motherboard",
+"pc hardware",
+"connectors",
+"wiring",
+"power supply",
+"circuit",
+"power",
+"electrical"
+]
+},
+"classic_laptop": {
+"categorie": [
+"collection: project_lighthouse",
+"office",
+"electronics"
+],
+"dimensioni_mm": [
+651.9346237182617,
+485.9423041343689,
+542.8108091000468
+],
+"nome": "Classic Laptop",
+"poligoni": 14450,
+"tag": [
+"old",
+"vintage",
+"beige",
+"notebook",
+"lcd",
+"trackball"
+]
+},
+"cleaner_tin_01": {
+"categorie": [
+"containers",
+"tools",
+"industrial",
+"collection: the_shed"
+],
+"dimensioni_mm": [
+87.5563956797123,
+87.54613995552063,
+130.41614861867856
+],
+"nome": "Cleaner Tin 01",
+"poligoni": 3560,
+"tag": [
+"shed",
+"workshop",
+"metal",
+"lubricant",
+"oil",
+"construction",
+"garage"
+]
+},
+"clipboard": {
+"categorie": [
+"collection: project_lighthouse",
+"office",
+"props"
+],
+"dimensioni_mm": [
+228.6001443862915,
+336.55010163784027,
+41.990341851487756
+],
+"nome": "Clipboard",
+"poligoni": 6176,
+"tag": [
+"writing",
+"desk",
+"stationery",
+"metal",
+"scratched"
+]
+},
+"coast_land_rocks_02": {
+"categorie": [
+"nature",
+"rocks",
+"collection: smugglers_cove"
+],
+"dimensioni_mm": [
+10454.175472259521,
+4888.633012771606,
+1397.6540118455887
+],
+"nome": "Coast Land Rocks 02",
+"poligoni": 2420895,
+"tag": [
+"rocks",
+"coastal",
+"landscape",
+"formation",
+"seaside",
+"shore",
+"geology",
+"pebbles",
+"weathered",
+"stones",
+"rock",
+"sand",
+"beach",
+"shoreline"
+]
+},
+"coast_land_rocks_03": {
+"categorie": [
+"nature",
+"rocks",
+"collection: smugglers_cove"
+],
+"dimensioni_mm": [
+8975.385189056396,
+5630.90705871582,
+1529.4181853532791
+],
+"nome": "Coast Land Rocks 03",
+"poligoni": 2056223,
+"tag": [
+"rocks",
+"formation",
+"coastal",
+"landscape",
+"seaside",
+"shore",
+"geology",
+"pebbles",
+"weathered",
+"beach",
+"stones",
+"rock",
+"shoreline"
+]
+},
+"coast_land_rocks_04": {
+"categorie": [
+"nature",
+"rocks",
+"collection: smugglers_cove"
+],
+"dimensioni_mm": [
+9963.15860748291,
+11501.500129699707,
+848.6063703894615
+],
+"nome": "Coast Land Rocks 04",
+"poligoni": 2037497,
+"tag": [
+"landscape",
+"rocks",
+"shore",
+"coastal",
+"geology",
+"shoreline",
+"rock",
+"stones",
+"pebbles",
+"weathered",
+"beach",
+"sand",
+"rock face",
+"seaside",
+"cove"
+]
+},
+"coast_line_01": {
+"categorie": [
+"nature",
+"rocks",
+"collection: smugglers_cove"
+],
+"dimensioni_mm": [
+54614.71366882324,
+42964.41078186035,
+2633.778691291809
+],
+"nome": "Coast Line 01",
+"poligoni": 1011543,
+"tag": [
+"coast",
+"shoreline",
+"coastline",
+"seaside",
+"shore",
+"coastal",
+"geology",
+"rock",
+"rocks",
+"stones",
+"formation",
+"weathered",
+"landscape",
+"ocean",
+"cove",
+"beach"
+]
+},
+"coast_line_02": {
+"categorie": [
+"nature",
+"rocks",
+"collection: smugglers_cove"
+],
+"dimensioni_mm": [
+45643.741607666016,
+23281.19659423828,
+2305.538594722748
+],
+"nome": "Coast Line 02",
+"poligoni": 1419259,
+"tag": [
+"landscape",
+"rocks",
+"coastal",
+"rock",
+"shoreline",
+"shore",
+"geology",
+"stones",
+"formation",
+"weathered",
+"pebbles",
+"beach",
+"sand",
+"cove",
+"coastal formations",
+"coastline",
+"seaside"
+]
+},
+"coast_rocks_01": {
+"categorie": [
+"nature",
+"rocks",
+"collection: smugglers_cove"
+],
+"dimensioni_mm": [
+59507.67707824707,
+42520.090103149414,
+3290.156841278076
+],
+"nome": "Coast Rocks 01",
+"poligoni": 1274876,
+"tag": [
+"rocks",
+"seaside",
+"shore",
+"coastal",
+"stones",
+"rock",
+"landscape",
+"geology",
+"shoreline",
+"pebbles",
+"formation",
+"weathered"
+]
+},
+"coast_rocks_02": {
+"categorie": [
+"nature",
+"rocks",
+"collection: smugglers_cove"
+],
+"dimensioni_mm": [
+45965.73257446289,
+49465.6343460083,
+3178.405284881592
+],
+"nome": "Coast Rocks 02",
+"poligoni": 2363290,
+"tag": [
+"seaside",
+"rocks",
+"formation",
+"landscape",
+"shore",
+"geology",
+"coastal",
+"shoreline",
+"stones",
+"rock",
+"weathered"
+]
+},
+"coast_rocks_03": {
+"categorie": [
+"nature",
+"rocks",
+"collection: smugglers_cove"
+],
+"dimensioni_mm": [
+21122.72834777832,
+28273.78749847412,
+3197.738289833069
+],
+"nome": "Coast Rocks 03",
+"poligoni": 1525242,
+"tag": [
+"rocks",
+"seaside",
+"stones",
+"formation",
+"landscape",
+"shore",
+"rock",
+"shoreline",
+"coastal",
+"pebbles",
+"weathered",
+"beach",
+"sand"
+]
+},
+"coast_rocks_05": {
+"categorie": [
+"nature",
+"rocks",
+"collection: smugglers_cove",
+"collection: verdant_trail"
+],
+"dimensioni_mm": [
+3036.3906621932983,
+2817.328929901123,
+1000.5000680685043
+],
+"nome": "Coast Rocks 05",
+"poligoni": 1446981,
+"tag": [
+"rocks",
+"coastal",
+"maritime",
+"ocean",
+"stone",
+"reef",
+"formation",
+"landscape",
+"seaside",
+"shore",
+"geology",
+"pebbles",
+"seaweed",
+"weathered"
+]
+},
+"coastal_cliff_01": {
+"categorie": [
+"nature",
+"collection: smugglers_cove"
+],
+"dimensioni_mm": [
+91979.95376586914,
+10966.708660125732,
+10329.669952392578
+],
+"nome": "Coastal Cliff 01",
+"poligoni": 865917,
+"tag": [
+"cliff",
+"ocean",
+"rocks",
+"maritime",
+"cove",
+"formation",
+"rock face",
+"seaside",
+"landscape",
+"geology",
+"shore",
+"shoreline",
+"coastal",
+"stones",
+"rock",
+"coastal formations"
+]
+},
+"coastal_cliff_02": {
+"categorie": [
+"nature",
+"collection: smugglers_cove",
+"collection: verdant_trail"
+],
+"dimensioni_mm": [
+40929.92401123047,
+8652.921199798584,
+10055.558755993843
+],
+"nome": "Coastal Cliff 02",
+"poligoni": 1768655,
+"tag": [
+"cliff",
+"ocean",
+"rocks",
+"maritime",
+"cove",
+"formation",
+"rock face",
+"seaside",
+"landscape"
+]
+},
+"coastal_cliff_04": {
+"categorie": [
+"nature",
+"rocks",
+"collection: smugglers_cove",
+"collection: verdant_trail"
+],
+"dimensioni_mm": [
+86773.23913574219,
+24247.532844543457,
+10999.708712100983
+],
+"nome": "Coastal Cliff 04",
+"poligoni": 2883111,
+"tag": [
+"cliff",
+"landscape",
+"seaside",
+"formation",
+"geology",
+"shoreline",
+"coastal",
+"rock",
+"weathered",
+"rock face",
+"coastal formations",
+"shore"
+]
+},
+"coffee_table_round_01": {
+"categorie": [
+"furniture",
+"table"
+],
+"dimensioni_mm": [
+1301.3009428977966,
+1301.3015985488892,
+491.0094439983368
+],
+"nome": "Coffee Table Round 01",
+"poligoni": 4044,
+"tag": [
+"modern",
+"marble",
+"tea",
+"coffee",
+"metal",
+"sleek",
+"contemporary",
+"cocktail"
+]
+},
+"combination_wrench": {
+"categorie": [
+"collection: project_lighthouse",
+"tools",
+"industrial"
+],
+"dimensioni_mm": [
+56.58109299838543,
+336.9841277599335,
+21.513011306524277
+],
+"nome": "Combination Wrench",
+"poligoni": 1986,
+"tag": [
+"garage",
+"workshop",
+"construction",
+"scratched"
+]
+},
+"compost_bag_02": {
+"categorie": [
+"containers",
+"industrial",
+"collection: the_shed"
+],
+"dimensioni_mm": [
+539.3457114696503,
+470.53681313991547,
+433.6617160588503
+],
+"nome": "Compost Bag 02",
+"poligoni": 12096,
+"tag": [
+"outdoor",
+"botany",
+"greenhouse",
+"landscaping",
+"shed",
+"gardening",
+"fertilizer",
+"soil"
+]
+},
+"compost_bags": {
+"categorie": [
+"props",
+"collection: the_shed"
+],
+"dimensioni_mm": [
+1847.2610712051392,
+946.3564157485962,
+767.9970413446426
+],
+"nome": "Compost Bags",
+"poligoni": 18708,
+"tag": [
+"garden",
+"shed",
+"planting",
+"gardening",
+"landscaping",
+"fertilizer",
+"compost",
+"greenhouse",
+"farm",
+"farmhouse"
+]
+},
+"concrete_cat_statue": {
+"categorie": [
+"decorative"
+],
+"dimensioni_mm": [
+152.97183394432068,
+250.0000149011612,
+283.0095653557052
+],
+"nome": "Concrete Cat Statue",
+"poligoni": 11950,
+"tag": [
+"garden",
+"outdoor",
+"landscaping",
+"gardening",
+"statue",
+"concrete",
+"sculpture",
+"cat",
+"lawn decoration"
+]
+},
+"concrete_road_barrier": {
+"categorie": [
+"industrial",
+"structures",
+"collection: hidden_alley"
+],
+"dimensioni_mm": [
+1545.3570485115051,
+640.9457623958588,
+835.279269143939
+],
+"nome": "Concrete Road Barrier",
+"poligoni": 80776,
+"tag": [
+"road barrier",
+"traffic barrier",
+"safety barrier",
+"wall",
+"road",
+"road block",
+"blockade",
+"partition",
+"infrastructure"
+]
+},
+"concrete_road_barrier_02": {
+"categorie": [
+"industrial",
+"structures",
+"collection: hidden_alley"
+],
+"dimensioni_mm": [
+1566.9698119163513,
+442.20101833343506,
+1111.9812715332955
+],
+"nome": "Concrete Road Barrier 02",
+"poligoni": 42578,
+"tag": [
+"road barrier",
+"traffic barrier",
+"safety barrier",
+"wall",
+"road",
+"road block",
+"blockade"
+]
+},
+"covered_car": {
+"categorie": [
+"props",
+"industrial",
+"collection: hidden_alley"
+],
+"dimensioni_mm": [
+1788.962960243225,
+4380.25426864624,
+1411.1130833625793
+],
+"nome": "Covered Car",
+"poligoni": 12592,
+"tag": [
+"garage",
+"stored",
+"vehicle",
+"car",
+"workshop",
+"mechanic",
+"automotive",
+"repair shop",
+"junkyard",
+"scrapyard"
+]
+},
+"croissant": {
+"categorie": [
+"props",
+"food"
+],
+"dimensioni_mm": [
+200.00000298023224,
+75.51151886582375,
+61.99566961731762
+],
+"nome": "Croissant",
+"poligoni": 1990,
+"tag": [
+"food",
+"pastry",
+"baked goods",
+"french",
+"breakfast",
+"bakery",
+"savory"
+]
+},
+"cross_pein_hammer": {
+"categorie": [
+"collection: project_lighthouse",
+"props",
+"tools"
+],
+"dimensioni_mm": [
+99.07165542244911,
+24.275743402540684,
+300.2498894929886
+],
+"nome": "Cross Pein Hammer",
+"poligoni": 2124,
+"tag": [
+"old",
+"vintage",
+"antique",
+"wooden",
+"hammer",
+"blacksmith",
+"rustic",
+"aged",
+"worn"
+]
+},
+"crowbar_01": {
+"categorie": [
+"tools",
+"industrial",
+"props",
+"collection: the_shed"
+],
+"dimensioni_mm": [
+40.41172005236149,
+127.58862972259521,
+555.3637742996216
+],
+"nome": "Crowbar 01",
+"poligoni": 2300,
+"tag": [
+"metal",
+"shed",
+"workshop",
+"garage",
+"used",
+"dirty",
+"construction",
+"carpentry",
+"nails",
+"farmhouse"
+]
+},
+"crystalline_iceplant": {
+"categorie": [
+"nature",
+"plants",
+"ground cover",
+"collection: namaqualand"
+],
+"dimensioni_mm": [
+1693.7321424484253,
+738.1078898906708,
+82.77220348827541
+],
+"nome": "Crystalline Iceplant",
+"poligoni": 23487,
+"tag": [
+"leaf",
+"small",
+"succulent",
+"foliage",
+"leaves",
+"karoo",
+"botanical",
+"south africa"
+]
+},
+"dandelion_01": {
+"categorie": [
+"plants",
+"flowers",
+"nature",
+"ground cover"
+],
+"dimensioni_mm": [
+4214.337892830372,
+257.75373727083206,
+170.49064673483372
+],
+"nome": "Dandelion 01",
+"poligoni": 64099,
+"tag": [
+"plant",
+"nature",
+"green",
+"shrub",
+"outdoor",
+"leaf",
+"bush",
+"botany",
+"field",
+"flower",
+"meadow",
+"foliage",
+"small",
+"floral"
+]
+},
+"dartboard": {
+"categorie": [
+"props",
+"decorative",
+"wall decoration",
+"collection: the_shed"
+],
+"dimensioni_mm": [
+450.6962299346924,
+39.77856128316404,
+450.6962150335312
+],
+"nome": "Dartboard",
+"poligoni": 6800,
+"tag": [
+"shed",
+"bar",
+"activities",
+"darts",
+"game",
+"toy",
+"pub",
+"sports",
+"sport",
+"fun",
+"entertainment",
+"competition",
+"target",
+"bullseye",
+"indoor games"
+]
+},
+"dead_quiver_branch_01": {
+"categorie": [
+"nature",
+"plants",
+"ground cover",
+"collection: namaqualand"
+],
+"dimensioni_mm": [
+254.90505248308182,
+226.9682064652443,
+438.69500752771273
+],
+"nome": "Dead Quiver Branch 01",
+"poligoni": 14834,
+"tag": [
+"karoo",
+"south africa",
+"desert",
+"botanical",
+"dried",
+"stick",
+"debris"
+]
+},
+"dead_quiver_branch_02": {
+"categorie": [
+"nature",
+"collection: namaqualand",
+"plants",
+"ground cover"
+],
+"dimensioni_mm": [
+287.3373329639435,
+201.03156566619873,
+526.3840978732333
+],
+"nome": "Dead Quiver Branch 02",
+"poligoni": 14386,
+"tag": [
+"south africa",
+"karoo",
+"dry",
+"debris",
+"log",
+"decayed",
+"dried",
+"stick",
+"desert"
+]
+},
+"dead_quiver_trunk": {
+"categorie": [
+"collection: namaqualand",
+"nature",
+"trees"
+],
+"dimensioni_mm": [
+307.8220337629318,
+268.08640360832214,
+1995.5217698588967
+],
+"nome": "Dead Quiver Trunk",
+"poligoni": 33706,
+"tag": [
+"karoo",
+"south africa",
+"dry",
+"dried",
+"dead",
+"decayed",
+"debris",
+"log",
+"stump",
+"dead tree"
+]
+},
+"dead_tree_trunk": {
+"categorie": [
+"nature",
+"plants",
+"ground cover",
+"collection: pine_forest",
+"collection: verdant_trail"
+],
+"dimensioni_mm": [
+3051.015019416809,
+277.52751111984253,
+290.43155536055565
+],
+"nome": "Dead Tree Trunk",
+"poligoni": 101802,
+"tag": [
+"log",
+"dead tree",
+"tree",
+"trunk",
+"bark",
+"natural",
+"foliage",
+"nature",
+"forest",
+"plant",
+"dead",
+"dry",
+"woodland",
+"decayed",
+"rough texture",
+"forest floor"
+]
+},
+"dead_tree_trunk_02": {
+"categorie": [
+"nature",
+"plants",
+"trees",
+"collection: verdant_trail"
+],
+"dimensioni_mm": [
+4053.7197589874268,
+1056.6102862358093,
+1055.4723739624023
+],
+"nome": "Dead Tree Trunk 02",
+"poligoni": 155864,
+"tag": [
+"trunk",
+"log",
+"tree trunk",
+"dead",
+"decayed",
+"dry",
+"rough texture",
+"forest floor",
+"stump",
+"bark",
+"woodland",
+"debris",
+"environment",
+"ground cover"
+]
+},
+"decorative_book_set_01": {
+"categorie": [
+"props",
+"decorative",
+"books"
+],
+"dimensioni_mm": [
+2505.232434719801,
+321.111761033535,
+285.6543071102351
+],
+"nome": "Decorative Book Set 01",
+"poligoni": 112560,
+"tag": [
+"bookshelf",
+"books",
+"reading",
+"library",
+"collection"
+]
+},
+"desk_lamp_arm_01": {
+"categorie": [
+"lighting",
+"rigged",
+"collection: the_shed"
+],
+"dimensioni_mm": [
+617.3093914985657,
+408.02252292633057,
+879.0190517902374
+],
+"nome": "Desk Lamp Arm 01",
+"poligoni": 25710,
+"tag": [
+"industrial",
+"lamp",
+"mounted",
+"fixed",
+"desk",
+"table",
+"light",
+"arm"
+]
+},
+"didelta_spinosa": {
+"categorie": [
+"plants",
+"collection: namaqualand"
+],
+"dimensioni_mm": [
+2129.9427151679993,
+4584.163546562195,
+2088.827207684517
+],
+"nome": "Didelta Spinosa",
+"poligoni": 694671,
+"tag": [
+"green",
+"dessert",
+"shrub",
+"leaves",
+"nature",
+"botany",
+"natural",
+"bush",
+"foliage",
+"leaf",
+"flower"
+]
+},
+"digital_wrist_watch": {
+"categorie": [
+"collection: project_lighthouse",
+"props",
+"electronics"
+],
+"dimensioni_mm": [
+36.49514354765415,
+217.24141389131546,
+8.34511243738234
+],
+"nome": "Digital Wrist Watch",
+"poligoni": 10390,
+"tag": [
+"vintage",
+"seven segment display",
+"casio style",
+"retro digital",
+"80s aesthetic",
+"backlit lcd",
+"scratched"
+]
+},
+"dining_chair_02": {
+"categorie": [
+"furniture",
+"seating"
+],
+"dimensioni_mm": [
+433.5707724094391,
+576.4201134443283,
+973.3776897192001
+],
+"nome": "Dining Chair 02",
+"poligoni": 22013,
+"tag": [
+"modern",
+"chair",
+"seat",
+"dining",
+"fancy",
+"leather"
+]
+},
+"dining_table": {
+"categorie": [
+"collection: project_lighthouse",
+"furniture",
+"table"
+],
+"dimensioni_mm": [
+2255.895972251892,
+1390.2360200881958,
+876.989221200347
+],
+"nome": "Dining Table",
+"poligoni": 1048,
+"tag": [
+"old",
+"scratched",
+"cloth-covered",
+"rectangular",
+"checkered-tablecloth",
+"tapered-legs",
+"worn"
+]
+},
+"dirty_football": {
+"categorie": [
+"props"
+],
+"dimensioni_mm": [
+221.3953733444214,
+220.00925242900848,
+220.0465425848961
+],
+"nome": "Dirty Football",
+"poligoni": 37486,
+"tag": [
+"shed",
+"toy",
+"soccer",
+"sports",
+"sport",
+"ball",
+"game",
+"field",
+"stadium",
+"dirty",
+"dirt"
+]
+},
+"drain_cleaner": {
+"categorie": [
+"industrial",
+"props",
+"tools"
+],
+"dimensioni_mm": [
+165.39714485406876,
+56.335341185331345,
+178.55318179135793
+],
+"nome": "Drain Cleaner",
+"poligoni": 4338,
+"tag": [
+"workshop",
+"garage",
+"bathroom",
+"cleaning",
+"cleaning supplies",
+"toilet",
+"household",
+"maintenance",
+"plumbing",
+"cleaner",
+"drain",
+"chemicals",
+"sewer",
+"blockage",
+"storage",
+"pipe cleaner"
+]
+},
+"drawer_cabinet": {
+"categorie": [
+"furniture"
+],
+"dimensioni_mm": [
+1141.0778760910034,
+488.08445036411285,
+1881.253957748413
+],
+"nome": "Drawer Cabinet",
+"poligoni": 26406,
+"tag": [
+"wood",
+"furniture",
+"shelf",
+"drawer",
+"metal",
+"modern"
+]
+},
+"drill_press_01": {
+"categorie": [
+"collection: project_lighthouse",
+"appliances",
+"electronics",
+"industrial",
+"tools"
+],
+"dimensioni_mm": [
+365.8628612756729,
+598.7853109836578,
+901.5651196241379
+],
+"nome": "Drill Press 01",
+"poligoni": 58526,
+"tag": [
+"machinery",
+"workshop",
+"chuck",
+"garage",
+"construction"
+]
+},
+"dry_branches_medium_01": {
+"categorie": [
+"props",
+"nature",
+"plants",
+"ground cover",
+"collection: pine_forest",
+"collection: verdant_trail"
+],
+"dimensioni_mm": [
+1059.486210346222,
+1299.152910709381,
+340.9853130578995
+],
+"nome": "Dry Branches Medium 01",
+"poligoni": 16803,
+"tag": [
+"branches",
+"dead",
+"dry",
+"plants",
+"nature",
+"natural",
+"plant",
+"outdoor",
+"foliage",
+"forest",
+"jungle",
+"shrub",
+"medium",
+"stick",
+"twig",
+"botany",
+"wood"
+]
+},
+"dry_quiver_leaf": {
+"categorie": [
+"nature",
+"plants",
+"ground cover",
+"collection: namaqualand"
+],
+"dimensioni_mm": [
+396.80904150009155,
+192.06499308347702,
+425.0438064336777
+],
+"nome": "Dry Quiver Leaf",
+"poligoni": 147596,
+"tag": [
+"karoo",
+"desert",
+"south africa",
+"dry",
+"dried",
+"dead",
+"debris"
+]
+},
+"dustpan": {
+"categorie": [
+"collection: project_lighthouse",
+"props",
+"tools"
+],
+"dimensioni_mm": [
+332.10447430610657,
+367.9768294095993,
+100.31082824571058
+],
+"nome": "Dustpan",
+"poligoni": 4332,
+"tag": [
+"garage",
+"workshop",
+"cleaning supplies",
+"dusted",
+"storage",
+"sanitation",
+"janitorial",
+"cleaning",
+"household"
+]
+},
+"dutch_ship_large_01": {
+"categorie": [
+"ships",
+"collection: smugglers_cove"
+],
+"dimensioni_mm": [
+8387.417316436768,
+34251.2149810791,
+32078.845977783203
+],
+"nome": "Dutch Ship Large 01",
+"poligoni": 110616,
+"tag": [
+"ship",
+"boat",
+"old",
+"wooden",
+"wood",
+"maritime",
+"commercial",
+"pirates",
+"ocean",
+"sail",
+"sea",
+"large",
+"fancy",
+"sailing"
+]
+},
+"dutch_ship_large_02": {
+"categorie": [
+"ships",
+"collection: smugglers_cove"
+],
+"dimensioni_mm": [
+8537.703037261963,
+34251.2149810791,
+32078.845977783203
+],
+"nome": "Dutch Ship Large 02",
+"poligoni": 96506,
+"tag": [
+"old",
+"wooden",
+"wood",
+"maritime",
+"colonial",
+"pirates",
+"ship",
+"ocean",
+"sea",
+"boat",
+"sail",
+"large",
+"sailing",
+"fancy"
+]
+},
+"dutch_ship_medium": {
+"categorie": [
+"ships",
+"collection: smugglers_cove"
+],
+"dimensioni_mm": [
+6808.822154998779,
+24070.354461669922,
+24657.122135162354
+],
+"nome": "Dutch Ship Medium",
+"poligoni": 69162,
+"tag": [
+"ship",
+"boat",
+"pirates",
+"old",
+"wooden",
+"wood",
+"colonial",
+"maritime",
+"commercial",
+"ocean",
+"sea",
+"medium",
+"sail"
+]
+},
+"electric_stove": {
+"categorie": [
+"electronics",
+"appliances",
+"rigged",
+"props"
+],
+"dimensioni_mm": [
+502.59482860565186,
+647.6211845874786,
+858.6971759796143
+],
+"nome": "Electric Stove",
+"poligoni": 13914,
+"tag": [
+"kitchen appliance",
+"cooking equipment",
+"stovetop",
+"oven",
+"cooktop",
+"simple",
+"white",
+"cooking",
+"kitchen"
+]
+},
+"exterior_aircon_unit": {
+"categorie": [
+"appliances",
+"industrial",
+"electronics",
+"collection: hidden_alley"
+],
+"dimensioni_mm": [
+1799.971342086792,
+374.15920197963715,
+927.8970956802368
+],
+"nome": "Exterior Aircon Unit",
+"poligoni": 18986,
+"tag": [
+"cooling system",
+"aircon",
+"climatecontrol",
+"ventilation",
+"utility",
+"infrastructure"
+]
+},
+"fancy_picture_frame_01": {
+"categorie": [
+"decorative",
+"wall decoration"
+],
+"dimensioni_mm": [
+603.030264377594,
+19.993074471130967,
+464.12645280361176
+],
+"nome": "Fancy Picture Frame 01",
+"poligoni": 938,
+"tag": [
+"art",
+"vintage",
+"old",
+"dutch",
+"painting",
+"oil",
+"antique",
+"fancy",
+"frame",
+"picture"
+]
+},
+"fancy_picture_frame_02": {
+"categorie": [
+"decorative",
+"wall decoration"
+],
+"dimensioni_mm": [
+660.5590283870697,
+89.04315833933651,
+771.0452079772949
+],
+"nome": "Fancy Picture Frame 02",
+"poligoni": 35102,
+"tag": [
+"art",
+"vintage",
+"old",
+"dutch",
+"painting",
+"oil",
+"antique",
+"fancy",
+"frame",
+"picture"
+]
+},
+"fern_02": {
+"categorie": [
+"plants",
+"nature",
+"collection: smugglers_cove",
+"collection: pine_forest"
+],
+"dimensioni_mm": [
+1972.5302457809448,
+1724.0281701087952,
+427.6947118341923
+],
+"nome": "Fern 02",
+"poligoni": 6232,
+"tag": [
+"plant",
+"fern",
+"foliage",
+"jungle",
+"shrub",
+"bush",
+"leaf",
+"leaves",
+"green",
+"nature",
+"forest",
+"outdoor"
+]
+},
+"filmstrip_projector_8mm": {
+"categorie": [
+"electronics",
+"appliances",
+"collection: project_lighthouse"
+],
+"dimensioni_mm": [
+253.67923080921173,
+602.6187837123871,
+345.4076647758484
+],
+"nome": "Filmstrip Projector 8mm",
+"poligoni": 32697,
+"tag": [
+"antique",
+"vintage",
+"old",
+"retro",
+"film",
+"movie",
+"theater"
+]
+},
+"fir_sapling": {
+"categorie": [
+"nature",
+"plants",
+"trees",
+"collection: pine_forest"
+],
+"dimensioni_mm": [
+2742.7279949188232,
+826.4130651950836,
+1300.737977027893
+],
+"nome": "Fir Sapling",
+"poligoni": 433021,
+"tag": [
+"fir",
+"sapling",
+"small",
+"tree",
+"needles",
+"woodland",
+"branches",
+"natural",
+"green",
+"environment",
+"coniferous"
+]
+},
+"fir_sapling_medium": {
+"categorie": [
+"plants",
+"nature",
+"trees",
+"collection: pine_forest"
+],
+"dimensioni_mm": [
+26091.576099395752,
+5434.919834136963,
+9163.89086842537
+],
+"nome": "Fir Sapling Medium",
+"poligoni": 2308249,
+"tag": [
+"fir",
+"sapling",
+"medium",
+"needles",
+"woodland",
+"branches",
+"environment",
+"coniferous",
+"tree",
+"plants",
+"foliage",
+"geometry nodes"
+]
+},
+"fir_tree_01": {
+"categorie": [
+"nature",
+"plants",
+"trees",
+"collection: pine_forest"
+],
+"dimensioni_mm": [
+26732.96093940735,
+6541.954040527344,
+19267.957717180252
+],
+"nome": "Fir Tree 01",
+"poligoni": 7853731,
+"tag": [
+"fir",
+"tree",
+"geometry nodes",
+"woodland",
+"needles",
+"branches",
+"environment",
+"coniferous",
+"plants",
+"forest",
+"tall",
+"trunk",
+"bark",
+"foliage",
+"twig"
+]
+},
+"fire_alarm": {
+"categorie": [
+"collection: project_lighthouse",
+"industrial",
+"office",
+"wall decoration"
+],
+"dimensioni_mm": [
+99.44874793291092,
+26.374715380370617,
+143.64254474639893
+],
+"nome": "Fire Alarm",
+"poligoni": 2705,
+"tag": [
+"alarm",
+"emergency",
+"red",
+"safety",
+"firefighting"
+]
+},
+"fire_hydrant": {
+"categorie": [
+"industrial",
+"structures",
+"collection: hidden_alley"
+],
+"dimensioni_mm": [
+874.623566865921,
+317.74356961250305,
+799.4560238003032
+],
+"nome": "Fire Hydrant",
+"poligoni": 86316,
+"tag": [
+"city",
+"urban",
+"street",
+"road",
+"emergency",
+"valve",
+"extinguisher",
+"utility",
+"municipal",
+"infrastructure"
+]
+},
+"fish_knife": {
+"categorie": [
+"collection: project_lighthouse",
+"props"
+],
+"dimensioni_mm": [
+29.043863527476788,
+16.213717870414257,
+215.92450886964798
+],
+"nome": "Fish Knife",
+"poligoni": 2736,
+"tag": [
+"fishing",
+"blade",
+"dagger",
+"sharp",
+"survival",
+"weapon"
+]
+},
+"fishermans_hat": {
+"categorie": [
+"collection: project_lighthouse",
+"props"
+],
+"dimensioni_mm": [
+323.60126078128815,
+349.97908771038055,
+123.94852191209793
+],
+"nome": "Fishermans Hat",
+"poligoni": 10304,
+"tag": [
+"outdoor",
+"clothing",
+"hat",
+"garden",
+"greenhouse",
+"gardening",
+"boonie hat",
+"wide-brim",
+"fishing",
+"safari hat",
+"sunhat"
+]
+},
+"flathead_screwdriver": {
+"categorie": [
+"tools",
+"props",
+"industrial",
+"collection: the_shed"
+],
+"dimensioni_mm": [
+30.02973645925522,
+30.02973459661007,
+261.29384338855743
+],
+"nome": "Flathead Screwdriver",
+"poligoni": 2300,
+"tag": [
+"wood",
+"shed",
+"wooden",
+"garage",
+"workshop",
+"woodwork",
+"carpentry"
+]
+},
+"flower_empodium": {
+"categorie": [
+"nature",
+"plants",
+"flowers",
+"ground cover",
+"collection: namaqualand"
+],
+"dimensioni_mm": [
+1322.8426575660706,
+284.0941548347473,
+268.3515117969364
+],
+"nome": "Flower Empodium",
+"poligoni": 5820,
+"tag": [
+"karoo",
+"field",
+"yellow",
+"floral",
+"wildflower",
+"south africa"
+]
+},
+"flower_gazania": {
+"categorie": [
+"nature",
+"plants",
+"flowers",
+"ground cover",
+"collection: namaqualand"
+],
+"dimensioni_mm": [
+1578.87464761734,
+810.1679384708405,
+400.5459398031235
+],
+"nome": "Flower Gazania",
+"poligoni": 25819,
+"tag": [
+"karoo",
+"outdoor",
+"field",
+"orange",
+"botanical",
+"floral",
+"african",
+"wildflower",
+"daisy",
+"south africa"
+]
+},
+"flower_heliophila": {
+"categorie": [
+"nature",
+"plants",
+"ground cover",
+"grass",
+"collection: namaqualand"
+],
+"dimensioni_mm": [
+2754.0570497512817,
+1417.3968434333801,
+399.2791064083576
+],
+"nome": "Flower Heliophila",
+"poligoni": 324914,
+"tag": [
+"plant",
+"natural",
+"botany",
+"tiny",
+"small",
+"karoo",
+"desert",
+"south africa",
+"white",
+"wildflower",
+"floral"
+]
+},
+"flower_stinkkruid": {
+"categorie": [
+"nature",
+"plants",
+"flowers",
+"collection: namaqualand"
+],
+"dimensioni_mm": [
+1705.3872346878052,
+300.4951626062393,
+178.21717727929354
+],
+"nome": "Flower Stinkkruid",
+"poligoni": 103778,
+"tag": [
+"karoo",
+"field",
+"yellow",
+"botanical",
+"botany",
+"floral",
+"south africa",
+"wildflower"
+]
+},
+"flower_ursinia": {
+"categorie": [
+"nature",
+"plants",
+"flowers",
+"collection: namaqualand",
+"ground cover"
+],
+"dimensioni_mm": [
+2193.754494190216,
+343.3113098144531,
+171.80400155484676
+],
+"nome": "Flower Ursinia",
+"poligoni": 44360,
+"tag": [
+"karoo",
+"south africa",
+"desert",
+"wildflower",
+"botanical",
+"orange"
+]
+},
+"folding_wooden_stool": {
+"categorie": [
+"seating",
+"furniture"
+],
+"dimensioni_mm": [
+527.8338193893433,
+547.0837950706482,
+441.96850061416626
+],
+"nome": "Folding Wooden Stool",
+"poligoni": 6324,
+"tag": [
+"workshop",
+"garage",
+"woodwork",
+"camping",
+"folding stool",
+"portable",
+"compact",
+"outdoor",
+"garden"
+]
+},
+"food_apple_01": {
+"categorie": [
+"food",
+"nature"
+],
+"dimensioni_mm": [
+97.56118059158325,
+95.90170904994011,
+85.38994403897959
+],
+"nome": "Food Apple 01",
+"poligoni": 7012,
+"tag": [
+"food",
+"fruit",
+"apple",
+"fruitbowl",
+"red",
+"ripe",
+"fresh",
+"organic",
+"stem",
+"ripe apple"
+]
+},
+"food_avocado_01": {
+"categorie": [
+"food",
+"nature"
+],
+"dimensioni_mm": [
+95.18590942025185,
+94.56679597496986,
+143.23448191862553
+],
+"nome": "Food Avocado 01",
+"poligoni": 7743,
+"tag": [
+"fruit",
+"food",
+"fruitbowl",
+"avo",
+"dark",
+"ripe"
+]
+},
+"food_ginger_01": {
+"categorie": [
+"food",
+"nature"
+],
+"dimensioni_mm": [
+239.93631452322006,
+147.37514406442642,
+574.5899783214554
+],
+"nome": "Food Ginger 01",
+"poligoni": 7205,
+"tag": [
+"food",
+"cooking",
+"ginger",
+"chef",
+"resturant",
+"organic",
+"root",
+"herbal",
+"botanical",
+"rhizome"
+]
+},
+"food_kiwi_01": {
+"categorie": [
+"food",
+"nature"
+],
+"dimensioni_mm": [
+69.51959803700447,
+68.62715631723404,
+90.06310164477327
+],
+"nome": "Food Kiwi 01",
+"poligoni": 7748,
+"tag": [
+"food",
+"fruitbowl",
+"fruit",
+"kiwi",
+"exotic",
+"tropical"
+]
+},
+"food_lime_01": {
+"categorie": [
+"food",
+"nature"
+],
+"dimensioni_mm": [
+60.0700993090868,
+61.33793853223324,
+75.4411633242853
+],
+"nome": "Food Lime 01",
+"poligoni": 8100,
+"tag": [
+"fruit",
+"fruitbowl",
+"food",
+"lemon",
+"lime",
+"citrus",
+"green",
+"fresh"
+]
+},
+"food_lychee_01": {
+"categorie": [
+"food",
+"nature"
+],
+"dimensioni_mm": [
+40.87286256253719,
+41.9513713568449,
+50.59902649372816
+],
+"nome": "Food Lychee 01",
+"poligoni": 6783,
+"tag": [
+"fruitbowl",
+"fruit",
+"food",
+"lychee",
+"fresh",
+"lychee skin ",
+"spikey",
+"tropical",
+"organic"
+]
+},
+"food_pears_asian_01": {
+"categorie": [
+"food",
+"nature"
+],
+"dimensioni_mm": [
+155.81603348255157,
+177.93630063533783,
+109.60551351308823
+],
+"nome": "Pears Asian 01",
+"poligoni": 12572,
+"tag": [
+"fruit",
+"fruitbowl",
+"tropical",
+"food",
+"pears",
+"organic",
+"asian pears",
+"produce",
+"fresh fruit",
+"greenhouse",
+"ripe",
+"stem",
+"raw"
+]
+},
+"food_pomegranate_01": {
+"categorie": [
+"food",
+"nature"
+],
+"dimensioni_mm": [
+114.2711341381073,
+115.35424366593361,
+114.9565652012825
+],
+"nome": "Food Pomegranate 01",
+"poligoni": 8142,
+"tag": [
+"fruit",
+"fruitbowl",
+"food",
+"red",
+"pomegranite",
+"produce",
+"fresh fruit",
+"ripe",
+"calyx",
+"raw"
+]
+},
+"football": {
+"categorie": [
+"props",
+"collection: the_shed"
+],
+"dimensioni_mm": [
+508.87757539749146,
+222.1573293209076,
+221.88469767570496
+],
+"nome": "Football",
+"poligoni": 4296,
+"tag": [
+"shed",
+"toy",
+"sport",
+"soccer",
+"ball",
+"outdoor",
+"garden",
+"garage"
+]
+},
+"gallinera_chair": {
+"categorie": [
+"furniture",
+"seating"
+],
+"dimensioni_mm": [
+580.7991623878479,
+603.8820147514343,
+1033.689022064209
+],
+"nome": "Gallinera Chair",
+"poligoni": 11560,
+"tag": [
+"vintage",
+"antique",
+"philippines",
+"traditional",
+"old",
+"wooden"
+]
+},
+"gallinera_table": {
+"categorie": [
+"furniture",
+"table"
+],
+"dimensioni_mm": [
+830.0825357437134,
+518.291711807251,
+487.785704433918
+],
+"nome": "Gallinera Table",
+"poligoni": 5528,
+"tag": [
+"vintage",
+"antique",
+"philippines",
+"traditional",
+"old",
+"wooden"
+]
+},
+"gamepad": {
+"categorie": [
+"props"
+],
+"dimensioni_mm": [
+404.0517807006836,
+434.9614977836609,
+18.924321746453643
+],
+"nome": "Gamepad",
+"poligoni": 9546,
+"tag": [
+"game",
+"video",
+"tv",
+"living room",
+"lounge",
+"80's",
+"indoor games",
+"entertainment",
+"gaming",
+"controller",
+"nintendo",
+"joystick",
+"console",
+"xbox",
+"playstation",
+"remote"
+]
+},
+"gaming_console": {
+"categorie": [
+"appliances",
+"electronics"
+],
+"dimensioni_mm": [
+325.0104486942291,
+318.54312121868134,
+100.2653255709447
+],
+"nome": "Gaming Console",
+"poligoni": 31710,
+"tag": [
+"game",
+"gaming",
+"console",
+"playstation",
+"entertainment",
+"video games",
+"xbox"
+]
+},
+"garden_gloves_01": {
+"categorie": [
+"props",
+"collection: the_shed"
+],
+"dimensioni_mm": [
+226.55709087848663,
+299.04240369796753,
+76.02626085281372
+],
+"nome": "Garden Gloves 01",
+"poligoni": 6822,
+"tag": [
+"outdoor",
+"shed",
+"garden",
+"gardening",
+"hand",
+"dirty",
+"used",
+"worn",
+"old",
+"workshop",
+"garage",
+"greenhouse",
+"farm"
+]
+},
+"garden_gnome": {
+"categorie": [
+"decorative",
+"collection: the_shed"
+],
+"dimensioni_mm": [
+257.918581366539,
+209.71597731113434,
+599.08585294761
+],
+"nome": "Garden Gnome",
+"poligoni": 28858,
+"tag": [
+"shed",
+"outdoor",
+"garage",
+"garden",
+"gardening",
+"farmhouse",
+"greenhouse"
+]
+},
+"garden_hose_wall_mounted_01": {
+"categorie": [
+"wall decoration",
+"plants",
+"collection: the_shed"
+],
+"dimensioni_mm": [
+466.7283743619919,
+250.3091422840953,
+557.001918554306
+],
+"nome": "Garden Hose Wall Mounted 01",
+"poligoni": 11684,
+"tag": [
+"garden",
+"gardening",
+"landscaping",
+"pipes",
+"cable",
+"valve",
+"hose",
+"water",
+"tap",
+"outdoor",
+"green",
+"shed",
+"irrigation",
+"greenhouse",
+"farm",
+"farmhouse"
+]
+},
+"garden_sprinkler_01": {
+"categorie": [
+"tools",
+"appliances",
+"collection: the_shed"
+],
+"dimensioni_mm": [
+359.59315299987793,
+249.06833469867706,
+215.6235035508871
+],
+"nome": "Garden Sprinkler 01",
+"poligoni": 8192,
+"tag": [
+"garden",
+"gardening",
+"shed",
+"outdoor",
+"garage",
+"landscaping",
+"water",
+"tap",
+"valve",
+"hose",
+"sprinkler",
+"irrigation",
+"greenhouse",
+"farm"
+]
+},
+"gate_latch_01": {
+"categorie": [
+"industrial",
+"buildings",
+"structures",
+"collection: the_shed"
+],
+"dimensioni_mm": [
+205.09500801563263,
+74.74934868514538,
+85.42444556951523
+],
+"nome": "Gate Latch 01",
+"poligoni": 5480,
+"tag": [
+"outdoor",
+"metal",
+"gate",
+"lock",
+"latch",
+"bolt",
+"fence",
+"door",
+"wooden",
+"shed",
+"farm",
+"farmhouse"
+]
+},
+"gothic_coffee_table": {
+"categorie": [
+"furniture",
+"table"
+],
+"dimensioni_mm": [
+1443.0902004241943,
+1443.0902004241943,
+558.7729810795281
+],
+"nome": "Gothic Coffee Table",
+"poligoni": 23836,
+"tag": [
+"vintage",
+"antique",
+"old",
+"wooden",
+"gothic",
+"medieval",
+"dark decor"
+]
+},
+"gothic_statue": {
+"categorie": [
+"collection: project_lighthouse",
+"decorative"
+],
+"dimensioni_mm": [
+1477.4640202522278,
+1563.7580156326294,
+1739.8978471755981
+],
+"nome": "Gothic Statue",
+"poligoni": 27739,
+"tag": [
+"old",
+"stones",
+"sculpture",
+"medieval",
+"statue",
+"artwork",
+"ornamental",
+"gothic",
+"weathered",
+"ornate"
+]
+},
+"grass_bermuda_01": {
+"categorie": [
+"grass",
+"nature",
+"ground cover",
+"collection: smugglers_cove"
+],
+"dimensioni_mm": [
+3135.906159877777,
+1073.481559753418,
+1059.9278211593628
+],
+"nome": "Grass Bermuda 01",
+"poligoni": 223596,
+"tag": [
+"plant",
+"grass",
+"nature",
+"shrub",
+"field",
+"foliage",
+"natural",
+"outdoor",
+"botany",
+"small",
+"green",
+"bermuda"
+]
+},
+"grass_medium_01": {
+"categorie": [
+"grass",
+"nature",
+"ground cover",
+"collection: pine_forest"
+],
+"dimensioni_mm": [
+7266.327619552612,
+1259.2098712921143,
+1177.0583391189575
+],
+"nome": "Grass Medium 01",
+"poligoni": 1606633,
+"tag": [
+"plant",
+"grass",
+"nature",
+"green",
+"shrub",
+"outdoor",
+"field",
+"meadow",
+"natural",
+"foliage",
+"small",
+"botany"
+]
+},
+"grass_medium_02": {
+"categorie": [
+"nature",
+"ground cover",
+"grass",
+"plants",
+"collection: verdant_trail"
+],
+"dimensioni_mm": [
+3579.970385879278,
+1406.527042388916,
+1448.2848644256592
+],
+"nome": "Grass Medium 02",
+"poligoni": 1043926,
+"tag": [
+"grass",
+"field",
+"meadow",
+"shrub",
+"small",
+"green",
+"nature",
+"plant",
+"foliage",
+"natural",
+"geometry nodes",
+"ground cover",
+"vegetation",
+"undergrowth",
+"ground",
+"lawn",
+"environment",
+"pasture"
+]
+},
+"hamburger_buns": {
+"categorie": [
+"props",
+"food",
+"collection: project_lighthouse"
+],
+"dimensioni_mm": [
+397.2240388393402,
+113.79648745059967,
+63.38873411732493
+],
+"nome": "Hamburger Buns",
+"poligoni": 11588,
+"tag": [
+"baked goods",
+"bread",
+"bakery",
+"bread rolls",
+"buns"
+]
+},
+"hand_plane_no4": {
+"categorie": [
+"tools",
+"collection: the_shed"
+],
+"dimensioni_mm": [
+330.7979106903076,
+84.31769162416458,
+197.80341954901814
+],
+"nome": "Hand Plane No4",
+"poligoni": 8220,
+"tag": [
+"vintage",
+"hand tool",
+"carpentry",
+"old",
+"wood",
+"worn",
+"woodwork",
+"workshop",
+"shed",
+"garage"
+]
+},
+"hand_truck": {
+"categorie": [
+"collection: project_lighthouse",
+"industrial",
+"props"
+],
+"dimensioni_mm": [
+593.2528674602509,
+692.5271153450012,
+1402.51275151968
+],
+"nome": "Hand Truck",
+"poligoni": 13220,
+"tag": [
+"dolly",
+"sack truck",
+"warehouse equipment",
+"load carrier",
+"portable trolley",
+"cart",
+"storage",
+"freight",
+"tool",
+"garage",
+"warehouse",
+"factory"
+]
+},
+"handsaw_wood": {
+"categorie": [
+"props",
+"tools",
+"industrial",
+"collection: the_shed"
+],
+"dimensioni_mm": [
+40.833745151758194,
+632.9791843891144,
+166.52002930641174
+],
+"nome": "Handsaw Wood",
+"poligoni": 2548,
+"tag": [
+"wooden",
+"workshop",
+"shed",
+"woodwork",
+"worn",
+"metal",
+"carpentry",
+"garage",
+"saw"
+]
+},
+"hanging_industrial_lamp": {
+"categorie": [
+"lighting"
+],
+"dimensioni_mm": [
+549.6065020561218,
+549.606442451477,
+1355.3501134738326
+],
+"nome": "Hanging Industrial Lamp",
+"poligoni": 9530,
+"tag": [
+"industrial lighting",
+"hanging lamp",
+"warehouse lighting",
+"bunker",
+"metal lamp",
+"factory",
+"warehouse"
+]
+},
+"hanging_picture_frame_01": {
+"categorie": [
+"decorative",
+"wall decoration"
+],
+"dimensioni_mm": [
+593.999981880188,
+15.749315607536118,
+840.999960899353
+],
+"nome": "Hanging Picture Frame 01",
+"poligoni": 2586,
+"tag": [
+"modern",
+"minimalist",
+"clean",
+"frame",
+"simple",
+"art"
+]
+},
+"hanging_picture_frame_02": {
+"categorie": [
+"decorative",
+"wall decoration"
+],
+"dimensioni_mm": [
+751.8134415149689,
+33.07514381594956,
+499.9999701976776
+],
+"nome": "Hanging Picture Frame 02",
+"poligoni": 3678,
+"tag": [
+"wood",
+"painting",
+"old",
+"art",
+"frame"
+]
+},
+"hanging_picture_frame_03": {
+"categorie": [
+"wall decoration",
+"decorative"
+],
+"dimensioni_mm": [
+385.00405848026276,
+31.757352175191045,
+502.39527225494385
+],
+"nome": "Hanging Picture Frame 03",
+"poligoni": 24348,
+"tag": [
+"vintage",
+"photo",
+"photograph",
+"old",
+"antique",
+"picture",
+"fancy",
+"wooden",
+"varnished"
+]
+},
+"hatchet": {
+"categorie": [
+"tools"
+],
+"dimensioni_mm": [
+26.022234931588173,
+104.27016951143742,
+288.7292727828026
+],
+"nome": "Hatchet",
+"poligoni": 5250,
+"tag": [
+"weapon",
+"axe",
+"lumber",
+"hatchet",
+"chopping",
+"woodwork",
+"camping",
+"forestry",
+"hiking",
+"firewood",
+"hand tool"
+]
+},
+"horse_head": {
+"categorie": [
+"decorative"
+],
+"dimensioni_mm": [
+214.92592990398407,
+334.1144993901253,
+418.6776154820109
+],
+"nome": "Horse Head",
+"poligoni": 12068,
+"tag": [
+"old",
+"vintage",
+"antique",
+"ornate",
+"sculpture",
+"artwork",
+"art",
+"statue",
+"ornamental"
+]
+},
+"horse_statue_01": {
+"categorie": [
+"props",
+"decorative"
+],
+"dimensioni_mm": [
+163.80367428064346,
+107.79086500406265,
+219.97890953571186
+],
+"nome": "Horse Statue 01",
+"poligoni": 22388,
+"tag": [
+"decorative",
+"horse",
+"statue",
+"figurine",
+"porcelain",
+"animal",
+"sculpture",
+"white",
+"fancy"
+]
+},
+"industrial_caged_sconce": {
+"categorie": [
+"collection: project_lighthouse",
+"lighting",
+"industrial"
+],
+"dimensioni_mm": [
+1210.1812362670898,
+389.4345611333847,
+912.8422662615776
+],
+"nome": "Industrial Caged Sconce",
+"poligoni": 26576,
+"tag": [
+"caged lamp",
+"pipe fixture",
+"guarded light",
+"utility lighting",
+"warehouse",
+"factory",
+"bunker",
+"wall light",
+"modular",
+"heavy duty"
+]
+},
+"industrial_coffee_table": {
+"categorie": [
+"furniture",
+"table"
+],
+"dimensioni_mm": [
+778.2644629478455,
+757.9282224178314,
+638.4220765778537
+],
+"nome": "Industrial Coffee Table",
+"poligoni": 41300,
+"tag": [
+"metal",
+"industrial",
+"steel",
+"rustic",
+"workshop",
+"metal frame",
+"garage",
+"urban loft"
+]
+},
+"industrial_microscope": {
+"categorie": [
+"collection: project_lighthouse",
+"industrial",
+"tools",
+"appliances"
+],
+"dimensioni_mm": [
+214.53481912612915,
+498.0906546115875,
+461.7440301226452
+],
+"nome": "Industrial Microscope",
+"poligoni": 16598,
+"tag": [
+"lab",
+"laboratory",
+"science",
+"testing",
+"equipment",
+"optical"
+]
+},
+"industrial_pastic_container": {
+"categorie": [
+"collection: project_lighthouse",
+"containers",
+"office",
+"industrial"
+],
+"dimensioni_mm": [
+475.95515847206116,
+631.4878165721893,
+423.1307804584503
+],
+"nome": "Industrial Plastic Container",
+"poligoni": 7118,
+"tag": [
+"worn",
+"storage",
+"rectangular",
+"dirty"
+]
+},
+"industrial_pipe_lamp": {
+"categorie": [
+"collection: project_lighthouse",
+"industrial",
+"lighting"
+],
+"dimensioni_mm": [
+182.99034982919693,
+262.07105815410614,
+364.1493618488312
+],
+"nome": "Industrial Pipe Lamp",
+"poligoni": 8626,
+"tag": [
+"desk light",
+"lamp",
+"metal",
+"industrial",
+"workshop lamp",
+"mechanical"
+]
+},
+"industrial_storage_cart": {
+"categorie": [
+"collection: project_lighthouse",
+"table",
+"furniture",
+"industrial"
+],
+"dimensioni_mm": [
+1603.3486723899841,
+1102.7454733848572,
+1377.3844093084335
+],
+"nome": "Industrial Storage Cart",
+"poligoni": 18902,
+"tag": [
+"old",
+"metal",
+"steel",
+"container",
+"garage",
+"workshop",
+"rusted",
+"shed",
+"rolling",
+"workbench",
+"casters"
+]
+},
+"industrial_wall_lamp": {
+"categorie": [
+"lighting"
+],
+"dimensioni_mm": [
+273.4608203172684,
+140.37844325849136,
+429.90660667419434
+],
+"nome": "Industrial Wall Lamp",
+"poligoni": 4446,
+"tag": [
+"industrial",
+"factory",
+"warehouse",
+"wall light",
+"metal",
+"bunker",
+"mine"
+]
+},
+"industrial_wall_sconce": {
+"categorie": [
+"lighting",
+"decorative"
+],
+"dimensioni_mm": [
+150.348000228405,
+251.5759002417326,
+341.7818397283554
+],
+"nome": "Industrial Wall Sconce",
+"poligoni": 9826,
+"tag": [
+"old",
+"vintage",
+"antique",
+"fancy",
+"farmhouse",
+"rustic",
+"brass",
+"copper",
+"wall light"
+]
+},
+"island_tree_01": {
+"categorie": [
+"nature",
+"plants",
+"trees",
+"collection: verdant_trail"
+],
+"dimensioni_mm": [
+12464.419603347778,
+4818.506717681885,
+5027.44660153985
+],
+"nome": "Island Tree 01",
+"poligoni": 3729692,
+"tag": [
+"tree",
+"natural",
+"nature",
+"green",
+"plant",
+"outdoor",
+"leaf",
+"botany",
+"leaves",
+"forest",
+"bush",
+"jungle",
+"foliage",
+"island",
+"coastal",
+"geometry nodes",
+"trunk",
+"bark"
+]
+},
+"island_tree_02": {
+"categorie": [
+"nature",
+"plants",
+"trees"
+],
+"dimensioni_mm": [
+8485.51321029663,
+4078.6155462265015,
+3408.9039135724306
+],
+"nome": "Island Tree 02",
+"poligoni": 1762064,
+"tag": [
+"tree",
+"natural",
+"nature",
+"green",
+"plant",
+"outdoor",
+"leaf",
+"botany",
+"leaves",
+"forest",
+"bush",
+"jungle",
+"foliage",
+"small",
+"geometry nodes",
+"trunk",
+"bark",
+"island",
+"coastal"
+]
+},
+"island_tree_03": {
+"categorie": [
+"nature",
+"plants",
+"trees"
+],
+"dimensioni_mm": [
+8489.88127708435,
+2913.232445716858,
+2615.518140606582
+],
+"nome": "Island Tree 03",
+"poligoni": 4760490,
+"tag": [
+"tree",
+"natural",
+"nature",
+"green",
+"plant",
+"outdoor",
+"leaf",
+"botany",
+"leaves",
+"forest",
+"bush",
+"jungle",
+"foliage",
+"small",
+"geometry nodes",
+"trunk",
+"bark",
+"island",
+"coastal"
+]
+},
+"jacaranda_tree": {
+"categorie": [
+"nature",
+"plants",
+"trees",
+"collection: verdant_trail"
+],
+"dimensioni_mm": [
+24169.849395751953,
+18028.766632080078,
+19829.095542430878
+],
+"nome": "Jacaranda Tree",
+"poligoni": 312356,
+"tag": [
+"tree",
+"natural",
+"nature",
+"green",
+"plant",
+"outdoor",
+"leaf",
+"botany",
+"leaves",
+"forest",
+"jungle",
+"foliage",
+"geometry nodes",
+"bark",
+"trunk",
+"jacaranda"
+]
+},
+"jug_01": {
+"categorie": [
+"props",
+"decorative",
+"dishes",
+"containers"
+],
+"dimensioni_mm": [
+275.3216624259949,
+167.5262302160263,
+211.31345149478875
+],
+"nome": "Jug 01",
+"poligoni": 5770,
+"tag": [
+"ceramic",
+"milk",
+"white",
+"antique",
+"vintage",
+"old",
+"fancy",
+"decorative"
+]
+},
+"katana_stand_01": {
+"categorie": [
+"props",
+"decorative"
+],
+"dimensioni_mm": [
+295.8274483680725,
+53.46998375171097,
+181.94599867638317
+],
+"nome": "Katana Stand 01",
+"poligoni": 3780,
+"tag": [
+"katana",
+"stand",
+"wooden",
+"painted",
+"worn",
+"simple",
+"display"
+]
+},
+"kite_shield": {
+"categorie": [
+"props",
+"collection: the_shed"
+],
+"dimensioni_mm": [
+543.2499945163727,
+134.73660126328468,
+1394.1335678100586
+],
+"nome": "Kite Shield",
+"poligoni": 10306,
+"tag": [
+"weapon",
+"shield",
+"war",
+"knight",
+"crusades",
+"old",
+"wooden",
+"metal",
+"shed"
+]
+},
+"korean_fire_extinguisher_01": {
+"categorie": [
+"industrial",
+"props"
+],
+"dimensioni_mm": [
+279.957577586174,
+367.44324862957,
+659.2507164176169
+],
+"nome": "Korean Fire Extinguisher 01",
+"poligoni": 9913,
+"tag": [
+"fire",
+"saftey",
+"fireman",
+"extinguisher",
+"emergency",
+"equipment",
+"red",
+"firefighting",
+"asian",
+"utility",
+"infrastructure"
+]
+},
+"korean_public_payphone_01": {
+"categorie": [
+"props"
+],
+"dimensioni_mm": [
+400.56978166103363,
+301.2158125638962,
+739.7327136714011
+],
+"nome": "Korean Public Payphone 01",
+"poligoni": 48132,
+"tag": [
+"pay",
+"phone",
+"public",
+"korean",
+"old",
+"utility",
+"infrastructure"
+]
+},
+"ladder_sectioned_01": {
+"categorie": [
+"industrial",
+"tools",
+"collection: the_shed"
+],
+"dimensioni_mm": [
+661.5026593208313,
+177.62134224176407,
+2134.558429243043
+],
+"nome": "Ladder Sectioned 01",
+"poligoni": 29140,
+"tag": [
+"scaffolding",
+"foldable",
+"folding",
+"steps",
+"metal",
+"building",
+"construction",
+"workshop",
+"garage",
+"shed"
+]
+},
+"lambis_shell": {
+"categorie": [
+"decorative",
+"nature"
+],
+"dimensioni_mm": [
+139.482282102108,
+74.54298064112663,
+46.51167347037699
+],
+"nome": "Lambis Shell",
+"poligoni": 12498,
+"tag": [
+"shell",
+"beach",
+"shore",
+"shoreline",
+"underwater",
+"coral",
+"reef",
+"ocean",
+"sea",
+"marine life",
+"mollusk"
+]
+},
+"lantern_chandelier_01": {
+"categorie": [
+"lighting"
+],
+"dimensioni_mm": [
+579.170286655426,
+574.6368169784546,
+877.587977796793
+],
+"nome": "Lantern Chandelier 01",
+"poligoni": 5971,
+"tag": [
+"lighting",
+"old",
+"victorian",
+"metal",
+"antique",
+"ornate",
+"vintage",
+"brass",
+"fancy",
+"ornamental",
+"chandelier",
+"light",
+"indoor light",
+"light fixture"
+]
+},
+"large_castle_door": {
+"categorie": [
+"structures",
+"buildings",
+"collection: hidden_alley"
+],
+"dimensioni_mm": [
+2012.115716934204,
+338.9068990945816,
+2964.752435684204
+],
+"nome": "Large Castle Door",
+"poligoni": 12640,
+"tag": [
+"fort",
+"castle",
+"gate",
+"door",
+"entrance",
+"stronghold",
+"fortified gate",
+"crusades"
+]
+},
+"large_iron_gate": {
+"categorie": [
+"structures",
+"buildings",
+"collection: hidden_alley"
+],
+"dimensioni_mm": [
+2950.09183883667,
+97.33648598194122,
+2928.6537868902087
+],
+"nome": "Large Iron Gate",
+"poligoni": 38140,
+"tag": [
+"gate",
+"entrance",
+"drive way",
+"cast iron",
+"iron",
+"stylish",
+"security"
+]
+},
+"lateral_sea_marker": {
+"categorie": [
+"props"
+],
+"dimensioni_mm": [
+3004.8038959503174,
+3004.8047304153442,
+6838.706851005554
+],
+"nome": "Lateral Sea Marker",
+"poligoni": 13014,
+"tag": [
+"ocean",
+"water",
+"dock",
+"harbor",
+"ship",
+"marker",
+"buoy"
+]
+},
+"leather_cleaner_can": {
+"categorie": [
+"props",
+"containers",
+"collection: the_shed"
+],
+"dimensioni_mm": [
+70.42571157217026,
+70.42571157217026,
+169.68917846679688
+],
+"nome": "Leather Cleaner Can",
+"poligoni": 2296,
+"tag": [
+"shed",
+"cleaning",
+"workshop",
+"garage",
+"car",
+"leather",
+"storage",
+"spray",
+"can",
+"metal",
+"clutter",
+"leather care",
+"maintenance",
+"automotive",
+"metal can",
+"aerosol",
+"polish"
+]
+},
+"leipoldtia_schultzei": {
+"categorie": [
+"plants",
+"collection: namaqualand"
+],
+"dimensioni_mm": [
+2311.8621706962585,
+813.1060898303986,
+317.10067950189114
+],
+"nome": "Leipoldtia Schultzei",
+"poligoni": 654080,
+"tag": [
+"succulent",
+"wildflower",
+"flower",
+"floral",
+"african",
+"purple",
+"plant",
+"flora",
+"nature"
+]
+},
+"lemon": {
+"categorie": [
+"props",
+"food"
+],
+"dimensioni_mm": [
+68.68193298578262,
+68.2600848376751,
+95.36931291222572
+],
+"nome": "Lemon",
+"poligoni": 4012,
+"tag": [
+"culinary",
+"cooking",
+"vegetable",
+"vegetables",
+"organic",
+"ingredients",
+"produce"
+]
+},
+"life_jacket": {
+"categorie": [
+"collection: project_lighthouse",
+"props"
+],
+"dimensioni_mm": [
+695.5814361572266,
+184.1820478439331,
+992.3043847084045
+],
+"nome": "Life Jacket",
+"poligoni": 8968,
+"tag": [
+"flotation device",
+"life preserver",
+"ocean",
+"boat",
+"single-seat",
+"fishing",
+"accessories",
+"ship",
+"maritime",
+"harbor",
+"nautical",
+"marine",
+"jetty",
+"wharf",
+"inflatable",
+"water rescue"
+]
+},
+"lifebuoy": {
+"categorie": [
+"collection: project_lighthouse",
+"wall decoration",
+"industrial"
+],
+"dimensioni_mm": [
+783.1282019615173,
+155.11851012706757,
+841.1934077739716
+],
+"nome": "Lifebuoy",
+"poligoni": 10728,
+"tag": [
+"weathered",
+"safety",
+"lifering",
+"marine",
+"nautical",
+"flotation device",
+"life preserver"
+]
+},
+"lightbulb_01": {
+"categorie": [
+"lighting",
+"collection: the_shed"
+],
+"dimensioni_mm": [
+59.98999997973442,
+59.99000743031502,
+100.28896853327751
+],
+"nome": "Lightbulb 01",
+"poligoni": 4372,
+"tag": [
+"globe",
+"filament",
+"light",
+"lamp",
+"shed",
+"bulb",
+"illumination",
+"incandescent",
+"coil filament",
+"glass bulb"
+]
+},
+"lightbulb_led": {
+"categorie": [
+"electronics",
+"lighting",
+"collection: the_shed"
+],
+"dimensioni_mm": [
+61.441509053111076,
+61.441510915756226,
+100.25119408965111
+],
+"nome": "Lightbulb Led",
+"poligoni": 6420,
+"tag": [
+"shed",
+"indoor",
+"interrior",
+"globe",
+"light"
+]
+},
+"lion_head": {
+"categorie": [
+"decorative"
+],
+"dimensioni_mm": [
+320.7782953977585,
+206.57429099082947,
+436.3649595399668
+],
+"nome": "Lion Head",
+"poligoni": 47214,
+"tag": [
+"old",
+"wooden",
+"vintage",
+"sculpture",
+"ornament",
+"wildlife",
+"figurine",
+"art",
+"animal"
+]
+},
+"long_life_food": {
+"categorie": [
+"collection: project_lighthouse",
+"food",
+"containers",
+"props"
+],
+"dimensioni_mm": [
+523.7634181976318,
+113.55656012892723,
+237.57458478212357
+],
+"nome": "Long Life Food",
+"poligoni": 4712,
+"tag": [
+"groceries",
+"canned beans",
+"carton milk",
+"tinned food",
+"canned tomatoes",
+"sardines"
+]
+},
+"lubricant_spray": {
+"categorie": [
+"props",
+"containers",
+"tools",
+"decorative",
+"collection: the_shed"
+],
+"dimensioni_mm": [
+66.9858492910862,
+64.59099799394608,
+164.8811548948288
+],
+"nome": "Lubricant Spray",
+"poligoni": 5476,
+"tag": [
+"shed",
+"workshop",
+"metal",
+"garage",
+"cleaning",
+"spray",
+"can",
+"oil",
+"grease",
+"metal can",
+"lubricant",
+"maintenance",
+"machinery",
+"aerosol",
+"clutter",
+"rust prevention"
+]
+},
+"machete": {
+"categorie": [
+"props",
+"collection: the_shed"
+],
+"dimensioni_mm": [
+44.37695816159248,
+61.11501157283783,
+754.8029869794846
+],
+"nome": "Machete",
+"poligoni": 3032,
+"tag": [
+"weapon",
+"knife",
+"iron",
+"steel",
+"shed",
+"gardening",
+"metal",
+"jungle",
+"blade",
+"sharp",
+"survival",
+"tool",
+"combat"
+]
+},
+"magnifying_glass_01": {
+"categorie": [
+"props",
+"tools"
+],
+"dimensioni_mm": [
+132.1375072002411,
+26.717988774180412,
+271.5718152341225
+],
+"nome": "Magnifying Glass 01",
+"poligoni": 7240,
+"tag": [
+"eye",
+"focal",
+"lense",
+"magnifier",
+"magnifying lens",
+"inspection",
+"optical tool",
+"reading aid"
+]
+},
+"mantel_clock_01": {
+"categorie": [
+"decorative",
+"appliances",
+"rigged"
+],
+"dimensioni_mm": [
+483.6633503437042,
+250.80496072769165,
+160.9499454498291
+],
+"nome": "Mantel Clock 01",
+"poligoni": 29742,
+"tag": [
+"vintage",
+"antique",
+"old",
+"clock",
+"time",
+"wooden",
+"shelf",
+"mantel",
+"fireplace",
+"ornate"
+]
+},
+"marble_bust_01": {
+"categorie": [
+"decorative"
+],
+"dimensioni_mm": [
+271.7496156692505,
+299.713671207428,
+514.9431824684143
+],
+"nome": "Marble Bust 01",
+"poligoni": 17456,
+"tag": [
+"sculpt",
+"sculpture",
+"statue",
+"art",
+"sandstone",
+"bust",
+"marble",
+"mansion",
+"renaissance",
+"man"
+]
+},
+"measuring_tape_01": {
+"categorie": [
+"industrial",
+"tools",
+"props",
+"collection: the_shed"
+],
+"dimensioni_mm": [
+40.56626558303833,
+169.41863298416138,
+73.41387253836729
+],
+"nome": "Measuring Tape 01",
+"poligoni": 2868,
+"tag": [
+"tape",
+"ruler",
+"measure",
+"tool",
+"toolbox",
+"woodwork"
+]
+},
+"medical_box": {
+"categorie": [
+"collection: project_lighthouse",
+"props",
+"containers"
+],
+"dimensioni_mm": [
+525.4814624786377,
+350.16927123069763,
+97.5121483206749
+],
+"nome": "Medical Box",
+"poligoni": 3718,
+"tag": [
+"worn",
+"metal",
+"green",
+"medical",
+"first aid",
+"storage",
+"scratched"
+]
+},
+"medical_tape": {
+"categorie": [
+"collection: project_lighthouse",
+"props",
+"industrial",
+"tools"
+],
+"dimensioni_mm": [
+45.2995840460062,
+45.17091251909733,
+25.0389501452446
+],
+"nome": "Medical Tape",
+"poligoni": 1408,
+"tag": [
+"tape",
+"hospital",
+"bandage",
+"tissue-roll",
+"cylindrical roll"
+]
+},
+"metal_detector": {
+"categorie": [
+"props",
+"electronics"
+],
+"dimensioni_mm": [
+289.13262486457825,
+1189.8686289787292,
+1121.921420097351
+],
+"nome": "Metal Detector",
+"poligoni": 15518,
+"tag": [
+"detector",
+"exploration",
+"adventure",
+"treasure",
+"equipment",
+"archaeology",
+"technology"
+]
+},
+"metal_jerrycan": {
+"categorie": [
+"collection: project_lighthouse",
+"props",
+"containers"
+],
+"dimensioni_mm": [
+350.3298610448837,
+171.74389213323593,
+455.1599698197606
+],
+"nome": "Metal Jerrycan",
+"poligoni": 20022,
+"tag": [
+"old",
+"worn",
+"rusted",
+"petrol",
+"gasoline",
+"gas",
+"fuel",
+"red",
+"metal"
+]
+},
+"metal_jerrycan_green": {
+"categorie": [
+"collection: project_lighthouse",
+"props",
+"containers"
+],
+"dimensioni_mm": [
+373.92209470272064,
+170.86732387542725,
+500.91034173965454
+],
+"nome": "Metal Jerrycan Green",
+"poligoni": 9636,
+"tag": [
+"old",
+"worn",
+"jerrycan",
+"fuel can",
+"military",
+"petrol",
+"garage",
+"gas",
+"gasoline",
+"used"
+]
+},
+"metal_jug": {
+"categorie": [
+"containers",
+"decorative",
+"vases"
+],
+"dimensioni_mm": [
+196.82172685861588,
+195.4544335603714,
+287.5497347122291
+],
+"nome": "Metal Jug",
+"poligoni": 6040,
+"tag": [
+"milk jug",
+"metal",
+"vase",
+"farmhouse",
+"countryside",
+"kitchen decor",
+"vintage",
+"farmhouse decor",
+"pitcher",
+"rustic"
+]
+},
+"metal_office_desk": {
+"categorie": [
+"collection: project_lighthouse",
+"furniture",
+"table",
+"office"
+],
+"dimensioni_mm": [
+2000.0003576278687,
+947.2135305404663,
+787.5000089406967
+],
+"nome": "Metal Office Desk",
+"poligoni": 6898,
+"tag": [
+"old",
+"vintage",
+"metal",
+"dirty",
+"scratched",
+"industrial",
+"rectangular"
+]
+},
+"metal_stool_01": {
+"categorie": [
+"collection: project_lighthouse",
+"furniture",
+"seating"
+],
+"dimensioni_mm": [
+351.9909083843231,
+354.570209980011,
+882.7742969733663
+],
+"nome": "Metal Stool 01",
+"poligoni": 8334,
+"tag": [
+"vintage",
+"antique",
+"old",
+"leather",
+"round",
+"metal",
+"industrial",
+"barstool"
+]
+},
+"metal_stool_02": {
+"categorie": [
+"collection: project_lighthouse",
+"furniture",
+"seating"
+],
+"dimensioni_mm": [
+448.09985160827637,
+473.0903208255768,
+458.12273025512695
+],
+"nome": "Metal Stool 02",
+"poligoni": 6532,
+"tag": [
+"wooden",
+"metal frame",
+"industrial",
+"small",
+"workshop",
+"round"
+]
+},
+"metal_stool_03": {
+"categorie": [
+"collection: project_lighthouse",
+"furniture",
+"seating"
+],
+"dimensioni_mm": [
+460.619181394577,
+470.621719956398,
+1023.1056683696806
+],
+"nome": "Metal Stool 03",
+"poligoni": 6576,
+"tag": [
+"old",
+"metal",
+"barstool",
+"backrest",
+"heavy-duty",
+"weathered",
+"rusted",
+"workshop"
+]
+},
+"metal_tool_chest": {
+"categorie": [
+"props",
+"tools",
+"industrial",
+"containers",
+"rigged",
+"collection: the_shed"
+],
+"dimensioni_mm": [
+685.3884160518646,
+407.15324878692627,
+651.8355906009674
+],
+"nome": "Metal Tool Chest",
+"poligoni": 14576,
+"tag": [
+"old",
+"metal",
+"garage",
+"workshop",
+"storage",
+"shed",
+"worn",
+"mechanics toolbox",
+"rusted",
+"steel",
+"red"
+]
+},
+"metal_toolbox": {
+"categorie": [
+"collection: project_lighthouse",
+"containers",
+"tools",
+"industrial"
+],
+"dimensioni_mm": [
+400.0099003314972,
+292.32875257730484,
+347.10586071014404
+],
+"nome": "Metal Toolbox",
+"poligoni": 14228,
+"tag": [
+"vintage",
+"rustic",
+"garage",
+"workshop",
+"metal",
+"storage",
+"shed",
+"construction",
+"carpentry",
+"tool chest"
+]
+},
+"metal_trash_can": {
+"categorie": [
+"industrial",
+"containers",
+"collection: hidden_alley"
+],
+"dimensioni_mm": [
+1846.9352722167969,
+556.2898814678192,
+906.1697272554738
+],
+"nome": "Metal Trash Can",
+"poligoni": 13960,
+"tag": [
+"bin",
+"rubbish",
+"garbage",
+"disposal",
+"litter",
+"dumpster",
+"outdoor trash can",
+" urban",
+"utility"
+]
+},
+"mid_century_lounge_chair": {
+"categorie": [
+"furniture",
+"seating"
+],
+"dimensioni_mm": [
+1008.6143612861633,
+1190.310776233673,
+1169.0847246776136
+],
+"nome": "Mid Century Lounge Chair",
+"poligoni": 6148,
+"tag": [
+"wooden",
+"leather",
+"couch",
+"lounge",
+"architecture",
+"modern",
+"interior design",
+"home decor",
+"living room",
+"comfort",
+"stylish",
+"recliner",
+"retro",
+"classy"
+]
+},
+"modern_arm_chair_01": {
+"categorie": [
+"furniture",
+"seating",
+"office"
+],
+"dimensioni_mm": [
+820.3444182872772,
+986.5616858005524,
+1022.8520567470696
+],
+"nome": "Modern Arm Chair 01",
+"poligoni": 8916,
+"tag": [
+"wood",
+"leather",
+"fancy",
+"modern",
+"chair",
+"contemporary",
+"wooden",
+"lounge"
+]
+},
+"modern_ceiling_lamp_01": {
+"categorie": [
+"lighting"
+],
+"dimensioni_mm": [
+431.6493272781372,
+431.6607564687729,
+951.5514969825745
+],
+"nome": "Modern Ceiling Lamp 01",
+"poligoni": 5602,
+"tag": [
+"lighting",
+"light",
+"modern",
+"glass",
+"round",
+"hanging",
+"hanging lamp",
+"ceiling lamp",
+"decorative lighting",
+"modern decor",
+"interior design"
+]
+},
+"modern_coffee_table_01": {
+"categorie": [
+"furniture",
+"table"
+],
+"dimensioni_mm": [
+1201.8300294876099,
+600.0000834465027,
+389.99998569488525
+],
+"nome": "Modern Coffee Table 01",
+"poligoni": 4504,
+"tag": [
+"table",
+"contemporary",
+"modern",
+"rectangular",
+"stone",
+"wood",
+"deco",
+"clean"
+]
+},
+"modern_coffee_table_02": {
+"categorie": [
+"furniture",
+"table"
+],
+"dimensioni_mm": [
+1199.1113424301147,
+1199.6567845344543,
+369.2496716976166
+],
+"nome": "Modern Coffee Table 02",
+"poligoni": 13645,
+"tag": [
+"contemporary",
+"modern",
+"rectangular",
+"stone",
+"wood",
+"deco",
+"clean"
+]
+},
+"modern_wooden_cabinet": {
+"categorie": [
+"furniture",
+"table"
+],
+"dimensioni_mm": [
+2440.0004148483276,
+520.0000107288361,
+680.1425069570541
+],
+"nome": "Modern Wooden Cabinet",
+"poligoni": 24976,
+"tag": [
+"cabinet",
+"wood",
+"modern",
+"minimalist",
+"interrior",
+"living room",
+"contemporary",
+"design"
+]
+},
+"modified_thermos": {
+"categorie": [
+"collection: project_lighthouse",
+"props",
+"containers"
+],
+"dimensioni_mm": [
+142.67507940530777,
+101.07244178652763,
+306.22418313578237
+],
+"nome": "Modified Thermos",
+"poligoni": 11576,
+"tag": [
+"insulated flask",
+"thermos jug",
+"survival gear",
+"camping flask",
+"vintage thermos",
+"used condition"
+]
+},
+"modular_airduct_circular_01": {
+"categorie": [
+"industrial",
+"structures",
+"collection: hidden_alley"
+],
+"dimensioni_mm": [
+4170.705795288086,
+1463.481143116951,
+1324.144184589386
+],
+"nome": "Modular Airduct Circular 01",
+"poligoni": 14280,
+"tag": [
+"vent",
+"aircon",
+"airduct",
+"hvac",
+"modular",
+"pieces",
+"workshop",
+"industrial",
+"warehouse",
+"utility",
+"infrastructure"
+]
+},
+"modular_airduct_rectangular_01": {
+"categorie": [
+"industrial"
+],
+"dimensioni_mm": [
+7663.504123687744,
+2586.645245552063,
+1256.1511993408203
+],
+"nome": "Modular Airduct Rectangular 01",
+"poligoni": 45090,
+"tag": [
+"vent",
+"airduct",
+"modular",
+"pieces",
+"workshop",
+"warehouse",
+"rectangular",
+"metal",
+"airvent",
+"utility",
+"infrastructure"
+]
+},
+"modular_chainlink_fence": {
+"categorie": [
+"structures",
+"industrial",
+"buildings",
+"collection: hidden_alley"
+],
+"dimensioni_mm": [
+8115.001916885376,
+2149.1531878709793,
+2522.9129791259766
+],
+"nome": "Modular Chainlink Fence",
+"poligoni": 89232,
+"tag": [
+"infrastructure",
+"city",
+"urban",
+"fencing",
+"barrier",
+"security",
+"fencing",
+"boundary",
+"wall",
+"wire"
+]
+},
+"modular_electric_cables": {
+"categorie": [
+"industrial"
+],
+"dimensioni_mm": [
+2076.6327381134033,
+214.5041599869728,
+757.2520458308203
+],
+"nome": "Modular Electric Cables",
+"poligoni": 42078,
+"tag": [
+"wiring",
+"connectors",
+"power supply",
+"components",
+"power",
+"infrastructure",
+"maintenance",
+"junction box",
+"breakers",
+"transformer",
+"circuit",
+"electrical",
+"underground",
+"modular"
+]
+},
+"modular_electricity_poles": {
+"categorie": [
+"industrial",
+"structures",
+"collection: hidden_alley"
+],
+"dimensioni_mm": [
+13119.13776397705,
+1957.2706818580627,
+7000.0002812594175
+],
+"nome": "Modular Electricity Poles",
+"poligoni": 200610,
+"tag": [
+"urban",
+"infrastructure",
+"city",
+"road",
+"utility",
+"street",
+"electrical",
+"power",
+"circuit",
+"transformer",
+"junction box",
+"cables"
+]
+},
+"modular_factory_facade": {
+"categorie": [
+"collection: hidden_alley",
+"structures",
+"buildings"
+],
+"dimensioni_mm": [
+53329.99801635742,
+5356.249764561653,
+29000
+],
+"nome": "Modular Factory Facade",
+"poligoni": 175014,
+"tag": [
+"industrial",
+"factory",
+"modular",
+"architecture",
+"warehouse",
+"facade",
+"exterior"
+]
+},
+"modular_fire_escape": {
+"categorie": [
+"industrial",
+"structures",
+"collection: hidden_alley"
+],
+"dimensioni_mm": [
+6661.200046539307,
+1420.7648038864136,
+9756.551027297974
+],
+"nome": "Modular Fire Escape",
+"poligoni": 11322,
+"tag": [
+"modular",
+"pieces",
+"emergency",
+"building",
+"urban",
+"evacuation",
+"safety",
+"fire egress",
+"stairs",
+"utility",
+"infrastructure"
+]
+},
+"modular_fort_01": {
+"categorie": [
+"structures",
+"buildings",
+"collection: smugglers_cove"
+],
+"dimensioni_mm": [
+71375.29754638672,
+42669.87609863281,
+13672.092854976654
+],
+"nome": "Modular Fort 01",
+"poligoni": 28218,
+"tag": [
+"fort",
+"modular",
+"old",
+"colonial",
+"castle",
+"wall",
+"ramparts",
+"structure",
+"building",
+"stone",
+"ancient"
+]
+},
+"modular_industrial_pipes_01": {
+"categorie": [
+"industrial",
+"structures"
+],
+"dimensioni_mm": [
+1402.8016328811646,
+307.5956106185913,
+1954.6396136283875
+],
+"nome": "Modular Industrial Pipes 01",
+"poligoni": 12340,
+"tag": [
+"pipes",
+"factory",
+"steam",
+"modular",
+"industrial",
+"utility",
+"infrastructure"
+]
+},
+"modular_metal_gutter": {
+"categorie": [
+"industrial",
+"structures",
+"buildings",
+"collection: hidden_alley"
+],
+"dimensioni_mm": [
+2268.4829235076904,
+1514.7015303373337,
+1842.6082134246826
+],
+"nome": "Modular Metal Gutter",
+"poligoni": 16490,
+"tag": [
+"drain",
+"roof",
+"downspout",
+"rainwater",
+"drainage",
+"gutter system",
+"rain gutters",
+"modular",
+"utility",
+"infrastructure"
+]
+},
+"modular_pipes": {
+"categorie": [
+"industrial",
+"structures"
+],
+"dimensioni_mm": [
+4187.440872192383,
+457.7658101916313,
+2434.948639709063
+],
+"nome": "Modular Pipes",
+"poligoni": 47428,
+"tag": [
+"construction",
+"piping",
+"plumbing",
+"infrastructure",
+"metal",
+"plastic",
+"rusted",
+"water supply",
+"drainage",
+"maintenance",
+"engineering",
+"utility",
+"underground",
+"sewer",
+"drain"
+]
+},
+"modular_pipes_plastic_01": {
+"categorie": [
+"industrial",
+"structures",
+"collection: the_shed"
+],
+"dimensioni_mm": [
+879.9068927764893,
+361.76106333732605,
+75.73375664651394
+],
+"nome": "Modular Pipes Plastic 01",
+"poligoni": 49708,
+"tag": [
+"pipes",
+"garden",
+"shed",
+"modular",
+"cable",
+"valve",
+"tap",
+"outdoor",
+"water",
+"irrigation",
+"greenhouse",
+"farm",
+"farmhouse",
+"utility",
+"infrastructure"
+]
+},
+"modular_street_seating": {
+"categorie": [
+"furniture",
+"seating",
+"collection: hidden_alley"
+],
+"dimensioni_mm": [
+4339.9999141693115,
+770.3700959682465,
+950.000050743509
+],
+"nome": "Modular Street Seating",
+"poligoni": 25156,
+"tag": [
+"chair",
+"outdoor",
+"urban",
+"cityscape",
+"contemporary",
+"bench",
+"city",
+"infrastructure"
+]
+},
+"modular_urban_apartments_facade": {
+"categorie": [
+"collection: hidden_alley",
+"structures",
+"buildings"
+],
+"dimensioni_mm": [
+51529.99687194824,
+6664.999693632126,
+17000
+],
+"nome": "Modular Urban Apartments Facade",
+"poligoni": 118215,
+"tag": [
+"building",
+"urban",
+"modular",
+"contemporary",
+"apartments",
+"city",
+"home",
+"house",
+"architecture",
+"residential"
+]
+},
+"modular_wooden_pier": {
+"categorie": [
+"structures",
+"collection: smugglers_cove"
+],
+"dimensioni_mm": [
+3101.5628576278687,
+19026.371479034424,
+7515.67667722702
+],
+"nome": "Modular Wooden Pier",
+"poligoni": 84780,
+"tag": [
+"old",
+"wooden",
+"wood",
+"pier",
+"ship",
+"maritime",
+"sea",
+"water",
+"ocean",
+"worn",
+"structure",
+"scaffolding",
+"dock",
+"jetty",
+"landing",
+"wharf",
+"mossy",
+"modular"
+]
+},
+"moon_rock_01": {
+"categorie": [
+"rocks",
+"collection: moon",
+"nature"
+],
+"dimensioni_mm": [
+212.27321028709412,
+111.70050874352455,
+75.25125704705715
+],
+"nome": "Moon Rock 01",
+"poligoni": 18668,
+"tag": [
+"rough texture",
+"lunar",
+"dirty",
+"regolith",
+"dusted",
+"space",
+"extraterrestrial"
+]
+},
+"moon_rock_02": {
+"categorie": [
+"rocks",
+"collection: moon",
+"nature"
+],
+"dimensioni_mm": [
+247.19828367233276,
+251.9308477640152,
+202.34621362760663
+],
+"nome": "Moon Rock 02",
+"poligoni": 6194,
+"tag": [
+"rough texture",
+"lunar",
+"dirty",
+"regolith",
+"dusted",
+"extraterrestrial",
+"space"
+]
+},
+"moon_rock_03": {
+"categorie": [
+"rocks",
+"collection: moon",
+"nature"
+],
+"dimensioni_mm": [
+112.28010803461075,
+86.23043820261955,
+58.39346128050238
+],
+"nome": "Moon Rock 03",
+"poligoni": 10492,
+"tag": [
+"rough texture",
+"lunar",
+"dirty",
+"regolith",
+"dusted",
+"space",
+"extraterrestrial"
+]
+},
+"moon_rock_04": {
+"categorie": [
+"rocks",
+"collection: moon",
+"nature"
+],
+"dimensioni_mm": [
+119.77694556117058,
+173.899844288826,
+53.921069484204054
+],
+"nome": "Moon Rock 04",
+"poligoni": 14316,
+"tag": [
+"rough texture",
+"lunar",
+"dirty",
+"regolith",
+"dusted",
+"extraterrestrial",
+"space"
+]
+},
+"moon_rock_05": {
+"categorie": [
+"rocks",
+"collection: moon",
+"nature"
+],
+"dimensioni_mm": [
+71.70041278004646,
+81.24681562185287,
+73.56124802026898
+],
+"nome": "Moon Rock 05",
+"poligoni": 18466,
+"tag": [
+"rough texture",
+"lunar",
+"dirty",
+"regolith",
+"dusted",
+"extraterrestrial",
+"space"
+]
+},
+"moon_rock_06": {
+"categorie": [
+"rocks",
+"collection: moon",
+"nature"
+],
+"dimensioni_mm": [
+85.80135554075241,
+91.83185920119286,
+55.31582306139171
+],
+"nome": "Moon Rock 06",
+"poligoni": 12974,
+"tag": [
+"rough texture",
+"lunar",
+"dirty",
+"regolith",
+"dusted",
+"extraterrestrial",
+"space"
+]
+},
+"moon_rock_07": {
+"categorie": [
+"rocks",
+"collection: moon",
+"nature"
+],
+"dimensioni_mm": [
+96.8347117304802,
+73.83224368095398,
+60.427604243159294
+],
+"nome": "Moon Rock 07",
+"poligoni": 12786,
+"tag": [
+"rough texture",
+"lunar",
+"dirty",
+"regolith",
+"dusted",
+"extraterrestrial",
+"space"
+]
+},
+"moss_01": {
+"categorie": [
+"nature",
+"plants",
+"ground cover",
+"collection: pine_forest"
+],
+"dimensioni_mm": [
+838.9523178339005,
+300.28730630874634,
+298.94982278347015
+],
+"nome": "Moss 01",
+"poligoni": 246170,
+"tag": [
+"moss",
+"ground cover",
+"forest",
+"woodland",
+"foliage",
+"nature",
+"plant",
+"natural",
+"botany",
+"small",
+"geometry nodes",
+"outdoor",
+"undergrowth",
+"vegetation",
+"shrubs"
+]
+},
+"mountainside": {
+"categorie": [
+"nature",
+"rocks",
+"collection: verdant_trail"
+],
+"dimensioni_mm": [
+10214.37692642212,
+5254.634857177734,
+10526.674702763557
+],
+"nome": "Mountainside",
+"poligoni": 287755,
+"tag": [
+"cliff",
+"rock face",
+"formation",
+"landscape",
+"geology",
+"rock",
+"weathered",
+"lichen",
+"rocky surface",
+"boulder",
+"terrain",
+"mountain"
+]
+},
+"mounted_fluorescent_lights": {
+"categorie": [
+"collection: project_lighthouse",
+"lighting",
+"industrial"
+],
+"dimensioni_mm": [
+912.1809005737305,
+645.4365849494934,
+35.35318718786584
+],
+"nome": "Mounted Fluorescent Lights",
+"poligoni": 17820,
+"tag": [
+"workshop",
+"fluorescent_tube",
+"utility_lighting",
+"garage_light",
+"workshop_light",
+"shed",
+"garage"
+]
+},
+"mousetrap": {
+"categorie": [
+"props"
+],
+"dimensioni_mm": [
+54.98756840825081,
+100.44356435537338,
+17.934181294901208
+],
+"nome": "Mousetrap",
+"poligoni": 5136,
+"tag": [
+"wood",
+"old",
+"trap",
+"rat",
+"mouse",
+"catcher",
+"pest control",
+"rodent",
+"animal",
+"springloaded",
+"vermin",
+"snap",
+"cheese",
+"spring",
+"bait"
+]
+},
+"multi_cleaner_5_litre": {
+"categorie": [
+"props",
+"containers",
+"industrial",
+"collection: the_shed"
+],
+"dimensioni_mm": [
+219.29194033145905,
+105.77977448701859,
+300.33773817538736
+],
+"nome": "Multi Cleaner 5 Litre",
+"poligoni": 4332,
+"tag": [
+"shed",
+"storage",
+"cleaning",
+"plastic",
+"bottle",
+"dirty",
+"cleaner",
+"multipurpose",
+"household",
+"cleaning supplies",
+"janitorial",
+"sanitation",
+"gallon",
+"allpurpose"
+]
+},
+"multi_cleaner_bottle": {
+"categorie": [
+"containers",
+"props",
+"collection: the_shed"
+],
+"dimensioni_mm": [
+88.47218751907349,
+89.751485735178,
+228.56293622158105
+],
+"nome": "Multi Cleaner Bottle",
+"poligoni": 6792,
+"tag": [
+"shed",
+"cleaning",
+"garage",
+"storage",
+"plastic",
+"bottle",
+"workshop",
+"clutter",
+"cleaning supplies",
+"janitorial",
+"sanitation",
+"plastic containers",
+"multipurpose",
+"allpurpose",
+"household"
+]
+},
+"namaqualand_boulder_02": {
+"categorie": [
+"nature",
+"rocks",
+"collection: namaqualand"
+],
+"dimensioni_mm": [
+2533.2456827163696,
+1234.761118888855,
+883.3709806203842
+],
+"nome": "Namaqualand Boulder 02",
+"poligoni": 183681,
+"tag": [
+"karoo",
+"desert",
+"south africa",
+"boulders",
+"rocks",
+"geological",
+"rock",
+"landscaping"
+]
+},
+"namaqualand_boulder_03": {
+"categorie": [
+"nature",
+"rocks",
+"collection: namaqualand"
+],
+"dimensioni_mm": [
+2407.663106918335,
+3065.406084060669,
+1473.654329776764
+],
+"nome": "Namaqualand Boulder 03",
+"poligoni": 121546,
+"tag": [
+"karoo",
+"south africa",
+"desert",
+"boulder",
+"rock",
+"rough",
+"brown",
+"geological",
+"landscaping",
+"stone"
+]
+},
+"namaqualand_boulder_04": {
+"categorie": [
+"nature",
+"rocks",
+"collection: namaqualand"
+],
+"dimensioni_mm": [
+2523.1549739837646,
+2500.7030963897705,
+1904.316272586584
+],
+"nome": "Namaqualand Boulder 04",
+"poligoni": 110746,
+"tag": [
+"karoo",
+"south africa",
+"desert",
+"boulder",
+"rock",
+"brown",
+"geological",
+"landscaping"
+]
+},
+"namaqualand_boulder_05": {
+"categorie": [
+"collection: namaqualand",
+"nature",
+"rocks"
+],
+"dimensioni_mm": [
+1364.0307188034058,
+748.7391829490662,
+538.3217036724091
+],
+"nome": "Namaqualand Boulder 05",
+"poligoni": 117622,
+"tag": [
+"karoo",
+"desert",
+"dry",
+"south africa",
+"rock",
+"rocks",
+"formation",
+"geological",
+"boulder"
+]
+},
+"namaqualand_boulder_06": {
+"categorie": [
+"nature",
+"rocks",
+"collection: namaqualand"
+],
+"dimensioni_mm": [
+675.0632524490356,
+1213.3429050445557,
+651.8799550831318
+],
+"nome": "Namaqualand Boulder 06",
+"poligoni": 204584,
+"tag": [
+"karoo",
+"south africa",
+"desert",
+"boulder",
+"rock",
+"brown",
+"geological",
+"landscaping",
+"rough"
+]
+},
+"namaqualand_boulders_01": {
+"categorie": [
+"nature",
+"rocks",
+"collection: namaqualand"
+],
+"dimensioni_mm": [
+1059.0761452913284,
+586.6308808326721,
+252.1759569644928
+],
+"nome": "Namaqualand Boulders 01",
+"poligoni": 76590,
+"tag": [
+"south africa",
+"karoo",
+"desert",
+"boulder",
+"rock",
+"brown",
+"geological",
+"landscaping",
+"rough"
+]
+},
+"namaqualand_cliff_01": {
+"categorie": [
+"nature",
+"rocks",
+"collection: namaqualand"
+],
+"dimensioni_mm": [
+8279.043674468994,
+4390.161573886871,
+4961.063176393509
+],
+"nome": "Namaqualand Cliff 01",
+"poligoni": 176938,
+"tag": [
+"south africa",
+"karoo",
+"desert",
+"boulders",
+"rock",
+"rock formation",
+"cliff side",
+"cliff",
+"eroded cliffs",
+"nature scene",
+"rock face",
+"rock wall"
+]
+},
+"namaqualand_cliff_02": {
+"categorie": [
+"nature",
+"rocks",
+"collection: namaqualand"
+],
+"dimensioni_mm": [
+20229.52938079834,
+6593.420505523682,
+7187.2673481702805
+],
+"nome": "Namaqualand Cliff 02",
+"poligoni": 363896,
+"tag": [
+"karoo",
+"south africa",
+"desert",
+"boulders",
+"rock face",
+"rock",
+"cliff side",
+"cliff",
+"eroded cliff",
+"rock wall",
+"weathered rock",
+"rock outcrop",
+"rock formation",
+"boulder",
+"boulder formation"
+]
+},
+"namaqualand_rocks_01": {
+"categorie": [
+"nature",
+"rocks",
+"collection: namaqualand"
+],
+"dimensioni_mm": [
+1448.4741687774658,
+217.12086349725723,
+152.61786431074142
+],
+"nome": "Namaqualand Rocks 01",
+"poligoni": 160716,
+"tag": [
+"karoo",
+"south africa",
+"quartz",
+"desert",
+"geological",
+"stones",
+"rocks"
+]
+},
+"namaqualand_stones_01": {
+"categorie": [
+"nature",
+"rocks",
+"collection: namaqualand"
+],
+"dimensioni_mm": [
+1022.2714990377426,
+112.1760904788971,
+84.22087505459785
+],
+"nome": "Namaqualand Stones 01",
+"poligoni": 106602,
+"tag": [
+"karoo",
+"south africa",
+"quartz",
+"desert",
+"geological",
+"mineral",
+"stones",
+"rocks"
+]
+},
+"nettle_plant": {
+"categorie": [
+"nature",
+"plants",
+"ground cover",
+"collection: the_shed"
+],
+"dimensioni_mm": [
+1084.1034203767776,
+94.6834422647953,
+218.78226287662983
+],
+"nome": "Nettle Plant",
+"poligoni": 46195,
+"tag": [
+"nettle",
+"plant",
+"green",
+"nature",
+"shrub",
+"outdoor",
+"leaf",
+"bush",
+"botany",
+"leaves",
+"forest",
+"jungle",
+"foliage",
+"field",
+"meadow",
+"natural",
+"floral"
+]
+},
+"ocean_buoy": {
+"categorie": [
+"collection: project_lighthouse",
+"props"
+],
+"dimensioni_mm": [
+1066.6102766990662,
+952.1479606628418,
+2656.234323978424
+],
+"nome": "Ocean Buoy",
+"poligoni": 12240,
+"tag": [
+"marine buoy",
+"light beacon",
+"maritime",
+"ship",
+"dock",
+"jetty",
+"sea",
+"ocean",
+"pier",
+"harbor",
+"nautical",
+"channel marker",
+"offshore marker",
+"marine navigation"
+]
+},
+"office_notepads": {
+"categorie": [
+"collection: project_lighthouse",
+"props",
+"office"
+],
+"dimensioni_mm": [
+1102.7901768684387,
+659.8375737667084,
+21.99999988079071
+],
+"nome": "Office Notepads",
+"poligoni": 666,
+"tag": [
+"stationery",
+"notepad",
+"lined paper",
+"blank paper",
+"art supplies",
+"office",
+"admin",
+"sticky notes",
+"filing",
+"writing",
+"business"
+]
+},
+"oil_tin": {
+"categorie": [
+"containers",
+"props",
+"industrial",
+"collection: project_lighthouse"
+],
+"dimensioni_mm": [
+114.72199857234955,
+153.54498475790024,
+205.37899754708633
+],
+"nome": "Oil Tin",
+"poligoni": 2834,
+"tag": [
+"old",
+"worn",
+"rusted",
+"metal",
+"rectangular",
+"fuel",
+"storage"
+]
+},
+"old_bed_frame": {
+"categorie": [
+"collection: project_lighthouse",
+"bed",
+"furniture"
+],
+"dimensioni_mm": [
+904.6578407287598,
+2001.7260313034058,
+1201.4837953575998
+],
+"nome": "Old Bed Frame",
+"poligoni": 49990,
+"tag": [
+"rusty",
+"metal",
+"bedroom",
+"vintage",
+"antique",
+"hospital",
+"traditional"
+]
+},
+"old_drill_press": {
+"categorie": [
+"collection: project_lighthouse",
+"tools",
+"industrial"
+],
+"dimensioni_mm": [
+527.1955132484436,
+609.5176190137863,
+1049.9999523162842
+],
+"nome": "Old Drill Press",
+"poligoni": 21842,
+"tag": [
+"metal",
+"workshop",
+"garage",
+"bench drill",
+"stand",
+"power cable"
+]
+},
+"old_gas_mask": {
+"categorie": [
+"collection: project_lighthouse",
+"props",
+"industrial",
+"tools"
+],
+"dimensioni_mm": [
+210.5255424976349,
+308.7272718548775,
+1125.6647408008575
+],
+"nome": "Old Gas Mask",
+"poligoni": 18900,
+"tag": [
+"vintage",
+"respirator",
+"antique",
+"airfilter",
+"warfare",
+"chemical",
+"gasmask",
+"postapocalyptic"
+]
+},
+"old_military_compressor": {
+"categorie": [
+"collection: project_lighthouse",
+"industrial",
+"tools"
+],
+"dimensioni_mm": [
+598.2826352119446,
+1675.544261932373,
+1179.0863703936338
+],
+"nome": "Old Military Compressor",
+"poligoni": 79042,
+"tag": [
+"cart",
+"tank",
+"garage",
+"workshop",
+"construction",
+"automotive",
+"maintenance"
+]
+},
+"old_military_crate": {
+"categorie": [
+"collection: project_lighthouse",
+"containers",
+"props"
+],
+"dimensioni_mm": [
+1815.3856992721558,
+979.0960550308228,
+300.932839512825
+],
+"nome": "Old Military Crate",
+"poligoni": 10476,
+"tag": [
+"ammunition crate",
+"military supply crate",
+"hand-painted symbol",
+"transport container",
+"wooden",
+"vintage",
+"worn",
+"military",
+"army",
+"weapon"
+]
+},
+"old_tyre": {
+"categorie": [
+"industrial",
+"props",
+"collection: hidden_alley"
+],
+"dimensioni_mm": [
+600.0000238418579,
+164.99999910593033,
+600.0000238418579
+],
+"nome": "Old Tyre",
+"poligoni": 2880,
+"tag": [
+"wheels",
+"wheel",
+"trash",
+"garbage",
+"garage",
+"scrapyard",
+"junkyard",
+"abandoned",
+"automotive",
+"car",
+"vehicle"
+]
+},
+"ornate_medieval_dagger": {
+"categorie": [
+"props"
+],
+"dimensioni_mm": [
+120.14957889914513,
+24.959721602499485,
+348.9498645067215
+],
+"nome": "Ornate Medieval Dagger",
+"poligoni": 6290,
+"tag": [
+"weapon",
+"blade",
+"knife",
+"combat",
+"sharp",
+"detailed",
+"silver",
+"medieval"
+]
+},
+"ornate_medieval_mace": {
+"categorie": [
+"props"
+],
+"dimensioni_mm": [
+94.87242996692657,
+101.7131395637989,
+630.000039935112
+],
+"nome": "Ornate Medieval Mace",
+"poligoni": 14762,
+"tag": [
+"weapon",
+"fantasy",
+"battle",
+"combat",
+"knight",
+"iron",
+"seige",
+"war",
+"steel",
+"crusades",
+"silver",
+"medieval"
+]
+},
+"ornate_mirror_01": {
+"categorie": [
+"decorative",
+"wall decoration",
+"furniture"
+],
+"dimensioni_mm": [
+486.4957332611084,
+25.958335027098656,
+744.1554069519043
+],
+"nome": "Ornate Mirror 01",
+"poligoni": 14246,
+"tag": [
+"decor",
+"decoration",
+"ornate",
+"fancy",
+"wealthy",
+"mansion",
+"manor",
+"vintage",
+"victorian",
+"floral",
+"gold",
+"mirror"
+]
+},
+"ornate_war_hammer": {
+"categorie": [
+"props"
+],
+"dimensioni_mm": [
+144.12574470043182,
+34.812603145837784,
+711.177721619606
+],
+"nome": "Ornate War Hammer",
+"poligoni": 5192,
+"tag": [
+"weapon",
+"fantasy",
+"battle",
+"combat",
+"knight",
+"medieval",
+"iron",
+"seige",
+"war",
+"steel",
+"crusades",
+"silver",
+"historic"
+]
+},
+"othonna_cerarioides": {
+"categorie": [
+"nature",
+"plants",
+"trees",
+"collection: namaqualand"
+],
+"dimensioni_mm": [
+3970.029592514038,
+1798.905849456787,
+1969.5868343114853
+],
+"nome": "Othonna Cerarioides",
+"poligoni": 651641,
+"tag": [
+"karoo",
+"south africa",
+"succulent",
+"bush",
+"shrub",
+"botany",
+"green",
+"leaf"
+]
+},
+"outdoor_table_chair_set_01": {
+"categorie": [
+"furniture",
+"seating"
+],
+"dimensioni_mm": [
+776.0046124458313,
+1831.0473561286926,
+858.5816156119108
+],
+"nome": "Outdoor Table Chair Set 01",
+"poligoni": 9828,
+"tag": [
+"outdoor",
+"foldable",
+"folding",
+"seating",
+"coffee",
+"diner",
+"street",
+"urban",
+"deli",
+"wood",
+"city",
+"cafe"
+]
+},
+"overhead_crane": {
+"categorie": [
+"collection: project_lighthouse",
+"industrial",
+"tools"
+],
+"dimensioni_mm": [
+12491.660118103027,
+4000.000476837158,
+5132.581472396851
+],
+"nome": "Overhead Crane",
+"poligoni": 89964,
+"tag": [
+"gantry",
+"machinery",
+"shipyard",
+"dock",
+"transport container",
+"hoist",
+"wheels",
+"winch",
+"pully"
+]
+},
+"pachira_aquatica_01": {
+"categorie": [
+"plants",
+"nature",
+"collection: smugglers_cove"
+],
+"dimensioni_mm": [
+6869.021415710449,
+997.0420598983765,
+1904.0735084563494
+],
+"nome": "Pachira Aquatica 01",
+"poligoni": 76914,
+"tag": [
+"nature",
+"plant",
+"shrub",
+"leaves",
+"forest",
+"jungle",
+"outdoor",
+"bush",
+"green",
+"leaf",
+"botany"
+]
+},
+"painted_wooden_bench": {
+"categorie": [
+"furniture",
+"seating"
+],
+"dimensioni_mm": [
+1164.9435758590698,
+496.5430945158005,
+889.2914750613272
+],
+"nome": "Painted Wooden Bench",
+"poligoni": 630,
+"tag": [
+"vintage",
+"old",
+"wooden",
+"worn",
+"antique",
+"farmhouse",
+"aged",
+"rustic",
+"small",
+"seat",
+"stool"
+]
+},
+"painted_wooden_cabinet": {
+"categorie": [
+"furniture",
+"shelves"
+],
+"dimensioni_mm": [
+1194.674551486969,
+616.6356205940247,
+1181.8697528215125
+],
+"nome": "Painted Wooden Cabinet",
+"poligoni": 2227,
+"tag": [
+"old",
+"worn",
+"antique",
+"wooden",
+"vintage",
+"colonial",
+"farmhouse",
+"storage",
+"aged",
+"rustic",
+"weathered"
+]
+},
+"painted_wooden_cabinet_02": {
+"categorie": [
+"furniture",
+"shelves"
+],
+"dimensioni_mm": [
+996.9334602355957,
+729.429692029953,
+2568.572537857108
+],
+"nome": "Painted Wooden Cabinet 02",
+"poligoni": 966,
+"tag": [
+"storage",
+"cabinet",
+"wood",
+"vintage",
+"rustic",
+"worn",
+"carpentry",
+"aged",
+"bookcase"
+]
+},
+"painted_wooden_chair_01": {
+"categorie": [
+"furniture",
+"seating"
+],
+"dimensioni_mm": [
+431.75144493579865,
+539.8241728544235,
+956.4821355743334
+],
+"nome": "Painted Wooden Chair 01",
+"poligoni": 724,
+"tag": [
+"chair",
+"wood",
+"painted",
+"farmhouse",
+"dining",
+"diner",
+"american",
+"kitchen"
+]
+},
+"painted_wooden_chair_02": {
+"categorie": [
+"furniture",
+"seating"
+],
+"dimensioni_mm": [
+639.3895149230957,
+662.097692489624,
+1263.7710904044432
+],
+"nome": "Painted Wooden Chair 02",
+"poligoni": 1246,
+"tag": [
+"old",
+"wooden",
+"vintage",
+"antique",
+"farmhouse",
+"seat",
+"dining",
+"chair"
+]
+},
+"painted_wooden_nightstand": {
+"categorie": [
+"furniture",
+"table"
+],
+"dimensioni_mm": [
+504.5645833015442,
+508.71600210666656,
+615.5209708555738
+],
+"nome": "Painted Wooden Nightstand",
+"poligoni": 470,
+"tag": [
+"old",
+"wooden",
+"worn",
+"vintage",
+"antique",
+"aged",
+"bedside",
+"bedroom",
+"night",
+"table"
+]
+},
+"painted_wooden_shelves": {
+"categorie": [
+"furniture",
+"shelves"
+],
+"dimensioni_mm": [
+511.115700006485,
+367.09491535348883,
+1125.072093855124
+],
+"nome": "Painted Wooden Shelves",
+"poligoni": 524,
+"tag": [
+"old",
+"wooden",
+"worn",
+"vintage",
+"farmhouse",
+"aged"
+]
+},
+"painted_wooden_sofa": {
+"categorie": [
+"furniture",
+"seating"
+],
+"dimensioni_mm": [
+2451.7107009887695,
+787.3162031173706,
+1281.0335159301758
+],
+"nome": "Painted Wooden Sofa",
+"poligoni": 5826,
+"tag": [
+"chair",
+"outdoor",
+"couch",
+"wooden",
+"vintage",
+"aged"
+]
+},
+"painted_wooden_stool": {
+"categorie": [
+"seating",
+"furniture"
+],
+"dimensioni_mm": [
+384.83743369579315,
+406.07430040836334,
+578.9150850614533
+],
+"nome": "Painted Wooden Stool",
+"poligoni": 676,
+"tag": [
+"painted",
+"worn",
+"old",
+"antique",
+"vintage",
+"farmhouse",
+"rustic",
+"carpentry",
+"aged",
+"chair"
+]
+},
+"painted_wooden_table": {
+"categorie": [
+"furniture",
+"table"
+],
+"dimensioni_mm": [
+2405.603766441345,
+1136.9839906692505,
+958.6371183395386
+],
+"nome": "Painted Wooden Table",
+"poligoni": 600,
+"tag": [
+"old",
+"wooden",
+"vintage",
+"farmhouse",
+"aged",
+"worn",
+"carpentry"
+]
+},
+"pastic_torch_6v": {
+"categorie": [
+"collection: project_lighthouse",
+"lighting",
+"tools",
+"electronics",
+"props"
+],
+"dimensioni_mm": [
+136.91972941160202,
+224.21807795763016,
+141.70978963375092
+],
+"nome": "Plastic Torch 6V",
+"poligoni": 4352,
+"tag": [
+"plastic",
+"lighting",
+"flashlight",
+"spotlight"
+]
+},
+"periwinkle_plant": {
+"categorie": [
+"nature",
+"ground cover",
+"plants",
+"flowers"
+],
+"dimensioni_mm": [
+1248.7584352493286,
+334.93997156620026,
+410.85796465631574
+],
+"nome": "Periwinkle Plant",
+"poligoni": 67388,
+"tag": [
+"small flowers",
+"shrub",
+"bush",
+"spring",
+"botanical",
+"garden plant",
+"foliage",
+"leaf",
+"leaves",
+"meadow",
+"wildflower"
+]
+},
+"picke_dirty_01": {
+"categorie": [
+"props",
+"tools",
+"collection: the_shed"
+],
+"dimensioni_mm": [
+549.7921109199524,
+69.11072321236134,
+1115.6014502048492
+],
+"nome": "Picke Dirty 01",
+"poligoni": 6196,
+"tag": [
+"old",
+"vintage",
+"wood",
+"wooden",
+"worn",
+"farmhouse",
+"metal",
+"workshop",
+"shed",
+"garage",
+"digging",
+"mining",
+"mine",
+"gardening",
+"garden"
+]
+},
+"pine_roots": {
+"categorie": [
+"plants",
+"nature",
+"ground cover",
+"collection: pine_forest"
+],
+"dimensioni_mm": [
+1772.075891494751,
+1893.0891752243042,
+154.80004251003265
+],
+"nome": "Pine Roots",
+"poligoni": 162693,
+"tag": [
+"pine",
+"roots",
+"tree",
+"forest",
+"needles",
+"leaf",
+"nature",
+"natural",
+"plant",
+"jungle",
+"foliage",
+"outdoor",
+"branches",
+"dry",
+"dead",
+"ground",
+"dirt",
+"woodland"
+]
+},
+"pine_sapling_medium": {
+"categorie": [
+"nature",
+"plants",
+"trees",
+"collection: pine_forest"
+],
+"dimensioni_mm": [
+22793.24197769165,
+5462.29362487793,
+11513.279110193253
+],
+"nome": "Pine Sapling Medium",
+"poligoni": 9784670,
+"tag": [
+"woodland",
+"needles",
+"pine",
+"tree",
+"sapling",
+"branches",
+"environment",
+"coniferous",
+"plants",
+"trunk",
+"bark",
+"geometry nodes",
+"foliage",
+"natural",
+"evergreen",
+"twig",
+"forest",
+"vegetation",
+"forest floor"
+]
+},
+"pine_sapling_small": {
+"categorie": [
+"nature",
+"plants",
+"trees",
+"collection: pine_forest"
+],
+"dimensioni_mm": [
+2642.0599818229675,
+770.349532365799,
+1298.9574084058404
+],
+"nome": "Pine Sapling Small",
+"poligoni": 398144,
+"tag": [
+"needles",
+"tree",
+"pine",
+"woodland",
+"branches",
+"environment",
+"coniferous",
+"plants",
+"sapling",
+"trunk",
+"bark",
+"foliage",
+"natural",
+"forest",
+"vegetation",
+"evergreen",
+"forest floor"
+]
+},
+"pine_tree_01": {
+"categorie": [
+"nature",
+"plants",
+"trees",
+"collection: pine_forest"
+],
+"dimensioni_mm": [
+26719.930171966553,
+1300.55171251297,
+17577.758572995663
+],
+"nome": "Pine Tree 01",
+"poligoni": 17427094,
+"tag": [
+"pine",
+"tree",
+"needles",
+"branches",
+"woodland",
+"coniferous",
+"plants",
+"geometry nodes",
+"foliage",
+"natural",
+"trunk",
+"bark",
+"environment",
+"vegetation",
+"evergreen",
+"forest"
+]
+},
+"pipe_wrench": {
+"categorie": [
+"industrial",
+"tools",
+"collection: hidden_alley"
+],
+"dimensioni_mm": [
+83.97936820983887,
+34.34488922357559,
+404.66518700122833
+],
+"nome": "Pipe Wrench",
+"poligoni": 10746,
+"tag": [
+"wrench",
+"garage",
+"workshop",
+"construction",
+"plumbing",
+"automotive",
+"used",
+"mechanics toolbox",
+"hardware",
+"adjustable wrench",
+"monkey wrench",
+"spanner"
+]
+},
+"planter_box_01": {
+"categorie": [
+"decorative",
+"containers",
+"potted plants",
+"collection: the_shed"
+],
+"dimensioni_mm": [
+912.6113951206207,
+413.6679768562317,
+424.96823612600565
+],
+"nome": "Planter Box 01",
+"poligoni": 8094,
+"tag": [
+"old",
+"wooden",
+"wood",
+"farmhouse",
+"shed",
+"outdoor",
+"gardening",
+"greenhouse",
+"landscaping",
+"garden",
+"farm",
+"planter",
+"flower box",
+"planters"
+]
+},
+"planter_box_02": {
+"categorie": [
+"containers",
+"decorative",
+"potted plants",
+"collection: the_shed"
+],
+"dimensioni_mm": [
+1251.5764236450195,
+467.18619763851166,
+453.37272534379736
+],
+"nome": "Planter Box 02",
+"poligoni": 10944,
+"tag": [
+"old",
+"wooden",
+"wood",
+"worn",
+"shed",
+"outdoor",
+"gardening",
+"farm",
+"greenhouse",
+"landscaping",
+"farmhouse",
+"garden",
+"flower box",
+"planters"
+]
+},
+"planter_box_03": {
+"categorie": [
+"containers",
+"decorative",
+"potted plants",
+"collection: the_shed"
+],
+"dimensioni_mm": [
+914.3069684505463,
+655.5436849594116,
+855.1032352806942
+],
+"nome": "Planter Box 03",
+"poligoni": 13112,
+"tag": [
+"old",
+"wooden",
+"wood",
+"shed",
+"farm",
+"gardening",
+"landscaping",
+"garden",
+"greenhouse",
+"planters",
+"farmhouse",
+"outdoor",
+"flower box"
+]
+},
+"planter_pot_clay": {
+"categorie": [
+"containers",
+"vases",
+"collection: the_shed"
+],
+"dimensioni_mm": [
+265.9967243671417,
+263.4630501270294,
+221.87034250237048
+],
+"nome": "Planter Pot Clay",
+"poligoni": 3080,
+"tag": [
+"outdoor",
+"mossy",
+"dirty",
+"used",
+"worn",
+"shed",
+"garden",
+"gardening",
+"farmhouse",
+"greenhouse",
+"landscaping"
+]
+},
+"plastic_bottle_gallon": {
+"categorie": [
+"containers",
+"collection: the_shed"
+],
+"dimensioni_mm": [
+166.28039628267288,
+126.3512596487999,
+274.4927511084825
+],
+"nome": "Plastic Bottle Gallon",
+"poligoni": 13728,
+"tag": [
+"rubbish",
+"dirty",
+"shed",
+"outdoor",
+"trash",
+"clutter",
+"garage",
+"old",
+"plastic",
+"carton",
+"milk"
+]
+},
+"plastic_broom": {
+"categorie": [
+"collection: project_lighthouse",
+"props",
+"tools"
+],
+"dimensioni_mm": [
+416.39260947704315,
+566.5929764509201,
+1197.52332335338
+],
+"nome": "Plastic Broom",
+"poligoni": 18736,
+"tag": [
+"cleaning",
+"janitorial",
+"red",
+"housekeeping"
+]
+},
+"plastic_container": {
+"categorie": [
+"collection: project_lighthouse",
+"props",
+"containers"
+],
+"dimensioni_mm": [
+895.0786888599396,
+626.3633966445923,
+429.68997440377774
+],
+"nome": "Plastic Container",
+"poligoni": 4070,
+"tag": [
+"storage bin",
+"rectangular bin",
+"storage",
+"box",
+"crate",
+"stackable"
+]
+},
+"plastic_crate_01": {
+"categorie": [
+"collection: project_lighthouse",
+"props",
+"containers"
+],
+"dimensioni_mm": [
+298.00063371658325,
+408.00413489341736,
+264.1694247722626
+],
+"nome": "Plastic Crate 01",
+"poligoni": 18320,
+"tag": [
+"beverage crate",
+"milk crate",
+"storage",
+"crate",
+"box",
+"garage",
+"workshop",
+"retail"
+]
+},
+"plastic_crate_02": {
+"categorie": [
+"collection: project_lighthouse",
+"props",
+"containers"
+],
+"dimensioni_mm": [
+505.501389503479,
+405.5013954639435,
+254.08916175365448
+],
+"nome": "Plastic Crate 02",
+"poligoni": 5840,
+"tag": [
+"plastic",
+"crate",
+"stackable",
+"industrial",
+"storage",
+"utility",
+"warehouse",
+"retail",
+"storage bin"
+]
+},
+"plastic_crate_03": {
+"categorie": [
+"collection: project_lighthouse",
+"containers",
+"industrial"
+],
+"dimensioni_mm": [
+481.1011254787445,
+264.971524477005,
+265.92550610776743
+],
+"nome": "Plastic Crate 03",
+"poligoni": 21740,
+"tag": [
+"plastic",
+"crate",
+"stackable",
+"crate",
+"aged",
+"sun damaged",
+"storage",
+"distressed",
+"rectangular bin"
+]
+},
+"plastic_jerrycan": {
+"categorie": [
+"collection: project_lighthouse",
+"props",
+"containers"
+],
+"dimensioni_mm": [
+268.02290976047516,
+340.8927023410797,
+318.4274435043335
+],
+"nome": "Plastic Jerrycan",
+"poligoni": 7348,
+"tag": [
+"dirty",
+"worn",
+"plastic",
+"fuel",
+"petrol",
+"gasoline",
+"gas",
+"red"
+]
+},
+"plastic_monobloc_chair_01": {
+"categorie": [
+"furniture",
+"seating",
+"collection: the_shed"
+],
+"dimensioni_mm": [
+641.8611407279968,
+627.5919079780579,
+879.8411972820759
+],
+"nome": "Plastic Monobloc Chair 01",
+"poligoni": 3356,
+"tag": [
+"plastic",
+"dirty",
+"old",
+"monobloc",
+"outdoor",
+"cheap",
+"shed"
+]
+},
+"plastic_thermos": {
+"categorie": [
+"collection: project_lighthouse",
+"props",
+"containers"
+],
+"dimensioni_mm": [
+140.56628569960594,
+109.29546505212784,
+320.4147517681122
+],
+"nome": "Plastic Thermos",
+"poligoni": 5514,
+"tag": [
+"clean",
+"green",
+"70s",
+"plastic",
+"vintage",
+"flask"
+]
+},
+"pliers": {
+"categorie": [
+"collection: project_lighthouse",
+"tools",
+"props",
+"industrial"
+],
+"dimensioni_mm": [
+55.28969317674637,
+17.9854528978467,
+179.78323251008987
+],
+"nome": "Pliers",
+"poligoni": 4540,
+"tag": [
+"rusted",
+"plastic",
+"metal",
+"combination pliers",
+"wire cutters",
+"hand tool"
+]
+},
+"plunger": {
+"categorie": [
+"tools"
+],
+"dimensioni_mm": [
+172.05405235290527,
+172.05404490232468,
+421.1148992180824
+],
+"nome": "Plunger",
+"poligoni": 3278,
+"tag": [
+"bathroom",
+"garage",
+"cleaning",
+"cleaning supplies",
+"janitorial",
+"sanitation",
+"toilet",
+"plumbing",
+"pipe cleaner",
+"plumber"
+]
+},
+"pocket_watch": {
+"categorie": [
+"collection: project_lighthouse",
+"props"
+],
+"dimensioni_mm": [
+57.678161188960075,
+15.626686625182629,
+75.5948256701231
+],
+"nome": "Pocket Watch",
+"poligoni": 15615,
+"tag": [
+"antique",
+"brass",
+"ornate",
+"gold",
+"vintage",
+"watch",
+"timepiece",
+"watchface",
+"time"
+]
+},
+"portable_cassette_player": {
+"categorie": [
+"collection: project_lighthouse",
+"props",
+"electronics"
+],
+"dimensioni_mm": [
+172.25529998540878,
+39.671553298830986,
+130.30561804771423
+],
+"nome": "Portable Cassette Player",
+"poligoni": 13307,
+"tag": [
+"old",
+"vintage",
+"cassette tape",
+"tape",
+"retro",
+"analog",
+"walkman"
+]
+},
+"portable_generator": {
+"categorie": [
+"industrial",
+"appliances",
+"collection: project_lighthouse"
+],
+"dimensioni_mm": [
+818.3408081531525,
+564.0000104904175,
+576.9232391612604
+],
+"nome": "Portable Generator",
+"poligoni": 26419,
+"tag": [
+"gasoline",
+"backup power",
+"construction equipment",
+"power generator",
+"petrol",
+"garage",
+"power",
+"engine"
+]
+},
+"portable_searchlight": {
+"categorie": [
+"collection: project_lighthouse",
+"lighting",
+"electronics",
+"tools",
+"props"
+],
+"dimensioni_mm": [
+165.27599096298218,
+253.3835619688034,
+185.3470355272293
+],
+"nome": "Portable Searchlight",
+"poligoni": 18802,
+"tag": [
+"flashlight",
+"searchlight",
+"plastic",
+"lighting"
+]
+},
+"portable_welding_cart": {
+"categorie": [
+"collection: project_lighthouse",
+"industrial",
+"containers"
+],
+"dimensioni_mm": [
+838.2881879806519,
+654.903918504715,
+1563.1701946258545
+],
+"nome": "Portable Welding Cart",
+"poligoni": 29418,
+"tag": [
+"fuel",
+"welding",
+"cart",
+"gas torch",
+"oxygen tank",
+"acetylene tank",
+"hand truck",
+"cylinder",
+"hoses"
+]
+},
+"postcard_set_01": {
+"categorie": [
+"props"
+],
+"dimensioni_mm": [
+676.6785830259323,
+0.13652443885803223,
+544.9999868869781
+],
+"nome": "Postcard Set 01",
+"poligoni": 2720,
+"tag": [
+"scatter",
+"paper",
+"cards",
+"notes",
+"travel",
+"post",
+"mail",
+"card",
+"tour"
+]
+},
+"pot_enamel_01": {
+"categorie": [
+"props",
+"decorative",
+"dishes"
+],
+"dimensioni_mm": [
+262.93012499809265,
+180.4744154214859,
+178.26278507709503
+],
+"nome": "Pot Enamel 01",
+"poligoni": 11416,
+"tag": [
+"pot",
+"container",
+"cooking",
+"cookware",
+"kitchen",
+"enamel",
+"crockery",
+"cuisine"
+]
+},
+"potted_plant_01": {
+"categorie": [
+"decorative",
+"plants",
+"potted plants",
+"nature"
+],
+"dimensioni_mm": [
+588.9185070991516,
+636.6117596626282,
+1350.7787585258484
+],
+"nome": "Potted Plant 01",
+"poligoni": 96030,
+"tag": [
+"potplant",
+"plant",
+"terracotta",
+"pot",
+"vase",
+"medium",
+"leaf",
+"green"
+]
+},
+"potted_plant_02": {
+"categorie": [
+"decorative",
+"plants",
+"potted plants",
+"nature"
+],
+"dimensioni_mm": [
+701.1570334434509,
+657.3865860700607,
+841.1787391305552
+],
+"nome": "Potted Plant 02",
+"poligoni": 69806,
+"tag": [
+"potplant",
+"plant",
+"pot",
+"vase",
+"medium",
+"leaf",
+"green",
+"terracotta"
+]
+},
+"potted_plant_04": {
+"categorie": [
+"decorative",
+"plants",
+"potted plants",
+"succulent",
+"nature"
+],
+"dimensioni_mm": [
+170.27407884597778,
+185.9453096985817,
+267.5964875961654
+],
+"nome": "Potted Plant 04",
+"poligoni": 6097,
+"tag": [
+"cactus",
+"aloe",
+"succulent",
+"potplant",
+"small",
+"pot",
+"plant",
+"decor"
+]
+},
+"power_box_01": {
+"categorie": [
+"industrial",
+"props",
+"electronics",
+"tools",
+"rigged",
+"collection: the_shed"
+],
+"dimensioni_mm": [
+377.4920701980591,
+418.45703125,
+503.142774105072
+],
+"nome": "Power Box 01",
+"poligoni": 21272,
+"tag": [
+"box",
+"electrical",
+"power",
+"wiring",
+"db board",
+"circuit",
+"breakers",
+"board",
+"switch",
+"prop",
+"modern",
+"damaged",
+"utility",
+"infrastructure"
+]
+},
+"projector_screen": {
+"categorie": [
+"collection: project_lighthouse",
+"office"
+],
+"dimensioni_mm": [
+1093.5667157173157,
+915.8007800579071,
+1799.4642853736877
+],
+"nome": "Projector Screen",
+"poligoni": 8727,
+"tag": [
+"tripod",
+"film",
+"presentation",
+"projection",
+"roll-up",
+"conference"
+]
+},
+"propane_tank": {
+"categorie": [
+"collection: project_lighthouse",
+"props",
+"industrial"
+],
+"dimensioni_mm": [
+337.3616933822632,
+337.3616933822632,
+553.7950303405523
+],
+"nome": "Propane Tank",
+"poligoni": 5238,
+"tag": [
+"worn",
+"metal",
+"red barrel",
+"scratched",
+"cylinder",
+"lpg",
+"fuel"
+]
+},
+"propane_torch": {
+"categorie": [
+"collection: project_lighthouse",
+"props",
+"tools"
+],
+"dimensioni_mm": [
+68.02495755255222,
+57.90913663804531,
+328.1470835208893
+],
+"nome": "Propane Torch",
+"poligoni": 4848,
+"tag": [
+"garage",
+"workshop",
+"maintenance",
+"propane torch",
+"gas torch",
+"welding",
+"automotive",
+"repair shop",
+"construction",
+"industrial"
+]
+},
+"propane_torch_02": {
+"categorie": [
+"collection: project_lighthouse",
+"industrial",
+"tools",
+"props"
+],
+"dimensioni_mm": [
+72.4029615521431,
+67.73324310779572,
+399.8526966591891
+],
+"nome": "Propane Torch 02",
+"poligoni": 2960,
+"tag": [
+"fuel",
+"garage",
+"workshop",
+"maintenance",
+"gas torch",
+"automotive",
+"repair shop",
+"construction"
+]
+},
+"pull_chain_light_socket": {
+"categorie": [
+"lighting",
+"collection: hidden_alley"
+],
+"dimensioni_mm": [
+110.2633886039257,
+110.2633848786354,
+165.41572205081323
+],
+"nome": "Pull Chain Light Socket",
+"poligoni": 10902,
+"tag": [
+"light",
+"fitting",
+"socket",
+"bulb",
+"fixture",
+"ceiling",
+"lamp",
+"chord"
+]
+},
+"quiver_tree_01": {
+"categorie": [
+"nature",
+"plants",
+"trees",
+"collection: namaqualand"
+],
+"dimensioni_mm": [
+1181.235671043396,
+968.5054421424866,
+2715.5103981494904
+],
+"nome": "Quiver Tree 01",
+"poligoni": 269522,
+"tag": [
+"karoo",
+"south africa",
+"desert",
+"succulent",
+"aloe"
+]
+},
+"quiver_tree_02": {
+"categorie": [
+"nature",
+"trees",
+"plants",
+"collection: namaqualand"
+],
+"dimensioni_mm": [
+872.0614314079285,
+880.8198273181915,
+1468.88018399477
+],
+"nome": "Quiver Tree 02",
+"poligoni": 153887,
+"tag": [
+"south africa",
+"karoo",
+"succulent",
+"aloe"
+]
+},
+"ratchet_wrench": {
+"categorie": [
+"props",
+"tools",
+"industrial",
+"collection: the_shed",
+"rigged"
+],
+"dimensioni_mm": [
+44.089458882808685,
+43.394144624471664,
+246.20076268911362
+],
+"nome": "Ratchet Wrench",
+"poligoni": 8796,
+"tag": [
+"metal",
+"shed",
+"workshop",
+"construction",
+"garage",
+"mechanic",
+"wrench",
+"nuts",
+"bolts"
+]
+},
+"retro_multimeter": {
+"categorie": [
+"collection: project_lighthouse",
+"electronics",
+"industrial",
+"tools",
+"instrument",
+"props"
+],
+"dimensioni_mm": [
+215.97424149513245,
+202.6422657072544,
+278.6375405266881
+],
+"nome": "Retro Multimeter",
+"poligoni": 13356,
+"tag": [
+"old",
+"vintage",
+"antique",
+"analog",
+"engineering",
+"voltmeter",
+"ammeter"
+]
+},
+"rock_07": {
+"categorie": [
+"rocks",
+"nature",
+"collection: verdant_trail"
+],
+"dimensioni_mm": [
+169.10234838724136,
+320.554181933403,
+143.77418451476842
+],
+"nome": "Rock 07",
+"poligoni": 27830,
+"tag": [
+"rock",
+"stones",
+"landscape",
+"geology",
+"formation",
+"weathered",
+"boulder"
+]
+},
+"rock_09": {
+"categorie": [
+"nature",
+"rocks",
+"collection: verdant_trail"
+],
+"dimensioni_mm": [
+74.13503155112267,
+144.81624960899353,
+32.94885210925713
+],
+"nome": "Rock 09",
+"poligoni": 23280,
+"tag": [
+"rock",
+"landscape",
+"geology",
+"formation",
+"weathered",
+"stone",
+"dirt",
+"boulder",
+"terrain"
+]
+},
+"rock_face_01": {
+"categorie": [
+"rocks",
+"nature",
+"collection: verdant_trail"
+],
+"dimensioni_mm": [
+7108.232021331787,
+5624.304533004761,
+4980.4371148347855
+],
+"nome": "Rock Face 01",
+"poligoni": 20174,
+"tag": [
+"cliff",
+"landscape",
+"rock face",
+"rock",
+"formation",
+"geology",
+"weathered",
+"lichen",
+"rugged",
+"outdoors",
+"rocky surface",
+"environment",
+"natural"
+]
+},
+"rock_face_02": {
+"categorie": [
+"rocks",
+"nature",
+"collection: verdant_trail"
+],
+"dimensioni_mm": [
+4870.411515235901,
+3472.859501838684,
+4734.235167503357
+],
+"nome": "Rock Face 02",
+"poligoni": 29566,
+"tag": [
+"cliff",
+"landscape",
+"rock face",
+"rock",
+"formation",
+"geology",
+"rocks",
+"weathered",
+"lichen",
+"rugged",
+"outdoors",
+"natural",
+"environment",
+"rocky surface"
+]
+},
+"rock_moss_set_01": {
+"categorie": [
+"rocks",
+"nature",
+"collection: pine_forest"
+],
+"dimensioni_mm": [
+8004.603862762451,
+6948.764801025391,
+1768.319845199585
+],
+"nome": "Rock Moss Set 01",
+"poligoni": 63127,
+"tag": [
+"rocks",
+"outdoor",
+"stones",
+"pebbles",
+"rock",
+"dirt"
+]
+},
+"rock_moss_set_02": {
+"categorie": [
+"rocks",
+"nature",
+"collection: pine_forest"
+],
+"dimensioni_mm": [
+8278.153419494629,
+3410.416603088379,
+1368.368238210678
+],
+"nome": "Rock Moss Set 02",
+"poligoni": 57647,
+"tag": [
+"rocks",
+"outdoor",
+"stones",
+"pebbles",
+"rock",
+"dirt"
+]
+},
+"rollershutter_door": {
+"categorie": [
+"structures",
+"industrial",
+"buildings",
+"collection: hidden_alley"
+],
+"dimensioni_mm": [
+3079.9999833106995,
+300.0857066363096,
+2399.973489344575
+],
+"nome": "Rollershutter Door",
+"poligoni": 1104,
+"tag": [
+"urban",
+"security shutter",
+"garage door",
+"shutter door",
+"warehouse door",
+"commercial",
+"roller garage door"
+]
+},
+"rollershutter_window_01": {
+"categorie": [
+"structures",
+"industrial",
+"buildings",
+"collection: hidden_alley"
+],
+"dimensioni_mm": [
+5100.001215934753,
+300.0859081512317,
+1850.7245529547163
+],
+"nome": "Rollershutter Window 01",
+"poligoni": 1104,
+"tag": [
+"urban",
+"security",
+"commercial",
+"shutters",
+"garage door",
+"security shutter",
+"warehouse door",
+"roller garage door"
+]
+},
+"rollershutter_window_02": {
+"categorie": [
+"industrial",
+"structures",
+"buildings",
+"collection: hidden_alley"
+],
+"dimensioni_mm": [
+3600.000321865082,
+168.07068698108196,
+1560.8682408933419
+],
+"nome": "Rollershutter Window 02",
+"poligoni": 1120,
+"tag": [
+"urban",
+"security shutter",
+"garage door",
+"roller garage door",
+"commercial",
+"warehouse door"
+]
+},
+"rollershutter_window_03": {
+"categorie": [
+"industrial",
+"buildings",
+"structures",
+"collection: hidden_alley"
+],
+"dimensioni_mm": [
+2976.2515127658844,
+153.08569185435772,
+1546.278931200959
+],
+"nome": "Rollershutter Window 03",
+"poligoni": 1120,
+"tag": [
+"roller garage door",
+"shutter door",
+"security shutter",
+"warehouse door",
+"shutters",
+"garage door"
+]
+},
+"root_cluster_01": {
+"categorie": [
+"nature",
+"collection: verdant_trail",
+"plants",
+"ground cover"
+],
+"dimensioni_mm": [
+4122.708559036255,
+2682.776689529419,
+1509.2801377177238
+],
+"nome": "Root Cluster 01",
+"poligoni": 225261,
+"tag": [
+"root",
+"tree",
+"forest",
+"foliage",
+"bark",
+"nature",
+"plant",
+"leaves",
+"environment"
+]
+},
+"root_cluster_02": {
+"categorie": [
+"collection: verdant_trail",
+"nature",
+"ground cover"
+],
+"dimensioni_mm": [
+2382.428765296936,
+2705.4203748703003,
+198.60657304525375
+],
+"nome": "Root Cluster 02",
+"poligoni": 339641,
+"tag": [
+"roots",
+"dead tree",
+"forest",
+"nature",
+"natural",
+"plant",
+"ground",
+"forest floor"
+]
+},
+"round_spectacles": {
+"categorie": [
+"collection: project_lighthouse",
+"props"
+],
+"dimensioni_mm": [
+157.81423449516296,
+149.03121185489,
+46.26242816448212
+],
+"nome": "Round Spectacles",
+"poligoni": 11810,
+"tag": [
+"vintage",
+"round frame",
+"retro",
+"eyewear",
+"accessories",
+"glasses"
+]
+},
+"round_wooden_table_01": {
+"categorie": [
+"furniture",
+"table"
+],
+"dimensioni_mm": [
+1399.3489742279053,
+1399.3489146232605,
+1005.0213932991028
+],
+"nome": "Round Wooden Table 01",
+"poligoni": 8640,
+"tag": [
+"vintage",
+"wooden",
+"wood",
+"polish",
+"circle",
+"dark",
+"old"
+]
+},
+"round_wooden_table_02": {
+"categorie": [
+"furniture",
+"table"
+],
+"dimensioni_mm": [
+796.1780428886414,
+796.1780428886414,
+746.0266395536621
+],
+"nome": "Round Wooden Table 02",
+"poligoni": 4254,
+"tag": [
+"antique",
+"vintage",
+"wooden",
+"traditional",
+"circle",
+"lounge",
+"dining"
+]
+},
+"rubber_boots": {
+"categorie": [
+"collection: project_lighthouse",
+"props"
+],
+"dimensioni_mm": [
+891.4438188076019,
+269.26907896995544,
+373.04434180259705
+],
+"nome": "Rubber Boots",
+"poligoni": 35004,
+"tag": [
+"clothing",
+"shoes",
+"outdoor",
+"waterproof",
+"wellies",
+"rubber",
+"workwear",
+"utility",
+"garden",
+"greenhouse",
+"gardening",
+"landscaping"
+]
+},
+"rubber_duck_toy": {
+"categorie": [
+"props",
+"decorative",
+"collection: the_shed"
+],
+"dimensioni_mm": [
+213.5048285126686,
+300.00218749046326,
+285.52286326885223
+],
+"nome": "Rubber Duck Toy",
+"poligoni": 4288,
+"tag": [
+"shed",
+"toy",
+"bathroom",
+"child",
+"home",
+"fun",
+"kids",
+"play",
+"float",
+"plastic",
+"cute",
+"animal"
+]
+},
+"russian_food_cans_01": {
+"categorie": [
+"containers",
+"props",
+"food"
+],
+"dimensioni_mm": [
+142.3535794019699,
+46.203918755054474,
+84.89999175071716
+],
+"nome": "Russian Food Cans 01",
+"poligoni": 1348,
+"tag": [
+"russian",
+"food",
+"culinary",
+"cooking",
+"pantry",
+"tuna",
+"can"
+]
+},
+"rusted_hacksaw": {
+"categorie": [
+"collection: project_lighthouse",
+"tools",
+"props"
+],
+"dimensioni_mm": [
+496.3712692260742,
+32.82591328024864,
+109.38195511698723
+],
+"nome": "Rusted Hacksaw",
+"poligoni": 6546,
+"tag": [
+"rusted",
+"corroded",
+"weathered",
+"metal",
+"saw",
+"woodwork"
+]
+},
+"rusted_spade_01": {
+"categorie": [
+"tools",
+"props",
+"collection: the_shed"
+],
+"dimensioni_mm": [
+168.1148111820221,
+45.56426405906677,
+1100.9047627449036
+],
+"nome": "Rusted Spade 01",
+"poligoni": 11436,
+"tag": [
+"wood",
+"old",
+"vintage",
+"wooden",
+"worn",
+"colonial",
+"farmhouse",
+"spade",
+"digging",
+"garden",
+"gardening",
+"workshop",
+"shed",
+"greenhouse",
+"farm"
+]
+},
+"rusted_wheel_rim_01": {
+"categorie": [
+"industrial",
+"props",
+"collection: hidden_alley"
+],
+"dimensioni_mm": [
+402.85147726535797,
+154.13154661655426,
+395.4814374446869
+],
+"nome": "Rusted Wheel Rim 01",
+"poligoni": 16440,
+"tag": [
+"car",
+"vehicle",
+"old",
+"junkyard",
+"scrapyard",
+"trash"
+]
+},
+"rusted_wheel_rim_02": {
+"categorie": [
+"industrial",
+"props",
+"collection: hidden_alley"
+],
+"dimensioni_mm": [
+335.4736566543579,
+121.0797056555748,
+338.25379610061646
+],
+"nome": "Rusted Wheel Rim 02",
+"poligoni": 15256,
+"tag": [
+"car",
+"vehicle",
+"old",
+"junkyard",
+"scrapyard",
+"trash"
+]
+},
+"sand_rocks_small_01": {
+"categorie": [
+"nature",
+"rocks",
+"collection: smugglers_cove",
+"collection: verdant_trail"
+],
+"dimensioni_mm": [
+4626.639604568481,
+3884.438395500183,
+536.2379923462868
+],
+"nome": "Sand Rocks Small 01",
+"poligoni": 1386500,
+"tag": [
+"sand",
+"rocks",
+"seaside",
+"shore",
+"stones",
+"pebbles",
+"shoreline",
+"coastal",
+"beach",
+"landscape",
+"geology",
+"rock"
+]
+},
+"scandinavian_masonry_heater": {
+"categorie": [
+"appliances"
+],
+"dimensioni_mm": [
+1167.6969528198242,
+1335.2788388729095,
+2360.4823132336605
+],
+"nome": "Scandinavian Masonry Heater",
+"poligoni": 9350,
+"tag": [
+"heater",
+"home heating",
+"furnace",
+"fireplace",
+"wood stove",
+"central heating"
+]
+},
+"screwdriver": {
+"categorie": [
+"collection: project_lighthouse",
+"tools",
+"props"
+],
+"dimensioni_mm": [
+27.132239192724228,
+26.709272526204586,
+209.04450863599777
+],
+"nome": "Screwdriver",
+"poligoni": 3412,
+"tag": [
+"flathead",
+"slotted",
+"worn",
+"red",
+"aged",
+"dirty",
+"hand tool"
+]
+},
+"screwdrivers_02": {
+"categorie": [
+"collection: project_lighthouse",
+"tools",
+"props"
+],
+"dimensioni_mm": [
+100.45838262885809,
+269.9327766895294,
+27.07698941230774
+],
+"nome": "Screwdrivers 02",
+"poligoni": 3548,
+"tag": [
+"vintage",
+"flathead",
+"phillips",
+"wooden-handle",
+"metal",
+"antique",
+"old"
+]
+},
+"seadogs_compass": {
+"categorie": [
+"props",
+"tools",
+"decorative",
+"collection: project_lighthouse"
+],
+"dimensioni_mm": [
+81.29258453845978,
+150.05110204219818,
+87.21982222050428
+],
+"nome": "Seadogs Compass",
+"poligoni": 11645,
+"tag": [
+"old",
+"vintage",
+"antique",
+"brass",
+"nautical",
+"compass",
+"maritime",
+"ship",
+"navigation",
+"pirates",
+"sail"
+]
+},
+"searsia_burchellii": {
+"categorie": [
+"nature",
+"trees",
+"collection: namaqualand"
+],
+"dimensioni_mm": [
+8356.36568069458,
+5062.767505645752,
+3246.9784803688526
+],
+"nome": "Searsia Burchellii",
+"poligoni": 1427042,
+"tag": [
+"karoo",
+"bush",
+"shrub",
+"large",
+"dry",
+"south africa"
+]
+},
+"searsia_lucida": {
+"categorie": [
+"nature",
+"plants",
+"trees",
+"collection: namaqualand"
+],
+"dimensioni_mm": [
+4782.970905303955,
+2844.3095684051514,
+2339.1980212181807
+],
+"nome": "Searsia Lucida",
+"poligoni": 841648,
+"tag": [
+"karoo",
+"bush",
+"shrub",
+"dry",
+"stick",
+"botany",
+"south africa"
+]
+},
+"security_camera_01": {
+"categorie": [
+"electronics",
+"appliances",
+"industrial",
+"rigged",
+"collection: hidden_alley"
+],
+"dimensioni_mm": [
+169.5517897605896,
+553.6733567714691,
+286.04651242494583
+],
+"nome": "Security Camera 01",
+"poligoni": 13571,
+"tag": [
+"cctv",
+"surveillance",
+"monitoring",
+"police",
+"security",
+"camera",
+"utility",
+"infrastructure"
+]
+},
+"security_camera_02": {
+"categorie": [
+"industrial",
+"electronics",
+"appliances",
+"rigged",
+"collection: hidden_alley"
+],
+"dimensioni_mm": [
+140.66611975431442,
+393.7917649745941,
+208.5888683795929
+],
+"nome": "Security Camera 02",
+"poligoni": 12477,
+"tag": [
+"camera",
+"surveillance",
+"monitoring",
+"cctv",
+"police",
+"security",
+"utility",
+"infrastructure"
+]
+},
+"security_light": {
+"categorie": [
+"lighting",
+"industrial",
+"collection: hidden_alley"
+],
+"dimensioni_mm": [
+323.14473390579224,
+417.2230511903763,
+530.9766530990601
+],
+"nome": "Security Light",
+"poligoni": 4668,
+"tag": [
+"outdoor",
+"exterior",
+"alleyway",
+"entrance",
+"infrastructure"
+]
+},
+"seeding_tray_01": {
+"categorie": [
+"containers",
+"collection: the_shed"
+],
+"dimensioni_mm": [
+220.20762413740158,
+220.20763158798218,
+60.76497957110405
+],
+"nome": "Seedling Tray 01",
+"poligoni": 8334,
+"tag": [
+"outdoor",
+"nature",
+"plant",
+"shed",
+"greenhouse",
+"gardening",
+"landscaping",
+"garden",
+"farm"
+]
+},
+"service_pistol": {
+"categorie": [
+"collection: project_lighthouse",
+"props",
+"weapons",
+"firearms"
+],
+"dimensioni_mm": [
+301.6076236963272,
+31.82433918118477,
+280.66837787628174
+],
+"nome": "Service Pistol",
+"poligoni": 27548,
+"tag": [
+"vintage",
+"semi-automatic",
+"metal",
+"cold war",
+"bullet",
+"gun",
+"handgun"
+]
+},
+"ship_pinnace": {
+"categorie": [
+"ships",
+"rigged",
+"collection: smugglers_cove"
+],
+"dimensioni_mm": [
+9606.00757598877,
+39788.970947265625,
+32575.069665908813
+],
+"nome": "Ship Pinnace",
+"poligoni": 183837,
+"tag": [
+"old",
+"wooden",
+"wood",
+"colonial",
+"maritime",
+"ship",
+"boat",
+"ocean",
+"sea",
+"pirates",
+"commercial",
+"sail"
+]
+},
+"shrub_01": {
+"categorie": [
+"nature",
+"plants",
+"ground cover",
+"flowers",
+"collection: verdant_trail"
+],
+"dimensioni_mm": [
+2586.938261985779,
+218.97432953119278,
+395.9742886945605
+],
+"nome": "Shrub 01",
+"poligoni": 282224,
+"tag": [
+"plant",
+"foliage",
+"nature",
+"forest",
+"leaf",
+"botany",
+"green",
+"leaves",
+"bush",
+"shrub",
+"small",
+"meadow",
+"flower",
+"floral",
+"ground cover",
+"garden",
+"environment",
+"ageratina adenophora"
+]
+},
+"shrub_02": {
+"categorie": [
+"nature",
+"plants",
+"ground cover",
+"collection: verdant_trail"
+],
+"dimensioni_mm": [
+5340.904712677002,
+2060.703456401825,
+2070.5229938030243
+],
+"nome": "Shrub 02",
+"poligoni": 52317,
+"tag": [
+"sapling",
+"vegetation",
+"environment",
+"ground cover",
+"foliage",
+"forest",
+"leaves",
+"bush",
+"jungle",
+"nature",
+"leaf",
+"plant",
+"green"
+]
+},
+"shrub_03": {
+"categorie": [
+"nature",
+"plants",
+"ground cover",
+"collection: verdant_trail"
+],
+"dimensioni_mm": [
+1366.9319450855255,
+151.20302885770798,
+402.78380597010255
+],
+"nome": "Shrub 03",
+"poligoni": 16955,
+"tag": [
+"meadow",
+"field",
+"shrub",
+"botany",
+"green",
+"nature",
+"plant",
+"leaf",
+"bush",
+"foliage",
+"small",
+"ground cover",
+"undergrowth",
+"garden",
+"flora",
+"environment",
+"vegetation"
+]
+},
+"shrub_04": {
+"categorie": [
+"nature",
+"plants",
+"ground cover",
+"collection: verdant_trail"
+],
+"dimensioni_mm": [
+746.7864416539669,
+186.9201734662056,
+280.6698549538851
+],
+"nome": "Shrub 04",
+"poligoni": 47813,
+"tag": [
+"plant",
+"shrub",
+"bush",
+"nature",
+"green",
+"leaf",
+"foliage",
+"ground cover",
+"vegetation",
+"undergrowth"
+]
+},
+"shrub_sorrel_01": {
+"categorie": [
+"plants",
+"flowers",
+"nature",
+"collection: smugglers_cove"
+],
+"dimensioni_mm": [
+352.09934413433075,
+146.4103851467371,
+58.00368043128401
+],
+"nome": "Shrub Sorrel 01",
+"poligoni": 3319,
+"tag": [
+"nature",
+"sorrel",
+"potplant",
+"bush",
+"shrub",
+"leaf",
+"leaves",
+"green",
+"small",
+"forest",
+"field",
+"floral",
+"flower"
+]
+},
+"side_table_01": {
+"categorie": [
+"furniture",
+"table"
+],
+"dimensioni_mm": [
+550.0000715255737,
+450.00001788139343,
+550.6622816901654
+],
+"nome": "Side Table 01",
+"poligoni": 2756,
+"tag": [
+"table",
+"wood",
+"minimalist",
+"modern",
+"decor",
+"living room",
+"bedroom",
+"shelf",
+"contemporary",
+"interior",
+"home",
+"wooden"
+]
+},
+"side_table_tall_01": {
+"categorie": [
+"furniture",
+"table"
+],
+"dimensioni_mm": [
+383.98271799087524,
+383.98271799087524,
+761.1514969321433
+],
+"nome": "Side Table Tall 01",
+"poligoni": 6408,
+"tag": [
+"vintage",
+"antique",
+"worn",
+"old",
+"wood",
+"side table",
+"side",
+"table"
+]
+},
+"signal_flashlight": {
+"categorie": [
+"collection: project_lighthouse",
+"props",
+"electronics"
+],
+"dimensioni_mm": [
+70.99152728915215,
+44.537635520100594,
+149.9275267124176
+],
+"nome": "Signal Flashlight",
+"poligoni": 9730,
+"tag": [
+"handheld",
+"light",
+"torch",
+"signal device",
+"portable beacon",
+"emergency signal",
+"vintage"
+]
+},
+"single_root": {
+"categorie": [
+"nature",
+"plants",
+"ground cover",
+"collection: verdant_trail"
+],
+"dimensioni_mm": [
+555.1624298095703,
+1835.9535336494446,
+178.15251648426056
+],
+"nome": "Single Root",
+"poligoni": 114424,
+"tag": [
+"roots",
+"tree",
+"forest",
+"natural",
+"nature",
+"leaf",
+"plant",
+"foliage",
+"bark",
+"forest floor",
+"environment",
+"woodland"
+]
+},
+"sledgehammer_01": {
+"categorie": [
+"props",
+"tools",
+"industrial",
+"collection: the_shed"
+],
+"dimensioni_mm": [
+208.48701149225235,
+90.47714620828629,
+1005.6212544441223
+],
+"nome": "Sledgehammer 01",
+"poligoni": 2596,
+"tag": [
+"outdoor",
+"construction",
+"hammer",
+"nails",
+"heavy",
+"shed"
+]
+},
+"small_lpg_tank": {
+"categorie": [
+"collection: project_lighthouse",
+"props",
+"industrial"
+],
+"dimensioni_mm": [
+410.0192189216614,
+409.1912806034088,
+641.9749736785434
+],
+"nome": "Small Lpg Tank",
+"poligoni": 15042,
+"tag": [
+"worn",
+"metal",
+"red barrel",
+"scratched",
+"cylinder",
+"lpg",
+"fuel",
+"propane"
+]
+},
+"small_oil_can_01": {
+"categorie": [
+"industrial",
+"tools",
+"props",
+"collection: the_shed"
+],
+"dimensioni_mm": [
+266.0944238305092,
+103.84923219680786,
+236.79310083389282
+],
+"nome": "Small Oil Can 01",
+"poligoni": 16746,
+"tag": [
+"oil",
+"fuel",
+"can",
+"dropper",
+"mechanic",
+"tools",
+"repair"
+]
+},
+"small_plastic_torch": {
+"categorie": [
+"collection: project_lighthouse",
+"tools",
+"props"
+],
+"dimensioni_mm": [
+99.77347403764725,
+227.47594863176346,
+55.05072325468063
+],
+"nome": "Small Plastic Torch",
+"poligoni": 13252,
+"tag": [
+"vintage",
+"old",
+"worn",
+"plastic",
+"flashlight"
+]
+},
+"small_wooden_table_01": {
+"categorie": [
+"furniture",
+"table"
+],
+"dimensioni_mm": [
+916.1878228187561,
+439.96262550354004,
+533.0857671797276
+],
+"nome": "Small Wooden Table 01",
+"poligoni": 3410,
+"tag": [
+"vintage",
+"wood",
+"small",
+"table",
+"wooden"
+]
+},
+"sofa_02": {
+"categorie": [
+"furniture",
+"seating"
+],
+"dimensioni_mm": [
+1807.1673512458801,
+817.7513778209686,
+709.4888985157013
+],
+"nome": "Sofa 02",
+"poligoni": 2728,
+"tag": [
+"wood",
+"furniture",
+"chair",
+"prop",
+"couch",
+"leather",
+"fabric"
+]
+},
+"sofa_03": {
+"categorie": [
+"furniture",
+"seating"
+],
+"dimensioni_mm": [
+2731.17733001709,
+925.0842034816742,
+1118.2640366605483
+],
+"nome": "Sofa 03",
+"poligoni": 8004,
+"tag": [
+"vintage",
+"chair",
+"couch",
+"seat",
+"fancy",
+"mansion",
+"manor",
+"victorian",
+"antique",
+"leather"
+]
+},
+"spinning_wheel_01": {
+"categorie": [
+"props",
+"tools"
+],
+"dimensioni_mm": [
+489.3998056650162,
+1024.8570144176483,
+966.2211883987766
+],
+"nome": "Spinning Wheel 01",
+"poligoni": 52023,
+"tag": [
+"vintage",
+"victorian",
+"loom",
+"fabric",
+"cloth",
+"yarn",
+"village",
+"wooden",
+"old"
+]
+},
+"spray_paint_bottles": {
+"categorie": [
+"props",
+"containers",
+"industrial",
+"collection: the_shed"
+],
+"dimensioni_mm": [
+158.16618502140045,
+65.64361602067947,
+228.63975167274475
+],
+"nome": "Spray Paint Bottles",
+"poligoni": 5040,
+"tag": [
+"shed",
+"cleaning",
+"garage",
+"workshop",
+"metal",
+"clutter",
+"spray",
+"can",
+"storage",
+"spray paint",
+"art",
+"graffiti",
+"aerosol",
+"art supplies",
+"painting",
+"metal can"
+]
+},
+"spray_paint_bottles_02": {
+"categorie": [
+"industrial",
+"props",
+"tools",
+"collection: hidden_alley"
+],
+"dimensioni_mm": [
+195.52983343601227,
+77.2877000272274,
+218.91105466056615
+],
+"nome": "Spray Paint Bottles 02",
+"poligoni": 6576,
+"tag": [
+"graffiti",
+"street art",
+"spray paint",
+"paint",
+"urban art"
+]
+},
+"standing_chalkboard_01": {
+"categorie": [
+"decorative"
+],
+"dimensioni_mm": [
+919.5267558097839,
+758.704662322998,
+1509.0324000189241
+],
+"nome": "Standing Chalkboard 01",
+"poligoni": 2372,
+"tag": [
+"resturant",
+"sign",
+"signage",
+"chalk",
+"board",
+"coffee",
+"workshop",
+"cafe",
+"urban",
+"deli",
+"menu"
+]
+},
+"standing_picture_frame_01": {
+"categorie": [
+"decorative"
+],
+"dimensioni_mm": [
+200.7998451590538,
+100.2768762409687,
+249.65811520814896
+],
+"nome": "Standing Picture Frame 01",
+"poligoni": 1634,
+"tag": [
+"modern",
+"minimalist",
+"clean",
+"frame",
+"photo",
+"simple",
+"art"
+]
+},
+"standing_picture_frame_02": {
+"categorie": [
+"decorative"
+],
+"dimensioni_mm": [
+216.89216047525406,
+102.28872299194336,
+266.3925290107727
+],
+"nome": "Standing Picture Frame 02",
+"poligoni": 2986,
+"tag": [
+"wood",
+"painting",
+"old",
+"art",
+"frame",
+"photo"
+]
+},
+"stationery_supplies": {
+"categorie": [
+"collection: project_lighthouse",
+"props",
+"office"
+],
+"dimensioni_mm": [
+301.8620014190674,
+83.66207033395767,
+164.34769332408905
+],
+"nome": "Stationery Supplies",
+"poligoni": 4412,
+"tag": [
+"pen",
+"pencil",
+"eraser",
+"stationery",
+"art supplies",
+"writing",
+"office",
+"desk"
+]
+},
+"steel_frame_shelves_01": {
+"categorie": [
+"furniture",
+"shelves",
+"industrial",
+"collection: the_shed"
+],
+"dimensioni_mm": [
+1097.4148511886597,
+502.1176338195801,
+2140.5010361922905
+],
+"nome": "Steel Frame Shelves 01",
+"poligoni": 4348,
+"tag": [
+"commercial",
+"modern",
+"shelf",
+"bookshelf",
+"metal",
+"wood"
+]
+},
+"steel_frame_shelves_02": {
+"categorie": [
+"furniture",
+"industrial",
+"shelves",
+"collection: the_shed"
+],
+"dimensioni_mm": [
+593.3027565479279,
+502.37810611724854,
+2141.6114285821095
+],
+"nome": "Steel Frame Shelves 02",
+"poligoni": 4348,
+"tag": [
+"commercial",
+"modern",
+"shelf",
+"bookshelf",
+"metal",
+"wood"
+]
+},
+"steel_frame_shelves_03": {
+"categorie": [
+"shelves",
+"furniture"
+],
+"dimensioni_mm": [
+2351.0769605636597,
+721.2460935115814,
+2311.832904815674
+],
+"nome": "Steel Frame Shelves 03",
+"poligoni": 8396,
+"tag": [
+"storage",
+"home decor",
+"contemporary",
+"minimalist",
+"display",
+"frame"
+]
+},
+"stick_grenade": {
+"categorie": [
+"collection: project_lighthouse",
+"weapons"
+],
+"dimensioni_mm": [
+81.35628327727318,
+81.35703578591347,
+380.66092133522034
+],
+"nome": "Stick Grenade",
+"poligoni": 6250,
+"tag": [
+"hand grenade",
+"world war 2",
+"bomb",
+"explosive",
+"german",
+"wooden handle"
+]
+},
+"stone_01": {
+"categorie": [
+"rocks",
+"nature",
+"collection: verdant_trail"
+],
+"dimensioni_mm": [
+147.15217798948288,
+89.41811323165894,
+71.89157977700233
+],
+"nome": "Stone 01",
+"poligoni": 71916,
+"tag": [
+"rock",
+"stone",
+"pebbles",
+"dirt",
+"terrain",
+"gravel",
+"quartz"
+]
+},
+"stone_fire_pit": {
+"categorie": [
+"structures",
+"buildings",
+"furniture",
+"collection: the_shed"
+],
+"dimensioni_mm": [
+1448.4962224960327,
+1433.234453201294,
+388.32607865333557
+],
+"nome": "Stone Fire Pit",
+"poligoni": 3887,
+"tag": [
+"outdoor",
+"garden",
+"fire",
+"bbq",
+"farm",
+"farmhouse",
+"landscaping",
+"patio",
+"backyard",
+"entertainment",
+"relaxation",
+"stone"
+]
+},
+"strawberry_chocolate_cake": {
+"categorie": [
+"props",
+"food"
+],
+"dimensioni_mm": [
+244.26066130399704,
+240.267813205719,
+79.19733006793805
+],
+"nome": "Strawberry Chocolate Cake",
+"poligoni": 27054,
+"tag": [
+"cooking",
+"culinary",
+"cake",
+"baked goods",
+"bakery",
+"treat"
+]
+},
+"street_lamp_01": {
+"categorie": [
+"lighting",
+"industrial",
+"collection: hidden_alley"
+],
+"dimensioni_mm": [
+704.3362259864807,
+386.49316132068634,
+3870.5554008483887
+],
+"nome": "Street Lamp 01",
+"poligoni": 30610,
+"tag": [
+"street",
+"road",
+"light",
+"lamppost",
+"outdoor",
+"pole",
+"sidewalk",
+"night",
+" urban",
+"city"
+]
+},
+"street_lamp_02": {
+"categorie": [
+"lighting",
+"industrial",
+"collection: hidden_alley"
+],
+"dimensioni_mm": [
+386.49316132068634,
+806.7893021069672,
+1675.0419437885284
+],
+"nome": "Street Lamp 02",
+"poligoni": 20338,
+"tag": [
+"street",
+"road",
+"light",
+"lamppost",
+"outdoor",
+"pole",
+"sidewalk",
+"night",
+"urban",
+"city"
+]
+},
+"street_rat": {
+"categorie": [
+"nature",
+"creature",
+"collection: hidden_alley"
+],
+"dimensioni_mm": [
+32.26977214217186,
+148.4108306467533,
+34.03247334063053
+],
+"nome": "Street Rat",
+"poligoni": 14286,
+"tag": [
+"rat",
+"mouse",
+"animal",
+"vermin",
+"rodent",
+"alleyway",
+"pest",
+"feral"
+]
+},
+"sungka_board": {
+"categorie": [
+"decorative",
+"props",
+"collection: the_shed"
+],
+"dimensioni_mm": [
+139.9620771408081,
+600.566029548645,
+35.22617928683758
+],
+"nome": "Sungka Board",
+"poligoni": 7304,
+"tag": [
+"shed",
+"game",
+"boardgame",
+"wooden",
+"traditional",
+"filipino",
+"hand made"
+]
+},
+"sungka_board_02": {
+"categorie": [
+"decorative",
+"props"
+],
+"dimensioni_mm": [
+931.7000508308411,
+175.69199949502945,
+25.776559792404896
+],
+"nome": "Sungka Board 02",
+"poligoni": 42558,
+"tag": [
+"game",
+"boardgame",
+"wooden",
+"filipino",
+"traditional",
+"hand-carved",
+"handmade",
+"shell",
+"table top",
+"toy"
+]
+},
+"sweet_potato": {
+"categorie": [
+"food",
+"nature"
+],
+"dimensioni_mm": [
+58.12427029013634,
+60.989297926425934,
+100.46296194195747
+],
+"nome": "Sweet Potato",
+"poligoni": 2042,
+"tag": [
+"potato",
+"root",
+"vegetable",
+"dirty",
+"raw",
+"organic",
+"oblong",
+"sweet potato",
+"roots",
+"tuberous"
+]
+},
+"tea_set_01": {
+"categorie": [
+"props",
+"dishes"
+],
+"dimensioni_mm": [
+918.4822738170624,
+483.876571059227,
+164.99304870376363
+],
+"nome": "Tea Set 01",
+"poligoni": 40296,
+"tag": [
+"antique",
+"tea",
+"cup",
+"english",
+"ornate",
+"vintage",
+"floral",
+"decorative",
+"ceramic",
+"food",
+"coffee",
+"victorian"
+]
+},
+"television_02": {
+"categorie": [
+"collection: project_lighthouse",
+"electronics"
+],
+"dimensioni_mm": [
+399.74847435951233,
+350.19391775131226,
+411.41476929375244
+],
+"nome": "Television 02",
+"poligoni": 2310,
+"tag": [
+"old",
+"vintage",
+"crt",
+"cathode ray tube",
+"tv",
+"retro",
+"boxy",
+"screen"
+]
+},
+"throw_pillows_01": {
+"categorie": [
+"decorative"
+],
+"dimensioni_mm": [
+1021.5678811073303,
+627.4925470352173,
+450.1592831220478
+],
+"nome": "Throw Pillows 01",
+"poligoni": 6362,
+"tag": [
+"decorative",
+"pillow",
+"throw",
+"pattern",
+"african",
+"red",
+"triangle",
+"orange"
+]
+},
+"tire_pump": {
+"categorie": [
+"tools",
+"props",
+"collection: the_shed"
+],
+"dimensioni_mm": [
+254.89504635334015,
+100.97793117165565,
+579.5293497430976
+],
+"nome": "Tire Pump",
+"poligoni": 6572,
+"tag": [
+"shed",
+"garage",
+"wheel",
+"tire",
+"pump",
+"inflate",
+"matress"
+]
+},
+"tongue_groove_pliers": {
+"categorie": [
+"collection: project_lighthouse",
+"tools"
+],
+"dimensioni_mm": [
+62.50903196632862,
+244.4150596857071,
+13.865156099200249
+],
+"nome": "Tongue & Groove Pliers",
+"poligoni": 2694,
+"tag": [
+"wrench",
+"adjustable wrench",
+"serrated jaws",
+"black grips",
+"rubber grips",
+"scratched"
+]
+},
+"tool_cart": {
+"categorie": [
+"collection: project_lighthouse",
+"industrial",
+"furniture",
+"table"
+],
+"dimensioni_mm": [
+1273.4254002571106,
+753.6306381225586,
+964.644730091095
+],
+"nome": "Tool Cart",
+"poligoni": 29394,
+"tag": [
+"rusted",
+"metal",
+"cart",
+"drawer",
+"rolling",
+"workshop",
+"casters",
+"garage",
+"workbench"
+]
+},
+"trashbag": {
+"categorie": [
+"collection: project_lighthouse",
+"props"
+],
+"dimensioni_mm": [
+528.0700623989105,
+462.893009185791,
+574.9993845820427
+],
+"nome": "Trashbag",
+"poligoni": 4482,
+"tag": [
+"garbage bag",
+"refuse",
+"street waste",
+"trash",
+"street",
+"scrapyard",
+"junkyard",
+"garbage",
+"bin",
+"dumpster",
+"disposal",
+"litter",
+"rubbish"
+]
+},
+"treasure_chest": {
+"categorie": [
+"props",
+"containers",
+"decorative",
+"collection: smugglers_cove"
+],
+"dimensioni_mm": [
+959.0365290641785,
+522.853434085846,
+618.9745217561722
+],
+"nome": "Treasure Chest",
+"poligoni": 103330,
+"tag": [
+"old",
+"wooden",
+"chest",
+"treasure",
+"pirates",
+"gold",
+"crate",
+"maritime",
+"colonial",
+"worn",
+"antique",
+"wood",
+"prop",
+"container",
+"metal",
+"box",
+"ornate"
+]
+},
+"tree_small_02": {
+"categorie": [
+"nature",
+"plants",
+"trees",
+"collection: verdant_trail"
+],
+"dimensioni_mm": [
+2921.434998512268,
+4292.873501777649,
+4649.933725595474
+],
+"nome": "Tree Small 02",
+"poligoni": 4652585,
+"tag": [
+"tree",
+"natural",
+"nature",
+"plant",
+"outdoor",
+"green",
+"botany",
+"leaf",
+"leaves",
+"forest",
+"jungle",
+"foliage",
+"geometry nodes",
+"trunk",
+"bark",
+"medium",
+"garden",
+"branches",
+"burkea africana",
+"wild syringa",
+"small"
+]
+},
+"tree_stump_01": {
+"categorie": [
+"nature",
+"plants",
+"ground cover",
+"trees",
+"collection: pine_forest"
+],
+"dimensioni_mm": [
+1425.5504608154297,
+1590.3143286705017,
+572.6675391197205
+],
+"nome": "Tree Stump 01",
+"poligoni": 41046,
+"tag": [
+"tree",
+"trunk",
+"stump",
+"dead tree",
+"bark",
+"forest",
+"natural",
+"nature",
+"woodland",
+"foliage",
+"environment",
+"forest floor",
+"leaf",
+"dead",
+"roots",
+"decayed",
+"log",
+"dry",
+"mossy",
+"debris",
+"ground cover",
+"moss",
+"rough texture"
+]
+},
+"tree_stump_02": {
+"categorie": [
+"nature",
+"plants",
+"ground cover",
+"trees",
+"collection: pine_forest"
+],
+"dimensioni_mm": [
+1521.6976404190063,
+1392.5331234931946,
+522.0921486616135
+],
+"nome": "Tree Stump 02",
+"poligoni": 62345,
+"tag": [
+"woodland",
+"tree",
+"stump",
+"dead",
+"environment",
+"trunk",
+"bark",
+"forest",
+"natural",
+"forest floor",
+"dry",
+"dead tree",
+"decayed",
+"mossy",
+"moss",
+"rough texture",
+"roots",
+"leaf",
+"leaves"
+]
+},
+"trowel_01": {
+"categorie": [
+"props",
+"tools",
+"collection: the_shed"
+],
+"dimensioni_mm": [
+99.12503510713577,
+346.8870371580124,
+102.62799635529518
+],
+"nome": "Trowel 01",
+"poligoni": 5242,
+"tag": [
+"outdoor",
+"plant",
+"garden",
+"gardening",
+"landscaping",
+"shed",
+"digging",
+"hand",
+"spade",
+"greenhouse",
+"farm"
+]
+},
+"utility_box_01": {
+"categorie": [
+"industrial",
+"structures",
+"collection: hidden_alley"
+],
+"dimensioni_mm": [
+520.0002193450928,
+431.999996304512,
+1120.3334331512451
+],
+"nome": "Utility Box 01",
+"poligoni": 4404,
+"tag": [
+"utility",
+"box",
+"electrical",
+"power",
+"circuit",
+"breakers",
+"transformer",
+"distributionpanel",
+"junction box",
+"control panel",
+"utility box",
+"infrastructure",
+"urban",
+"city",
+"road"
+]
+},
+"utility_box_02": {
+"categorie": [
+"structures",
+"industrial",
+"collection: hidden_alley"
+],
+"dimensioni_mm": [
+920.0001955032349,
+431.999996304512,
+1120.3334331512451
+],
+"nome": "Utility Box 02",
+"poligoni": 6268,
+"tag": [
+"utility",
+"box",
+"electrical",
+"power",
+"urban",
+"city",
+"road",
+"circuit",
+"breakers",
+"transformer",
+"distributionpanel",
+"junction box",
+"control panel",
+"utility box",
+"infrastructure"
+]
+},
+"vintage_binocular": {
+"categorie": [
+"collection: project_lighthouse",
+"instrument",
+"props"
+],
+"dimensioni_mm": [
+193.99694353342056,
+199.23493266105652,
+68.44266317784786
+],
+"nome": "Vintage Binoculars",
+"poligoni": 19362,
+"tag": [
+"antique",
+"leather",
+"optical",
+"vintage",
+"brass"
+]
+},
+"vintage_cabinet_01": {
+"categorie": [
+"furniture",
+"shelves"
+],
+"dimensioni_mm": [
+2021.7604637145996,
+669.8037981987,
+2235.0515127764083
+],
+"nome": "Vintage Cabinet 01",
+"poligoni": 61096,
+"tag": [
+"vintage",
+"farmhouse",
+"old",
+"antique",
+"fancy",
+"wooden",
+"varnished",
+"cupboard",
+"shelf",
+"cabinet"
+]
+},
+"vintage_crutches_01": {
+"categorie": [
+"props",
+"collection: the_shed"
+],
+"dimensioni_mm": [
+399.43429827690125,
+216.63851663470268,
+1614.9340318515897
+],
+"nome": "Vintage Crutches 01",
+"poligoni": 10628,
+"tag": [
+"vintage",
+"war",
+"old",
+"antique",
+"wood",
+"hospital",
+"medical"
+]
+},
+"vintage_day_bed": {
+"categorie": [
+"collection: project_lighthouse",
+"furniture",
+"bed",
+"seating"
+],
+"dimensioni_mm": [
+1972.5552201271057,
+854.77614402771,
+1127.3465404283343
+],
+"nome": "Vintage Day Bed",
+"poligoni": 2715,
+"tag": [
+"old",
+"vintage",
+"antique",
+"wooden",
+"couch",
+"bench",
+"sofa-bed",
+"matress",
+"chaise"
+]
+},
+"vintage_electric_kettle": {
+"categorie": [
+"collection: project_lighthouse",
+"decorative",
+"appliances"
+],
+"dimensioni_mm": [
+320.89072465896606,
+248.55303764343262,
+304.7400116920471
+],
+"nome": "Vintage Electric Kettle",
+"poligoni": 14838,
+"tag": [
+"old",
+"vintage",
+"antique",
+"electric",
+"gooseneck spout",
+"metal",
+"rusted",
+"dirty",
+"traditional"
+]
+},
+"vintage_flashlight": {
+"categorie": [
+"collection: project_lighthouse",
+"lighting",
+"electronics",
+"props",
+"tools"
+],
+"dimensioni_mm": [
+95.86484730243683,
+305.46389520168304,
+144.33311545986305
+],
+"nome": "Vintage Flashlight",
+"poligoni": 10562,
+"tag": [
+"antique",
+"vintage",
+"old",
+"metal",
+"torch",
+"searchlight",
+"spotlight",
+"handheld",
+"retro"
+]
+},
+"vintage_grandfather_clock_01": {
+"categorie": [
+"decorative",
+"appliances",
+"rigged"
+],
+"dimensioni_mm": [
+996.6365396976471,
+795.2136099338531,
+2190.5919313430786
+],
+"nome": "Vintage Grandfather Clock 01",
+"poligoni": 12604,
+"tag": [
+"vintage",
+"antique",
+"fancy",
+"time",
+"clock",
+"old",
+"wooden",
+"ornate"
+]
+},
+"vintage_hand_drill": {
+"categorie": [
+"tools",
+"props",
+"rigged",
+"collection: the_shed"
+],
+"dimensioni_mm": [
+123.88670444488525,
+138.80568742752075,
+485.6843203306198
+],
+"nome": "Vintage Hand Drill",
+"poligoni": 8338,
+"tag": [
+"old",
+"wooden",
+"vintage",
+"workshop",
+"drill",
+"crank",
+"carpentry",
+"shed",
+"garage"
+]
+},
+"vintage_lighter": {
+"categorie": [
+"collection: project_lighthouse",
+"props",
+"tools"
+],
+"dimensioni_mm": [
+81.88180439174175,
+14.000005088746548,
+66.06439501047134
+],
+"nome": "Vintage Lighter",
+"poligoni": 3366,
+"tag": [
+"metal",
+"scratched",
+"brass",
+"vintage",
+"copper",
+"worn"
+]
+},
+"vintage_microscope": {
+"categorie": [
+"collection: project_lighthouse",
+"instrument",
+"industrial",
+"tools"
+],
+"dimensioni_mm": [
+106.79882764816284,
+181.8750947713852,
+399.5528370141983
+],
+"nome": "Vintage Microscope",
+"poligoni": 20631,
+"tag": [
+"antique",
+"brass",
+"scientific",
+"optical",
+"lab equipment",
+"gold"
+]
+},
+"vintage_microwave": {
+"categorie": [
+"collection: project_lighthouse",
+"appliances",
+"electronics"
+],
+"dimensioni_mm": [
+1073.7111568450928,
+745.5552816390991,
+525.8261561393738
+],
+"nome": "Vintage Microwave",
+"poligoni": 8120,
+"tag": [
+"vintage",
+"retro",
+"wooden",
+"70s",
+"oven",
+"analog"
+]
+},
+"vintage_oil_lamp": {
+"categorie": [
+"lighting",
+"decorative"
+],
+"dimensioni_mm": [
+219.9999988079071,
+219.9999913573265,
+801.6371909276536
+],
+"nome": "Vintage Oil Lamp",
+"poligoni": 7208,
+"tag": [
+"lamp",
+"oil",
+"antique",
+"victorian",
+"manor",
+"historic"
+]
+},
+"vintage_pocket_watch": {
+"categorie": [
+"props"
+],
+"dimensioni_mm": [
+62.12473474442959,
+13.73840169981122,
+80.40584810078144
+],
+"nome": "Vintage Pocket Watch",
+"poligoni": 4200,
+"tag": [
+"vintage",
+"watch",
+"time",
+"gold",
+"antique",
+"pocket watch",
+"timepiece",
+"ornate",
+"watchface",
+"round",
+"minute hand",
+"old-fashioned",
+"mechanical",
+"numerals"
+]
+},
+"vintage_radio_transceiver": {
+"categorie": [
+"appliances",
+"electronics",
+"collection: project_lighthouse"
+],
+"dimensioni_mm": [
+618.1803643703461,
+417.8741127252579,
+434.39279100857675
+],
+"nome": "Vintage Radio Transceiver",
+"poligoni": 42350,
+"tag": [
+"military",
+"army",
+"communications",
+"frequency dial",
+"field radio",
+"radio",
+"ww2",
+"telegraph",
+"handset",
+"microphone"
+]
+},
+"vintage_spacecraft_instrument": {
+"categorie": [
+"collection: project_lighthouse",
+"instrument",
+"electronics",
+"industrial"
+],
+"dimensioni_mm": [
+410.28693318367004,
+204.4019252061844,
+269.28550004959106
+],
+"nome": "Vintage Spacecraft Instrument",
+"poligoni": 13279,
+"tag": [
+"vintage",
+"analog",
+"retro",
+"weathered",
+"russian labels",
+"cyrillic",
+"classic",
+"rocket",
+"space"
+]
+},
+"vintage_stapler": {
+"categorie": [
+"collection: project_lighthouse",
+"props",
+"tools",
+"office"
+],
+"dimensioni_mm": [
+208.4641233086586,
+47.41005226969719,
+95.26899177581072
+],
+"nome": "Vintage Stapler",
+"poligoni": 4370,
+"tag": [
+"vintage",
+"stationery",
+"metal",
+"retro"
+]
+},
+"vintage_suitcase": {
+"categorie": [
+"decorative",
+"props"
+],
+"dimensioni_mm": [
+1608.1829071044922,
+239.17551338672638,
+567.9050989929237
+],
+"nome": "Vintage Suitcase",
+"poligoni": 16474,
+"tag": [
+"vintage",
+"old",
+"hand made",
+"stickers",
+"travel",
+"garbage",
+"suitcase",
+"trunk",
+"rustic",
+"luggage",
+"worn",
+"aged"
+]
+},
+"vintage_telephone_wall_clock": {
+"categorie": [
+"props",
+"decorative",
+"wall decoration",
+"collection: project_lighthouse"
+],
+"dimensioni_mm": [
+342.80551970005035,
+192.5630047917366,
+501.2321323156357
+],
+"nome": "Vintage Telephone Wall Clock",
+"poligoni": 15864,
+"tag": [
+"old",
+"vintage",
+"antique",
+"rotary phone",
+"ornate",
+"red"
+]
+},
+"vintage_video_camera": {
+"categorie": [
+"electronics",
+"appliances"
+],
+"dimensioni_mm": [
+71.20675966143608,
+132.58329033851624,
+144.9999362230301
+],
+"nome": "Vintage Video Camera",
+"poligoni": 18682,
+"tag": [
+"old",
+"vintage",
+"photography",
+"film",
+"cinematic",
+"video",
+"camera",
+"recording",
+"tape",
+"world war 2"
+]
+},
+"vintage_wooden_drawer_01": {
+"categorie": [
+"furniture",
+"shelves",
+"table"
+],
+"dimensioni_mm": [
+857.5569987297058,
+457.4054181575775,
+545.4196482896805
+],
+"nome": "Vintage Wooden Drawer 01",
+"poligoni": 5184,
+"tag": [
+"vintage",
+"old",
+"filing",
+"drawer",
+"office",
+"wooden",
+"worn",
+"cabinet"
+]
+},
+"wall_clock": {
+"categorie": [
+"collection: project_lighthouse",
+"decorative",
+"appliances"
+],
+"dimensioni_mm": [
+320.4909861087799,
+47.2230945505423,
+320.4909861087799
+],
+"nome": "Wall Clock",
+"poligoni": 3658,
+"tag": [
+"time",
+"timepiece",
+"watch",
+"watchface",
+"wall clock",
+"analog",
+"modern",
+"office decor",
+"home interior",
+"admin",
+"office",
+"90s"
+]
+},
+"water_manhole_cover": {
+"categorie": [
+"industrial",
+"structures",
+"collection: hidden_alley"
+],
+"dimensioni_mm": [
+690.7604932785034,
+690.7604932785034,
+67.61780008673668
+],
+"nome": "Water Manhole Cover",
+"poligoni": 6301,
+"tag": [
+"infrastructure",
+"drainage",
+"utility",
+"manhole",
+"underground",
+"maintenance",
+"access cover",
+"sewer",
+"city",
+"drain",
+"road",
+"street"
+]
+},
+"watering_can_metal_01": {
+"categorie": [
+"containers",
+"tools",
+"props",
+"collection: the_shed"
+],
+"dimensioni_mm": [
+191.01857393980026,
+452.33607292175293,
+196.81852799840271
+],
+"nome": "Watering Can Metal 01",
+"poligoni": 11837,
+"tag": [
+"metal",
+"garage",
+"garden",
+"gardening",
+"landscaping",
+"outdoor",
+"shed",
+"irrigation",
+"farm",
+"farmhouse"
+]
+},
+"weed_plant_02": {
+"categorie": [
+"nature",
+"plants",
+"ground cover",
+"collection: the_shed"
+],
+"dimensioni_mm": [
+2125.253051519394,
+290.9194082021713,
+75.0729264691472
+],
+"nome": "Weed Plant 02",
+"poligoni": 17062,
+"tag": [
+"nature",
+"natural",
+"bush",
+"shrub",
+"green",
+"plant",
+"outdoor",
+"leaf",
+"botany",
+"leaves",
+"forest",
+"jungle",
+"foliage",
+"small",
+"field",
+"meadow"
+]
+},
+"wheelchair_01": {
+"categorie": [
+"props"
+],
+"dimensioni_mm": [
+824.0909576416016,
+1090.866893529892,
+1103.5015587694943
+],
+"nome": "Wheelchair 01",
+"poligoni": 40252,
+"tag": [
+"infirmary",
+"hospital",
+"wheelchair",
+"medical",
+"clinic",
+"mobilityaid",
+"foldingwheelchair"
+]
+},
+"wicker_basket_01": {
+"categorie": [
+"containers",
+"decorative",
+"collection: the_shed"
+],
+"dimensioni_mm": [
+383.2242637872696,
+295.01520097255707,
+117.42293369024992
+],
+"nome": "Wicker Basket 01",
+"poligoni": 22276,
+"tag": [
+"wood",
+"wicker",
+"twine",
+"basket",
+"picnic",
+"outdoor",
+"kitchen",
+"dining",
+"table",
+"shed",
+"farm"
+]
+},
+"wicker_basket_02": {
+"categorie": [
+"containers",
+"decorative"
+],
+"dimensioni_mm": [
+374.6650815010071,
+270.6727311015129,
+218.15226320177317
+],
+"nome": "Wicker Basket 02",
+"poligoni": 17850,
+"tag": [
+"handcrafted",
+"home decor",
+"rattan",
+"basket",
+"handwoven",
+"woven",
+"rustic decor",
+"wicker",
+"twine"
+]
+},
+"wild_rooibos_bush": {
+"categorie": [
+"nature",
+"plants",
+"collection: namaqualand"
+],
+"dimensioni_mm": [
+2285.276174545288,
+854.104071855545,
+543.936595087871
+],
+"nome": "Wild Rooibos Bush",
+"poligoni": 76521,
+"tag": [
+"karoo",
+"south africa",
+"desert",
+"dried",
+"dry",
+"shrub"
+]
+},
+"wine_barrel_01": {
+"categorie": [
+"containers"
+],
+"dimensioni_mm": [
+741.9015169143677,
+756.035715341568,
+871.2633550167084
+],
+"nome": "Wine Barrel 01",
+"poligoni": 10820,
+"tag": [
+"barrel",
+"wine",
+"celler",
+"old",
+"worn",
+"grape",
+"farmhouse",
+"farm"
+]
+},
+"wine_bottles_01": {
+"categorie": [
+"props",
+"containers",
+"dishes"
+],
+"dimensioni_mm": [
+676.3246953487396,
+80.56290075182915,
+331.367195234634
+],
+"nome": "Wine Bottles 01",
+"poligoni": 28848,
+"tag": [
+"wine",
+"drink",
+"bottle",
+"champagne",
+"grape",
+"farmhouse",
+"vineyard"
+]
+},
+"wooden_axe": {
+"categorie": [
+"props"
+],
+"dimensioni_mm": [
+47.16496914625168,
+214.3455445766449,
+630.3347498178482
+],
+"nome": "Wooden Axe",
+"poligoni": 3348,
+"tag": [
+"tool",
+"axe",
+"weapon",
+"sharp",
+"lumberjack",
+"forestry",
+"forestry tools",
+"chopping",
+"gardening",
+"garden",
+"firewood",
+"camping",
+"survival",
+"hand tool"
+]
+},
+"wooden_axe_02": {
+"categorie": [
+"props"
+],
+"dimensioni_mm": [
+50.90378411114216,
+225.73669627308846,
+704.204648733139
+],
+"nome": "Wooden Axe 02",
+"poligoni": 2218,
+"tag": [
+"tool",
+"axe",
+"weapon",
+"hatchet",
+"forestry",
+"firewood",
+"camping",
+"hand tool",
+"lumber",
+"survival"
+]
+},
+"wooden_axe_03": {
+"categorie": [
+"props",
+"tools"
+],
+"dimensioni_mm": [
+50.4691693931818,
+158.34461152553558,
+631.799966096878
+],
+"nome": "Wooden Axe 03",
+"poligoni": 3886,
+"tag": [
+"forest",
+"gardening",
+"garden",
+"lumberjack",
+"woodwork",
+"firewood",
+"fireman",
+"saw",
+"cutting",
+"chopping"
+]
+},
+"wooden_barrels_01": {
+"categorie": [
+"containers",
+"props",
+"collection: smugglers_cove"
+],
+"dimensioni_mm": [
+4440.432071685791,
+3344.5359468460083,
+956.7059241235256
+],
+"nome": "Wooden Barrels 01",
+"poligoni": 33142,
+"tag": [
+"barrel",
+"celler",
+"old",
+"worn",
+"wood",
+"antique",
+"prop",
+"maritime",
+"colonial",
+"cove",
+"farmhouse",
+"farm",
+"furniture",
+"wooden"
+]
+},
+"wooden_bookshelf_worn": {
+"categorie": [
+"furniture",
+"shelves",
+"collection: the_shed"
+],
+"dimensioni_mm": [
+1373.95179271698,
+581.3020169734955,
+2063.442051410675
+],
+"nome": "Wooden Bookshelf Worn",
+"poligoni": 10106,
+"tag": [
+"old",
+"wooden",
+"wood",
+"worn",
+"garage",
+"shed",
+"rustic",
+"antique",
+"distressed",
+"aged",
+"weathered",
+"bookcase",
+"shelves",
+"carpentry",
+"vintage",
+"storage"
+]
+},
+"wooden_bowl_01": {
+"categorie": [
+"props",
+"decorative",
+"dishes"
+],
+"dimensioni_mm": [
+313.08163702487946,
+309.1423809528351,
+93.69255532510579
+],
+"nome": "Wooden Bowl 01",
+"poligoni": 14122,
+"tag": [
+"bowl",
+"wooden",
+"carved",
+"fruit",
+"fruitbowl",
+"decoration"
+]
+},
+"wooden_bowl_02": {
+"categorie": [
+"props",
+"decorative",
+"dishes"
+],
+"dimensioni_mm": [
+130.71347028017044,
+124.53967705368996,
+73.09794479806442
+],
+"nome": "Wooden Bowl 02",
+"poligoni": 4666,
+"tag": [
+"antique",
+"vintage",
+"old",
+"wooden",
+"ornate",
+"traditional",
+"fruitbowl",
+"rustic decor",
+"home decor"
+]
+},
+"wooden_broom": {
+"categorie": [
+"collection: project_lighthouse",
+"props",
+"tools"
+],
+"dimensioni_mm": [
+490.23744463920593,
+112.51410469412804,
+1453.56784760952
+],
+"nome": "Wooden Broom",
+"poligoni": 14258,
+"tag": [
+"cleaning",
+"janitorial",
+"housekeeping",
+"wood",
+"worn",
+"old"
+]
+},
+"wooden_bucket_01": {
+"categorie": [
+"props",
+"containers",
+"collection: smugglers_cove"
+],
+"dimensioni_mm": [
+366.97085201740265,
+342.2211855649948,
+549.862340092659
+],
+"nome": "Wooden Bucket 01",
+"poligoni": 5116,
+"tag": [
+"wooden",
+"bucket",
+"old",
+"worn",
+"wood",
+"prop",
+"container"
+]
+},
+"wooden_bucket_02": {
+"categorie": [
+"props",
+"containers",
+"collection: smugglers_cove"
+],
+"dimensioni_mm": [
+615.3266429901123,
+616.3034439086914,
+350.42548179626465
+],
+"nome": "Wooden Bucket 02",
+"poligoni": 7252,
+"tag": [
+"old",
+"wooden",
+"bucket",
+"vintage",
+"wood",
+"prop",
+"worn",
+"antique",
+"farmhouse",
+"colonial",
+"maritime",
+"container"
+]
+},
+"wooden_candlestick": {
+"categorie": [
+"decorative",
+"lighting"
+],
+"dimensioni_mm": [
+98.3029305934906,
+99.87897053360939,
+219.74407136440277
+],
+"nome": "Wooden Candlestick",
+"poligoni": 3328,
+"tag": [
+"old",
+"antique",
+"vintage",
+"fancy",
+"candle",
+"historic",
+"victorian"
+]
+},
+"wooden_crate_01": {
+"categorie": [
+"containers",
+"collection: smugglers_cove"
+],
+"dimensioni_mm": [
+825.2729177474976,
+408.9537411928177,
+349.6182831004262
+],
+"nome": "Wooden Crate 01",
+"poligoni": 6576,
+"tag": [
+"vintage",
+"wood",
+"old",
+"wooden",
+"fancy",
+"colonial",
+"chest",
+"box",
+"prop",
+"antique",
+"farmhouse",
+"crate",
+"maritime",
+"commercial",
+"container"
+]
+},
+"wooden_crate_02": {
+"categorie": [
+"containers",
+"props",
+"collection: smugglers_cove"
+],
+"dimensioni_mm": [
+1166.325867176056,
+529.1010439395905,
+463.95453810691833
+],
+"nome": "Wooden Crate 02",
+"poligoni": 5176,
+"tag": [
+"vintage",
+"wood",
+"old",
+"wooden",
+"worn",
+"colonial",
+"commercial",
+"maritime",
+"chest",
+"box",
+"container",
+"prop",
+"farmhouse",
+"crate",
+"farm"
+]
+},
+"wooden_cutting_board": {
+"categorie": [
+"props",
+"food"
+],
+"dimensioni_mm": [
+449.8896151781082,
+246.6525286436081,
+41.25304119224893
+],
+"nome": "Wooden Cutting Board",
+"poligoni": 3520,
+"tag": [
+"culinary",
+"cooking",
+"kitchen",
+"cutting",
+"chopping",
+"cheese",
+"cooking equipment",
+"wood"
+]
+},
+"wooden_display_shelves_01": {
+"categorie": [
+"furniture",
+"shelves"
+],
+"dimensioni_mm": [
+1077.760934829712,
+371.50970101356506,
+1556.1838150024414
+],
+"nome": "Wooden Display Shelves 01",
+"poligoni": 3174,
+"tag": [
+"modern",
+"wood",
+"pine",
+"square",
+"display",
+"shelf",
+"bookshelf"
+]
+},
+"wooden_hammer_01": {
+"categorie": [
+"industrial",
+"tools",
+"props",
+"collection: the_shed"
+],
+"dimensioni_mm": [
+111.81152239441872,
+23.39816838502884,
+279.15042638778687
+],
+"nome": "Wooden Hammer 01",
+"poligoni": 3617,
+"tag": [
+"wooden",
+"worn",
+"used",
+"old",
+"dirty",
+"mallet",
+"nails",
+"woodwork",
+"workshop",
+"metal",
+"hammer",
+"hardware",
+"craftsmanship"
+]
+},
+"wooden_handle_saber": {
+"categorie": [
+"props",
+"collection: hidden_alley"
+],
+"dimensioni_mm": [
+25.69263894110918,
+122.78853729367256,
+935.4556500911713
+],
+"nome": "Wooden Handle Saber",
+"poligoni": 4031,
+"tag": [
+"sword",
+"weapon",
+"pirates",
+"blade",
+"combat",
+"survival",
+"sharp"
+]
+},
+"wooden_ladder": {
+"categorie": [
+"collection: project_lighthouse",
+"tools",
+"industrial"
+],
+"dimensioni_mm": [
+959.1718018054962,
+500.0000149011612,
+1334.923267364502
+],
+"nome": "Wooden Ladder",
+"poligoni": 8492,
+"tag": [
+"scaffolding",
+"steps",
+"construction",
+"workshop",
+"ladder",
+"step-ladder",
+"maintenance",
+"utility",
+"wooden"
+]
+},
+"wooden_ladder_02": {
+"categorie": [
+"collection: project_lighthouse",
+"tools"
+],
+"dimensioni_mm": [
+989.5061254501343,
+618.1379556655884,
+1722.179728676565
+],
+"nome": "Wooden Ladder 02",
+"poligoni": 6126,
+"tag": [
+"wooden",
+"step-ladder",
+"vintage",
+"traditional",
+"folding",
+"garage",
+"freestanding"
+]
+},
+"wooden_lantern_01": {
+"categorie": [
+"props",
+"lighting",
+"collection: smugglers_cove"
+],
+"dimensioni_mm": [
+221.04809433221817,
+234.72441732883453,
+530.1365610212088
+],
+"nome": "Wooden Lantern 01",
+"poligoni": 8321,
+"tag": [
+"lantern",
+"wooden",
+"wood",
+"old",
+"worn",
+"farmhouse",
+"maritime",
+"colonial",
+"cove",
+"prop",
+"vintage",
+"candle"
+]
+},
+"wooden_military_crate": {
+"categorie": [
+"collection: project_lighthouse",
+"containers"
+],
+"dimensioni_mm": [
+1242.0655488967896,
+519.7786092758179,
+464.8151993751526
+],
+"nome": "Wooden Military Crate",
+"poligoni": 22986,
+"tag": [
+"military",
+"crate",
+"box",
+"army",
+"chest",
+"ammunition crate",
+"wooden",
+"weathered",
+"worn"
+]
+},
+"wooden_picnic_table": {
+"categorie": [
+"furniture",
+"seating",
+"table"
+],
+"dimensioni_mm": [
+2240.9759759902954,
+3022.329568862915,
+745.9869086742401
+],
+"nome": "Wooden Picnic Table",
+"poligoni": 10210,
+"tag": [
+"vintage",
+"old",
+"worn",
+"park",
+"bench",
+"outdoor",
+"weathered",
+"countryside",
+"outdoor seating"
+]
+},
+"wooden_spoon": {
+"categorie": [
+"props",
+"dishes"
+],
+"dimensioni_mm": [
+86.66010573506355,
+277.6350826025009,
+25.113525800406933
+],
+"nome": "Wooden Spoon",
+"poligoni": 6576,
+"tag": [
+"cutlery",
+"spoon",
+"kitchen",
+"cookware",
+"cooking",
+"serving spoon",
+"mixing spoon",
+"culinary"
+]
+},
+"wooden_stool_01": {
+"categorie": [
+"seating",
+"furniture",
+"collection: the_shed"
+],
+"dimensioni_mm": [
+425.3551661968231,
+442.36281514167786,
+437.35266576914
+],
+"nome": "Wooden Stool 01",
+"poligoni": 10946,
+"tag": [
+"old",
+"worn",
+"dirty",
+"workshop",
+"outdoor",
+"stool",
+"woodwork",
+"shop"
+]
+},
+"wooden_stool_02": {
+"categorie": [
+"seating",
+"furniture"
+],
+"dimensioni_mm": [
+265.1771306991577,
+183.12730640172958,
+181.92848344915546
+],
+"nome": "Wooden Stool 02",
+"poligoni": 11146,
+"tag": [
+"old",
+"wooden",
+"vintage",
+"antique",
+"wood",
+"farmhouse",
+"carpentry",
+"handcrafted",
+"footstool"
+]
+},
+"wooden_table_02": {
+"categorie": [
+"furniture",
+"table"
+],
+"dimensioni_mm": [
+1134.41663980484,
+706.0248255729675,
+799.5428870490286
+],
+"nome": "Wooden Table 02",
+"poligoni": 196,
+"tag": [
+"wooden",
+"worn",
+"village",
+"rural",
+"natural",
+"simple"
+]
+},
+"worn_metal_rack": {
+"categorie": [
+"collection: project_lighthouse",
+"furniture",
+"shelves",
+"industrial"
+],
+"dimensioni_mm": [
+915.4166579246521,
+600.0000238418579,
+1899.9999766365256
+],
+"nome": "Worn Metal Rack",
+"poligoni": 6372,
+"tag": [
+"shelves",
+"storage",
+"metal",
+"rusted",
+"old",
+"worn",
+"workshop",
+"garage",
+"shed"
+]
+},
+"yellow_onion": {
+"categorie": [
+"props",
+"food"
+],
+"dimensioni_mm": [
+72.4824033677578,
+68.636579439044,
+86.37567976256832
+],
+"nome": "Yellow Onion",
+"poligoni": 5444,
+"tag": [
+"culinary",
+"kitchen",
+"cooking",
+"vegetables",
+"organic",
+"produce",
+"nutrition",
+"ingredients"
+]
+}
+}
