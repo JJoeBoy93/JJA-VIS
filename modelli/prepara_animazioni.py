@@ -26,6 +26,8 @@ KEVIN = {"pelvis": "B-hips", "spine_01": "B-spine", "spine_03": "B-chest", "neck
             for a, b in (("clavicle", "shoulder"), ("upperarm", "upperArm"), ("lowerarm", "forearm"), ("hand", "hand"),
                          ("thigh", "thigh"), ("calf", "shin"), ("foot", "foot"), ("ball", "toe"))}}
 
+INDIETRO = float(os.environ.get("INDIETRO", "-28"))   # misurato: -20 dà il busto dritto (-1°..1°), -28 lo appoggia di ~8°
+
 def tutte(noi, corpo):
     """tutte le clip delle persone su `noi`. Le librerie stanno in /home/claude/an (Quaternius) e /home/claude/kev (Kevin)"""
     ual = os.environ.get("UAL", "/home/claude/an/Universal Animation Library[Standard]/Unreal-Godot/UAL1_Standard.glb")
@@ -41,13 +43,15 @@ def tutte(noi, corpo):
     ritarghetta(noi, ual, None, [(c, c) for c in ("Crouch_Idle_Loop", "Crouch_Fwd_Loop")])
     # seduti: le braccia restano lungo i fianchi (mani sulle cosce). La schiena invece segue la clip: tenerla ferma (9/10, primo
     # tentativo) la lasciava attaccata al bacino, che nella clip si inclina, e il busto finiva piegato di 50° contro i loro 15°
-    ritarghetta(noi, ual, None, [(c, c) for c in ("Sitting_Enter", "Sitting_Idle_Loop", "Sitting_Exit")], salta={"upperarm_l", "lowerarm_l", "hand_l", "upperarm_r", "lowerarm_r", "hand_r"})   # e le braccia lungo i fianchi: con la schiena dritta le loro mani finivano in aria davanti
+    # seduti appoggiati allo schienale (JJ, 9/10: «deve avere anche la schiena appoggiata allo schienale»): il busto di
+    # Quaternius sta seduto in avanti (~15°); qui si porta tutto indietro di INDIETRO gradi
+    ritarghetta(noi, ual, None, [(c, c) for c in ("Sitting_Enter", "Sitting_Idle_Loop", "Sitting_Exit")], inclina=INDIETRO, salta={"upperarm_l", "lowerarm_l", "hand_l", "upperarm_r", "lowerarm_r", "hand_r"})   # e le braccia lungo i fianchi: con la schiena dritta le loro mani finivano in aria davanti
 
 def riposo(arm):
     for pb in arm.pose.bones:
         pb.location = (0, 0, 0); pb.rotation_quaternion = (1, 0, 0, 0); pb.rotation_euler = (0, 0, 0); pb.scale = (1, 1, 1)
 
-def ritarghetta(noi, file, mappa, clip, salta=(), smorza=1):
+def ritarghetta(noi, file, mappa, clip, salta=(), smorza=1, inclina=0):
     """noi: lo scheletro di una persona appena costruita (stesso giro di prepara_skin, così il riposo è identico a quello
     dei file delle persone: un glb reimportato in Blender cambia l'orientamento degli ossi e le clip non combacerebbero).
     mappa: osso nostro -> osso loro (None = stessi nomi). clip: [(azione loro o None per l'unica del file, nome nostro)]"""
@@ -102,6 +106,9 @@ def ritarghetta(noi, file, mappa, clip, salta=(), smorza=1):
                 else:
                     rot = (Wl.to_quaternion() @ Rl[b.name].to_quaternion().inverted()) @ q0   # quanto ha girato dal riposo, nel mondo (più il raddrizzamento del busto)
                     if smorza != 1: rot = Quaternion().slerp(rot, smorza)
+                    # tutto il busto all'indietro: va girato ogni osso del busto, perché ognuno si mette nel mondo per conto suo (girare
+                    # solo il bacino non spostava la schiena: 9/10, prima prova). Le gambe vanno per direzione e non cambiano
+                    if inclina and a.name.lower() not in ("neck_01", "head"): rot = Quaternion((1, 0, 0), inclina / 57.2958) @ rot   # collo e testa no: guarda dritto, non in alto
                     Wn = rot.to_matrix().to_4x4() @ Rn[a.name].to_3x3().to_4x4()
                 pos = (noi.matrix_world @ a.matrix).to_translation()   # la testa dell'osso dove la porta il padre, già mosso
                 if a.name.lower() == "pelvis":
@@ -115,13 +122,17 @@ def ritarghetta(noi, file, mappa, clip, salta=(), smorza=1):
             # MISURA (JJ, 9/10: «quando fai la foto e guardi, non lo vedi?»): quanto è inclinato il busto, bacino -> testa,
             # nostro e loro. Se lo scarto è grande la persona cammina piegata e la clip non si spinge
             bpy.context.view_layer.update()
-            inc = lambda arm, p, t: (arm.matrix_world @ t.head - arm.matrix_world @ p.head).angle(Vector((0, 0, 1))) * 57.3
+            def inc(arm, p, t):
+                d = arm.matrix_world @ t.head - arm.matrix_world @ p.head
+                return d.angle(Vector((0, 0, 1))) * 57.3 * (1 if d.y <= 0 else -1)   # col segno: avanti +, indietro -
             pn, tn = nome(noi, "pelvis"), nome(noi, "head"); pl, tl = nome(loro, (mappa or {}).get("pelvis", "pelvis")), nome(loro, (mappa or {}).get("head", "head"))
             if pn and tn and pl and tl: pend_n.append(inc(noi, pn, tn)); pend_l.append(inc(loro, pl, tl))
         # ferma solo sulle clip che la città usa (fermo, camminata, seduto); le altre (accovacciarsi 16°, alzarsi 13°) si scrivono
-        if pend_n and smorza == 1 and clip in ("Idle_Loop", "Walk_Loop", "Sitting_Idle_Loop") and max(abs(x-y) for x,y in zip(pend_n,pend_l)) > 12:
+        if clip == "Sitting_Idle_Loop" and pend_n and not (-14 <= min(pend_n) and max(pend_n) <= 0):
+            raise SystemExit(f"FERMO: seduti il busto deve stare appoggiato, fra 0° e 14° indietro; va da {min(pend_n):.0f}° a {max(pend_n):.0f}°")
+        if pend_n and smorza == 1 and clip in ("Idle_Loop", "Walk_Loop") and max(abs(x-y) for x,y in zip(pend_n,pend_l)) > 12:
             raise SystemExit(f"FERMO: {clip}, il busto si scosta dall'originale di {max(abs(x-y) for x,y in zip(pend_n,pend_l)):.0f}° (più di 12: la nostra posa di riposo è già 5° più avanti della loro)")
-        if pend_n: print(f"MISURA {clip}: busto nostro max {max(pend_n):.0f}°, loro max {max(pend_l):.0f}° (inclinazione dalla verticale); scarto max {max(abs(x-y) for x,y in zip(pend_n,pend_l)):.0f}°")
+        if pend_n: print(f"MISURA {clip}: busto nostro da {min(pend_n):.0f}° a {max(pend_n):.0f}°, loro da {min(pend_l):.0f}° a {max(pend_l):.0f}° (avanti +, indietro -); scarto max {max(abs(x-y) for x,y in zip(pend_n,pend_l)):.0f}°")
         tr = noi.animation_data.nla_tracks.new(); tr.name = clip; tr.strips.new(clip, 0, nuova)
         noi.animation_data.action = None
         print("clip", clip, f1 - f0 + 1, "fotogrammi")

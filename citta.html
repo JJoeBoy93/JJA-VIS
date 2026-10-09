@@ -1830,6 +1830,17 @@ function applicaOssa(av){ const o=av.userData.ossa; if(!o) return; for(const h o
 const SEDUTO=1.45;
 function posaSeduta(av){ const u=av.userData; if(u.anim && suona(av,"Sitting_Idle_Loop")) return; u.gambe.forEach(g=>g.rotation.x=-SEDUTO); (u.ginocchia||[]).forEach(g=>g.rotation.x=SEDUTO); pieghe(av); applicaOssa(av); }
 // quanto sta il sedere sotto l'anca, misurato sui pantaloni nella posa di adesso (un giro sui punti: una volta per clip)
+// quanto sta indietro la schiena (maglia o giacca, fra 10 e 60 cm sopra il sedile), nelle coordinate dell'avatar: serve a
+// metterla contro lo schienale (JJ, 9/10: «deve avere anche la schiena appoggiata allo schienale non dentro»)
+function schienaDietro(av, piano){ av.updateMatrixWorld(true); const v=new THREE.Vector3(); let min=Infinity;
+  av.traverse(o=>{ if(!o.isSkinnedMesh||!o.material) return; const n=o.material.name||""; if(!n.startsWith("maglia")&&!n.startsWith("abito")) return;
+    const c=o.geometry.attributes.position.count; for(let i=0;i<c;i++){ o.getVertexPosition(i,v); o.localToWorld(v); if(v.y<piano+0.1||v.y>piano+0.6) continue; av.worldToLocal(v); min=Math.min(min,v.z); } });
+  return min===Infinity?null:min; }
+// la panchina: il sedile va da -0,3 a +0,3 (avanti), lo schienale ha la faccia davanti a -0,23. Dove va l'avatar perché la
+// schiena tocchi lo schienale (1 cm d'aria); misurato una volta per clip, a posa ferma, come il sedere
+function avantiInPanchina(av){ const u=av.userData; if(!u.mixer) return 0.08; const k="p:"+(u.clip||""); u.sedere=u.sedere||{};
+  if(u.sedere[k]==null){ const z=schienaDietro(av, 0.55); if(z==null) return 0.08; if(u.inCorso&&u.inCorso.getEffectiveWeight()>0.999) u.sedere[k]=-0.22-z; else return -0.22-z; }
+  return u.sedere[k]; }
 // per il collaudo: la posa è arrivata (clip piena, e il sedere già misurato) — in sandbox, a 1 fotogramma al secondo, ci vuole un po'
 function posato(av){ const u=av.userData; return !u.mixer||!!(u.inCorso&&u.inCorso.getEffectiveWeight()>0.999&&u.sedere&&u.sedere[u.clip]!=null); }
 function sedereSottoAnca(av){ const u=av.userData, os=u.gambe[0]&&u.gambe[0].osso; if(!os||!os.parent) return null;
@@ -2894,6 +2905,13 @@ const COLLINA={r:4.2,h:1.0}, ACQUA=[4.2,6.13], MURETTO={r:6.25,alto:0.55}, PANCH
     const fx=Math.sin(b.rot), fz=Math.cos(b.rot); tu.position.set(b.x+fx*0.08,altezzaSeduta(tu),b.z+fz*0.08); tu.rotation.y=b.rot;
     posaSeduta(tu); $("entra").hidden=true; vicinoPrima="seduto"; };
   scena.seduto=()=>({seduto:!!seduto, y:+tu.position.y.toFixed(2), gamba:+tu.userData.gambe[0].rotation.x.toFixed(2), skin:tu.userData.skin||"classica", stinco:+((tu.userData.ginocchia||[])[0]?.rotation.x??0).toFixed(2), clip:tu.userData.clip||null, posato:posato(tu), ...misuraGambe(tu)});
+  scena.inPanchina=()=>{ if(!seduto) return null; const b=new THREE.Object3D(); b.position.set(seduto.x,0,seduto.z); b.rotation.y=seduto.rot; b.updateMatrixWorld(true);
+    const v=new THREE.Vector3(); let dentro=0, tot=0, dietro=Infinity; tu.updateMatrixWorld(true);
+    tu.traverse(o=>{ if(!o.isSkinnedMesh||!o.material) return; const n=o.material.name||""; const busto=n.startsWith("maglia")||n.startsWith("abito"); const c=o.geometry.attributes.position.count;
+      for(let i=0;i<c;i++){ o.getVertexPosition(i,v); o.localToWorld(v); b.worldToLocal(v); tot++;
+        if(Math.abs(v.x)<1.1&&((v.y>0.46&&v.y<0.54&&v.z>-0.29&&v.z<0.29)||(v.y>0.56&&v.y<1.14&&v.z>-0.32&&v.z<-0.24))) dentro++;   // dentro sedile o schienale, con 1 cm di tolleranza
+        if(busto&&v.y>0.65&&v.y<1.15) dietro=Math.min(dietro,v.z); } });
+    return {dentro, tot, schiena:dietro===Infinity?null:+(dietro-(-0.23)).toFixed(3)}; };   // schiena: distanza dalla faccia dello schienale (0 = appoggiata)
   scena.panchine=()=>panchine.map(b=>({x:+b.x.toFixed(2),z:+b.z.toFixed(2)}));
   scena.albero=()=>scena._albero;
   let sulTetto=false; const TETTO=(PALAZZI.find(P=>P.id==="torre").h)+0.4;
@@ -2916,7 +2934,7 @@ const COLLINA={r:4.2,h:1.0}, ACQUA=[4.2,6.13], MURETTO={r:6.25,alto:0.55}, PANCH
       if(r){ [vx,vz,vel]=r; // la telecamera gira dolce dietro a dove vai
         const ya=Math.atan2(-vx,-vz); let dy=ya-stato.yaw; dy=Math.atan2(Math.sin(dy),Math.cos(dy)); stato.yaw+=dy*Math.min(1,dt*2.2); } }
     if(seduto && vel>0){ seduto=null; tu.position.y=0; vicinoPrima=null; }   // muovendo il cerchio ci si alza
-    if(seduto){ posaSeduta(tu); tu.position.y=altezzaSeduta(tu); }   // ogni fotogramma: se la skin arriva dopo, l'anca cambia
+    if(seduto){ posaSeduta(tu); tu.position.y=altezzaSeduta(tu); const o=avantiInPanchina(tu), fx=Math.sin(seduto.rot), fz=Math.cos(seduto.rot); tu.position.x=seduto.x+fx*o; tu.position.z=seduto.z+fz*o; }   // ogni fotogramma: se la skin arriva dopo, l'anca cambia
     if(vel>0){ tu.position.x+=vx*vel*dt; tu.position.z+=vz*vel*dt;
       if(sulTetto){ const T=porte.torre, P=PALAZZI.find(q=>q.id==="torre"), c=Math.cos(P.rot), s2=Math.sin(P.rot), lim=P.w/2-0.7;
         let lx=(tu.position.x-T.cx)*c-(tu.position.z-T.cz)*s2, lz=(tu.position.x-T.cx)*s2+(tu.position.z-T.cz)*c;

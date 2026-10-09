@@ -692,11 +692,15 @@ async def main():
             await p.wait_for_function(f"window.CITTA && window.CITTA.pronta && window.CITTA.skinTua().skin==={json.dumps(sk)} && window.CITTA.skinTua().ossi===true", timeout=60000)
             await p.evaluate("window.CITTA.siedi(0)"); await p.wait_for_timeout(1200)
             await p.wait_for_function("window.CITTA.seduto().posato", timeout=30000)   # la posa arrivata (clip piena), poi si misura
-            sd = await p.evaluate("window.CITTA.seduto()"); sd["sedere"] = await p.evaluate("window.CITTA.sedere()")
+            sd = await p.evaluate("window.CITTA.seduto()"); sd["sedere"] = await p.evaluate("window.CITTA.sedere()"); sd["panchina"] = await p.evaluate("window.CITTA.inPanchina()")
             prova(f"{sk}: seduta, col bacino sul sedile e il ginocchio piegato (lo stinco scende verso terra)",
                   sd["seduto"] and 0.42 <= sd.get("anca", 0) <= 0.75 and abs(sd.get("ginocchio", 0) - sd["anca"]) < 0.12
                   and sd.get("piede", 9) < sd.get("ginocchio", 0) - 0.1
                   and (sd["sedere"] is None or sd["sedere"] >= 0.52), sd)   # il sedere sopra il sedile (0,55), non dentro (9/10)
+            pa_ = sd["panchina"] or {}
+            if sk in ("base", "classica"):   # le persone animate: niente dentro la panchina, schiena contro lo schienale (JJ, 9/10)
+                prova(f"{sk}: niente dentro sedile e schienale, e la schiena appoggiata (entro 4 cm)",
+                      pa_.get("dentro", 99) <= max(5, pa_.get("tot", 0) // 200) and pa_.get("schiena") is not None and -0.01 <= pa_["schiena"] <= 0.04, pa_)
             j = await p.query_selector("#joy"); bb = await j.bounding_box(); cx, cy = bb["x"] + bb["width"] / 2, bb["y"] + bb["height"] / 2
             await p.mouse.move(cx, cy); await p.mouse.down(); await p.mouse.move(cx, cy + 50, steps=4); await p.wait_for_timeout(1500); await p.mouse.up()
             await p.wait_for_timeout(800); sd2 = await p.evaluate("window.CITTA.seduto()")
