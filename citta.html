@@ -147,6 +147,7 @@ body.in-sartoria #foglio{max-height:56vh} /* sopra si deve vedere l'avatar inter
 #conto .spunta{display:flex;gap:10px;align-items:center;font-size:15px;margin:8px 0}
 #conto .spunta input{width:22px;height:22px}
 #conto-google{min-height:44px;margin:8px 0}
+#conto .riga-p input{flex:1;min-width:0;font:500 16px/1.3 var(--f-testo);color:var(--testo);background:var(--input);border:1px solid var(--bordo);padding:10px}
 #esito-conto{font:400 12px/1.4 var(--f-mono);color:var(--oro);min-height:1.2em}
 #chiudi-conto{width:42px;height:42px;font:400 26px/1 var(--f-testo);color:var(--testo);background:transparent;border:1px solid var(--bordo);cursor:pointer}
 body.con-conto #joy,body.con-conto #entra,body.con-conto #vai{opacity:0;pointer-events:none}
@@ -949,6 +950,20 @@ function guadagna(n){ citta.gettoni+=n; salva(); aggiornaGettoni();
 // funziona come prima, tutto nel telefono.
 const GOOGLE_ID="644831505498-sb1lrkalu9maun2f8vcv2e7l3au31akm.apps.googleusercontent.com", CONTO_CHIAVE="jjavis-conto";
 let conto=null, contoServer=null, contoEsito="", contoCancella=false, contoAperto=false, gisCaricata=false;
+let contoMail={mail:"", inviato:false};   // l'accesso con la mail (JJ, 6/10: «serve il metodo per chi non ha Google»)
+async function mandaCodice(){ const m=(($("conto-mail")||{}).value||"").trim(); if(!m) return;
+  contoEsito="Mando il codice…"; disegnaConto();
+  const r=await chiamaConto("/conto/mail/codice",{mail:m});
+  if(r.fatto){ contoMail={mail:m,inviato:true}; contoEsito=`Codice mandato a ${m}: guarda la posta (anche lo spam).`; }
+  else contoEsito=r.no==="mail"?"Questa non sembra una mail.":r.no==="presto"?`Un codice al minuto: riprova fra ${r.fra||60} secondi.`:r.no==="troppi"?"Per oggi i codici sono finiti: riprova domani.":r.no==="bloccato"?"Questo account è stato bloccato: non può entrare.":"Il codice non è partito: riprova fra poco.";
+  disegnaConto(); }
+async function entraConMail(){ const codice=(($("conto-codice")||{}).value||"").replace(/\D/g,"");
+  if(codice.length!==6){ contoEsito="Il codice ha 6 cifre."; disegnaConto(); return; }
+  contoEsito="Entro…"; disegnaConto();
+  const r=await chiamaConto("/conto/mail/entra",{mail:contoMail.mail,codice,eta14:!!($("conto-eta")&&$("conto-eta").checked)});
+  if(!r.token){ contoEsito=r.no==="codice"?`Codice sbagliato${Number.isInteger(r.restano)?`: restano ${r.restano} tentativi`:""}.`:r.no==="scaduto"?"Il codice è scaduto o usato: fattene mandare un altro.":r.no==="eta"?"Per creare l'account devi avere almeno 14 anni: spunta la casella.":r.no==="bloccato"?"Questo account è stato bloccato: non può entrare.":"Il server non risponde: riprova fra poco.";
+    if(r.no==="scaduto") contoMail={mail:contoMail.mail,inviato:false}; disegnaConto(); return; }
+  contoMail={mail:"",inviato:false}; contoEsito=r.nuovo?"Account creato.":"Bentornato."; await dopoAccesso(r); }
 const contoToken=()=>{ try{ return localStorage.getItem(CONTO_CHIAVE)||""; }catch(_){ return ""; } };
 async function serverConto(){ if(contoServer!==null) return contoServer;
   try{ const r=await fetch(INSIEME_JSON,{cache:"no-store"}); const d=r.ok?await r.json():{};
@@ -978,6 +993,8 @@ async function entraConGoogle(risp){ const eta=!!($("conto-eta")&&$("conto-eta")
   contoEsito="Entro…"; disegnaConto();
   const r=await chiamaConto("/conto/google",{credential:risp&&risp.credential,eta14:eta});
   if(!r.token){ contoEsito=r.no==="eta"?"Per creare l'account devi avere almeno 14 anni: spunta la casella.":r.no==="bloccato"?"Questo account è stato bloccato: non può entrare.":r.no==="google"?"Google non ha confermato l'accesso: riprova.":"Il server non risponde: riprova fra poco."; disegnaConto(); return; }
+  await dopoAccesso(r); }
+async function dopoAccesso(r){
   try{ localStorage.setItem(CONTO_CHIAVE,r.token); }catch(_){}
   let c=r.conto;
   if(!c.portato){ const p=await chiamaConto("/conto/porta",{gettoni:citta.gettoni|0,skin:citta.skinMie||[]}); if(p.conto) c=p.conto; }   // una volta: quello che il telefono aveva
@@ -1002,8 +1019,17 @@ function disegnaConto(){ const c=$("conto-corpo"); c.textContent="";
         el("a",{href:"privacy.html",target:"_blank",rel:"noopener"},"Come tratto i tuoi dati"), " · ", el("a",{href:"regole.html",target:"_blank",rel:"noopener"},"Le regole")),
       el("label",{class:"spunta"},eta,el("span",{testo:"Ho almeno 14 anni"})));
     const box=el("div",{id:"conto-google"}); c.append(box);
-    if(eta.checked){ box.textContent="Carico il bottone di Google…"; caricaGoogle(); }
-    else box.append(el("p",{class:"nota",testo:"Spunta la casella per vedere il bottone di Google."}));
+    if(eta.checked){ box.textContent="Carico il bottone di Google…"; caricaGoogle();
+      const ferma=e=>e.stopPropagation();
+      c.append(el("p",{class:"nota",testo:"Non hai Google? Entra con la tua mail: ti mando un codice di 6 cifre."}));
+      if(!contoMail.inviato){ const m=el("input",{id:"conto-mail",type:"email",inputmode:"email",autocomplete:"email",placeholder:"la tua mail","aria-label":"La tua mail"}); m.value=contoMail.mail;
+        m.addEventListener("keydown",e=>{ ferma(e); if(e.key==="Enter") mandaCodice(); }); m.addEventListener("keyup",ferma);
+        c.append(el("div",{class:"riga-p"}, m, bottone("Mandami il codice",mandaCodice,true))); }
+      else { const k=el("input",{id:"conto-codice",inputmode:"numeric",autocomplete:"one-time-code",maxlength:"6",placeholder:"123456","aria-label":"Il codice di 6 cifre"});
+        k.addEventListener("keydown",e=>{ ferma(e); if(e.key==="Enter") entraConMail(); }); k.addEventListener("keyup",ferma);
+        c.append(el("div",{class:"riga-p"}, k, bottone("Entra",entraConMail)), el("div",{class:"riga-p"}, bottone("Un'altra mail o un altro codice",()=>{ contoMail={mail:contoMail.mail,inviato:false}; contoEsito=""; disegnaConto(); },true))); } }
+    else box.append(el("p",{class:"nota",testo:"Spunta la casella: compaiono «Accedi con Google» e l'accesso con la mail."}));
+    c.append(el("div",{class:"riga-p"}, bottone("Più tardi: cammino da solo",()=>{ try{ sessionStorage.setItem("jjavis-conto-dopo","1"); }catch(_){} chiudiConto(); },true)));
   } else {
     c.append(el("p",{testo:`Sei ${conto.nome||conto.soprannome||"dentro"}${conto.mail?" · "+conto.mail:""}`}));
     if(conto.admin) c.append(el("p",{class:"nota",testo:"👑 Amministratore: non spendi gettoni, anche se li hai, e tutte le skin sono tue."}));
@@ -1016,8 +1042,14 @@ function disegnaConto(){ const c=$("conto-corpo"); c.textContent="";
   }
   $("esito-conto").textContent=contoEsito; }
 function apriConto(){ contoAperto=true; contoCancella=false; $("conto").hidden=false; document.body.classList.add("con-conto"); disegnaConto(); }
-function chiudiConto(){ contoAperto=false; contoEsito=""; $("conto").hidden=true; document.body.classList.remove("con-conto"); }
+function chiudiConto(){ if(!conto){ try{ sessionStorage.setItem("jjavis-conto-dopo","1"); }catch(_){} } contoAperto=false; contoEsito=""; $("conto").hidden=true; document.body.classList.remove("con-conto"); }
 $("conto-tasto").addEventListener("click",()=>contoAperto?chiudiConto():apriConto());
+// JJ, 6/10: «l'account va fatto quando entri nella città, non devi schiacciare tu accedi». Appena la città è pronta, se non hai
+// l'account il pannello si apre da solo. «Più tardi» (o la ×) vale per questa visita
+(function chiediAllIngresso(){ let n=0; const t=setInterval(()=>{ n++;
+  const dopo=(()=>{ try{ return sessionStorage.getItem("jjavis-conto-dopo"); }catch(_){ return "1"; } })();
+  if(conto||contoToken()||dopo||n>120){ clearInterval(t); return; }
+  if(window.CITTA&&window.CITTA.pronta){ clearInterval(t); apriConto(); } },500); })();
 $("chiudi-conto").addEventListener("click",chiudiConto);
 aggiornaTastoConto();
 if(contoToken()) chiamaConto("/conto",null,"GET").then(r=>{ if(r.conto) applicaConto(r.conto); else if(r.no==="rete"||r.no==="server") contoEsito="Il server non risponde: i gettoni che vedi sono quelli del telefono."; });

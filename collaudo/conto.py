@@ -23,7 +23,7 @@ def prova(nome, ok, dettaglio=""):
     prove.append(bool(ok)); print(("  ok  " if ok else "  NO  ") + nome + (f" — {dettaglio}" if dettaglio and not ok else ""))
 
 class Server:
-    def __init__(s, admin=False): s.conti, s.sessioni, s.chiamate, s.admin, s.uscite = {}, {}, [], admin, []
+    def __init__(s, admin=False): s.conti, s.sessioni, s.chiamate, s.admin, s.uscite, s.codici = {}, {}, [], admin, [], {}
     def vedi(s, c): return {**c, "admin": s.admin}
     async def __call__(s, route):
         req = route.request; via = req.url[len(SRV):].split("?")[0]
@@ -32,6 +32,13 @@ class Server:
         corpo = json.loads(req.post_data or "{}") if req.method == "POST" else {}
         s.chiamate.append((via, corpo))
         def ok(d, st=200): return route.fulfill(status=st, body=json.dumps(d), content_type="application/json", headers=h)
+        if via == "/conto/mail/codice":
+            s.codici[corpo["mail"]] = "424242"; return await ok({"fatto": True})
+        if via == "/conto/mail/entra":
+            if s.codici.get(corpo.get("mail")) != corpo.get("codice"): return await ok({"no": "codice", "restano": 4}, 401)
+            s.conti["m1"] = {"nome": "", "mail": corpo["mail"], "soprannome": None, "gettoni": 100, "skin": [], "portato": False}
+            s.sessioni["t" * 64] = "m1"
+            return await ok({"token": "t" * 64, "conto": s.vedi(s.conti["m1"]), "nuovo": True})
         if via == "/conto/google":
             if corpo.get("credential") != "buono": return await ok({"no": "google"}, 401)
             nuovo = "g1" not in s.conti
@@ -103,7 +110,12 @@ async def main():
         ctx, p, err = await nuova(b, srv, "if(!sessionStorage.getItem('gia')){sessionStorage.setItem('gia','1');localStorage.setItem('jjavis-citta',JSON.stringify({gettoni:261,skinMie:['base','classica','cavaliere']}));}")
         S = await st(p)
         prova("senza account il tasto dice «Accedi con Google» e i gettoni sono quelli del telefono", "Accedi con Google" in S["tasto"] and S["gettoni"] == 261 and not S["conto"], S)
-        await p.click("#conto-tasto"); await p.wait_for_selector("#conto-eta")
+        # 6/10, JJ: «l'account va fatto quando entri nella città, non devi schiacciare tu accedi»
+        try:
+            await p.wait_for_selector("#conto-eta", state="visible", timeout=15000); aperto = True
+        except Exception:
+            aperto = False
+        prova("appena entri in città senza account, il pannello dell'account si apre da solo", aperto)
         prova("il pannello spiega cosa sa Google e cosa resta a JJA-VIS", "Google ci dice solo chi sei" in await p.inner_text("#conto"))
         prova("senza «ho almeno 14 anni» il bottone di Google non c'è", await p.locator("#gis-finto").count() == 0)
         await p.check("#conto-eta"); await p.wait_for_selector("#gis-finto", timeout=10000)
@@ -144,7 +156,7 @@ async def main():
         # 2. l'amministratore
         srv = Server(admin=True)
         ctx, p, err = await nuova(b, srv, "if(!sessionStorage.getItem('gia')){sessionStorage.setItem('gia','1');localStorage.setItem('jjavis-citta',JSON.stringify({gettoni:261,eta14:true}));}")
-        await p.click("#conto-tasto"); await p.wait_for_selector("#gis-finto", timeout=10000); await p.click("#gis-finto")
+        await p.wait_for_selector("#gis-finto", timeout=15000); await p.click("#gis-finto")
         await p.wait_for_function("window.CONTO_PROVA.stato().conto!==null", timeout=10000)
         S = await st(p)
         prova("l'amministratore lo dice il tasto (👑) e il pannello", "👑" in S["tasto"] and "amministratore" in S["tasto"] and "non spendi gettoni" in await p.inner_text("#conto"), S)
@@ -152,6 +164,33 @@ async def main():
         ok = await p.evaluate("window.CONTO_PROVA.spendi(5000)"); await p.wait_for_timeout(300)
         prova("l'amministratore «spende» 5000 gettoni: va bene, e ne ha ancora 261", ok is True and (await st(p))["gettoni"] == 261 and not any(v == "/conto/spendi" for v, c in srv.chiamate), (await st(p))["gettoni"])
         prova("nessun errore JavaScript (amministratore)", not err, err[:3])
+        await ctx.close()
+
+        # 2b. «Più tardi»: si chiude, e in questa visita non torna
+        srv = Server()
+        ctx, p, err = await nuova(b, srv)
+        await p.wait_for_selector("#conto button:has-text('Più tardi')", state="visible", timeout=15000)
+        await p.click("#conto button:has-text('Più tardi')"); await p.reload()
+        await p.wait_for_function("window.CITTA && window.CITTA.pronta && window.CONTO_PROVA", timeout=120000); await p.wait_for_timeout(2500)
+        prova("«Più tardi»: il pannello si chiude e, ricaricando, in questa visita non si riapre", not await p.is_visible("#conto"))
+        await ctx.close()
+
+        # 2c. senza Google: la mail e il codice di 6 cifre (JJ, 6/10)
+        srv = Server()
+        ctx, p, err = await nuova(b, srv, "if(!sessionStorage.getItem('gia')){sessionStorage.setItem('gia','1');localStorage.setItem('jjavis-citta',JSON.stringify({eta14:true}));}")
+        await p.wait_for_selector("#conto-mail", state="visible", timeout=15000)
+        prova("con la casella spuntata, sotto Google c'è l'accesso con la mail", True)
+        await p.fill("#conto-mail", "gino@prova.it"); await p.click("#conto button:has-text('Mandami il codice')")
+        await p.wait_for_selector("#conto-codice", timeout=10000)
+        prova("«Mandami il codice»: il server lo manda a quella mail, e la città chiede il codice", srv.codici.get("gino@prova.it") and "gino@prova.it" in await p.inner_text("#esito-conto"))
+        await p.fill("#conto-codice", "000000"); await p.click("#conto button:has-text('Entra')"); await p.wait_for_timeout(500)
+        prova("un codice sbagliato: lo dice, coi tentativi che restano", "sbagliato" in await p.inner_text("#esito-conto") and not (await st(p))["conto"])
+        await p.fill("#conto-codice", srv.codici["gino@prova.it"]); await p.click("#conto button:has-text('Entra')")
+        await p.wait_for_function("window.CONTO_PROVA.stato().conto!==null", timeout=10000)
+        S = await st(p)
+        prova("col codice giusto si entra: account aperto, token nel telefono", S["conto"]["mail"] == "gino@prova.it" and len(await p.evaluate("localStorage.getItem('jjavis-conto')") or "") == 64, S)
+        altri_err = [e for e in err if "status of 401" not in e]   # il 401 del codice sbagliato messo apposta: il browser lo annota sempre
+        prova("nessun errore JavaScript (mail; il 401 del codice sbagliato è voluto)", not altri_err, altri_err[:3])
         await ctx.close()
 
         # 3. la sessione scaduta: si dice, non si tace
