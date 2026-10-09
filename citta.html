@@ -1841,6 +1841,18 @@ function schienaDietro(av, piano){ av.updateMatrixWorld(true); const v=new THREE
 function avantiInPanchina(av){ const u=av.userData; if(!u.mixer) return 0.08; const k="p:"+(u.clip||""); u.sedere=u.sedere||{};
   if(u.sedere[k]==null){ const z=schienaDietro(av, 0.55); if(z==null) return 0.08; if(u.inCorso&&u.inCorso.getEffectiveWeight()>0.999) u.sedere[k]=-0.22-z; else return -0.22-z; }
   return u.sedere[k]; }
+// al Cinema e al Café (JJ, 9/10: «anche al cinema e al bar è seduto fuori posto, le gambe dentro la poltrona»): lo stesso
+// giro della panchina. Con lo schienale (posto.dietro) la schiena va a 1 cm dalla sua faccia, così le ginocchia escono dal
+// davanti della poltrona; senza (sgabello) il sedere va sopra il centro. Misurato una volta per clip, a posa ferma
+function sedereAvanti(av){ const os=av.userData.gambe[0]&&av.userData.gambe[0].osso; if(!os||!os.parent) return null; av.updateMatrixWorld(true);
+  const v=new THREE.Vector3(), b=os.parent.getWorldPosition(new THREE.Vector3()), anca=os.getWorldPosition(new THREE.Vector3()).y, pts=[]; let min=Infinity;
+  av.traverse(o=>{ if(!o.isSkinnedMesh||!o.material||!(o.material.name||"").startsWith("pantaloni")) return; const c=o.geometry.attributes.position.count;
+    for(let i=0;i<c;i++){ o.getVertexPosition(i,v); o.localToWorld(v); if(Math.hypot(v.x-b.x,v.z-b.z)<0.22&&v.y>anca-0.35){ pts.push(v.clone()); if(v.y<min) min=v.y; } } });   // il sedere: i pantaloni sotto il bacino, non le caviglie
+  const basso=pts.filter(p=>p.y<min+0.04).map(p=>av.worldToLocal(p).z); return basso.length?basso.reduce((a,b)=>a+b,0)/basso.length:null; }
+function allineaSeduta(av, posto){ const u=av.userData; if(!u.mixer) return; const k="s:"+(u.clip||""); u.sedere=u.sedere||{};
+  let o=u.sedere[k]; if(o==null){ const z=posto.dietro!=null?schienaDietro(av,posto.piano??0.55):sedereAvanti(av); if(z==null) return;
+    o=posto.dietro!=null?-(posto.dietro-0.01)-z:-z; if(u.inCorso&&u.inCorso.getEffectiveWeight()>0.999) u.sedere[k]=o; }
+  const fx=Math.sin(av.rotation.y), fz=Math.cos(av.rotation.y); av.position.x=posto.x+fx*o; av.position.z=posto.z+fz*o; }
 // per il collaudo: la posa è arrivata (clip piena, e il sedere già misurato) — in sandbox, a 1 fotogramma al secondo, ci vuole un po'
 function posato(av){ const u=av.userData; return !u.mixer||!!(u.inCorso&&u.inCorso.getEffectiveWeight()>0.999&&u.sedere&&u.sedere[u.clip]!=null); }
 function sedereSottoAnca(av){ const u=av.userData, os=u.gambe[0]&&u.gambe[0].osso; if(!os||!os.parent) return null;
@@ -1851,7 +1863,7 @@ function sedereSottoAnca(av){ const u=av.userData, os=u.gambe[0]&&u.gambe[0].oss
 // l'altezza dell'avatar seduto: il sedere vero sul piano del sedile (0,93 sopra la y del posto: 0,55 in panchina). JJ, 9/10:
 // «quando fai la foto e guardi, non lo vedi che è dentro la panchina?» — prima si mettevano a occhio anca e un margine fisso,
 // e Classica e Realista restavano dentro di 5 e 13 cm. Ora si misura (sedereSottoAnca) e la prova lo controlla (sedere())
-function altezzaSeduta(av, y){ const u=av.userData, piano=(y??-0.38)+0.93, os=u.gambe[0]&&u.gambe[0].osso;
+function altezzaSeduta(av, y, pianoVero){ const u=av.userData, piano=pianoVero??(y??-0.38)+0.93, os=u.gambe[0]&&u.gambe[0].osso;
   if(!os) return (y??-0.38)+ANCA-(u.anca??ANCA);   // l'omino (e le skin senza ossi): come sempre
   const chiave=u.clip||"mano"; u.sedere=u.sedere||{};
   // la misura si tiene solo a passaggio finito (peso della clip pieno: col telefono lento lo scambio di 0,25 s dura più
@@ -2427,8 +2439,8 @@ const COLLINA={r:4.2,h:1.0}, ACQUA=[4.2,6.13], MURETTO={r:6.25,alto:0.55}, PANCH
       h.cosa("schermo",[sc],0,-5.6,{x:0,z:-3.4},4.75);
       // le poltrone: ci si siede, guardando lo schermo (JJ, 4/10: «non ci si può neanche sedere sulle poltrone»)
       S2.userData.posti=[]; const pol=[];
-      for(const s of [-1,1]){ for(let r=0;r<4;r++) for(let k=0;k<3;k++){ const x=s*(2.8+k*1.4), z=-1+r*1.4; const se=scatola(1.1,0.5,0.8,0x8a1f2c); h.metti(se,x,0.25+r*0.15,z); h.metti(scatola(1.1,0.8,0.15,0x8a1f2c),x,0.7+r*0.15,z+0.38);
-          S2.userData.posti.push({x,z:z-0.05,tx:x,tz:-6,y:-0.38+r*0.15}); if(k===0) pol.push(se); }
+      for(const s of [-1,1]){ for(let r=0;r<4;r++) for(let k=0;k<3;k++){ const x=s*(2.8+k*1.4), z=-1+r*1.4; const se=scatola(1.1,0.5,0.55,0x8a1f2c); h.metti(se,x,0.25+r*0.15,z+0.03);   /* seduta profonda 55 cm (era 80): con le persone le gambe finivano dentro la poltrona (JJ, 9/10) */ h.metti(scatola(1.1,0.8,0.15,0x8a1f2c),x,0.7+r*0.15,z+0.38);
+          S2.userData.posti.push({x,z:z-0.05,tx:x,tz:-6,y:-0.38+r*0.15,piano:0.5+r*0.15,dietro:0.355,pieni:[{x,y:0.25+r*0.15,z:z+0.03,w:1.1,h:0.5,d:0.55},{x,y:0.7+r*0.15,z:z+0.38,w:1.1,h:0.8,d:0.15}]}); if(k===0) pol.push(se); }   // seduta a 0,5 (+gradino), schienale 35,5 cm dietro il posto
         h.solido(s*4.2,1.3,4.2,5.4); }
       h.cosa("poltrone",pol,0,0.4,{x:0,z:0.4},1.6);
       // la biglietteria, accanto alla porta: ci si arriva dal corridoio, fra le poltrone e la porta
@@ -2449,7 +2461,7 @@ const COLLINA={r:4.2,h:1.0}, ACQUA=[4.2,6.13], MURETTO={r:6.25,alto:0.55}, PANCH
       const tav=[]; S2.userData.posti=[]; [[-2.5,1.6],[2.2,1.4],[3.6,-3.6]].forEach(([x,z])=>{ const t=cilindro(0.55,0.55,0.06,0xc8a165,16), g2=cilindro(0.06,0.06,0.95,0x333333,8);
         h.metti(t,x,0.98,z); h.metti(g2,x,0.48,z); tav.push(t); h.tondo(x,z,0.6);
         for(const a of [0,Math.PI]){ const sx=x+Math.cos(a)*0.85, sz=z+Math.sin(a)*0.85; h.metti(cilindro(0.22,0.22,0.5,0x2a3f57,10),sx,0.25,sz);
-          S2.userData.posti.push({x:sx,z:sz,tx:x,tz:z}); } });
+          S2.userData.posti.push({x:sx,z:sz,tx:x,tz:z,piano:0.5,tondo:{x:sx,z:sz,r:0.22,h:0.5}}); } });   // sgabello tondo: niente schienale, il sedere al centro
       h.cosa("tavolini",tav,2.2,1.4,{x:2.2,z:2.6},2.2);
       // la tazzina del caffè sospeso, accanto alla porta
       const taz=cilindro(0.18,0.14,0.22,0xffffff,12); h.metti(scatola(0.8,1,0.8,0x3a2a1e),-5.6,0.5,4.4); h.metti(taz,-5.6,1.12,4.4); h.solido(-5.6,4.4,0.8,0.8);
@@ -2546,7 +2558,7 @@ const COLLINA={r:4.2,h:1.0}, ACQUA=[4.2,6.13], MURETTO={r:6.25,alto:0.55}, PANCH
   scena.sedutoAlBar=()=>!!alBar;
   scena.siediAlBar=()=>{ if(!attiva||!attiva.S.userData.posti||!tuStanza) return; const p=tuStanza.position;
     const posto=attiva.S.userData.posti.slice().sort((a,b)=>Math.hypot(a.x-p.x,a.z-p.z)-Math.hypot(b.x-p.x,b.z-p.z))[0];
-    alBar=posto; dentro.meta=null; tuStanza.position.set(posto.x,altezzaSeduta(tuStanza,posto.y),posto.z); tuStanza.rotation.y=Math.atan2(posto.tx-posto.x,posto.tz-posto.z);
+    alBar=posto; dentro.meta=null; tuStanza.position.set(posto.x,altezzaSeduta(tuStanza,posto.y,posto.piano),posto.z); tuStanza.rotation.y=Math.atan2(posto.tx-posto.x,posto.tz-posto.z);
     posaSeduta(tuStanza); scena.vassoioAlTavolo(); };
   scena.alzatiDalBar=()=>{ if(!alBar) return; alBar=null; if(tuStanza){ tuStanza.position.y=0; spingiDentro(tuStanza.position,0.4); } scena.vassoioAlTavolo(); };
   scena.vassoioAlTavolo=()=>{ if(!attiva||!attiva.S) return; piatti.splice(0).forEach(m=>m.parent&&m.parent.remove(m)); if(!alBar || alBar.y!==undefined) return;   // al Cinema niente vassoio
@@ -2556,7 +2568,13 @@ const COLLINA={r:4.2,h:1.0}, ACQUA=[4.2,6.13], MURETTO={r:6.25,alto:0.55}, PANCH
       else { const pt=cilindro(0.13,0.13,0.015,0xffffff,14); g.add(pt); const cibo=palla(0.07,c.nome==="Biscotto"?0xc8925a:0xd99a4e); cibo.scale.set(1.3*Math.max(0.3,c.resta/c.tot),0.6,1); cibo.position.y=0.05; g.add(cibo); }
       attiva.S.add(g); piatti.push(g); }); };
   scena.portaAllaBocca=()=>{ boccaFino=tStanza+0.8; };
-  scena.bar=()=>({...(tuStanza?misuraGambe(tuStanza):{}), clip:tuStanza?tuStanza.userData.clip||null:null, posato:tuStanza?posato(tuStanza):true, seduto:!!alBar, y:tuStanza?+tuStanza.position.y.toFixed(2):null, vassoio:vassoio.map(c=>({nome:c.nome,resta:c.resta,tot:c.tot})), sulTavolo:piatti.length, gettoni:citta.gettoni});
+  // per il collaudo: quanti punti della persona stanno dentro la poltrona o lo sgabello (1 cm di tolleranza)
+  const dentroPosto=()=>{ if(!alBar||!tuStanza) return null; const v=new THREE.Vector3(); let dentro=0, tot=0; tuStanza.updateMatrixWorld(true);
+    tuStanza.traverse(o=>{ if(!o.isSkinnedMesh) return; const c=o.geometry.attributes.position.count; for(let i=0;i<c;i++){ o.getVertexPosition(i,v); o.localToWorld(v); tot++;
+      if((alBar.pieni||[]).some(q=>Math.abs(v.x-q.x)<q.w/2-0.01&&Math.abs(v.y-q.y)<q.h/2-0.01&&Math.abs(v.z-q.z)<q.d/2-0.01)) dentro++;
+      else if(alBar.tondo&&Math.hypot(v.x-alBar.tondo.x,v.z-alBar.tondo.z)<alBar.tondo.r-0.01&&v.y<alBar.tondo.h-0.01) dentro++; } });
+    return {dentro,tot}; };
+  scena.bar=()=>({posto:dentroPosto(), ...(tuStanza?misuraGambe(tuStanza):{}), clip:tuStanza?tuStanza.userData.clip||null:null, posato:tuStanza?posato(tuStanza):true, seduto:!!alBar, y:tuStanza?+tuStanza.position.y.toFixed(2):null, vassoio:vassoio.map(c=>({nome:c.nome,resta:c.resta,tot:c.tot})), sulTavolo:piatti.length, gettoni:citta.gettoni});
   scena.gettoni=n=>{ if(typeof n==="number"){ citta.gettoni=n; salva(); aggiornaGettoni(); } return citta.gettoni; };
   scena.iconaPerTerra=()=>!!(attiva&&attiva.S&&attiva.S.userData.icona);
   scena.esci=()=>{ finisciProva(); alBar=null; piatti.splice(0).forEach(m=>m.parent&&m.parent.remove(m)); if(attiva && attiva.S && tuStanza){ attiva.S.remove(tuStanza); stato.yaw=yawFuori; } tuStanza=null; attiva=null; $("entra").hidden=true; vicinoPrima=null; };
@@ -2868,7 +2886,7 @@ const COLLINA={r:4.2,h:1.0}, ACQUA=[4.2,6.13], MURETTO={r:6.25,alto:0.55}, PANCH
     else if(!cartaAperta && dentro.meta){ const r=versoTappa(tuStanza,dentro,dt,4.2,()=>{ const c=R.cose[dentro.metaId]; tuStanza.rotation.y=Math.atan2(c.x-tuStanza.position.x,c.z-tuStanza.position.z); apriCosa(dentro.metaId); });
       if(r){ [vx,vz,vel]=r; const ya=Math.atan2(-vx,-vz); let dy=ya-stato.yaw; dy=Math.atan2(Math.sin(dy),Math.cos(dy)); stato.yaw+=dy*Math.min(1,dt*2.5); } }
     if(alBar && vel>0){ scena.alzatiDalBar(); }   // muovendo il cerchio ci si alza dal tavolino
-    if(alBar){ posaSeduta(tuStanza); tuStanza.position.y=altezzaSeduta(tuStanza,alBar.y); tuStanza.userData.braccia[1].rotation.x=tStanza<boccaFino?-2.1:0; }
+    if(alBar){ posaSeduta(tuStanza); tuStanza.position.y=altezzaSeduta(tuStanza,alBar.y,alBar.piano); allineaSeduta(tuStanza,alBar); tuStanza.userData.braccia[1].rotation.x=tStanza<boccaFino?-2.1:0; }
     if(vel>0){ tuStanza.position.x+=vx*vel*dt; tuStanza.position.z+=vz*vel*dt; spingiDentro(tuStanza.position,0.4);
       const ry=Math.atan2(vx,vz); let dr=ry-tuStanza.rotation.y; dr=Math.atan2(Math.sin(dr),Math.cos(dr)); tuStanza.rotation.y+=dr*Math.min(1,dt*12); cammina(tuStanza,vel*dt*1.9); }
     else if(!alBar) fermo(tuStanza);

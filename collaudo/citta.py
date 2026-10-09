@@ -364,7 +364,9 @@ async def main():
                 prova("il Cinema sa incorporare YouTube e TikTok (lettore ufficiale /player/v1), e quello che non sa o non è https resta fuori", inc == ["https://www.youtube.com/embed/abc123"] * 3 + ["https://www.tiktok.com/player/v1/7382225350710824222?description=1", None, None], inc)
                 await usa(p, "poltrone", "Le poltrone")
                 await p.click("#stanza-carta button:has-text('Siediti in poltrona')"); await p.wait_for_timeout(1000)
+                await p.wait_for_function("window.CITTA.bar().posato", timeout=30000)
                 pb = await p.evaluate("window.CITTA.bar()")
+                prova("al Cinema seduti sopra la poltrona, non dentro: gambe fuori dal davanti, schiena allo schienale (JJ, 9/10)", (pb.get("posto") or {}).get("dentro", 99) <= max(5, (pb.get("posto") or {}).get("tot", 0) // 200), pb.get("posto"))
                 prova("al Cinema ci si siede in poltrona, e da seduti c'è l'elenco dei video", pb["seduto"] and (pb["y"] < 0 or (pb.get("clip") == "Sitting_Idle_Loop" and pb.get("anca", 0) > 0.3)) and await p.evaluate("document.querySelectorAll('#stanza-carta .video').length") == 1, pb)
                 await p.click("#stanza-carta button:has-text('Alzati')"); await p.wait_for_timeout(300)
                 await foto(p, "09-stanza-cinema")
@@ -481,6 +483,7 @@ async def main():
         await p.click("#stanza-carta button:has-text('Siediti al tavolino')"); await p.wait_for_timeout(1200)
         await p.wait_for_function("window.CITTA.bar().posato", timeout=30000)
         b2 = await p.evaluate("window.CITTA.bar()")
+        prova("al tavolino seduti sopra lo sgabello, non dentro (JJ, 9/10)", (b2.get("posto") or {}).get("dentro", 99) <= max(5, (b2.get("posto") or {}).get("tot", 0) // 200), b2.get("posto"))
         prova("al tavolino ci si siede davvero, e sul tavolo arriva quello che hai ordinato", b2["seduto"] and (b2["y"] < -0.2 or (b2.get("clip") == "Sitting_Idle_Loop" and 0.42 <= b2.get("anca", 0) <= 0.75)) and b2["sulTavolo"] == 3, b2)   # le persone animate (9/10): conta l'anca sul sedile, non quanto si abbassa l'avatar
         n = 0
         while n < 10 and await p.evaluate("window.CITTA.bar().vassoio.some(v=>v.nome==='Caffè')"):
