@@ -76,8 +76,13 @@ for n in VESTE[MESTIERE][CORPO]: metti(trova(n), "Clothes").__setitem__("ruolo",
 # il corpo è quello pieno di MakeHuman, SENZA decimate (il decimate rompe le coordinate della texture: bocca e mani a
 # macchie rosse, 9/10) e senza il corpo leggero (proxy): il proxy non sa dei vestiti, e i piedi nudi bucavano gli scarponi.
 # Le parti coperte le toglie la maschera che ogni vestito mette sul corpo (delete group), applicata qui sotto.
+# il corpo leggero di MakeHuman (proxy, ~1.900 punti con le sue UV) al posto del corpo pieno (~12.000): JJ, 9/10, le persone
+# in città sono una quindicina e la città era diventata 2,5 volte più lenta. Si mette DOPO i vestiti (prima, MPFB si ferma);
+# le parti coperte dai vestiti si tolgono qui sotto confrontandolo col corpo pieno mascherato (senza, i piedi bucavano gli scarponi)
+proxy = HS.add_mhclo_asset(glob.glob(os.path.join(LIB, "proxymeshes", "female1605" if donna else "male1591", "*.proxy"))[0], h,
+                           asset_type="Proxymeshes", subdiv_levels=0, material_type="NONE")
 pelle = glob.glob(os.path.join(LIB, "skins", f"young_caucasian_{'female' if donna else 'male'}", "*.mhmat"))[0]
-HS.set_character_skin(pelle, h, skin_type="GAMEENGINE")
+HS.set_character_skin(pelle, h, bodyproxy=proxy, skin_type="GAMEENGINE")
 # maglia e pantaloni: tinta piena chiara, il colore vero lo dà la città (quello del mestiere, o quello scelto allo specchio)
 for o in pezzi:
     r = o.get("ruolo")
@@ -86,14 +91,14 @@ for o in pezzi:
         m.node_tree.nodes["Principled BSDF"].inputs["Base Color"].default_value = (0.8, 0.8, 0.8, 1)
         m.node_tree.nodes["Principled BSDF"].inputs["Roughness"].default_value = 0.85
         o.data.materials.clear(); o.data.materials.append(m)
-# la maglia un filo fuori (9 mm; con 6 restava un segnetto dietro lungo le normali): alla vita i pantaloni la bucavano, e dietro si vedeva una macchia scura
+# la maglia un filo fuori (15 mm; con 6 e con 9 restava un segnetto dietro lungo le normali): alla vita i pantaloni la bucavano, e dietro si vedeva una macchia scura
 # a stella sopra la cintura (foto di JJ, 9/10). Prima di montarla sullo scheletro: si sposta la forma di riposo
 for o in pezzi:
     if o.get("ruolo") in ("maglia", "abito"):
-        for v in o.data.vertices: v.co += v.normal * 0.009
+        for v in o.data.vertices: v.co += v.normal * 0.015
 # pelle e capelli col nome che la città riconosce. I capelli (e le sopracciglia) diventano grigi chiari, così il colore
 # scelto li tinge davvero: una texture castana moltiplicata per il biondo resta castana
-for m in list(h.data.materials):
+for m in list(proxy.data.materials):
     if m: m.name = "pelle"
 for o in pezzi:
     if any(k in o.name.lower() for k in ("eyebrow", "short", "ponytail")):
@@ -110,6 +115,21 @@ for o in pezzi:
 bpy.context.view_layer.objects.active = h
 for m in list(h.modifiers):
     if m.type == "MASK": bpy.ops.object.modifier_move_to_index(modifier=m.name, index=0); bpy.ops.object.modifier_apply(modifier=m.name)
+# il corpo leggero perde i punti che sul corpo pieno sono stati coperti: per ogni suo punto, se il corpo pieno lì non c'è più
+# (il punto rimasto più vicino è lontano), sta sotto un vestito
+from mathutils import kdtree
+dg = bpy.context.evaluated_depsgraph_get()
+rimasti = [h.matrix_world @ v.co for v in h.evaluated_get(dg).data.vertices]
+kd = kdtree.KDTree(len(rimasti))
+for i, c in enumerate(rimasti): kd.insert(c, i)
+kd.balance()
+bpy.ops.object.select_all(action="DESELECT"); bpy.context.view_layer.objects.active = proxy
+pv = proxy.evaluated_get(dg).data.vertices
+via = [i for i, v in enumerate(proxy.data.vertices) if kd.find(proxy.matrix_world @ pv[i].co)[2] > 0.02]
+bpy.ops.object.mode_set(mode="EDIT"); bpy.ops.mesh.select_all(action="DESELECT"); bpy.ops.object.mode_set(mode="OBJECT")
+for i in via: proxy.data.vertices[i].select = True
+bpy.ops.object.mode_set(mode="EDIT"); bpy.ops.mesh.delete(type="VERT"); bpy.ops.object.mode_set(mode="OBJECT")
+print("corpo leggero:", len(proxy.data.vertices), "punti (tolti", len(via), "coperti)")
 # le scarpe troppo fitte sì: le ballerine «toigo_flats» hanno 30.000 punti e da sole facevano pesare una persona 3,5 MB
 # (9/10). Sulle scarpe la texture si sporca poco e da lontano non si vede
 for o in pezzi:
@@ -132,7 +152,7 @@ for m in bpy.data.materials:
 # texture piccole: 512 al massimo
 for im in bpy.data.images:
     if im.size[0] > 512: im.scale(512, int(512 * im.size[1] / im.size[0]))
-corpo = h
+corpo = proxy
 if USCITA:
     bpy.ops.object.select_all(action="DESELECT")
     for o in [corpo, arm] + pezzi: o.select_set(True)

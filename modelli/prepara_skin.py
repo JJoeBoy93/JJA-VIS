@@ -64,7 +64,8 @@ elif quale.startswith("animazioni-"):   # le clip di Quaternius sullo scheletro 
     braccia_giu(corpi, g["arm"], "upperarm_{}", ("l", "r"), 30)
     for o in corpi: bpy.data.objects.remove(o)
     A = runpy.run_path(os.path.join(QUI, "prepara_animazioni.py"))
-    A["ritarghetta"](g["arm"], os.environ.get("UAL", "/home/claude/an/Universal Animation Library[Standard]/Unreal-Godot/UAL1_Standard.glb"))
+    for a in list(bpy.data.actions): bpy.data.actions.remove(a)
+    A["tutte"](g["arm"], corpo)
     d = os.path.join(QUI, "animazioni"); os.makedirs(d, exist_ok=True); out = os.path.join(d, f"persona-{corpo}.glb")
     bpy.ops.object.select_all(action="DESELECT"); g["arm"].select_set(True)
     bpy.ops.export_scene.gltf(filepath=out, export_format="GLB", use_selection=True, export_animations=True,

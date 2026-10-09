@@ -1576,8 +1576,26 @@ const tex=c=>{ const t=new THREE.CanvasTexture(c); t.colorSpace=THREE.SRGBColorS
 // Busto che si stringe in vita, bacino, spalle tonde, braccia e gambe arrotondate, collo, testa ovale con orecchie,
 // occhi, sopracciglia, naso e bocca. Le giunture restano dove le usano il passo e la stoffa: anche a 0,9 m (ANCA),
 // spalle a 1,55. Uomo o donna cambiano le proporzioni; i vestiti si appoggiano sopra.
+// JJ, 9/10: «leva tutti gli omini vecchi e falli con i mestieri nuovi». Tutti — tu, i passanti, le statue della Sartoria, i
+// manichini, commessa e barista, gli altri in città — sono persone (la Base vestita col loro mestiere, o la loro skin). Finché
+// il file non è arrivato c'è un posto vuoto (persona()), non più l'omino. L'omino resta qui sotto solo per le vecchie prove
+// del collaudo sulla stoffa (omino()), e non si vede più in città.
 function avatar(st){
-  if(st===citta){ const m=avatarDaSkin(provaSkin?{...st,skin:provaSkin}:st); if(m) return m; }   // provaSkin: allo specchio, senza comprarla   // la skin vale solo per te: passanti e manichini restano fatti nel codice
+  if(st===citta){ const s=provaSkin?{...st,skin:provaSkin}:st; return avatarDaSkin(s)||persona({...s}); }   // provaSkin: allo specchio, senza comprarla
+  return persona(st);
+}
+const ATTESE=[];
+function persona(st){
+  const s={...st, skin:(st.skin&&SKIN.some(k=>k.id===st.skin&&k.file))?st.skin:"base"};
+  const m=avatarDaSkin(s); if(m) return m;
+  const g=new THREE.Group(), vuota=()=>({rotation:{x:0}});
+  g.userData={attesa:s, gambe:[vuota(),vuota()], braccia:[vuota(),vuota()], ginocchia:[], tessuti:[], fase:Math.random()*6, corpo:s.corpo==="donna"?"donna":"uomo"};
+  ATTESE.push(g); return g;
+}
+// quando arriva un file, le persone che lo aspettavano prendono corpo (stesso gruppo: chi le muove non se ne accorge)
+function arrivate(){ for(let i=ATTESE.length-1;i>=0;i--){ const g=ATTESE[i], m=avatarDaSkin(g.userData.attesa); if(!m) continue;
+  while(m.children.length) g.add(m.children[0]); const vecchi=g.userData; g.userData={...vecchi,...m.userData}; delete g.userData.attesa; ATTESE.splice(i,1); } }
+function omino(st){
   const v=VESTITI[st.vestito]||VESTITI.altro, donna=st.corpo==="donna";
   const maglia=(typeof st.colore==="number")?st.colore:v.maglia;
   const pant=(typeof st.pantaloni==="number")?st.pantaloni:(st.vestito==="artigiano"&&typeof st.colore==="number"?maglia:v.pantaloni);
@@ -1744,10 +1762,10 @@ function capigliatura(g, cappello){
 const SKIN=[
   // JJ, 9/10: «la skin base è una persona con i suoi vestiti da lavoro» — una persona di MakeHuman (genera_persona.py),
   // vestita secondo il mestiere scelto sotto «Base JJA-VIS» all'armadietto; la Classica è la stessa persona vestita normale
-  {id:"base",nome:"Base JJA-VIS",prezzo:0,file:c=>`modelli/skin/persona-${VESTITI[c.vestito]?c.vestito:"altro"}-${c.corpo==="donna"?"donna":"uomo"}.glb`,ossa:[["thigh_l","thigh_r"],["upperarm_l","upperarm_r"],["calf_l","calf_r"]],colori:true,anim:true,nota:"una persona vera, vestita col tuo mestiere"},
-  {id:"classica",nome:"Classica",prezzo:0,file:c=>`modelli/skin/persona-classica-${c.corpo==="donna"?"donna":"uomo"}.glb`,ossa:[["thigh_l","thigh_r"],["upperarm_l","upperarm_r"],["calf_l","calf_r"]],colori:true,anim:true,nota:"la stessa persona, con maglietta, pantaloni e scarpe semplici"},
-  {id:"realista-uomo",nome:"Realista · uomo",prezzo:800,file:()=>"modelli/skin/realista-uomo.glb",ossa:[["thigh_l","thigh_r"],["upperarm_l","upperarm_r"],["calf_l","calf_r"]],colori:true,nota:"corpo vero (MakeHuman)"},
-  {id:"realista-donna",nome:"Realista · donna",prezzo:800,file:()=>"modelli/skin/realista-donna.glb",ossa:[["thigh_l","thigh_r"],["upperarm_l","upperarm_r"],["calf_l","calf_r"]],colori:true,nota:"corpo vero (MakeHuman)"},
+  {id:"base",nome:"Base JJA-VIS",prezzo:0,file:c=>`modelli/skin/persona-${VESTITI[c.vestito]?c.vestito:"altro"}-${c.corpo==="donna"?"donna":"uomo"}.glb`,ossa:[["thigh_l","thigh_r"],["upperarm_l","upperarm_r"],["calf_l","calf_r"]],scala:1.17,colori:true,anim:true,nota:"una persona vera, vestita col tuo mestiere"},
+  {id:"classica",nome:"Classica",prezzo:0,file:c=>`modelli/skin/persona-classica-${c.corpo==="donna"?"donna":"uomo"}.glb`,ossa:[["thigh_l","thigh_r"],["upperarm_l","upperarm_r"],["calf_l","calf_r"]],scala:1.17,colori:true,anim:true,nota:"la stessa persona, con maglietta, pantaloni e scarpe semplici"},
+  {id:"realista-uomo",nome:"Realista · uomo",prezzo:800,file:()=>"modelli/skin/realista-uomo.glb",ossa:[["thigh_l","thigh_r"],["upperarm_l","upperarm_r"],["calf_l","calf_r"]],scala:1.17,colori:true,nota:"corpo vero (MakeHuman)"},
+  {id:"realista-donna",nome:"Realista · donna",prezzo:800,file:()=>"modelli/skin/realista-donna.glb",ossa:[["thigh_l","thigh_r"],["upperarm_l","upperarm_r"],["calf_l","calf_r"]],scala:1.17,colori:true,nota:"corpo vero (MakeHuman)"},
   {id:"avventuriera",nome:"L'Avventuriera",prezzo:1500,file:()=>"modelli/skin/avventuriera.glb",ossa:[["upperleg.l","upperleg.r"],["upperarm.l","upperarm.r"],["lowerleg.l","lowerleg.r"]],nota:"stile gioco (KayKit)"},
   {id:"cavaliere",nome:"Il Cavaliere",prezzo:2000,file:()=>"modelli/skin/cavaliere.glb",ossa:[["upperleg.l","upperleg.r"],["upperarm.l","upperarm.r"],["lowerleg.l","lowerleg.r"]],nota:"stile gioco (KayKit)"}];
 if(citta.skin==="corriere"){ citta.skin="base"; citta.vestito="corriere"; }   // la prova del 9/10 è diventata la Base vestita da corriere
@@ -1772,7 +1790,7 @@ function suona(av, nome, scala=1){ const u=av.userData, m=mixer(av); if(!m) retu
   const b=u.braccia[1]; if(b&&b.osso&&Math.abs(b.rotation.x)>0.01){ qX.setFromAxisAngle(b.asse||asseX,b.rotation.x); b.osso.quaternion.multiply(qX); }
   return true; }
 function caricaModello(url){ if(MODELLI[url]) return MODELLI[url];
-  MODELLI[url]={pronto:false}; caricatore.load(url,g=>{ MODELLI[url]={pronto:true,scena:g.scene}; rivesti(); if(scena.rivestiDentro) scena.rivestiDentro(); },undefined,e=>{ MODELLI[url]={pronto:false,errore:String(e&&e.message||e)}; });
+  MODELLI[url]={pronto:false}; caricatore.load(url,g=>{ MODELLI[url]={pronto:true,scena:g.scene}; arrivate(); rivesti(); if(scena.rivestiDentro) scena.rivestiDentro(); },undefined,e=>{ MODELLI[url]={pronto:false,errore:String(e&&e.message||e)}; });
   return MODELLI[url]; }
 // l'avatar dal modello della skin, con gli ossi al posto dei gruppi: gambe e braccia sono «maniglie» che il passo gira,
 // e a ogni passo la rotazione si applica all'osso sopra la sua posa di riposo
@@ -1780,7 +1798,10 @@ function avatarDaSkin(st){
   const k=SKIN.find(x=>x.id===(st.skin||"base")); if(!k||!k.file) return null;
   const m=caricaModello(k.file(st)); if(!m.pronto) return null;
   const g=new THREE.Group(), copia=SkeletonUtils.clone(m.scena); g.add(copia);
-  const ossi={}; copia.traverse(o=>{ if(o.isBone) ossi[o.name]=o; if(o.isMesh){ o.frustumCulled=false; o.material=o.material.clone(); } });
+  if(k.scala) copia.scale.setScalar(k.scala);   // le persone erano 1,80 m contro i 2,17 dell'omino: panchine e porte sembravano da giganti (JJ, 9/10)
+  // 9/10: con una quindicina di persone, disegnare anche quelle fuori dallo schermo costava caro: le persone si tagliano
+  // fuori dall'inquadratura, con una sfera larga per tutte le pose (quella calcolata da three vale solo per la posa di riposo)
+  const ossi={}; copia.traverse(o=>{ if(o.isBone) ossi[o.name]=o; if(o.isMesh){ o.material=o.material.clone(); if(o.isSkinnedMesh&&!o.geometry.userData.sfera){ o.geometry.boundingSphere=new THREE.Sphere(new THREE.Vector3(0,0.9,0),1.4); o.geometry.userData.sfera=true; } o.frustumCulled=!!o.geometry.userData.sfera; } });
   copia.updateMatrixWorld(true); const qw=new THREE.Quaternion();
   // three toglie i punti dai nomi (upperleg.l → upperlegl). L'asse del passo è l'asse X del mondo (destra-sinistra),
   // riportato dentro l'osso: così il passo va avanti-indietro qualunque sia l'orientamento dell'osso nel modello
@@ -1796,6 +1817,7 @@ function avatarDaSkin(st){
     // scelto la tinge in proporzione al tono di mezzo (PELLI[1]), così il secondo tono è la pelle com'è, gli altri più chiara o scura
     const tinta=(m,hex)=>{ m.color.setHex(hex); if(m.map){ const b=new THREE.Color(PELLI[1]); m.color.r/=b.r; m.color.g/=b.g; m.color.b/=b.b; } };
     copia.traverse(o=>{ if(!o.isMesh) return; o.material=o.material.clone(); const m=o.material, n=m.name||"";
+      if(n.startsWith("maglia")||n.startsWith("abito")){ m.polygonOffset=true; m.polygonOffsetFactor=-2; m.polygonOffsetUnits=-4; }   // JJ, 9/10: «ancora un po' il buco dietro la maglietta»
       if(n.startsWith("maglia")) m.color.setHex(maglia); else if(n.startsWith("pantaloni")) m.color.setHex(pant);
       else if(n.startsWith("pelle")) tinta(m,PELLI[st.pelle??1]); else if(n.startsWith("capelli")) m.color.setHex(COLORI_CAPELLI[st.capelliColore??0]??COLORI_CAPELLI[0]); }); }
   g.userData={anim:!!k.anim,radice:copia,gambe,braccia,tessuti:[],skin:k.id,corpo:st.corpo==="donna"?"donna":"uomo",capelli:{tipo:"modello"},fase:Math.random()*6,ginocchia,anca,ossa:[...gambe,...braccia,...ginocchia]};
@@ -2637,7 +2659,7 @@ const COLLINA={r:4.2,h:1.0}, ACQUA=[4.2,6.13], MURETTO={r:6.25,alto:0.55}, PANCH
   scena.sfera=()=>({tema:TEMA, colori:SFERA.map(c=>c.toString(16).padStart(6,"0"))});
   // per il collaudo: pezzi di vestito appesi al corpo che scendono sotto l'anca (0,9): restano fermi e le gambe li attraversano
   scena.pezziSulleGambe=()=>{ const male=[]; const box=new THREE.Box3();
-    for(const k of Object.keys(VESTITI)){ const av=avatar({vestito:k}); const u=av.userData; av.updateMatrixWorld(true);
+    for(const k of Object.keys(VESTITI)){ const av=omino({vestito:k}); const u=av.userData; av.updateMatrixWorld(true);
       av.children.forEach(c=>{ if(u.gambe.includes(c)||u.braccia.includes(c)||c.userData.tessuto) return; box.setFromObject(c);
         if(box.min.y<0.85) male.push([k,+box.min.x.toFixed(2),+box.min.y.toFixed(2)]); }); }
     return male; };
@@ -2649,7 +2671,7 @@ const COLLINA={r:4.2,h:1.0}, ACQUA=[4.2,6.13], MURETTO={r:6.25,alto:0.55}, PANCH
   // per il collaudo: camice e grembiule sono UN pezzo; ogni lato va dalla parte del piede del suo lato; nessun
   // punto delle gambe esce dalla stoffa (davanti alle falde, dietro alla schiena); il camice è aperto e lungo
   scena.stoffa=()=>{ const r={};
-    for(const k of ["sanita","negozio"]){ let fuori=0, provati=0, latiGiusti=true; const av=avatar({vestito:k}), u=av.userData, m=u.tessuti[0], T=m.userData.tessuto, R=T.riposo;
+    for(const k of ["sanita","negozio"]){ let fuori=0, provati=0, latiGiusti=true; const av=omino({vestito:k}), u=av.userData, m=u.tessuti[0], T=m.userData.tessuto, R=T.riposo;
       const yMin=Math.min(...T.pannelli.map(p=>p.y0)), yMax=Math.max(...T.pannelli.map(p=>p.y1));
       for(const a of [0.6,0.3,-0.3,-0.6]){
         u.gambe[0].rotation.x=a; u.gambe[1].rotation.x=-a; u.gambe.forEach(g=>g.updateMatrix()); pieghe(av);
@@ -2690,7 +2712,7 @@ const COLLINA={r:4.2,h:1.0}, ACQUA=[4.2,6.13], MURETTO={r:6.25,alto:0.55}, PANCH
   // per il collaudo: il tuo avatar com'è adesso, e se gli avatar hanno forma di persona
   scena.tuo=()=>tu.userData.skin? (()=>{ const c={}; tu.traverse(o=>{ if(o.isMesh&&o.material&&o.material.name) c[o.material.name]="#"+o.material.color.getHexString(); });
       return {corpo:tu.userData.corpo, pantaloni:c.pantaloni||null, maglia:c.maglia||null, capelli:"modello", skin:tu.userData.skin}; })() : ({corpo:tu.userData.corpo, pantaloni:"#"+tu.userData.gambe[0].children[0].material.color.getHexString(), maglia:"#"+tu.children.find(c=>c.geometry&&c.geometry.type==="CylinderGeometry"&&c.position.y>1.2).material.color.getHexString(), capelli:tu.userData.capelli.tipo});
-  scena.formaUmana=()=>{ const r={}; for(const corpo of ["uomo","donna"]){ const av=avatar({vestito:"altro",corpo}), u=av.userData;
+  scena.formaUmana=()=>{ const r={}; for(const corpo of ["uomo","donna"]){ const av=omino({vestito:"altro",corpo}), u=av.userData;
       const tipo=m=>m&&m.geometry?m.geometry.type:null;
       r[corpo]={gambe:u.gambe.map(gb=>tipo(gb.children[0])), braccia:u.braccia.map(b=>tipo(b.children[0])),
         busto:tipo(av.children.find(c=>c.position.y>1.2&&c.position.y<1.4&&c.geometry)),
@@ -2699,12 +2721,12 @@ const COLLINA={r:4.2,h:1.0}, ACQUA=[4.2,6.13], MURETTO={r:6.25,alto:0.55}, PANCH
     return r; };
   // per il collaudo: niente esce dalla sagoma del vestito JJA-VIS, i capelli non scendono davanti agli occhi
   scena.dettagli=()=>{ const r={sagoma:[],frangia:{}}; const v=new THREE.Vector3();
-    const av=avatar({vestito:"jjavis"}); av.updateMatrixWorld(true); const B=av.userData.busto;
+    const av=omino({vestito:"jjavis"}); av.updateMatrixWorld(true); const B=av.userData.busto;
     av.children.forEach(c=>{ if(!c.material||!(c.material.color&&c.material.color.getHex()===0x00b4d8||c.material.color.getHex()===0xffd60a)) return;
       const P=c.geometry.attributes.position; for(let i=0;i<P.count;i++){ v.fromBufferAttribute(P,i).applyMatrix4(c.matrixWorld);
         if(v.y<1.0||v.y>1.62) continue; const rr=B.vita+(B.top-B.vita)*(v.y-1.0)/0.62;
         if((v.x/(rr*1.05))**2+(v.z/(rr*0.57*1.12))**2>1){ r.sagoma.push([+v.x.toFixed(2),+v.y.toFixed(2),+v.z.toFixed(2)]); break; } } });
-    for(const corpo of ["uomo","donna"]) for(const cap of ["corti","lunghi","coda","rasati"]){ const a=avatar({vestito:"altro",corpo,capelli:cap}); a.updateMatrixWorld(true);
+    for(const corpo of ["uomo","donna"]) for(const cap of ["corti","lunghi","coda","rasati"]){ const a=omino({vestito:"altro",corpo,capelli:cap}); a.updateMatrixWorld(true);
       const f=a.userData.frangia; if(!f){ r.frangia[corpo+"-"+cap]=null; continue; } let basso=9; const P=f.geometry.attributes.position;
       for(let i=0;i<P.count;i++){ v.fromBufferAttribute(P,i).applyMatrix4(f.matrixWorld); if(v.z>0.12 && Math.abs(v.x)<0.12) basso=Math.min(basso,v.y); }
       r.frangia[corpo+"-"+cap]=+basso.toFixed(3); }
