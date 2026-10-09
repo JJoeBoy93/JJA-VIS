@@ -54,14 +54,12 @@ def ritarghetta(noi, file, mappa, clip):
     # riposo nel mondo
     Rn = {a.name: noi.matrix_world @ a.bone.matrix_local for a, _ in coppie}
     Rl = {b.name: loro.matrix_world @ b.bone.matrix_local for _, b in coppie}
-    # i riposi non sono la stessa posa (loro a T, noi con le braccia giù): prima di passare le rotazioni si porta ogni nostro
-    # osso a puntare dove punta il loro a riposo (9/10: con il riposo nostro così com'era, le braccia andavano in alto e avanti)
+    # braccia e gambe si passano per DIREZIONE: ogni nostro osso punta dove punta il loro adesso, partendo dal nostro riposo,
+    # e la torsione resta la nostra. Passare la rotazione intera portava con sé le differenze dei riposi e del «roll» degli
+    # ossi: JJ (9/10) le ha viste — gambe divaricate (noi a riposo coi piedi più larghi) e palmi aperti verso l'alto
     from mathutils import Vector
-    for a, b in coppie:
-        if not any(k in a.name.lower() for k in ("clavicle", "upperarm", "lowerarm", "hand")): continue   # solo le braccia: su schiena e gambe allineare piegava in avanti il busto
-        dn = (Rn[a.name].to_3x3() @ Vector((0, 1, 0))).normalized(); dl = (Rl[b.name].to_3x3() @ Vector((0, 1, 0))).normalized()
-        q = dn.rotation_difference(dl)
-        Rn[a.name] = Matrix.Translation(Rn[a.name].to_translation()) @ (q.to_matrix() @ Rn[a.name].to_3x3()).to_4x4()
+    Y = Vector((0, 1, 0))
+    per_direzione = {a.name for a, _ in coppie if any(k in a.name.lower() for k in ("clavicle", "upperarm", "lowerarm", "hand", "thigh", "calf", "foot", "ball"))}
     # altezza dell'anca: lo spostamento del bacino si scala sulle nostre gambe
     hn = Rn[coppie[0][0].name].to_translation().z; hl = Rl[coppie[0][1].name].to_translation().z
     scala = hn / hl if hl else 1
@@ -79,8 +77,12 @@ def ritarghetta(noi, file, mappa, clip):
             bpy.context.scene.frame_set(f)
             for a, b in coppie:
                 Wl = loro.matrix_world @ b.matrix                          # dove sta il loro osso adesso, nel mondo
-                rot = (Wl.to_quaternion() @ Rl[b.name].to_quaternion().inverted())   # quanto ha girato dal riposo, nel mondo
-                Wn = rot.to_matrix().to_4x4() @ Rn[a.name].to_3x3().to_4x4()
+                if a.name in per_direzione:
+                    dl = (Wl.to_3x3() @ Y).normalized(); dn = (Rn[a.name].to_3x3() @ Y).normalized()
+                    Wn = dn.rotation_difference(dl).to_matrix().to_4x4() @ Rn[a.name].to_3x3().normalized().to_4x4()
+                else:
+                    rot = (Wl.to_quaternion() @ Rl[b.name].to_quaternion().inverted())   # quanto ha girato dal riposo, nel mondo
+                    Wn = rot.to_matrix().to_4x4() @ Rn[a.name].to_3x3().to_4x4()
                 pos = (noi.matrix_world @ a.matrix).to_translation()   # la testa dell'osso dove la porta il padre, già mosso
                 if a.name.lower() == "pelvis":
                     d = (Wl.to_translation() - Rl[b.name].to_translation()) * scala; pos = Rn[a.name].to_translation() + d
