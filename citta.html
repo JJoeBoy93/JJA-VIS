@@ -152,6 +152,11 @@ body.in-sartoria #foglio{max-height:56vh} /* sopra si deve vedere l'avatar inter
 #chiudi-conto{width:42px;height:42px;font:400 26px/1 var(--f-testo);color:var(--testo);background:transparent;border:1px solid var(--bordo);cursor:pointer}
 body.con-conto #joy,body.con-conto #entra,body.con-conto #vai{opacity:0;pointer-events:none}
 body.con-insieme #joy,body.con-insieme #entra,body.con-insieme #vai{opacity:0;pointer-events:none}
+.negozio{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;margin:8px 0}
+.scheda-skin{display:flex;flex-direction:column;align-items:flex-start;gap:6px;padding:12px;border:1px solid var(--bordo);background:color-mix(in srgb,var(--accento) 5%,transparent);color:var(--testo);font:600 15px/1.2 var(--f-testo);text-align:left;cursor:pointer}
+.scheda-skin[aria-pressed="true"]{border-color:var(--accento);background:color-mix(in srgb,var(--accento) 18%,transparent)}
+.scheda-skin .prezzo{color:var(--accento);font-size:14px}
+.vetrina h3{margin:10px 0 4px}
 .vassoio .riga{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:8px 0;font-size:16px}
 .barra-twitch .cose-tavolo{display:flex;flex-wrap:wrap;gap:6px}
 .barra-twitch .cose-tavolo button{font:600 13px/1 var(--f-testo);color:#efeff1;background:#26262c;border:1px solid #3a3a44;padding:8px 10px;cursor:pointer}
@@ -660,8 +665,8 @@ const LUOGHI={
   sartoria:{nome:"Sartoria",ic:"🧵",breve:"vesti il tuo avatar",
     testa:()=>TESTA("Il tuo avatar","Sartoria","Dimmi che lavoro fai: serve a me, per capire cosa costruirti. Poi vestiti come vuoi: non deve per forza essere la divisa del tuo lavoro."),
     parti:()=>[
-      {id:"specchio",nome:"Lo specchio",dentro:()=>specchio()},
-      {id:"manichini",nome:"I manichini",dentro:()=>manichini()}],
+      {id:"specchio",nome:"L'armadietto",dentro:()=>specchio()},
+      {id:"manichini",nome:"Il negozio",dentro:()=>negozio()}],
     fine(){ const az=AZIONI(bottone("Fatto, torno in città",esciStanza)); ;
       return [az, NOTA("Resta in questo telefono: non lo mando a nessuno.")]; }},
   bottega:{nome:"Bottega",ic:"🛍",breve:"quello che puoi avere già adesso",
@@ -825,21 +830,45 @@ const schedaIntera=L=>[...L.testa(), ...L.parti().flatMap(p=>p.dentro()), ...(L.
 const parteDi=(L,k)=>L.parti().find(p=>p.id===k);
 function schedaCosa(L,p){ return [el("p",{class:"eti",testo:L.nome}), el("h2",{id:"stanza-titolo",testo:p.nome}), ...p.dentro(), ...(L.fine?L.fine():[])].filter(Boolean); }
 
-// I manichini: si prova un vestito toccandolo (JJ, 4/10: se il mestiere l'hai già detto, spiegarlo è inutile).
-function manichini(){
-  const out=[], box=el("div",{class:"scelte",role:"group","aria-label":"Prova un vestito",id:"prova-vestito"});
-  Object.entries(VESTITI).forEach(([k,v])=>{ const b=el("button",{class:"scelta",type:"button","aria-pressed":String(citta.vestito===k),testo:v.nome});
-    b.addEventListener("click",()=>{ citta.vestito=k; citta.vestitoScelto=true; salva(); rivesti(); ridisegnaCarta(); }); box.appendChild(b); });
-  out.push(BLOCCO(H3("Prova un vestito"), P("Tocca un vestito e te lo metti addosso. Il colore della maglia e dei pantaloni, il corpo e i capelli si cambiano allo specchio."), box));
-  if(!(io.mestiere||citta.mestiere)) out.push(BLOCCO(H3("Perché ti chiedo il mestiere"), P("Ogni mestiere perde tempo in modo diverso: il corriere col giro del mattino, il negozio con le scorte, l'artigiano coi preventivi. Le domande della pagina cambiano col mestiere, e in Bottega i prodotti si mettono in ordine per te.")));
+// Il negozio (JJ, 6/10, «come un negozio di skin»: griglia di schede con nome e prezzo, la skin grande): sta dove c'erano i
+// manichini. Qui si guarda e si compra, non si indossa: toccando una scheda l'avatar davanti a te se la mette in prova (la
+// «skin grande»), gratis; la prova finisce chiudendo la carta. Le skin che hai si indossano all'armadietto.
+let skinVista=null;
+function negozio(){
+  const out=[], vista=SKIN.find(k=>k.id===skinVista)||null;
+  const gr=el("div",{class:"negozio",role:"group","aria-label":"Le skin del negozio",id:"negozio"});
+  SKIN.forEach(k=>{ const mia=citta.skinMie.includes(k.id);
+    const b=el("button",{class:"scheda-skin",type:"button","aria-pressed":String(skinVista===k.id)}); b.dataset.skin=k.id;
+    b.append(el("span",{class:"nome",testo:k.nome}), el("span",{class:"prezzo",testo:mia?"è tua":`${k.prezzo} 🪙`}));
+    b.addEventListener("click",()=>{ skinVista=k.id; esitoSkin=""; provaSkin=k.id===citta.skin?null:k.id; rivesti(); ridisegnaCarta(); });
+    gr.appendChild(b); });
+  out.push(el("div",{class:"sezione",testo:`Le skin · hai ${citta.gettoni} gettoni`}), gr);
+  if(vista){ const mia=citta.skinMie.includes(vista.id), box=el("div",{class:"vetrina",id:"vetrina"});
+    box.append(el("h3",{testo:vista.nome}), el("p",{class:"nota",testo:vista.nota||"la skin di partenza, fatta in Blender"}));
+    if(mia) box.append(el("p",{testo:vista.id===citta.skin?"È tua, e ce l'hai addosso.":"È tua: la indossi all'armadietto."}));
+    else box.append(AZIONI(bottone(`Compra · ${vista.prezzo} 🪙`,()=>compraSkin(vista))));
+    out.push(box);
+  }
+  out.push(el("p",{class:"nota",id:"esito-skin",testo:esitoSkin||(vista?"Guardati: ce l'hai addosso in prova, gratis. Chiudendo torni com'eri.":"Tocca una skin: te la metti addosso in prova, gratis. Le tue le indossi all'armadietto.")}));
   return out;
+}
+function compraSkin(k){
+  const fatto=()=>{ provaSkin=null; citta.skin=k.id; esitoSkin=`${k.nome}: è tua, e ce l'hai addosso.`; salva(); rivesti(); ridisegnaCarta(); };
+  if(conto){ esitoSkin="Un attimo…"; ridisegnaCarta();
+    chiamaConto("/conto/skin",{id:k.id,prezzo:k.prezzo}).then(r=>{ if(r.conto) applicaConto(r.conto);
+      if(r.no==="pochi") esitoSkin=`Ti servono ${k.prezzo} gettoni, ne hai ${citta.gettoni}: si vincono in Sala giochi.`;
+      else if(r.conto&&r.conto.skin.includes(k.id)) return fatto();
+      else esitoSkin="Non ci sono riuscito: il server non risponde. Riprova fra poco.";
+      ridisegnaCarta(); }); return; }
+  if(!spendi(k.prezzo)){ esitoSkin=`Ti servono ${k.prezzo} gettoni, ne hai ${citta.gettoni}: si vincono in Sala giochi.`; ridisegnaCarta(); return; }
+  citta.skinMie.push(k.id); fatto();
 }
 // La Sartoria, allo specchio: il mestiere serve a me, il vestito è tuo.
 let mestiereDaCambiare=false, esitoSkin="";
 // JJ, 6/10: «le skin se non hai gettoni non le puoi neanche vedere... non va bene». Allo specchio si provano tutte, gratis:
 // la prova finisce quando chiudi la carta o esci dalla Sartoria
 let provaSkin=null;
-function finisciProva(){ if(provaSkin){ provaSkin=null; rivesti(); } }
+function finisciProva(){ skinVista=null; esitoSkin=""; if(provaSkin){ provaSkin=null; rivesti(); } }
 function specchio(){
   const out=[];
   const rifai=()=>{ salva(); rivesti(); ridisegnaCarta(); };
@@ -855,31 +884,21 @@ function specchio(){
     lista.forEach(([k,n])=>{ const b=el("button",{class:"scelta",type:"button","aria-pressed":String(citta[chiave]===k),testo:n});
       b.addEventListener("click",()=>{ citta[chiave]=k; if(chiave==="corpo" && !citta.capelliScelti) citta.capelli=k==="donna"?"lunghi":"corti"; if(chiave==="capelli") citta.capelliScelti=true; rifai(); }); box.appendChild(b); });
     return box; };
-  // le skin: si indossano quelle tue, le altre si sbloccano coi gettoni
-  const sk=el("div",{class:"vassoio",id:"skin"});
-  SKIN.forEach(k=>{ const mia=citta.skinMie.includes(k.id), su=citta.skin===k.id, r=el("div",{class:"riga"}); r.dataset.skin=k.id;
-    r.append(el("span",{testo:`${k.nome} · ${k.nota}`}));
-    const inProva=provaSkin===k.id;
-    if(!mia&&!su) r.append(inProva?bottone("Togli",()=>{ finisciProva(); esitoSkin=""; ridisegnaCarta(); },true)
-      :bottone("Prova",()=>{ provaSkin=k.id; esitoSkin=`${k.nome} in prova: guardati. Per tenerla, sbloccala.`; rivesti(); ridisegnaCarta(); },true));
-    const b=su?el("span",{class:"nota",testo:"indossata"}):mia?bottone("Indossa",()=>{ provaSkin=null; citta.skin=k.id; rifai(); },true)
-      :bottone(`Sblocca · ${k.prezzo} 🪙`,()=>{ provaSkin=null; if(conto){ esitoSkin="Un attimo…"; ridisegnaCarta();
-          chiamaConto("/conto/skin",{id:k.id,prezzo:k.prezzo}).then(r=>{ if(r.conto) applicaConto(r.conto);
-            if(r.no==="pochi") esitoSkin=`Ti servono ${k.prezzo} gettoni, ne hai ${citta.gettoni}: si vincono in Sala giochi.`;
-            else if(r.conto&&r.conto.skin.includes(k.id)){ citta.skin=k.id; esitoSkin=`${k.nome}: è tua.`; salva(); rivesti(); }
-            else esitoSkin="Non ci sono riuscito: il server non risponde. Riprova fra poco.";
-            ridisegnaCarta(); }); return; }
-        if(!spendi(k.prezzo)){ esitoSkin=`Ti servono ${k.prezzo} gettoni, ne hai ${citta.gettoni}: si vincono in Sala giochi.`; ridisegnaCarta(); return; }
-        citta.skinMie.push(k.id); citta.skin=k.id; esitoSkin=`${k.nome}: è tua.`; rifai(); });
-    r.append(b); sk.appendChild(r); });
-  out.push(el("div",{class:"sezione",testo:`Le skin · hai ${citta.gettoni} gettoni`}), sk, el("p",{class:"nota",id:"esito-skin",testo:esitoSkin||"La base è fatta in Blender; «Classica» ha i vestiti dei mestieri. Le altre si sbloccano coi gettoni."}));
+  // l'armadietto (JJ, 6/10: lo specchio diventa l'armadietto): scorri le skin che hai e le indossi; le altre sono al negozio
+  const arm=el("div",{class:"negozio",role:"group","aria-label":"Le tue skin",id:"armadietto"});
+  SKIN.filter(k=>citta.skinMie.includes(k.id)).forEach(k=>{ const su=citta.skin===k.id;
+    const b=el("button",{class:"scheda-skin",type:"button","aria-pressed":String(su)}); b.dataset.skin=k.id;
+    b.append(el("span",{class:"nome",testo:k.nome}), el("span",{class:"prezzo",testo:su?"addosso":"indossa"}));
+    b.addEventListener("click",()=>{ provaSkin=null; citta.skin=k.id; rifai(); }); arm.appendChild(b); });
+  out.push(el("div",{class:"sezione",testo:"Le tue skin"}), arm, el("p",{class:"nota",testo:"Le altre sono al negozio, in fondo alla Sartoria."}));
+  if(!(io.mestiere||citta.mestiere)) out.push(BLOCCO(H3("Perché ti chiedo il mestiere"), P("Ogni mestiere perde tempo in modo diverso: il corriere col giro del mattino, il negozio con le scorte, l'artigiano coi preventivi. Le domande della pagina cambiano col mestiere, e in Bottega i prodotti si mettono in ordine per te.")));
   out.push(el("div",{class:"sezione",testo:"Il corpo"}), scelte(CORPI,"corpo","il corpo","scelta-corpo"));
   out.push(el("div",{class:"sezione",testo:"I capelli"}), scelte(CAPELLI,"capelli","i capelli","scelta-capelli"));
   const cc=el("div",{class:"tinte",role:"group","aria-label":"colore dei capelli",id:"tinte-capelli"});
   COLORI_CAPELLI.forEach((t,i)=>{ const b=el("button",{class:"tinta",type:"button","aria-label":"colore dei capelli "+(i+1),"aria-pressed":String(citta.capelliColore===i)});
     b.style.background="#"+t.toString(16).padStart(6,"0"); b.addEventListener("click",()=>{ citta.capelliColore=i; rifai(); }); cc.appendChild(b); });
   out.push(el("div",{class:"sezione",testo:"Colore dei capelli"}), cc);
-  const vest=el("div",{class:"scelte",role:"group","aria-label":"Come ti vesti"});
+  const vest=el("div",{class:"scelte",role:"group","aria-label":"Come ti vesti",id:"prova-vestito"});
   Object.entries(VESTITI).forEach(([k,v])=>{ const b=el("button",{class:"scelta",type:"button","aria-pressed":String(citta.vestito===k),testo:v.nome});
     b.addEventListener("click",()=>{ citta.vestito=k; citta.vestitoScelto=true; rifai(); }); vest.appendChild(b); });
   out.push(el("div",{class:"sezione",testo:"Come ti vesti?"}), vest);
