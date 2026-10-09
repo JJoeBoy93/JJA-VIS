@@ -13,8 +13,10 @@ import sys, os, glob, bpy
 from mathutils import Matrix
 QUI = os.path.dirname(os.path.abspath(__file__))
 # le dita no: pesano e da lontano non si vedono
-OSSI = ["pelvis", "spine_01", "spine_02", "spine_03", "neck_01", "head", "clavicle_l", "upperarm_l", "lowerarm_l", "hand_l",
-        "clavicle_r", "upperarm_r", "lowerarm_r", "hand_r", "thigh_l", "calf_l", "foot_l", "ball_l", "thigh_r", "calf_r", "foot_r", "ball_r"]
+# le clavicole no: hanno direzioni diverse nei tre scheletri, e copiarle alzava le spalle a gobba (JJ, 9/10: «doppia gobba
+# sulle spalle», da fermi e da seduti). Restano come a riposo
+OSSI = ["pelvis", "spine_01", "spine_02", "spine_03", "neck_01", "head", "upperarm_l", "lowerarm_l", "hand_l",
+        "upperarm_r", "lowerarm_r", "hand_r", "thigh_l", "calf_l", "foot_l", "ball_l", "thigh_r", "calf_r", "foot_r", "ball_r"]
 # JJ, 9/10: Quaternius «si muove tipo Crash Bandicoot», le vuole come in Fortnite. Camminare, correre, stare fermi e saltare
 # vengono da Human Basic Motions FREE di Kevin Iglesias (mocap; licenza nel PDF del pacchetto: Standard Asset Store EULA,
 # gratis e commerciale, non si rivende il pacchetto). Accovacciarsi e sedersi non ci sono nella versione gratis: restano
@@ -34,9 +36,15 @@ def tutte(noi, corpo):
                     (k("Sprint01_Forward"), "Sprint_Loop"), (k("Jump01 - Begin"), "Jump_Start"), (k("Jump01"), "Jump_Loop"),
                     (k("Jump01 - Land"), "Jump_Land")):
         ritarghetta(noi, f, KEVIN, [(None, clip)])
-    ritarghetta(noi, ual, None, [(c, c) for c in ("Crouch_Idle_Loop", "Crouch_Fwd_Loop", "Sitting_Enter", "Sitting_Idle_Loop", "Sitting_Exit")])
+    ritarghetta(noi, ual, None, [(c, c) for c in ("Crouch_Idle_Loop", "Crouch_Fwd_Loop")])
+    # seduti: schiena, collo e testa restano dritti (quelli di Quaternius si piegavano in avanti: «non sembra seduto comodo», 9/10)
+    ritarghetta(noi, ual, None, [(c, c) for c in ("Sitting_Enter", "Sitting_Idle_Loop", "Sitting_Exit")], salta={"spine_01", "spine_02", "spine_03", "neck_01", "head", "upperarm_l", "lowerarm_l", "hand_l", "upperarm_r", "lowerarm_r", "hand_r"})   # e le braccia lungo i fianchi: con la schiena dritta le loro mani finivano in aria davanti
 
-def ritarghetta(noi, file, mappa, clip):
+def riposo(arm):
+    for pb in arm.pose.bones:
+        pb.location = (0, 0, 0); pb.rotation_quaternion = (1, 0, 0, 0); pb.rotation_euler = (0, 0, 0); pb.scale = (1, 1, 1)
+
+def ritarghetta(noi, file, mappa, clip, salta=()):
     """noi: lo scheletro di una persona appena costruita (stesso giro di prepara_skin, così il riposo è identico a quello
     dei file delle persone: un glb reimportato in Blender cambia l'orientamento degli ossi e le clip non combacerebbero).
     mappa: osso nostro -> osso loro (None = stessi nomi). clip: [(azione loro o None per l'unica del file, nome nostro)]"""
@@ -49,7 +57,7 @@ def ritarghetta(noi, file, mappa, clip):
         if o not in prima and o.type != "ARMATURE": bpy.data.objects.remove(o)
     nome = lambda arm, n: next((b for b in arm.pose.bones if b.name.lower() == n.lower()), None)
     coppie = [(nome(noi, n), nome(loro, (mappa or {}).get(n, n))) for n in OSSI]
-    coppie = [(a, b) for a, b in coppie if a and b]
+    coppie = [(a, b) for a, b in coppie if a and b and a.name not in salta]
     print("ossi in comune", len(coppie), "su", len(OSSI))
     # riposo nel mondo
     Rn = {a.name: noi.matrix_world @ a.bone.matrix_local for a, _ in coppie}
@@ -72,6 +80,7 @@ def ritarghetta(noi, file, mappa, clip):
         if not act: print("manca", clip); continue
         loro.animation_data.action = act
         f0, f1 = (int(x) for x in act.frame_range)
+        riposo(noi)   # gli ossi senza chiavi (clavicole, schiena da seduti) devono stare a riposo, non dove li ha lasciati la clip prima
         nuova = bpy.data.actions.new(clip); noi.animation_data.action = nuova
         for f in range(f0, f1 + 1):
             bpy.context.scene.frame_set(f)
@@ -95,5 +104,6 @@ def ritarghetta(noi, file, mappa, clip):
         tr = noi.animation_data.nla_tracks.new(); tr.name = clip; tr.strips.new(clip, 0, nuova)
         noi.animation_data.action = None
         print("clip", clip, f1 - f0 + 1, "fotogrammi")
+    riposo(noi)
     bpy.data.objects.remove(loro)
     for a in nuove: bpy.data.actions.remove(a)

@@ -1830,7 +1830,8 @@ function applicaOssa(av){ const o=av.userData.ossa; if(!o) return; for(const h o
 const SEDUTO=1.45;
 function posaSeduta(av){ const u=av.userData; if(u.anim && suona(av,"Sitting_Idle_Loop")) return; u.gambe.forEach(g=>g.rotation.x=-SEDUTO); (u.ginocchia||[]).forEach(g=>g.rotation.x=SEDUTO); pieghe(av); applicaOssa(av); }
 function altezzaSeduta(av, y){ const u=av.userData, base=(y??-0.38)+ANCA;
-  if(u.mixer&&u.clip==="Sitting_Idle_Loop"&&u.gambe[0].osso){ av.updateMatrixWorld(true); return av.position.y+base-u.gambe[0].osso.getWorldPosition(new THREE.Vector3()).y; }   // con l'animazione: l'anca vera sul sedile
+  // le persone hanno il sedere sotto l'anca (12 cm, per la scala): con l'anca a filo del sedile stavano dentro la panchina (JJ, 9/10)
+  if(u.mixer&&u.clip==="Sitting_Idle_Loop"&&u.gambe[0].osso){ av.updateMatrixWorld(true); const k=u.radice&&u.radice.scale?u.radice.scale.x:1; return av.position.y+base+0.12*k-u.gambe[0].osso.getWorldPosition(new THREE.Vector3()).y; }   // con l'animazione: l'anca vera sul sedile
   return base-(u.anca??ANCA); }
 // per il collaudo: dove stanno davvero anca, ginocchio e piede (solo nelle skin: l'omino del codice non ha ossi)
 function misuraGambe(av){ const u=av.userData, gb=u.gambe[0]&&u.gambe[0].osso, gn=u.ginocchia&&u.ginocchia[0]&&u.ginocchia[0].osso; if(!gb) return {};

@@ -480,7 +480,7 @@ async def main():
         await usa(p, "tavolini", "I tavolini")
         await p.click("#stanza-carta button:has-text('Siediti al tavolino')"); await p.wait_for_timeout(1200)
         b2 = await p.evaluate("window.CITTA.bar()")
-        prova("al tavolino ci si siede davvero, e sul tavolo arriva quello che hai ordinato", b2["seduto"] and (b2["y"] < -0.2 or (b2.get("clip") == "Sitting_Idle_Loop" and 0.42 <= b2.get("anca", 0) <= 0.62)) and b2["sulTavolo"] == 3, b2)   # le persone animate (9/10): conta l'anca sul sedile, non quanto si abbassa l'avatar
+        prova("al tavolino ci si siede davvero, e sul tavolo arriva quello che hai ordinato", b2["seduto"] and (b2["y"] < -0.2 or (b2.get("clip") == "Sitting_Idle_Loop" and 0.42 <= b2.get("anca", 0) <= 0.75)) and b2["sulTavolo"] == 3, b2)   # le persone animate (9/10): conta l'anca sul sedile, non quanto si abbassa l'avatar
         n = 0
         while n < 10 and await p.evaluate("window.CITTA.bar().vassoio.some(v=>v.nome==='Caffè')"):
             await p.click("#vassoio button[data-consuma='Caffè']"); await p.wait_for_timeout(250); n += 1
@@ -674,7 +674,7 @@ async def main():
         prova("le panchine sono sei, fuori dal muretto e più distanziate (almeno 8 m l'una dall'altra)", len(pa) == 6 and all(math.hypot(b_["x"], b_["z"]) >= 10 for b_ in pa) and dmin >= 8, [pa, dmin])
         await p.evaluate("window.CITTA.siedi(0)"); await p.wait_for_timeout(1200)
         sd = await p.evaluate("window.CITTA.seduto()")
-        prova("in panchina ci si siede: più in basso, le gambe in avanti, e resta così", sd["seduto"] and ((sd["y"] < -0.2 and sd["gamba"] < -1.2) or (sd.get("clip") == "Sitting_Idle_Loop" and 0.42 <= sd.get("anca", 0) <= 0.62)), sd)
+        prova("in panchina ci si siede: più in basso, le gambe in avanti, e resta così", sd["seduto"] and ((sd["y"] < -0.2 and sd["gamba"] < -1.2) or (sd.get("clip") == "Sitting_Idle_Loop" and 0.42 <= sd.get("anca", 0) <= 0.75)), sd)
         await p.mouse.move(cx, cy); await p.mouse.down(); await p.mouse.move(cx, cy + 50, steps=4); await p.wait_for_timeout(1500); await p.mouse.up()
         sd2 = await p.evaluate("window.CITTA.seduto()")
         prova("muovendo il cerchio ci si alza e si cammina", not sd2["seduto"] and sd2["y"] == 0, sd2)
@@ -691,7 +691,7 @@ async def main():
             await p.evaluate("window.CITTA.siedi(0)"); await p.wait_for_timeout(1200)
             sd = await p.evaluate("window.CITTA.seduto()")
             prova(f"{sk}: seduta, col bacino sul sedile e il ginocchio piegato (lo stinco scende verso terra)",
-                  sd["seduto"] and 0.42 <= sd.get("anca", 0) <= 0.62 and abs(sd.get("ginocchio", 0) - sd["anca"]) < 0.12
+                  sd["seduto"] and 0.42 <= sd.get("anca", 0) <= 0.75 and abs(sd.get("ginocchio", 0) - sd["anca"]) < 0.12
                   and sd.get("piede", 9) < sd.get("ginocchio", 0) - 0.1, sd)
             j = await p.query_selector("#joy"); bb = await j.bounding_box(); cx, cy = bb["x"] + bb["width"] / 2, bb["y"] + bb["height"] / 2
             await p.mouse.move(cx, cy); await p.mouse.down(); await p.mouse.move(cx, cy + 50, steps=4); await p.wait_for_timeout(1500); await p.mouse.up()
