@@ -49,4 +49,4 @@ for uid, nome in files:
     b = vai(j["url"]); fuori = os.path.join(dove, re.sub(r"[^\w.\-]+", "_", nome)); open(fuori, "wb").write(b)
     presi.append(f"{os.path.basename(fuori)} ({len(b)//1024} kB)")
 print("scaricati:", presi or "nessuno")
-if not presi: ferma("nessun file corrispondeva alle parole date")
+if not presi: ferma("nessun file corrispondeva alle parole date; i file: " + str([n for _, n in files]))
