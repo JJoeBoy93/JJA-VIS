@@ -1,0 +1,36 @@
+# Animazioni già pronte (JJ, 9/10: «cerca anche delle animazioni ... camminare, correre, accovacciarsi, sedersi e saltare
+# servono per ora», e non riesce a scaricarle dal telefono). Di base: la Universal Animation Library di Quaternius, CC0
+# (quaternius.com/packs/universalanimationlibrary.html), versioni Standard e Pro, gratuite su itch.io. Scaricate con
+# strumenti/itch.py e messe fra gli allegati della release «animazioni». Main e prova non si toccano.
+name: Animazioni
+
+on:
+  workflow_dispatch:
+    inputs:
+      pagina:
+        description: "la pagina itch.io del pacchetto"
+        required: true
+        default: "https://quaternius.itch.io/universal-animation-library"
+      parole:
+        description: "quali file (parole del nome, separate da virgole)"
+        required: true
+        default: "standard,pro"
+
+permissions:
+  contents: write
+
+jobs:
+  scarica:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+      - name: scarica da itch
+        run: python3 strumenti/itch.py "${{ inputs.pagina }}" "${{ inputs.parole }}" /tmp/an
+      - name: allega alla release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          gh release view animazioni -R "$REPO" >/dev/null 2>&1 || gh release create animazioni -R "$REPO" --title "Animazioni (CC0)" --notes "Animazioni CC0 per le skin di JJA-VIS. Le mette qui la Action «Animazioni»."
+          for f in /tmp/an/*; do unzip -tq "$f" >/dev/null && gh release upload animazioni -R "$REPO" "$f" --clobber && echo "allegato $(basename "$f")"; done

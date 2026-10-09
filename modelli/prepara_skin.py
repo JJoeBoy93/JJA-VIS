@@ -5,6 +5,8 @@ Prepara le skin della Sartoria in modelli/skin/*.glb (JJ, 4/10: «le nostre in B
     /home/claude/blenderenv/bin/python modelli/prepara_skin.py <quale>
       base-uomo | base-donna            : genera_avatar.py (fatte da noi, gratis)
       realista-uomo | realista-donna    : MPFB2 (genera_mpfb.py) con le braccia abbassate
+      persona-<mestiere>-<uomo|donna>   : la skin base, una persona di MakeHuman vestita da lavoro (genera_persona.py,
+                                          JJ 9/10: «non voglio omini finti»), con le braccia abbassate
       avventuriera | cavaliere          : KayKit Adventurers (CC0, github.com/KayKit-Game-Assets), senza armi né animazioni
 
 Ogni skin è alta circa 1,9 m, guarda verso +Z di three.js e ha uno scheletro; la città muove gambe e braccia dagli ossi
@@ -35,11 +37,11 @@ def braccia_giu(corpi, arm, nome, lati, gradi):
     bpy.ops.object.select_all(action="DESELECT"); arm.select_set(True); bpy.context.view_layer.objects.active = arm
     bpy.ops.object.mode_set(mode="POSE"); bpy.ops.pose.armature_apply(selected=False); bpy.ops.object.mode_set(mode="OBJECT")
 
-def esporta(nome, oggetti):
+def esporta(nome, oggetti, **piu):
     bpy.ops.object.select_all(action="DESELECT")
     for o in oggetti: o.select_set(True)
     out = os.path.join(FUORI, nome + ".glb")
-    bpy.ops.export_scene.gltf(filepath=out, export_format="GLB", export_yup=True, export_skins=True, export_animations=False, use_selection=True)
+    bpy.ops.export_scene.gltf(filepath=out, export_format="GLB", export_yup=True, export_skins=True, export_animations=False, use_selection=True, **piu)
     print("scritto", out, round(os.path.getsize(out) / 1024), "kB")
 
 if quale.startswith("base-"):
@@ -53,6 +55,14 @@ elif quale.startswith("realista-"):
     h, arm = g["h"], g["arm"]
     braccia_giu(h, arm, "upperarm_{}", ("l", "r"), 30)
     esporta(quale, [h, arm])
+
+elif quale.startswith("persona-"):
+    _, mestiere, corpo = quale.split("-")
+    sys.argv = [sys.argv[0], mestiere, corpo]
+    g = runpy.run_path(os.path.join(QUI, "genera_persona.py"))
+    corpi = [g["corpo"]] + g["pezzi"]
+    braccia_giu(corpi, g["arm"], "upperarm_{}", ("l", "r"), 30)
+    esporta(quale, [g["arm"]] + corpi, export_image_format="JPEG", export_jpeg_quality=80)   # texture già a 512
 
 else:
     nome = {"avventuriera": "Rogue", "cavaliere": "Knight"}[quale]

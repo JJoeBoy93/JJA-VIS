@@ -1743,6 +1743,7 @@ function capigliatura(g, cappello){
 // Blender da modelli/prepara_skin.py. «Classica» è l'omino fatto nel codice, con tutti i vestiti dei mestieri (camice compreso).
 const SKIN=[
   {id:"base",nome:"Base JJA-VIS",prezzo:0,file:c=>`modelli/skin/base-${c.corpo==="donna"?"donna":"uomo"}.glb`,ossa:[["gamba_s","gamba_d"],["braccio_s","braccio_d"],["stinco_s","stinco_d"]],colori:true,nota:"la nostra, fatta in Blender"},
+  {id:"corriere",nome:"Corriere",prezzo:0,file:()=>"modelli/skin/persona-corriere-uomo.glb",ossa:[["thigh_l","thigh_r"],["upperarm_l","upperarm_r"],["calf_l","calf_r"]],nota:"una persona vera, vestita da corriere (la prima delle skin dei mestieri)"},
   {id:"classica",nome:"Classica",prezzo:0,nota:"l'omino coi vestiti dei mestieri"},
   {id:"realista-uomo",nome:"Realista · uomo",prezzo:800,file:()=>"modelli/skin/realista-uomo.glb",ossa:[["thigh_l","thigh_r"],["upperarm_l","upperarm_r"],["calf_l","calf_r"]],colori:true,nota:"corpo vero (MakeHuman)"},
   {id:"realista-donna",nome:"Realista · donna",prezzo:800,file:()=>"modelli/skin/realista-donna.glb",ossa:[["thigh_l","thigh_r"],["upperarm_l","upperarm_r"],["calf_l","calf_r"]],colori:true,nota:"corpo vero (MakeHuman)"},
@@ -1750,6 +1751,8 @@ const SKIN=[
   {id:"cavaliere",nome:"Il Cavaliere",prezzo:2000,file:()=>"modelli/skin/cavaliere.glb",ossa:[["upperleg.l","upperleg.r"],["upperarm.l","upperarm.r"],["lowerleg.l","lowerleg.r"]],nota:"stile gioco (KayKit)"}];
 if(!SKIN.some(k=>k.id===citta.skin)) citta.skin="base";
 if(!Array.isArray(citta.skinMie)) citta.skinMie=["base","classica"];
+// le skin gratis sono di tutti, anche di chi aveva già un elenco salvato prima che arrivassero (il Corriere, 9/10)
+SKIN.filter(k=>!k.prezzo).forEach(k=>{ if(!citta.skinMie.includes(k.id)) citta.skinMie.push(k.id); });
 const MODELLI={}, caricatore=new GLTFLoader();
 function caricaModello(url){ if(MODELLI[url]) return MODELLI[url];
   MODELLI[url]={pronto:false}; caricatore.load(url,g=>{ MODELLI[url]={pronto:true,scena:g.scene}; rivesti(); if(scena.rivestiDentro) scena.rivestiDentro(); },undefined,e=>{ MODELLI[url]={pronto:false,errore:String(e&&e.message||e)}; });
