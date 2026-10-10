@@ -189,10 +189,20 @@ async def main():
         prova("Torre: il logo JJA-VIS in cima, sui quattro lati", m["logoTorre"] == 4, m["logoTorre"])
         prova("nessun palazzo, lotto, lampione o albero sta sulla strada", await p.evaluate("window.CITTA.sullaStrada()") == [], await p.evaluate("window.CITTA.sullaStrada()"))
         rc = await p.evaluate("(()=>{ const P=window.CITTA.porte, r=P.ristorante, c=P.cafe; return {r:Math.hypot(r.cx,r.cz), d:Math.hypot(r.cx-c.cx,r.cz-c.cz)}; })()")
-        prova("il Ristorante sta in piazza, accanto al JJA-VIS Café (JJ, 4/10)", 29 < rc["r"] < 33 and rc["d"] < 20, rc)
+        prova("il Ristorante sta in piazza, accanto al JJA-VIS Café, nello spicchio vicino (JJ, 4/10)", 29 < rc["r"] < 33 and rc["d"] < 26, rc)
+        pi = await p.evaluate("window.CITTA.pianta()")
+        spicchi1 = sorted(round((a_["ang"] - 22.5) / 45) % 8 for a_ in pi["anello1"])
+        spicchi2 = {round((a_["ang"] - 22.5) / 45) % 8 for a_ in pi["anello2"] if a_["id"] == "lotto"}
+        prova("la città è un reattore: 4 vie grandi a croce e 4 diagonali più strette (JJ, 10/10)", sorted(v["g"] for v in pi["vie"]) == [0, 45, 90, 135, 180, 225, 270, 315]
+              and all(v["larga"] > 4 for v in pi["vie"] if v["g"] % 90 == 0) and all(v["larga"] < 4 for v in pi["vie"] if v["g"] % 90), pi["vie"])
+        prova("un palazzo per spicchio sul 1° anello: fra un palazzo e l'altro passa una via verso il 2° anello", spicchi1 == list(range(8)) and all(29 < a_["r"] < 33 for a_ in pi["anello1"]), pi["anello1"])
+        prova("i lotti sono tutto intorno sul 2° anello, in ogni spicchio (dalla piazza si vedono)", spicchi2 == set(range(8)), sorted(spicchi2))
+        torre_ = next(a_ for a_ in pi["anello2"] if a_["id"] == "torre")
+        prova("la Torre in fondo alla via nord", abs(torre_["ang"] - 180) < 0.1 and torre_["r"] > 40, torre_)
+        prova("nei parchi degli angoli, fra il reattore e il quadrato, le statue degli dèi", len(pi["statue"]) == 4 and all(t_["r"] > 56 and t_["dentroQuadrato"] for t_ in pi["statue"]), pi["statue"])
         prova("le vie che il cammino segue non passano dentro niente (il furgone stava sull'anello)", await p.evaluate("window.CITTA.stradeLibere()") == [], await p.evaluate("window.CITTA.stradeLibere()"))
         aq = await p.evaluate("window.CITTA.anelloQuadrato()")
-        prova("il secondo anello è quadrato: quattro lati dritti che si chiudono", aq["lati"] == 4 and aq["coprono"], aq)
+        prova("fuori dal reattore la città torna quadrata: quattro lati dritti che si chiudono (JJ, 10/10)", aq["lati"] == 4 and aq["coprono"], aq)
         prova("intorno, i quartieri: isolati di palazzi fra le vie", m["isolati"] >= 40, m["isolati"])
         await foto(p, "01-ingresso")
 
