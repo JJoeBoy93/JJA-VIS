@@ -1538,8 +1538,12 @@ function elencoLuoghi(casa, alTocco){
 // non fa nascere un «click» (il telefono lo fa solo per il primo): i tasti rispondono al tocco stesso (pointerdown), e il
 // click resta solo per la tastiera (detail 0)
 const salta=()=>{ if(scena.pronta&&scena.puoiGesto&&scena.puoiGesto()&&GESTO.salto===null){ GESTO.salto=performance.now(); GESTO.y0=null; GESTO.t=0; GESTO.ultimo=null; GESTO.alto=0; GESTO.clipSalto=[]; } };
-const giu=()=>{ if(scena.pronta&&scena.puoiGesto&&!scena.puoiGesto()) return; GESTO.giu=!GESTO.giu; $("giu").setAttribute("aria-pressed",String(GESTO.giu)); };
-for(const [id,f] of [["salta",salta],["giu",giu]]){ $(id).addEventListener("pointerdown",e=>{ e.preventDefault(); f(); }); $(id).addEventListener("click",e=>{ if(e.detail===0) f(); }); }
+const giu=()=>{ if(scena.pronta&&scena.puoiGesto&&!scena.puoiGesto()) return; GESTO.giu=!GESTO.giu; GESTO.cambiGiu=(GESTO.cambiGiu||0)+1; $("giu").setAttribute("aria-pressed",String(GESTO.giu)); };
+// un tocco = un gesto: dopo un pointerdown il click che ne nasce (se nasce) non conta. Hera, 9/10: col tasto «Accovacciati»
+// premuto camminando, si accendeva e si spegneva nello stesso tocco (il click di quel tocco era arrivato con detail 0)
+for(const [id,f] of [["salta",salta],["giu",giu]]){ let ultimo=0;
+  $(id).addEventListener("pointerdown",e=>{ e.preventDefault(); ultimo=performance.now(); f(); });
+  $(id).addEventListener("click",e=>{ if(e.detail===0&&performance.now()-ultimo>600) f(); }); }
 $("vai").addEventListener("click",()=>{
   const d=$("foglio-dentro"); d.textContent="";
   d.append(el("h2",{id:"foglio-titolo",testo:"Vai a…"}));
@@ -2954,7 +2958,7 @@ const COLLINA={r:4.2,h:1.0}, ACQUA=[4.2,6.13], MURETTO={r:6.25,alto:0.55}, PANCH
     const fx=Math.sin(b.rot), fz=Math.cos(b.rot); tu.position.set(b.x+fx*0.08,altezzaSeduta(tu),b.z+fz*0.08); tu.rotation.y=b.rot;
     posaSeduta(tu); $("entra").hidden=true; vicinoPrima="seduto"; };
   scena.puoiGesto=()=>!seduto&&!(scena.sedutoAlBar&&scena.sedutoAlBar());
-  scena.gesto=()=>({salto:GESTO.salto!==null, giu:GESTO.giu, alto:+(GESTO.alto||0).toFixed(2), clipSalto:[...new Set(GESTO.clipSalto||[])], y:+(tuStanza&&scena.sedutoAlBar?tu:tu).position.y.toFixed(2), clip:tu.userData.clip||null});   // per il collaudo
+  scena.gesto=()=>({salto:GESTO.salto!==null, giu:GESTO.giu, cambiGiu:GESTO.cambiGiu||0, alto:+(GESTO.alto||0).toFixed(2), clipSalto:[...new Set(GESTO.clipSalto||[])], y:+(tuStanza&&scena.sedutoAlBar?tu:tu).position.y.toFixed(2), clip:tu.userData.clip||null});   // per il collaudo
   scena.seduto=()=>({seduto:!!seduto, y:+tu.position.y.toFixed(2), gamba:+tu.userData.gambe[0].rotation.x.toFixed(2), skin:tu.userData.skin||"classica", stinco:+((tu.userData.ginocchia||[])[0]?.rotation.x??0).toFixed(2), clip:tu.userData.clip||null, posato:posato(tu), ...misuraGambe(tu)});
   scena.inPanchina=()=>{ if(!seduto) return null; const b=new THREE.Object3D(); b.position.set(seduto.x,0,seduto.z); b.rotation.y=seduto.rot; b.updateMatrixWorld(true);
     const v=new THREE.Vector3(); let dentro=0, tot=0, dietro=Infinity; tu.updateMatrixWorld(true);

@@ -718,12 +718,13 @@ async def main():
         await cdp.send("Input.dispatchTouchEvent", {"type": "touchStart", "touchPoints": [t1b, t2]})
         await cdp.send("Input.dispatchTouchEvent", {"type": "touchEnd", "touchPoints": [t1b]}); await p.wait_for_timeout(300)
         salto2 = await p.evaluate("window.CITTA.gesto()")
+        prima_giu = (await p.evaluate("window.CITTA.gesto()"))["cambiGiu"]
         t3 = {"x": gb["x"] + gb["width"] / 2, "y": gb["y"] + gb["height"] / 2, "id": 3}
         await cdp.send("Input.dispatchTouchEvent", {"type": "touchStart", "touchPoints": [t1b, t3]})
         await cdp.send("Input.dispatchTouchEvent", {"type": "touchEnd", "touchPoints": [t1b]}); await p.wait_for_timeout(300)
-        giu2 = await p.evaluate("window.CITTA.gesto()")
+        await p.wait_for_timeout(700); giu2 = await p.evaluate("window.CITTA.gesto()")   # un tocco = un cambio (cambiGiu sale di 1, non di 2)
         await cdp.send("Input.dispatchTouchEvent", {"type": "touchEnd", "touchPoints": []})
-        prova("camminando (un dito sul cerchio) l'altro dito fa saltare e accovacciare", salto2["salto"] and giu2["giu"], [salto2, giu2])
+        prova("camminando (un dito sul cerchio) l'altro dito fa saltare e accovacciare", salto2["salto"] and giu2["giu"] and giu2["cambiGiu"] == prima_giu + 1, [salto2, giu2, prima_giu])
         prova("sui tasti c'è scritto Salta e Accovacciati", (await p.inner_text("#salta")).strip() == "Salta" and (await p.inner_text("#giu")).strip() == "Accovacciati")
         prova("nessun errore JavaScript (saltare e accovacciarsi)", not err, err[:3])
         await ctx.close()
