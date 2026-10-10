@@ -708,6 +708,23 @@ async def main():
         g2 = await p.evaluate("window.CITTA.gesto()"); await p.mouse.up(); await p.click("#giu"); await p.wait_for_timeout(1200)
         g3 = await p.evaluate("window.CITTA.gesto()")
         prova("accovacciati: fermo e camminando le clip giuste, e col tasto di nuovo in piedi", g1["giu"] and g1["clip"] == "Crouch_Idle_Loop" and g2["clip"] == "Crouch_Fwd_Loop" and not g3["giu"] and not (g3["clip"] or "").startswith("Crouch"), [g1, g2, g3])
+        # col dito sul cerchio, l'altro dito salta e si accovaccia (JJ, 9/10): due tocchi insieme, come sul telefono
+        cdp = await p.context.new_cdp_session(p)
+        sb = await (await p.query_selector("#salta")).bounding_box(); gb = await (await p.query_selector("#giu")).bounding_box()
+        t1 = {"x": cx, "y": cy, "id": 1}; t1b = {"x": cx, "y": cy - 30, "id": 1}
+        await cdp.send("Input.dispatchTouchEvent", {"type": "touchStart", "touchPoints": [t1]})
+        await cdp.send("Input.dispatchTouchEvent", {"type": "touchMove", "touchPoints": [t1b]}); await p.wait_for_timeout(600)
+        t2 = {"x": sb["x"] + sb["width"] / 2, "y": sb["y"] + sb["height"] / 2, "id": 2}
+        await cdp.send("Input.dispatchTouchEvent", {"type": "touchStart", "touchPoints": [t1b, t2]})
+        await cdp.send("Input.dispatchTouchEvent", {"type": "touchEnd", "touchPoints": [t1b]}); await p.wait_for_timeout(300)
+        salto2 = await p.evaluate("window.CITTA.gesto()")
+        t3 = {"x": gb["x"] + gb["width"] / 2, "y": gb["y"] + gb["height"] / 2, "id": 3}
+        await cdp.send("Input.dispatchTouchEvent", {"type": "touchStart", "touchPoints": [t1b, t3]})
+        await cdp.send("Input.dispatchTouchEvent", {"type": "touchEnd", "touchPoints": [t1b]}); await p.wait_for_timeout(300)
+        giu2 = await p.evaluate("window.CITTA.gesto()")
+        await cdp.send("Input.dispatchTouchEvent", {"type": "touchEnd", "touchPoints": []})
+        prova("camminando (un dito sul cerchio) l'altro dito fa saltare e accovacciare", salto2["salto"] and giu2["giu"], [salto2, giu2])
+        prova("sui tasti c'è scritto Salta e Accovacciati", (await p.inner_text("#salta")).strip() == "Salta" and (await p.inner_text("#giu")).strip() == "Accovacciati")
         prova("nessun errore JavaScript (saltare e accovacciarsi)", not err, err[:3])
         await ctx.close()
 

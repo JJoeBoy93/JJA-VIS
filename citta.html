@@ -64,9 +64,9 @@ a{color:var(--accento)}
   background:color-mix(in srgb,var(--testo) 85%,transparent);box-shadow:0 0 14px color-mix(in srgb,var(--accento) 60%,transparent)}
 #vai{position:fixed;right:16px;bottom:calc(env(safe-area-inset-bottom,0px) + 44px);z-index:6;padding:14px 16px;font-size:16px}
 /* saltare e accovacciarsi (JJ, 9/10): due tasti tondi sopra «Vai a…» */
-.gesto{position:fixed;right:16px;z-index:6;width:58px;height:58px;border-radius:50%;padding:0;font-size:26px;line-height:1}
-#salta{bottom:calc(env(safe-area-inset-bottom,0px) + 112px)}
-#giu{bottom:calc(env(safe-area-inset-bottom,0px) + 178px)}
+.gesto{position:fixed;right:16px;z-index:6;min-width:132px;padding:12px 14px;font-size:16px;touch-action:none}
+#salta{bottom:calc(env(safe-area-inset-bottom,0px) + 108px)}
+#giu{bottom:calc(env(safe-area-inset-bottom,0px) + 166px)}
 #giu[aria-pressed="true"]{border-color:var(--accento);background:color-mix(in srgb,var(--accento) 25%,transparent)}
 #entra{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 160px);z-index:6;
   font:800 18px/1 var(--f-titoli);letter-spacing:.02em;color:var(--bg);background:var(--accento);border:0;padding:15px 22px;cursor:pointer;
@@ -316,8 +316,8 @@ body.con-nova #joy,body.con-nova #entra,body.con-nova #vai{opacity:0;pointer-eve
 
 <div id="joy" aria-hidden="true"><div id="pomo"></div></div>
 <button id="vai" class="pulsante" type="button">☰ Vai a…</button>
-<button id="salta" class="pulsante gesto" type="button" aria-label="Salta">⤒</button>
-<button id="giu" class="pulsante gesto" type="button" aria-label="Accovacciati" aria-pressed="false">⤓</button>
+<button id="salta" class="pulsante gesto" type="button">Salta</button>
+<button id="giu" class="pulsante gesto" type="button" aria-pressed="false">Accovacciati</button>
 <button id="entra" type="button" hidden></button>
 <div id="aiuto" class="cornice">Muoviti col cerchio · trascina per guardarti intorno · tocca un palazzo per andarci. Dentro, tocca le cose</div>
 
@@ -1534,8 +1534,12 @@ function elencoLuoghi(casa, alTocco){
   });
 }
 // saltare e accovacciarsi: non da seduti, e un salto per volta
-$("salta").addEventListener("click",()=>{ if(scena.pronta&&scena.puoiGesto&&scena.puoiGesto()&&GESTO.salto===null){ GESTO.salto=performance.now(); GESTO.y0=null; GESTO.t=0; GESTO.ultimo=null; GESTO.alto=0; GESTO.clipSalto=[]; } });
-$("giu").addEventListener("click",()=>{ if(scena.pronta&&scena.puoiGesto&&!scena.puoiGesto()) return; GESTO.giu=!GESTO.giu; $("giu").setAttribute("aria-pressed",String(GESTO.giu)); });
+// JJ, 9/10: «non puoi saltare o accovacciarti mentre stai muovendo il cursore». Col dito già sul cerchio, il secondo dito
+// non fa nascere un «click» (il telefono lo fa solo per il primo): i tasti rispondono al tocco stesso (pointerdown), e il
+// click resta solo per la tastiera (detail 0)
+const salta=()=>{ if(scena.pronta&&scena.puoiGesto&&scena.puoiGesto()&&GESTO.salto===null){ GESTO.salto=performance.now(); GESTO.y0=null; GESTO.t=0; GESTO.ultimo=null; GESTO.alto=0; GESTO.clipSalto=[]; } };
+const giu=()=>{ if(scena.pronta&&scena.puoiGesto&&!scena.puoiGesto()) return; GESTO.giu=!GESTO.giu; $("giu").setAttribute("aria-pressed",String(GESTO.giu)); };
+for(const [id,f] of [["salta",salta],["giu",giu]]){ $(id).addEventListener("pointerdown",e=>{ e.preventDefault(); f(); }); $(id).addEventListener("click",e=>{ if(e.detail===0) f(); }); }
 $("vai").addEventListener("click",()=>{
   const d=$("foglio-dentro"); d.textContent="";
   d.append(el("h2",{id:"foglio-titolo",testo:"Vai a…"}));
