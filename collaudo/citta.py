@@ -199,6 +199,13 @@ async def main():
         prova("i lotti sono tutto intorno sul 2° anello, in ogni spicchio (dalla piazza si vedono)", spicchi2 == set(range(8)), sorted(spicchi2))
         torre_ = next(a_ for a_ in pi["anello2"] if a_["id"] == "torre")
         prova("la Torre in fondo alla via nord", abs(torre_["ang"] - 180) < 0.1 and torre_["r"] > 40, torre_)
+        lv = await p.evaluate("Object.entries(window.CITTA.porte).filter(([k,P])=>P.id==='lotto').map(([k,P])=>({x:+P.cx.toFixed(1),z:+P.cz.toFixed(1),r:+Math.hypot(P.cx,P.cz).toFixed(1)}))")
+        fuori = [l for l in lv if l["r"] > 50]
+        prova("i lotti fuori dal reattore stanno sulla Via delle Attività, a ovest, ai due lati (JJ, 10/10)", len(fuori) >= 4 and all(l["x"] < -60 and abs(l["z"]) < 10 for l in fuori)
+              and {l["z"] > 0 for l in fuori} == {True, False}, fuori)
+        prova("dietro la Torre non ci sono lotti", not any(l["z"] < -50 and abs(l["x"]) < 20 for l in lv), [l for l in lv if l["z"] < -50])
+        ab = await p.evaluate("(()=>{ const P=window.CITTA.porte, b=P.bottega, a=P.athena; return {b:[+b.cx.toFixed(1),+b.cz.toFixed(1)], a:[+a.cx.toFixed(1),+a.cz.toFixed(1)]}; })()")
+        prova("la Via delle Attività comincia fra la Bottega e Athena Trasporti, uno per lato", ab["b"][0] < -20 and ab["a"][0] < -20 and ab["b"][1] * ab["a"][1] < 0, ab)
         prova("nei parchi degli angoli, fra il reattore e il quadrato, le statue degli dèi", len(pi["statue"]) == 4 and all(t_["r"] > 56 and t_["dentroQuadrato"] for t_ in pi["statue"]), pi["statue"])
         prova("le vie che il cammino segue non passano dentro niente (il furgone stava sull'anello)", await p.evaluate("window.CITTA.stradeLibere()") == [], await p.evaluate("window.CITTA.stradeLibere()"))
         aq = await p.evaluate("window.CITTA.anelloQuadrato()")

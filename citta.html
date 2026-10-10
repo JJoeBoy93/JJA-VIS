@@ -470,7 +470,7 @@ const TORRE_ANG=180;
 // i parchi negli angoli fra il reattore e il quadrato, con le statue degli dèi (gli agenti di JARVIS)
 const STATUE=[{nome:"Athena",fa:"scrive il codice",corpo:"donna",x:47,z:-58.5},{nome:"Hera",fa:"collauda tutto",corpo:"donna",x:-58.5,z:-47},
               {nome:"Apollo",fa:"riconosce le canzoni",corpo:"uomo",x:-47,z:58.5},{nome:"Hermes",fa:"porta i messaggi",corpo:"uomo",x:58.5,z:47}];             // la Torre in fondo alla via nord (JJ, 10/10: «mi sta bene quello che hai proposto»)
-const QUARTIERI={sud:"Viale delle Botteghe", est:"Quartiere del Gusto", ovest:"Quartiere dello Sport", nord:"Quartiere dei Mestieri"};
+const QUARTIERI={sud:"Viale delle Botteghe", est:"Quartiere del Gusto", ovest:"Via delle Attività", nord:"Quartiere dei Mestieri"};   // ovest: la via che parte fra Bottega e Athena Trasporti (JJ, 10/10)
 
 // ── il primo giro: tre fermate, come un giro di consegne ──
 // la Reception è dentro la Torre (JJ, 3/10): il giro passa dalla Torre; chi l'aveva già fatto alla Reception, l'ha fatto
@@ -1951,9 +1951,12 @@ async function costruisci(){
   // la facciata sta a 1 m dal bordo dell'isolato; la porta 1,6 m più in là, sul bordo della via
   const ISOLATI=[[-85,-65],[-61.5,-MEZZA],[MEZZA,61.5],[65,85]];
   const fronte=(bordo,verso,d)=>bordo+verso*(1+d/2);   // il centro di un palazzo profondo d, che guarda verso «verso»
-  // Viale delle Botteghe (sud) e Quartiere dei Mestieri (nord): i lotti in fila lungo il viale x=0, fuori dal quadrato
-  for(const [z0,z1] of [ISOLATI[3],ISOLATI[0]]) for(const lato of [-1,1]) for(const k of [5.25,14.75]){
-    PALAZZI.push({id:"lotto",w:8.5,d:8,h:0,titolo:"LOTTO LIBERO",sotto:"la tua attività, qui",x:lato*fronte(MEZZA,1,8),z:z0+k,rot:lato>0?-Math.PI/2:Math.PI/2,passo:1.6}); }
+  // la Via delle Attività (JJ, 10/10: «dietro la torre ci sono ancora i lotti vuoti, devono stare in una via inerente dove c'è
+  // la bottega all'inizio e Athena trasporti dall'altra parte della strada, in quella via i lotti delle attività»): è la via
+  // grande verso ovest. Comincia in piazza fra la Bottega e Athena Trasporti, passa fra la Palestra e i lotti del 2° anello,
+  // ed esce dal quadrato coi lotti in fila ai due lati. Dietro la Torre, niente più lotti: lì tornano gli isolati
+  for(const lato of [-1,1]) for(const k of [5.25,14.75]){ const x=ISOLATI[0][1]-k;
+    PALAZZI.push({id:"lotto",w:8.5,d:8,h:0,titolo:"LOTTO LIBERO",sotto:"la tua attività, qui",x,z:lato*fronte(MEZZA,1,8),rot:lato>0?Math.PI:0,passo:1.6,via:true}); }
 
   let seme=1, lottiN=0;
   for(const P of PALAZZI){
@@ -2089,14 +2092,17 @@ async function costruisci(){
   }
 
   // ── le porte dei quartieri: l'arco d'ingresso a sud, quello dei Mestieri a nord, i cartelli a est e ovest ──
-  const arco=(z,fuori,dentro,verso)=>{ for(const s of [-1,1]){ const p=scatola(0.6,6,0.6,0x0D3A5C); p.position.set(3.2*s,3,z); S.add(p); solidi.push({cerchio:true,x:3.2*s,z,r:0.45}); occupa(3.2*s,z,0,0.6,0.6,"arco"); }
-    const a=insegna(fuori[0],fuori[1],5.2); a.position.set(0,6.4,z+0.02*verso); a.rotation.y=verso>0?0:Math.PI; S.add(a);
-    const b=insegna(dentro[0],dentro[1],5.2); b.position.set(0,6.4,z-0.02*verso); b.rotation.y=verso>0?Math.PI:0; S.add(b); };
-  arco(58.6,["LA CITTÀ DI JJA-VIS","benvenuto, entra pure"],["VIALE DELLE BOTTEGHE","i lotti delle attività"],1);
-  arco(-58.6,["QUARTIERE DEI MESTIERI","i lotti delle attività"],["LA PIAZZA","l'albero della vita"],-1);
+  // un arco sulla via: «z» è dove sta lungo la via; sulle vie nord-sud (asse z) o est-ovest (asse x, la Via delle Attività)
+  const arco=(z,fuori,dentro,verso,asse="z")=>{ const P=(u,w)=>asse==="z"?[u,w]:[w,u], giro=asse==="z"?0:Math.PI/2;
+    for(const s of [-1,1]){ const [x,zz]=P(3.2*s,z); const p=scatola(0.6,6,0.6,0x0D3A5C); p.position.set(x,3,zz); S.add(p); solidi.push({cerchio:true,x,z:zz,r:0.45}); occupa(x,zz,0,0.6,0.6,"arco"); }
+    const [ax,az]=P(0,z+0.02*verso), [bx,bz]=P(0,z-0.02*verso);
+    const a=insegna(fuori[0],fuori[1],5.2); a.position.set(ax,6.4,az); a.rotation.y=(verso>0?0:Math.PI)+giro; S.add(a);
+    const b=insegna(dentro[0],dentro[1],5.2); b.position.set(bx,6.4,bz); b.rotation.y=(verso>0?Math.PI:0)+giro; S.add(b); };
+  arco(58.6,["LA CITTÀ DI JJA-VIS","benvenuto, entra pure"],["I QUARTIERI","fuori dal reattore"],1);
+  arco(-58.6,["VIA DELLE ATTIVITÀ","i lotti, qui avanti"],["VIA DELLE ATTIVITÀ","bottega · athena trasporti · i lotti"],-1,"x");
   // i cartelli dei quartieri. Quello del Gusto sta in piazza, sul bordo, fra il JJA-VIS Café e il Ristorante (JJ, 4/10)
   const aG=90*Math.PI/180, xG=Math.sin(aG)*20.6, zG=Math.cos(aG)*20.6+3.4;   // in piazza, accanto alla via est fra Café e Ristorante
-  for(const [x,z,ry,nome,sotto] of [[xG,zG,Math.atan2(-xG,-zG)+Math.PI,QUARTIERI.est,"café · ristorante"],[-43.4,4.2,Math.PI/2,QUARTIERI.ovest,"palestra"]]){
+  for(const [x,z,ry,nome,sotto] of [[xG,zG,Math.atan2(-xG,-zG)+Math.PI,QUARTIERI.est,"café · ristorante"],[-27.6,4.6,Math.PI/2,QUARTIERI.ovest,"bottega · athena trasporti · i lotti"]]){
     const g=new THREE.Group(); g.position.set(x,0,z); g.rotation.y=ry; S.add(g);
     const p=cilindro(0.08,0.08,3.2,0x8a7a60,6); p.position.y=1.6; g.add(p);
     const c=insegna(nome.toUpperCase(),sotto,3.4); c.position.set(0,3.2,0.1); g.add(c); solidi.push({cerchio:true,x,z,r:0.3}); occupa(x,z,0,0.3,0.3,"cartello"); }
