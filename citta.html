@@ -904,7 +904,6 @@ function specchio(){
   if(citta.skin==="base") out.push(el("div",{class:"sezione",testo:"Base JJA-VIS · il tuo mestiere"}), vest);   // JJ, 9/10: tocchi la Base e sotto si apre la scelta dei mestieri
   if(!(io.mestiere||citta.mestiere)) out.push(BLOCCO(H3("Perché ti chiedo il mestiere"), P("Ogni mestiere perde tempo in modo diverso: il corriere col giro del mattino, il negozio con le scorte, l'artigiano coi preventivi. Le domande della pagina cambiano col mestiere, e in Bottega i prodotti si mettono in ordine per te.")));
   out.push(el("div",{class:"sezione",testo:"Il corpo"}), scelte(CORPI,"corpo","il corpo","scelta-corpo"));
-  out.push(el("div",{class:"sezione",testo:"I capelli"}), scelte(CAPELLI,"capelli","i capelli","scelta-capelli"));
   const cc=el("div",{class:"tinte",role:"group","aria-label":"colore dei capelli",id:"tinte-capelli"});
   COLORI_CAPELLI.forEach((t,i)=>{ const b=el("button",{class:"tinta",type:"button","aria-label":"colore dei capelli "+(i+1),"aria-pressed":String(citta.capelliColore===i)});
     b.style.background="#"+t.toString(16).padStart(6,"0"); b.addEventListener("click",()=>{ citta.capelliColore=i; rifai(); }); cc.appendChild(b); });
@@ -1596,8 +1595,7 @@ const tex=c=>{ const t=new THREE.CanvasTexture(c); t.colorSpace=THREE.SRGBColorS
 // spalle a 1,55. Uomo o donna cambiano le proporzioni; i vestiti si appoggiano sopra.
 // JJ, 9/10: «leva tutti gli omini vecchi e falli con i mestieri nuovi». Tutti — tu, i passanti, le statue della Sartoria, i
 // manichini, commessa e barista, gli altri in città — sono persone (la Base vestita col loro mestiere, o la loro skin). Finché
-// il file non è arrivato c'è un posto vuoto (persona()), non più l'omino. L'omino resta qui sotto solo per le vecchie prove
-// del collaudo sulla stoffa (omino()), e non si vede più in città.
+// il file non è arrivato c'è un posto vuoto (persona()), non più l'omino (il suo codice è stato tolto il 10/10).
 function avatar(st){
   if(st===citta){ const s=provaSkin?{...st,skin:provaSkin}:st; return avatarDaSkin(s)||persona({...s}); }   // provaSkin: allo specchio, senza comprarla
   return persona(st);
@@ -1617,170 +1615,11 @@ function persona(st){
 // quando arriva un file, le persone che lo aspettavano prendono corpo (stesso gruppo: chi le muove non se ne accorge)
 function arrivate(){ for(let i=ATTESE.length-1;i>=0;i--){ const g=ATTESE[i], m=avatarDaSkin(g.userData.attesa); if(!m) continue;
   while(m.children.length) g.add(m.children[0]); const vecchi=g.userData; g.userData={...vecchi,...m.userData}; delete g.userData.attesa; ATTESE.splice(i,1); } }
-function omino(st){
-  const v=VESTITI[st.vestito]||VESTITI.altro, donna=st.corpo==="donna";
-  const maglia=(typeof st.colore==="number")?st.colore:v.maglia;
-  const pant=(typeof st.pantaloni==="number")?st.pantaloni:(st.vestito==="artigiano"&&typeof st.colore==="number"?maglia:v.pantaloni);
-  const pelle=PELLI[st.pelle??1], capelli=COLORI_CAPELLI[st.capelliColore??0]??COLORI_CAPELLI[0];
-  const C=donna?{gx:0.12,gr:0.088,bx:0.31,br:0.064,top:0.25,vita:0.2,bacino:0.225,testa:0.21}
-               :{gx:0.14,gr:0.095,bx:0.34,br:0.07,top:0.28,vita:0.23,bacino:0.235,testa:0.22};
-  const g=new THREE.Group(); const gambe=[], braccia=[], tessuti=[];
-  g.userData.corpo=donna?"donna":"uomo";
-  for(const s of [-1,1]){
-    const p=new THREE.Group(); p.position.set(C.gx*s,ANCA,0);
-    const l=capsula(C.gr,0.79-2*C.gr,pant); l.position.y=-0.42; p.add(l);
-    const sc=scatola(C.gr*2,0.1,0.3,v.scarpe); sc.position.set(0,-0.85,0.05); p.add(sc);
-    g.add(p); gambe.push(p);
-  }
-  // il bacino (nei pantaloni) e il busto, ovali: larghi quanto sono e profondi poco più della metà
-  const bac=cilindro(C.bacino,C.bacino-0.01,0.14,pant,14); bac.scale.z=0.62; bac.position.y=0.95; g.add(bac);
-  const busto=cilindro(C.top,C.vita,0.62,maglia,16); busto.scale.z=0.57; busto.position.y=1.31; g.add(busto);
-  for(const s of [-1,1]){ const sp=palla(0.1,maglia); sp.scale.set(1,0.8,0.9); sp.position.set((C.top-0.04)*s,1.56,0); sp.userData.spalla=true; g.add(sp); }
-  g.userData.busto={top:C.top,vita:C.vita};
-  for(const s of [-1,1]){
-    const p=new THREE.Group(); p.position.set(C.bx*s,1.55,0);
-    const a=capsula(C.br,0.54-2*C.br,maglia); a.position.y=-0.3; p.add(a);      // children[0]: la manica
-    const m=palla(C.br+0.005,pelle); m.position.y=-0.63; p.add(m);
-    g.add(p); braccia.push(p);
-  }
-  const collo=cilindro(0.07,0.08,0.12,pelle,10); collo.position.y=1.67; g.add(collo);
-  const testa=palla(C.testa,pelle,false,16); testa.scale.set(0.95,1.1,1); testa.position.y=1.9; g.add(testa);
-  const zf=C.testa*0.92;   // la faccia
-  for(const s of [-1,1]){
-    const o=palla(0.034,0xffffff); o.position.set(0.072*s,1.92,zf-0.012); g.add(o);
-    const pu=palla(0.019,0x1a1410); pu.position.set(0.072*s,1.92,zf+0.016); g.add(pu);
-    const ci=scatola(0.075,0.016,0.02,capelli); ci.position.set(0.075*s,1.975,zf-0.005); ci.rotation.z=donna?0.1*s:0.04*s; g.add(ci);
-    const or=palla(0.045,pelle); or.scale.set(0.55,1,0.8); or.position.set(C.testa*0.94*s,1.89,0); g.add(or);
-  }
-  const naso=palla(0.028,pelle); naso.scale.set(0.9,1.1,1); naso.position.set(0,1.87,zf+0.01); g.add(naso);
-  const bocca=scatola(0.075,0.014,0.012,donna?0xb4505a:0x7a3e33); bocca.position.set(0,1.805,zf-0.02); g.add(bocca);
-  g.userData.capelli={colore:capelli, tipo:st.capelli||(donna?"lunghi":"corti"), r:C.testa};
-  let cappello=false;
-  const add=(m,x,y,z)=>{ m.position.set(x,y,z); g.add(m); return m; };
-  switch(st.vestito){
-    case "corriere":{ cappello=true;
-      add(cilindro(0.25,0.25,0.12,maglia,14),0,2.06,0);
-      add(scatola(0.34,0.03,0.2,maglia),0,2.01,0.24);
-      add(scatola(0.46,0.34,0.34,0xc8a165),0,1.12,0.42);
-      braccia.forEach(b=>{ b.rotation.x=-1.05; }); g.userData.ferme=true; break; }
-    // grembiule e camice: UN pezzo solo, di stoffa, che si piega con le gambe (tessuto + pieghe): sotto l'anca
-    // ogni punto segue la gamba del suo lato, e in mezzo fa da ponte fra le due (JJ, 3/10: «non devono spezzarsi,
-    // sono lo stesso oggetto, ma devono piegarsi come fa il tessuto»)
-    case "negozio":{ tessuti.push(add(tessuto([{x0:-0.25,x1:0.25,y0:0.625,y1:1.475,z0:0.16,z1:0.2,lato:"davanti"}],0x2f8f5b),0,0,0)); break; }
-    case "artigiano":{ cappello=true;
-      const e=palla(0.27,0xffc21a); e.scale.y=0.7; add(e,0,2.02,0);
-      add(cilindro(0.33,0.33,0.03,0xffc21a,14),0,1.98,0.02);
-      add(scatola(0.6,0.1,0.36,0x5a3b22),0,0.93,0); break; }
-    case "sanita":{
-      // il camice: UN pezzo dalle spalle al ginocchio, aperto davanti (si vede la divisa verde), con le maniche bianche.
-      // Due falde davanti, la schiena, e i fianchi solo sotto l'anca (sopra ci sono le braccia) (JJ, 3/10)
-      // (JJ, 4/10: «il camice è rimasto un quadrato»): ora è un tubo di stoffa che segue il corpo, ovale come il busto,
-      // aperto davanti; spalle che scendono verso il collo, busto, e sotto l'anca si allarga un po'.
-      const B=0xf7f7f7, orlo=0.45, ap=0.42;   // ap: quanto è aperto davanti (radianti)
-      tessuti.push(add(tessuto([
-        {tubo:true,y0:orlo,y1:ANCA,r0:0.30,r1:0.255,zs:0.6,ap,lato:"gonna"},
-        {tubo:true,y0:ANCA,y1:1.63,r0:0.255,r1:0.31,zs:0.6,ap,lato:"busto"},
-        {tubo:true,y0:1.63,y1:1.72,r0:0.31,r1:0.1,zs:0.6,ap,lato:"spalle"}],B),0,0,0));
-      g.children.filter(c=>c.userData.spalla).forEach(c=>{ c.material=mat(B); c.scale.multiplyScalar(1.08); });
-      braccia.forEach((b,i)=>{ b.children[0].material=mat(B); b.position.x=0.39*(i?1:-1); });
-      const t=new THREE.Mesh(new THREE.TorusGeometry(0.12,0.018,6,16),mat(0x333333)); add(t,0,1.42,0.17); break; }
-    case "ufficio":{ add(scatola(0.16,0.22,0.02,0xffffff),0,1.5,0.165); add(scatola(0.07,0.42,0.025,0xb3262e),0,1.3,0.17); break; }
-    case "studio":{ add(scatola(0.42,0.5,0.2,0x2b3a4a),0,1.25,-0.26); break; }
-    case "guida":{ const pole=cilindro(0.02,0.02,1.3,0x8a7a60,6); pole.position.set(0,0.1,0); braccia[1].add(pole);
-      const fl=scatola(0.36,0.24,0.02,0xffd60a); fl.position.set(0.18,0.62,0); pole.add(fl);
-      braccia[1].rotation.x=-0.5; g.userData.alzato=true; break; }
-    case "creator":{ const t=new THREE.Mesh(new THREE.TorusGeometry(0.27,0.03,6,18,Math.PI),mat(0x00B4D8)); add(t,0,1.9,0);
-      for(const s of [-1,1]) add(scatola(0.07,0.16,0.14,0x222222),0.26*s,1.88,0);
-      add(scatola(0.57,0.05,0.33,0x00B4D8,true),0,1.42,0); break; }
-    case "jjavis":{
-      // le strisce stanno SULLA superficie del busto (JJ, 4/10: «escono ancora dalla sagoma»): pezzi di cilindro
-      // un filo più larghi del busto, davanti e dietro, dove una volta c'erano le due strisce dritte
-      { const B=g.userData.busto, k=1.012, a=0.72, w=0.12;
-        for(const c of [a,-a,Math.PI-a,Math.PI+a]){ const f=fascia(B.top*k,B.vita*k,0.62,c-w/2,c+w/2,0x00B4D8,0.57,true); add(f,0,1.31,0); }
-        const rS=B.vita+(B.top-B.vita)*(1.38-1.0)/0.62; add(scatola(0.1,0.1,0.006,0xffd60a,true),0,1.38,rS*0.57+0.004); }
-      // le strisce dei pantaloni stanno SULLE GAMBE, non sul corpo: se no restano dritte mentre la gamba si muove
-      // e sembra che l'omino ne abbia quattro (JJ, 3/10)
-      gambe.forEach((gb,i)=>{ const r=gb.children[0].geometry.parameters.radius, l=gb.children[0].geometry.parameters.length, c=i?Math.PI/2:-Math.PI/2;
-        const st=fascia(r*1.04,r*1.04,l,c-0.35,c+0.35,0x00B4D8,1,true); st.position.y=-0.42; gb.add(st); }); break; }
-  }
-  capigliatura(g, cappello);
-  g.userData.gambe=gambe; g.userData.braccia=braccia; g.userData.tessuti=tessuti; g.userData.fase=Math.random()*6;
-  return g;
-}
-// Stoffa: una scatola con più divisioni, che parte da «alto» e scende di h. Ne teniamo la forma di riposo.
-const ANCA=0.9;
-// Un pannello di stoffa: x0..x1, y0..y1, z0..z1, con le colonne di punti in larghezza dove servono (i fianchi
-// delle gambe e la striscia in mezzo, dove la stoffa si tende fra le due) e una riga ogni 10 cm in altezza.
-function pannello(x0,x1,y0,y1,z0,z1){
-  const xs=[x0,x1,-0.27,-0.04,-PONTE/2,0,PONTE/2,0.04,0.27].filter(v=>v>=x0-1e-9&&v<=x1+1e-9).sort((p,q)=>p-q).filter((v,k,a)=>!k||v-a[k-1]>1e-6);
-  const ny=Math.max(1,Math.round((y1-y0)/0.1)), nx=xs.length-1;
-  const g=new THREE.BoxGeometry(1,1,1,nx,ny,1).toNonIndexed(), P=g.attributes.position.array;
-  for(let i=0;i<P.length;i+=3){ const k=Math.round((P[i]+0.5)*nx); P[i]=xs[k]; P[i+1]=y0+(P[i+1]+0.5)*(y1-y0); P[i+2]=z0+(P[i+2]+0.5)*(z1-z0); }
-  return g;
-}
-// La stoffa: uno o più pannelli UNITI in una sola forma (un pezzo solo, che si piega tutto insieme).
-// pannelli: [{x0,x1,y0,y1,z0,z1,lato}] — lato «davanti» o «dietro» dice dove sta la gamba (per il collaudo)
-function tubo(p){   // un tronco di cono aperto davanti di p.ap radianti, ovale (profondo p.zs della larghezza)
-  const h=p.y1-p.y0, g=new THREE.CylinderGeometry(p.r1,p.r0,h,40,Math.max(1,Math.round(h/0.08)),true,p.ap/2,Math.PI*2-p.ap).toNonIndexed();
-  const P=g.attributes.position.array; for(let i=0;i<P.length;i+=3){ P[i+1]+=p.y0+h/2; P[i+2]*=p.zs; } return g;
-}
-function tessuto(pannelli,colore){
-  const doppio=pannelli.some(p=>p.tubo);
-  const pezzi=pannelli.map(p=>p.tubo?tubo(p):pannello(p.x0,p.x1,p.y0,p.y1,p.z0,p.z1)), n=pezzi.reduce((t,g)=>t+g.attributes.position.count,0);
-  const pos=new Float32Array(n*3); let o=0; pezzi.forEach(g=>{ pos.set(g.attributes.position.array,o); o+=g.attributes.position.array.length; g.dispose(); });
-  const geo=new THREE.BufferGeometry(); geo.setAttribute("position",new THREE.BufferAttribute(pos,3)); geo.computeVertexNormals();
-  const m=new THREE.Mesh(geo,doppio?matDoppio(colore):mat(colore)); m.userData.tessuto={riposo:pos.slice(),pannelli}; return m;
-}
-// Piega la stoffa con le gambe, come un tessuto (JJ, 3/10: «un grembiule si piega dove si piega la gamba,
-// idem per il camice: se muovo la gamba destra in avanti e la sinistra indietro, un lato va avanti, l'altro va
-// indietro, e il tessuto in mezzo segue entrambi i movimenti»). Ogni punto sotto l'anca gira attorno all'anca come
-// la gamba del suo lato, davanti e dietro insieme. Sopra ciascuna gamba il giro è PIENO (così la gamba resta
-// dentro); solo nella striscia fra le due gambe (|x| < 6 cm) passa morbido dall'una all'altra, e lì la stoffa
-// si tende. Sotto l'anca il giro cresce con la distanza dall'anca, pieno a 20 cm.
-const PONTE=0.06;
-// dove va un punto di stoffa (x, y, z a riposo) con la gamba sinistra a aS e la destra a aD: [y, z]
-function deforma(x,y,z,aS,aD){
-  if(y>=ANCA) return [y,z];
-  let t=Math.min(1,Math.max(0,(x+PONTE)/(2*PONTE))); t=t*t*(3-2*t);
-  const giu=Math.min(1,(ANCA-y)/0.2), a=giu*((1-t)*aS+t*aD), dy=y-ANCA, c=Math.cos(a), s=Math.sin(a);
-  return [ANCA+dy*c-z*s, dy*s+z*c];
-}
-function pieghe(av){
-  const u=av.userData; if(!u.tessuti||!u.tessuti.length) return;
-  const aS=u.gambe[0].rotation.x, aD=u.gambe[1].rotation.x;   // gambe[0] è a sinistra (x<0)
-  for(const m of u.tessuti){
-    const P=m.geometry.attributes.position, A=P.array, R=m.userData.tessuto.riposo;
-    for(let i=0;i<A.length;i+=3){ const [y,z]=deforma(R[i],R[i+1],R[i+2],aS,aD); A[i+1]=y; A[i+2]=z; }
-    P.needsUpdate=true; m.geometry.computeVertexNormals(); m.geometry.computeBoundingSphere();
-  }
-}
-// I capelli: una calotta sulla testa (se non c'è un cappello) e, per lunghi e coda, quello che scende dietro.
-function capigliatura(g, cappello){
-  const H=g.userData.capelli, c=H.colore, r=H.r;
-  if(!cappello && H.tipo!=="rasati"){
-    // la calotta è inclinata indietro: davanti finisce sopra le sopracciglia, dietro scende sulla nuca (JJ, 4/10:
-    // «i capelli vanno sempre davanti agli occhi»)
-    const k="cal"+r; GEO[k]=GEO[k]||new THREE.SphereGeometry(r*1.06,18,12,0,Math.PI*2,0,Math.PI*0.42);
-    const cal=new THREE.Mesh(GEO[k],mat(c)); cal.scale.set(0.97,1.12,1.04); cal.position.set(0,1.915,-0.01); cal.rotation.x=-0.3; g.add(cal);
-    g.userData.frangia=cal;
-  }
-  if(H.tipo==="rasati" && !cappello){
-    const k="ras"+r; GEO[k]=GEO[k]||new THREE.SphereGeometry(r*1.015,18,12,0,Math.PI*2,0,Math.PI*0.45);
-    const cal=new THREE.Mesh(GEO[k],mat(c)); cal.scale.set(0.96,1.11,1.01); cal.position.set(0,1.9,-0.01); cal.rotation.x=-0.25; g.add(cal);
-    g.userData.frangia=cal;
-  }
-  if(H.tipo==="lunghi"){
-    const d=scatola(0.4,0.46,0.1,c); d.position.set(0,1.74,-0.17); g.add(d);
-    for(const s of [-1,1]){ const l=scatola(0.07,0.36,0.2,c); l.position.set(0.19*s,1.8,-0.06); g.add(l); }
-  }
-  if(H.tipo==="coda"){
-    const n=palla(0.08,c); n.position.set(0,1.97,-0.24); g.add(n);
-    const t=capsula(0.05,0.22,c,8); t.position.set(0,1.8,-0.27); t.rotation.x=0.15; g.add(t);
-  }
-}
+const ANCA=0.9;   // l'anca dell'omino del codice (tolto il 10/10): resta come altezza di riferimento dei posti a sedere
+
 // ── LE SKIN (JJ, 4/10: «le nostre in Blender come base quando inizi; quelle della 2 e la 3 le puoi sbloccare con i gettoni
 // nella Sartoria, e costano come nel negozio di Fortnite, dalle 800 alle 2000 monete per skin»). I modelli sono fatti in
-// Blender da modelli/prepara_skin.py. «Classica» è l'omino fatto nel codice, con tutti i vestiti dei mestieri (camice compreso).
+// Blender da modelli/prepara_skin.py. Base e Classica sono persone di MakeHuman (genera_persona.py, 9/10).
 const SKIN=[
   // JJ, 9/10: «la skin base è una persona con i suoi vestiti da lavoro» — una persona di MakeHuman (genera_persona.py),
   // vestita secondo il mestiere scelto sotto «Base JJA-VIS» all'armadietto; la Classica è la stessa persona vestita normale
@@ -1851,7 +1690,7 @@ function applicaOssa(av){ const o=av.userData.ossa; if(!o) return; for(const h o
 // seduti: la coscia in avanti e lo stinco giù (il ginocchio si piega solo nelle skin che ce l'hanno: l'omino del codice no),
 // e il bacino all'altezza del sedile: y è dove sta l'avatar se l'anca è a 0,9 m (ANCA), corretta per l'anca vera della skin
 const SEDUTO=1.45;
-function posaSeduta(av){ const u=av.userData; if(u.anim && suona(av,"Sitting_Idle_Loop")) return; u.gambe.forEach(g=>g.rotation.x=-SEDUTO); (u.ginocchia||[]).forEach(g=>g.rotation.x=SEDUTO); pieghe(av); applicaOssa(av); }
+function posaSeduta(av){ const u=av.userData; if(u.anim && suona(av,"Sitting_Idle_Loop")) return; u.gambe.forEach(g=>g.rotation.x=-SEDUTO); (u.ginocchia||[]).forEach(g=>g.rotation.x=SEDUTO); applicaOssa(av); }
 // quanto sta il sedere sotto l'anca, misurato sui pantaloni nella posa di adesso (un giro sui punti: una volta per clip)
 // quanto sta indietro la schiena (maglia o giacca, fra 10 e 60 cm sopra il sedile), nelle coordinate dell'avatar: serve a
 // metterla contro lo schienale (JJ, 9/10: «deve avere anche la schiena appoggiata allo schienale non dentro»)
@@ -1920,9 +1759,9 @@ function cammina(av, passo){
     if(suona(av,scegli[0],Math.max(0.35,Math.min(1.4,v/(scegli[1]*k))))) return; } u.fase+=passo; const a=Math.sin(u.fase)*0.6*Math.min(1,passo*20);
   u.gambe[0].rotation.x=a; u.gambe[1].rotation.x=-a;
   if(!u.ferme){ u.braccia[0].rotation.x=-a*0.8; if(!u.alzato) u.braccia[1].rotation.x=a*0.8; }
-  (u.ginocchia||[]).forEach(g=>g.rotation.x*=0.7); pieghe(av); applicaOssa(av);
+  (u.ginocchia||[]).forEach(g=>g.rotation.x*=0.7); applicaOssa(av);
 }
-function fermo(av){ const u=av.userData; if(u.anim && suona(av,"Idle_Loop")) return; u.gambe.forEach(g=>g.rotation.x*=0.8); (u.ginocchia||[]).forEach(g=>g.rotation.x*=0.7); if(!u.ferme){ u.braccia[0].rotation.x*=0.8; if(!u.alzato) u.braccia[1].rotation.x*=0.8; } pieghe(av); applicaOssa(av); }
+function fermo(av){ const u=av.userData; if(u.anim && suona(av,"Idle_Loop")) return; u.gambe.forEach(g=>g.rotation.x*=0.8); (u.ginocchia||[]).forEach(g=>g.rotation.x*=0.7); if(!u.ferme){ u.braccia[0].rotation.x*=0.8; if(!u.alzato) u.braccia[1].rotation.x*=0.8; } applicaOssa(av); }
 
 // ── insegne e facciate, disegnate nel telefono ──
 const INSEGNE=new Map();
@@ -2741,11 +2580,6 @@ const COLLINA={r:4.2,h:1.0}, ACQUA=[4.2,6.13], MURETTO={r:6.25,alto:0.55}, PANCH
   scena.anelloQuadrato=()=>{ const lati=tratti.filter(t=>Math.abs(t.c)===Q); return {lati:lati.length, coprono:lati.every(t=>t.a<=-Q && t.b>=Q)}; };
   scena.sfera=()=>({tema:TEMA, colori:SFERA.map(c=>c.toString(16).padStart(6,"0"))});
   // per il collaudo: pezzi di vestito appesi al corpo che scendono sotto l'anca (0,9): restano fermi e le gambe li attraversano
-  scena.pezziSulleGambe=()=>{ const male=[]; const box=new THREE.Box3();
-    for(const k of Object.keys(VESTITI)){ const av=omino({vestito:k}); const u=av.userData; av.updateMatrixWorld(true);
-      av.children.forEach(c=>{ if(u.gambe.includes(c)||u.braccia.includes(c)||c.userData.tessuto) return; box.setFromObject(c);
-        if(box.min.y<0.85) male.push([k,+box.min.x.toFixed(2),+box.min.y.toFixed(2)]); }); }
-    return male; };
   // per il collaudo: camice e grembiule sono UN pezzo, e con le gambe aperte l'orlo segue la gamba del suo lato
   // per il collaudo: camice e grembiule sono UN pezzo, e con le gambe aperte (fino a ±0,6, il passo più lungo)
   // nessun punto della gamba esce dalla stoffa: davanti alla faccia davanti, o dietro alla faccia dietro (camice)
@@ -2753,67 +2587,9 @@ const COLLINA={r:4.2,h:1.0}, ACQUA=[4.2,6.13], MURETTO={r:6.25,alto:0.55}, PANCH
   // (il sinistro col sinistro, il destro col destro); e nessun punto delle gambe esce dalla stoffa
   // per il collaudo: camice e grembiule sono UN pezzo; ogni lato va dalla parte del piede del suo lato; nessun
   // punto delle gambe esce dalla stoffa (davanti alle falde, dietro alla schiena); il camice è aperto e lungo
-  scena.stoffa=()=>{ const r={};
-    for(const k of ["sanita","negozio"]){ let fuori=0, provati=0, latiGiusti=true; const av=omino({vestito:k}), u=av.userData, m=u.tessuti[0], T=m.userData.tessuto, R=T.riposo;
-      const yMin=Math.min(...T.pannelli.map(p=>p.y0)), yMax=Math.max(...T.pannelli.map(p=>p.y1));
-      for(const a of [0.6,0.3,-0.3,-0.6]){
-        u.gambe[0].rotation.x=a; u.gambe[1].rotation.x=-a; u.gambe.forEach(g=>g.updateMatrix()); pieghe(av);
-        const A=m.geometry.attributes.position.array;
-        // l'orlo al bordo sinistro e al destro, davanti: va dalla parte del piede del suo lato
-        for(const [lato,gb] of [[-1,u.gambe[0]],[1,u.gambe[1]]]){
-          let best=-1; for(let i=0;i<R.length;i+=3){ if(Math.abs(R[i+1]-yMin)>1e-6 || R[i+2]<0.1) continue; if(best<0 || R[i]*lato>R[best]*lato) best=i; }
-          const orlo=A[best+2]-R[best+2], piede=new THREE.Vector3(0,-0.85,0).applyMatrix4(gb.matrix).z;
-          if(orlo*piede<=0 || Math.abs(orlo)<0.05) latiGiusti=false; }
-        // camice a tubo: ogni punto della gamba, riportato a riposo col giro della sua gamba, sta dentro l'ovale della
-        // stoffa a quell'altezza (dove la stoffa gira come la gamba: più di 20 cm sotto l'anca e fuori dalla striscia di mezzo)
-        for(const gb of u.gambe) for(const ly of [-0.25,-0.32,-0.4]) for(const lx of [-0.09,0,0.09]) for(const lz of [0.09,-0.09,0]){
-          const q=new THREE.Vector3(lx,ly,lz).applyMatrix4(gb.matrix); if(Math.abs(q.x)<PONTE) continue;
-          for(const t of T.pannelli.filter(p=>p.tubo)){ const yr=ANCA+ly; if(yr<t.y0||yr>t.y1||yr>ANCA-0.2) continue;
-            const r=t.r0+(t.r1-t.r0)*(yr-t.y0)/(t.y1-t.y0), xr=gb.position.x+lx; provati++;
-            if((xr/r)**2+(lz/(r*t.zs))**2>1) fuori++; } }
-        // ogni punto della gamba resta dietro le falde (dove ci sono) e davanti alla schiena
-        for(const gb of u.gambe) for(const ly of [-0.05,-0.15,-0.25,-0.35,-0.45]) for(const lx of [-0.1,0,0.1]) for(const lz of [0.12,-0.12]){
-          const v=new THREE.Vector3(lx,ly,lz).applyMatrix4(gb.matrix);
-          for(const p of T.pannelli){ if(p.lato!=="davanti" && p.lato!=="dietro") continue; if(v.x<p.x0||v.x>p.x1) continue;
-            if((p.lato==="davanti")!==(lz>0)) continue;
-            const zi=p.lato==="davanti"?p.z0:p.z1; let y0=v.y;
-            for(let it=0;it<8;it++){ const [yy]=deforma(v.x,y0,zi,a,-a); y0+=v.y-yy; }
-            if(y0<p.y0+0.01 || y0>=ANCA) continue; const zz=deforma(v.x,y0,zi,a,-a)[1]; provati++;
-            if(p.lato==="davanti" ? v.z>zz+0.005 : v.z<zz-0.005) fuori++; } } }
-      const tubi=T.pannelli.filter(p=>p.tubo);
-      const aperto=tubi.length? tubi.every(p=>p.ap>0) : !T.pannelli.some(p=>p.lato==="davanti" && p.x0<=0 && p.x1>=0);
-      // copre le spalle e i fianchi, dall'orlo fino in cima (JJ, 4/10: «manca tutto il pezzo sulle spalle e sui fianchi»)
-      // copre fianchi e spalle: i tubi vanno senza buchi dall'orlo a sopra 1,55, e uno sale sulle spalle verso il collo
-      const ord=tubi.slice().sort((p,q)=>p.y0-q.y0), continuo=ord.length>0 && ord.every((p,i)=>!i||Math.abs(p.y0-ord[i-1].y1)<1e-6);
-      const copre={fianchi:continuo && ord[0].y0<=yMin+1e-6 && ord[ord.length-1].y1>=1.55, spalle:tubi.some(p=>p.y1>=1.65 && p.r1<p.r0)};
-      // le braccia non ci passano dentro: il lato interno del braccio è più in fuori del tubo più largo
-      const braccio=Math.min(...u.braccia.map(b=>Math.abs(b.position.x)-b.children[0].geometry.parameters.radius)), largo=Math.max(0,...tubi.map(p=>Math.max(p.r0,p.r1)));
-      // non è un quadrato: la stoffa è fatta di superfici curve (a una stessa altezza, tanti punti diversi in larghezza)
-      const xs=new Set(); for(let i=0;i<R.length;i+=3) if(Math.abs(R[i+1]-1.2)<0.05) xs.add(R[i].toFixed(3));
-      r[k]={pezzi:u.tessuti.length, latiGiusti, provati, fuori, aperto, daSpalleA:[+yMax.toFixed(2),+yMin.toFixed(2)], copre, bracciaFuori:braccio>largo+0.001, curvo:tubi.length>0 && xs.size>20}; }
-    return r; };
   // per il collaudo: il tuo avatar com'è adesso, e se gli avatar hanno forma di persona
-  scena.tuo=()=>tu.userData.skin? (()=>{ const c={}; tu.traverse(o=>{ if(o.isMesh&&o.material&&o.material.name) c[o.material.name]="#"+o.material.color.getHexString(); });
-      return {corpo:tu.userData.corpo, pantaloni:c.pantaloni||null, maglia:c.maglia||null, capelli:"modello", skin:tu.userData.skin}; })() : ({corpo:tu.userData.corpo, pantaloni:"#"+tu.userData.gambe[0].children[0].material.color.getHexString(), maglia:"#"+tu.children.find(c=>c.geometry&&c.geometry.type==="CylinderGeometry"&&c.position.y>1.2).material.color.getHexString(), capelli:tu.userData.capelli.tipo});
-  scena.formaUmana=()=>{ const r={}; for(const corpo of ["uomo","donna"]){ const av=omino({vestito:"altro",corpo}), u=av.userData;
-      const tipo=m=>m&&m.geometry?m.geometry.type:null;
-      r[corpo]={gambe:u.gambe.map(gb=>tipo(gb.children[0])), braccia:u.braccia.map(b=>tipo(b.children[0])),
-        busto:tipo(av.children.find(c=>c.position.y>1.2&&c.position.y<1.4&&c.geometry)),
-        viso:av.children.filter(c=>c.position.y>1.78&&c.position.y<2&&c.position.z>0.12).length,
-        spalle:u.braccia.map(b=>+Math.abs(b.position.x).toFixed(2))[0]}; }
-    return r; };
-  // per il collaudo: niente esce dalla sagoma del vestito JJA-VIS, i capelli non scendono davanti agli occhi
-  scena.dettagli=()=>{ const r={sagoma:[],frangia:{}}; const v=new THREE.Vector3();
-    const av=omino({vestito:"jjavis"}); av.updateMatrixWorld(true); const B=av.userData.busto;
-    av.children.forEach(c=>{ if(!c.material||!(c.material.color&&c.material.color.getHex()===0x00b4d8||c.material.color.getHex()===0xffd60a)) return;
-      const P=c.geometry.attributes.position; for(let i=0;i<P.count;i++){ v.fromBufferAttribute(P,i).applyMatrix4(c.matrixWorld);
-        if(v.y<1.0||v.y>1.62) continue; const rr=B.vita+(B.top-B.vita)*(v.y-1.0)/0.62;
-        if((v.x/(rr*1.05))**2+(v.z/(rr*0.57*1.12))**2>1){ r.sagoma.push([+v.x.toFixed(2),+v.y.toFixed(2),+v.z.toFixed(2)]); break; } } });
-    for(const corpo of ["uomo","donna"]) for(const cap of ["corti","lunghi","coda","rasati"]){ const a=omino({vestito:"altro",corpo,capelli:cap}); a.updateMatrixWorld(true);
-      const f=a.userData.frangia; if(!f){ r.frangia[corpo+"-"+cap]=null; continue; } let basso=9; const P=f.geometry.attributes.position;
-      for(let i=0;i<P.count;i++){ v.fromBufferAttribute(P,i).applyMatrix4(f.matrixWorld); if(v.z>0.12 && Math.abs(v.x)<0.12) basso=Math.min(basso,v.y); }
-      r.frangia[corpo+"-"+cap]=+basso.toFixed(3); }
-    return r; };
+  scena.tuo=()=>{ const c={}; tu.traverse(o=>{ if(o.isMesh&&o.material&&o.material.name) c[o.material.name.split(".")[0]]="#"+o.material.color.getHexString(); });
+    return {corpo:tu.userData.corpo, pantaloni:c.pantaloni||null, maglia:c.maglia||null, skin:tu.userData.skin||null}; };   // l'omino non c'è più: solo persone e skin
   scena.vistaSpecchio=()=>dentro&&tuStanza?+camStanza.position.distanceTo(tuStanza.position).toFixed(2):null;
   scena.radio=()=>({stazioni:citta.radio.slice(), partenza:PRESELEZIONI_APP.slice(), inOnda:radio.inOnda, src:radio.src, stato:radio.stato, antenna:!!Object.values(porte).length && S.children.some(o=>o.userData&&o.userData.antenna)});
   scena.incorpora=u=>incorporaVideo(u);

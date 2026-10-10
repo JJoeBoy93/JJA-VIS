@@ -7,7 +7,8 @@ base, non voglio omini finti ... la skin base è una persona con i suoi vestiti 
 La libreria è nella variabile MAKEHUMAN_LIB (di base /home/claude/mh/lib).
 
 <libreria>: i pacchetti CC0 di MakeHuman scompattati insieme (release «makehuman» di JJA-VIS, li porta la Action
-.github/workflows/makehuman.yml). Prima: MPFB2 fra le estensioni di Blender come «mpfb» (vedi genera_mpfb.py).
+.github/workflows/makehuman.yml). Prima: MPFB2 fra le estensioni di Blender come «mpfb»: da codeload.github.com/makehumancommunity/mpfb2 (ramo
+master) si copia src/mpfb in bpy.utils.user_resource('EXTENSIONS', path='user_default')/mpfb.
 Ogni vestito usato è CC0: la licenza si legge nell'intestazione del suo .mhclo, e VESTE controlla che ci sia.
 """
 import sys, os, glob, importlib, bpy

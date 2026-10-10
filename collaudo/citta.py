@@ -191,16 +191,6 @@ async def main():
         rc = await p.evaluate("(()=>{ const P=window.CITTA.porte, r=P.ristorante, c=P.cafe; return {r:Math.hypot(r.cx,r.cz), d:Math.hypot(r.cx-c.cx,r.cz-c.cz)}; })()")
         prova("il Ristorante sta in piazza, accanto al JJA-VIS Café (JJ, 4/10)", 29 < rc["r"] < 33 and rc["d"] < 20, rc)
         prova("le vie che il cammino segue non passano dentro niente (il furgone stava sull'anello)", await p.evaluate("window.CITTA.stradeLibere()") == [], await p.evaluate("window.CITTA.stradeLibere()"))
-        prova("nessun pezzo di vestito sta fermo dove si muovono le gambe (strisce JJA-VIS, camice, grembiule: si piegano con le gambe)", await p.evaluate("window.CITTA.pezziSulleGambe()") == [], await p.evaluate("window.CITTA.pezziSulleGambe()"))
-        st = await p.evaluate("window.CITTA.stoffa()")
-        prova("camice e grembiule: un pezzo solo, ogni lato va col piede del suo lato, e nessun punto della gamba esce dalla stoffa", all(v["pezzi"] == 1 and v["latiGiusti"] and v["provati"] > 20 and v["fuori"] == 0 for v in st.values()), st)
-        prova("il camice è aperto davanti, va dalle spalle al ginocchio, copre spalle e fianchi, e le braccia non ci passano dentro (JJ: «manca tutto il pezzo sulle spalle e sui fianchi»)",
-              st["sanita"]["aperto"] and st["sanita"]["daSpalleA"][0] >= 1.55 and st["sanita"]["daSpalleA"][1] <= 0.5
-              and st["sanita"]["copre"] == {"fianchi": True, "spalle": True} and st["sanita"]["bracciaFuori"], st["sanita"])
-        dt_ = await p.evaluate("window.CITTA.dettagli()")
-        prova("niente del vestito JJA-VIS esce dalla sagoma del busto (JJ: «escono ancora dalla sagoma»)", dt_["sagoma"] == [], dt_["sagoma"])
-        prova("i capelli non scendono davanti agli occhi: davanti finiscono sopra le sopracciglia (1,975)", all(v is None or v > 1.975 for v in dt_["frangia"].values()), dt_["frangia"])
-        prova("il camice non è un quadrato: segue il corpo con superfici curve (JJ: «il camice è rimasto un quadrato»)", st["sanita"]["curvo"], st["sanita"])
         aq = await p.evaluate("window.CITTA.anelloQuadrato()")
         prova("il secondo anello è quadrato: quattro lati dritti che si chiudono", aq["lati"] == 4 and aq["coprono"], aq)
         prova("intorno, i quartieri: isolati di palazzi fra le vie", m["isolati"] >= 40, m["isolati"])
@@ -271,19 +261,14 @@ async def main():
         await p.evaluate("window.CITTA.gettoni(100)")
         # JJ, 4/10: l'avatar si sceglie tutto, come nei Sims — corpo, capelli, colore dei pantaloni
         await p.click("#scelta-corpo .scelta:has-text('Donna')"); await p.wait_for_timeout(300)
-        await p.click("#scelta-capelli .scelta:has-text('Coda')"); await p.wait_for_timeout(300)
         await p.click("#tinte-pantaloni .tinta:nth-child(3)"); await p.wait_for_timeout(300)
         await p.click("#tinte-capelli .tinta:nth-child(4)"); await p.wait_for_timeout(300)
         st = await p.evaluate("JSON.parse(localStorage.getItem('jjavis-citta')||'{}')"); tu_ = await p.evaluate("window.CITTA.tuo()")
-        prova("allo specchio si sceglie il corpo, i capelli, il loro colore e il colore dei pantaloni, e l'avatar cambia davvero",
-              st.get("corpo") == "donna" and st.get("capelli") == "coda" and st.get("capelliColore") == 3 and st.get("pantaloni") == 0xE63946
-              and tu_["corpo"] == "donna" and (tu_["capelli"] == "coda" or tu_.get("skin") in ("base", "classica")) and tu_["pantaloni"] == "#e63946" and tu_["maglia"] != tu_["pantaloni"], [st, tu_])
+        prova("allo specchio si sceglie il corpo, il colore dei capelli e quello dei pantaloni, e l'avatar cambia davvero",
+              st.get("corpo") == "donna" and st.get("capelliColore") == 3 and st.get("pantaloni") == 0xE63946
+              and tu_["corpo"] == "donna" and tu_["pantaloni"] == "#e63946" and tu_["maglia"] != tu_["pantaloni"], [st, tu_])
         await p.wait_for_timeout(2500)
         prova("allo specchio con la carta aperta la telecamera si allontana: l'avatar si vede intero (JJ: «è tagliato»)", (await p.evaluate("window.CITTA.vistaSpecchio()") or 0) > 6.5, await p.evaluate("window.CITTA.vistaSpecchio()"))
-        fu = await p.evaluate("window.CITTA.formaUmana()")
-        prova("gli avatar hanno forma di persona: gambe e braccia tonde, busto che si stringe, una faccia (occhi, naso, bocca)",
-              all(v["gambe"] == ["CapsuleGeometry"] * 2 and v["braccia"] == ["CapsuleGeometry"] * 2 and v["busto"] == "CylinderGeometry" and v["viso"] >= 6 for v in fu.values())
-              and fu["donna"]["spalle"] < fu["uomo"]["spalle"], fu)
         await p.wait_for_timeout(600); await foto(p, "03b-sartoria-donna")
         # i mestieri (JJ, 9/10): si scelgono sotto «Base JJA-VIS», solo con la Base addosso; con la Classica non ci sono
         testo_c = await p.inner_text("#stanza-carta")

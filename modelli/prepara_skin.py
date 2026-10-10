@@ -3,13 +3,15 @@ Prepara le skin della Sartoria in modelli/skin/*.glb (JJ, 4/10: «le nostre in B
 2 e la 3 le puoi sbloccare con i gettoni nella Sartoria, e costano come nel negozio di Fortnite, dalle 800 alle 2000 monete»).
 
     /home/claude/blenderenv/bin/python modelli/prepara_skin.py <quale>
-      base-uomo | base-donna            : genera_avatar.py (fatte da noi, gratis)
-      realista-uomo | realista-donna    : MPFB2 (genera_mpfb.py) con le braccia abbassate
       persona-<mestiere>-<uomo|donna>   : la skin base, una persona di MakeHuman vestita da lavoro (genera_persona.py,
                                           JJ 9/10: «non voglio omini finti»), con le braccia abbassate
       avventuriera | cavaliere          : KayKit Adventurers (CC0, github.com/KayKit-Game-Assets), senza armi né animazioni
+      animazioni-<uomo|donna>           : le clip sulle persone (prepara_animazioni.py)
 
-Ogni skin è alta circa 1,9 m, guarda verso +Z di three.js e ha uno scheletro; la città muove gambe e braccia dagli ossi
+(10/10: tolte la Base fatta col codice, genera_avatar.py, e le Realista, genera_mpfb.py: JJ, 9/10, «non voglio omini finti»
+e «quelle realiste senza vestiti non hanno senso nel negozio». MPFB2 si installa come dice genera_persona.py.)
+
+In città ogni skin è alta circa 2,2 m (scala in SKIN), guarda verso +Z di three.js e ha uno scheletro; la città muove gambe e braccia dagli ossi
 scritti in SKIN (citta.html).
 """
 import sys, os, bpy, math, importlib, runpy
@@ -44,19 +46,7 @@ def esporta(nome, oggetti, **piu):
     bpy.ops.export_scene.gltf(filepath=out, export_format="GLB", export_yup=True, export_skins=True, export_animations=False, use_selection=True, **piu)
     print("scritto", out, round(os.path.getsize(out) / 1024), "kB")
 
-if quale.startswith("base-"):
-    sys.argv = [sys.argv[0], quale.split("-")[1]]
-    runpy.run_path(os.path.join(QUI, "genera_avatar.py"))
-    os.replace(os.path.join(QUI, f"avatar-{sys.argv[1]}.glb"), os.path.join(FUORI, quale + ".glb")); print("scritto", quale)
-
-elif quale.startswith("realista-"):
-    sys.argv = [sys.argv[0], quale.split("-")[1]]
-    g = runpy.run_path(os.path.join(QUI, "genera_mpfb.py"))
-    h, arm = g["h"], g["arm"]
-    braccia_giu(h, arm, "upperarm_{}", ("l", "r"), 30)
-    esporta(quale, [h, arm])
-
-elif quale.startswith("animazioni-"):   # le clip di Quaternius sullo scheletro delle persone (prepara_animazioni.py)
+if quale.startswith("animazioni-"):   # le clip di Quaternius sullo scheletro delle persone (prepara_animazioni.py)
     corpo = quale.split("-")[1]
     sys.argv = [sys.argv[0], "classica", corpo]
     g = runpy.run_path(os.path.join(QUI, "genera_persona.py"))
