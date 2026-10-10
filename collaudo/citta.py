@@ -710,6 +710,10 @@ async def main():
         await p.wait_for_timeout(700); giu2 = await p.evaluate("window.CITTA.gesto()")   # un tocco = un cambio (cambiGiu sale di 1, non di 2)
         await cdp.send("Input.dispatchTouchEvent", {"type": "touchEnd", "touchPoints": []})
         prova("camminando (un dito sul cerchio) l'altro dito fa saltare e accovacciare", salto2["salto"] and giu2["giu"] and giu2["cambiGiu"] == prima_giu + 1, [salto2, giu2, prima_giu])
+        sov = await p.evaluate("""(()=>{ const e=document.getElementById('entra'), h=e.hidden; e.hidden=false; e.textContent='Siediti · in panchina';
+            const r=x=>x.getBoundingClientRect(), a=r(e), tocca=b=>!(b.right<=a.left||b.left>=a.right||b.bottom<=a.top||b.top>=a.bottom);
+            const out={salta:tocca(r(document.getElementById('salta'))), giu:tocca(r(document.getElementById('giu')))}; e.hidden=h; return out; })()""")
+        prova("«Salta» e «Accovacciati» non stanno sotto «Usa · …» (vicino a una panchina restavano coperti: Hera, 10/10)", sov == {"salta": False, "giu": False}, sov)
         prova("sui tasti c'è scritto Salta e Accovacciati", (await p.inner_text("#salta")).strip() == "Salta" and (await p.inner_text("#giu")).strip() == "Accovacciati")
         prova("nessun errore JavaScript (saltare e accovacciarsi)", not err, err[:3])
         await ctx.close()

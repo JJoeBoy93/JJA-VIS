@@ -66,7 +66,7 @@ a{color:var(--accento)}
 /* saltare e accovacciarsi (JJ, 9/10): due tasti tondi sopra «Vai a…» */
 .gesto{position:fixed;right:16px;z-index:6;min-width:132px;padding:12px 14px;font-size:16px;touch-action:none}
 #salta{bottom:calc(env(safe-area-inset-bottom,0px) + 108px)}
-#giu{bottom:calc(env(safe-area-inset-bottom,0px) + 166px)}
+#giu{bottom:calc(env(safe-area-inset-bottom,0px) + 222px)}   /* sopra «Usa · …» (#entra, 160-210 px dal fondo): a 166 ci finiva sotto, e vicino a una panchina il tasto non si poteva premere (Hera, 10/10) */
 #giu[aria-pressed="true"]{border-color:var(--accento);background:color-mix(in srgb,var(--accento) 25%,transparent)}
 #entra{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 160px);z-index:6;
   font:800 18px/1 var(--f-titoli);letter-spacing:.02em;color:var(--bg);background:var(--accento);border:0;padding:15px 22px;cursor:pointer;
