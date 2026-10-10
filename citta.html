@@ -1646,7 +1646,11 @@ function suona(av, nome, scala=1){ const u=av.userData, m=mixer(av); if(!m) retu
   if(u.inCorso!==a){ a.reset().play(); if(u.inCorso) a.crossFadeFrom(u.inCorso,0.25,false); u.inCorso=a; u.clip=nome; u.clipDa=ora; }
   a.timeScale=scala; m.update(dt);
   u.gambe.forEach(g=>g.rotation.x=0); (u.ginocchia||[]).forEach(g=>g.rotation.x=0);   // le maniglie del passo a mano non contano più: niente valori vecchi nei ganci
-  // il braccio alzato (mangiare al Café) resta sopra l'animazione
+  // seduti le braccia non sono nella clip (restano lungo i fianchi): il mixer non le tocca, quindi ogni fotogramma tornano a
+  // riposo. Prima restavano dov'erano e il braccio alzato veniva rigirato a ogni fotogramma: il braccio girava (JJ, 10/10)
+  if(nome.startsWith("Sitting")&&u.riposi) for(const n in u.riposi) if(/^(upperarm|lowerarm|hand)_[lr]$/.test(n)) u.ossiN[n]?.quaternion.copy(u.riposi[n]);
+  // il braccio alzato (mangiare al Café) resta sopra l'animazione, solo se lo si sta alzando davvero
+  if(!u.alzato) u.braccia.forEach(h=>h.rotation.x=0);
   const b=u.braccia[1]; if(b&&b.osso&&Math.abs(b.rotation.x)>0.01){ qX.setFromAxisAngle(b.asse||asseX,b.rotation.x); b.osso.quaternion.multiply(qX); }
   return true; }
 function caricaModello(url){ if(MODELLI[url]) return MODELLI[url];
@@ -1682,7 +1686,7 @@ function avatarDaSkin(st){
       if(n.startsWith("maglia")||n.startsWith("abito")){ m.polygonOffset=true; m.polygonOffsetFactor=-2; m.polygonOffsetUnits=-4; }   // JJ, 9/10: «ancora un po' il buco dietro la maglietta»
       if(n.startsWith("maglia")) m.color.setHex(maglia); else if(n.startsWith("pantaloni")) m.color.setHex(pant);
       else if(n.startsWith("pelle")) tinta(m,PELLI[st.pelle??1]); else if(n.startsWith("capelli")) m.color.setHex(COLORI_CAPELLI[st.capelliColore??0]??COLORI_CAPELLI[0]); }); }
-  g.userData={anim:!!k.anim,radice:copia,gambe,braccia,tessuti:[],skin:k.id,corpo:st.corpo==="donna"?"donna":"uomo",capelli:{tipo:"modello"},fase:Math.random()*6,ginocchia,anca,ossa:[...gambe,...braccia,...ginocchia]};
+  g.userData={anim:!!k.anim,radice:copia,ossiN:ossi,riposi:Object.fromEntries(Object.entries(ossi).map(([n,b])=>[n,b.quaternion.clone()])),gambe,braccia,tessuti:[],skin:k.id,corpo:st.corpo==="donna"?"donna":"uomo",capelli:{tipo:"modello"},fase:Math.random()*6,ginocchia,anca,ossa:[...gambe,...braccia,...ginocchia]};
   return g;
 }
 const qX=new THREE.Quaternion(), asseX=new THREE.Vector3(1,0,0);
@@ -2733,6 +2737,8 @@ const COLLINA={r:4.2,h:1.0}, ACQUA=[4.2,6.13], MURETTO={r:6.25,alto:0.55}, PANCH
   scena.siedi=i=>{ const b=panchine[i]; if(!b) return; seduto=b; stato.meta=null;
     const fx=Math.sin(b.rot), fz=Math.cos(b.rot); tu.position.set(b.x+fx*0.08,altezzaSeduta(tu),b.z+fz*0.08); tu.rotation.y=b.rot;
     posaSeduta(tu); $("entra").hidden=true; vicinoPrima="seduto"; };
+  // per il collaudo: come stanno le braccia adesso (quaternioni nel mondo): da seduti non devono girare
+  scena.braccia=()=>{ const o=tu.userData.ossiN; if(!o) return null; const q=new THREE.Quaternion(); return ["upperarm_l","upperarm_r","lowerarm_l","lowerarm_r"].map(n=>o[n]?o[n].getWorldQuaternion(q).toArray().map(x=>+x.toFixed(4)):null); };
   scena.puoiGesto=()=>!seduto&&!(scena.sedutoAlBar&&scena.sedutoAlBar());
   scena.gesto=()=>({salto:GESTO.salto!==null, giu:GESTO.giu, cambiGiu:GESTO.cambiGiu||0, alto:+(GESTO.alto||0).toFixed(2), clipSalto:[...new Set(GESTO.clipSalto||[])], y:+(tuStanza&&scena.sedutoAlBar?tu:tu).position.y.toFixed(2), clip:tu.userData.clip||null});   // per il collaudo
   scena.seduto=()=>({seduto:!!seduto, y:+tu.position.y.toFixed(2), gamba:+tu.userData.gambe[0].rotation.x.toFixed(2), skin:tu.userData.skin||"classica", stinco:+((tu.userData.ginocchia||[])[0]?.rotation.x??0).toFixed(2), clip:tu.userData.clip||null, posato:posato(tu), ...misuraGambe(tu)});

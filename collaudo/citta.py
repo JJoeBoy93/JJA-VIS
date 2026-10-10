@@ -8,7 +8,7 @@ Verde = 0 errori JavaScript e tutte le prove passate. Nato il 2 ottobre 2026
 (Athena), insieme alla città. Ogni link della città deve portare a un id che
 esiste davvero in index.html: è la prova che i palazzi non portano nel vuoto.
 """
-import json, asyncio, sys, os, re
+import json, asyncio, sys, os, re, math
 from playwright.async_api import async_playwright
 
 CITTA = os.path.abspath(sys.argv[1])
@@ -731,6 +731,10 @@ async def main():
                   sd["seduto"] and 0.42 <= sd.get("anca", 0) <= 0.75 and abs(sd.get("ginocchio", 0) - sd["anca"]) < 0.12
                   and sd.get("piede", 9) < sd.get("ginocchio", 0) - 0.1
                   and (sd["sedere"] is None or sd["sedere"] >= 0.52), sd)   # il sedere sopra il sedile (0,55), non dentro (9/10)
+            if sk in ("base", "classica"):   # le braccia da seduti stanno ferme lungo i fianchi (JJ, 10/10: «il braccio gira quando si siede»)
+                b1 = await p.evaluate("window.CITTA.braccia()"); await p.wait_for_timeout(1500); b2_ = await p.evaluate("window.CITTA.braccia()")
+                gira = max(math.degrees(2 * math.acos(min(1, abs(sum(x * y for x, y in zip(q1, q2)))))) for q1, q2 in zip(b1, b2_) if q1 and q2)
+                prova(f"{sk}: seduti le braccia stanno ferme (girano di {gira:.1f}°, al massimo 5)", gira <= 5, [b1, b2_])
             pa_ = sd["panchina"] or {}
             if sk in ("base", "classica"):   # le persone animate: niente dentro la panchina, schiena contro lo schienale (JJ, 9/10)
                 prova(f"{sk}: niente dentro sedile e schienale, e la schiena appoggiata (entro 4 cm)",
