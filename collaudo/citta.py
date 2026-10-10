@@ -690,6 +690,27 @@ async def main():
         prova("nessun errore JavaScript (accesa)", not err, err[:3])
         await ctx.close()
 
+        # 4d. saltare e accovacciarsi (JJ, 9/10): due tasti; il salto sale e ricade, accovacciati si cammina piano
+        ctx, p, err = await nuova(b, citta={"giroVisto": True})
+        await p.goto(BASE + "citta.html", timeout=60000)
+        await p.wait_for_function("window.CITTA && window.CITTA.pronta && window.CITTA.skinTua().ossi===true", timeout=60000)
+        prova("ci sono i tasti per saltare e accovacciarsi", await p.is_visible("#salta") and await p.is_visible("#giu"))
+        await p.wait_for_timeout(1500); await p.click("#salta"); alti = []
+        for _ in range(8):
+            g_ = await p.evaluate("window.CITTA.gesto()"); alti.append((g_["y"], g_["clip"])); await p.wait_for_timeout(120)
+        await p.wait_for_function("!window.CITTA.gesto().salto", timeout=30000); await p.wait_for_timeout(600)
+        dopo = await p.evaluate("window.CITTA.gesto()")
+        prova("saltando si sale (oltre 20 cm), con le clip del salto, e si ricade a terra", dopo["alto"] > 0.2 and dopo["clipSalto"] == ["Jump_Start", "Jump_Loop", "Jump_Land"] and dopo["y"] == 0, [alti, dopo])
+        await p.click("#giu"); await p.wait_for_timeout(1500)
+        g1 = await p.evaluate("window.CITTA.gesto()")
+        j = await p.query_selector("#joy"); bb = await j.bounding_box(); cx, cy = bb["x"] + bb["width"] / 2, bb["y"] + bb["height"] / 2
+        await p.mouse.move(cx, cy); await p.mouse.down(); await p.mouse.move(cx, cy - 30, steps=3); await p.wait_for_timeout(1500)
+        g2 = await p.evaluate("window.CITTA.gesto()"); await p.mouse.up(); await p.click("#giu"); await p.wait_for_timeout(1200)
+        g3 = await p.evaluate("window.CITTA.gesto()")
+        prova("accovacciati: fermo e camminando le clip giuste, e col tasto di nuovo in piedi", g1["giu"] and g1["clip"] == "Crouch_Idle_Loop" and g2["clip"] == "Crouch_Fwd_Loop" and not g3["giu"] and not (g3["clip"] or "").startswith("Crouch"), [g1, g2, g3])
+        prova("nessun errore JavaScript (saltare e accovacciarsi)", not err, err[:3])
+        await ctx.close()
+
         # 4c. il sedersi delle skin (JJ, 6/10): le skin di Blender piegano il ginocchio, e ognuna ha il bacino sul sedile
         # (0,55 m) qualunque sia la lunghezza delle sue gambe — prima le KayKit si sedevano per terra attraverso la panchina
         for sk in ("base", "classica", "avventuriera", "cavaliere"):

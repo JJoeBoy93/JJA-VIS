@@ -40,7 +40,8 @@ def tutte(noi, corpo):
                         (k("Sprint01_Forward"), "Sprint_Loop", 0.45), (k("Jump01 - Begin"), "Jump_Start", 1), (k("Jump01"), "Jump_Loop", 1),
                         (k("Jump01 - Land"), "Jump_Land", 1)):
         ritarghetta(noi, f, KEVIN, [(None, clip)], smorza=sm)
-    ritarghetta(noi, ual, None, [(c, c) for c in ("Crouch_Idle_Loop", "Crouch_Fwd_Loop")])
+    # accovacciati: Quaternius piega il busto di 53° (noi 69°: mani a terra, quasi a carponi nelle foto del 9/10): busto a metà
+    ritarghetta(noi, ual, None, [(c, c) for c in ("Crouch_Idle_Loop", "Crouch_Fwd_Loop")], smorza=0.5)
     # seduti: le braccia restano lungo i fianchi (mani sulle cosce). La schiena invece segue la clip: tenerla ferma (9/10, primo
     # tentativo) la lasciava attaccata al bacino, che nella clip si inclina, e il busto finiva piegato di 50° contro i loro 15°
     # seduti appoggiati allo schienale (JJ, 9/10: «deve avere anche la schiena appoggiata allo schienale»): il busto di
