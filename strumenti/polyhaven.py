@@ -70,7 +70,9 @@ def scarica(ids, ris):
     for i in [x.strip() for x in ids.split(",") if x.strip()]:
         try:
             f = json.loads(prendi(f"{API}/files/{i}"))
-            if "Diffuse" in f:   # le texture hanno anche «gltf» (un piano d'esempio): si riconoscono dalla mappa del colore
+            # il tipo lo dice /info (0 hdri, 1 texture, 2 modello): la mappa del colore ce l'hanno anche i modelli, e l'11/10 gli
+            # alberi erano stati scaricati come texture
+            if json.loads(prendi(f"{API}/info/{i}")).get("type") == 1:
                 fatti.append(texture(i, f, ris)); continue
             g = f.get("gltf", {})
             r = ris if ris in g else sorted(g, key=lambda k: int(k.rstrip("k") or 0))[0]
