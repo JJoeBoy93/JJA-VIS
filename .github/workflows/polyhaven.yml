@@ -11,7 +11,7 @@ on:
         required: true
         default: catalogo
         type: choice
-        options: [catalogo, scarica]
+        options: [catalogo, catalogo-texture, scarica]
       id:
         description: "per scarica: gli id separati da virgole (es. wooden_crate_01,hard_hat_01)"
         required: false
@@ -51,7 +51,7 @@ jobs:
           IDS: ${{ inputs.id }}
           RIS: ${{ inputs.risoluzione }}
         run: |
-          if [ "$AZIONE" = "scarica" ]; then python3 strumenti/polyhaven.py scarica "$IDS" "$RIS"; else python3 strumenti/polyhaven.py catalogo; fi
+          if [ "$AZIONE" = "scarica" ]; then python3 strumenti/polyhaven.py scarica "$IDS" "$RIS"; else python3 strumenti/polyhaven.py "$AZIONE"; fi
       - name: nel ramo
         if: always()
         run: |

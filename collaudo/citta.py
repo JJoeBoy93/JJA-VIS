@@ -36,7 +36,7 @@ async def instrada(route):
         nome = u[len(BASE):].split("#")[0].split("?")[0] or "index.html"
         f = os.path.join(CASA, nome)
         if os.path.isfile(f):
-            tipo = "text/html" if f.endswith(".html") else "text/javascript" if f.endswith(".js") else "image/png" if f.endswith(".png") else "application/manifest+json" if f.endswith(".webmanifest") else "application/json"
+            tipo = "text/html" if f.endswith(".html") else "text/javascript" if f.endswith(".js") else "image/png" if f.endswith(".png") else "image/jpeg" if f.endswith(".jpg") else "model/gltf-binary" if f.endswith(".glb") else "application/manifest+json" if f.endswith(".webmanifest") else "application/json"
             return await route.fulfill(body=open(f, "rb").read(), content_type=tipo)
         return await route.fulfill(status=404, body="")
     if u.startswith(PORTA + "/video"):
@@ -214,6 +214,15 @@ async def main():
         ab = await p.evaluate("(()=>{ const P=window.CITTA.porte, b=P.bottega, a=P.athena; return {b:[+b.cx.toFixed(1),+b.cz.toFixed(1)], a:[+a.cx.toFixed(1),+a.cz.toFixed(1)]}; })()")
         prova("la Via delle Attività comincia fra la Bottega e Athena Trasporti, uno per lato", ab["b"][0] < -20 and ab["a"][0] < -20 and ab["b"][1] * ab["a"][1] < 0, ab)
         prova("nei parchi degli angoli, fra il reattore e il quadrato, le statue degli dèi", len(pi["statue"]) == 4 and all(t_["r"] > 56 and t_["dentroQuadrato"] for t_ in pi["statue"]), pi["statue"])
+        # le porte vere (JJ, 11/10: «alla torre, bottega, radio, sartoria e palestra mancano le porte d'ingresso»): ogni palazzo
+        # ne ha una, tranne Athena Trasporti che ha la serranda; quella della Torre sta sulla base, verso la piazza
+        po = await p.evaluate("window.CITTA.portoni()")
+        senza = [x for x in po["palazzi"] if x not in po["con"] and x != "athena"]
+        prova("ogni palazzo ha la porta d'ingresso vera (Torre, Bottega, Radio, Sartoria e Palestra comprese)", not senza and po["torre"] and 40.5 < po["torre"] < 41.5, po)
+        # la natura (JJ, 11/10): sanpietrini in piazza, prato, fondo di ciottoli nel laghetto, le querce dai demo di Blender
+        await p.wait_for_function("window.CITTA.natura().querce>0 && window.CITTA.natura().ciottoli>0 && window.CITTA.natura().sanpietrini", timeout=60000)
+        na = await p.evaluate("window.CITTA.natura()")
+        prova("la piazza a sanpietrini, il prato, il laghetto col fondo di ciottoli e le querce nei parchi", na["sanpietrini"] and na["prato"] and na["fondo"] and na["ciottoli"] > 100 and na["querce"] > 100, na)
         prova("le vie che il cammino segue non passano dentro niente (il furgone stava sull'anello)", await p.evaluate("window.CITTA.stradeLibere()") == [], await p.evaluate("window.CITTA.stradeLibere()"))
         aq = await p.evaluate("window.CITTA.anelloQuadrato()")
         prova("fuori dal reattore la città torna quadrata: quattro lati dritti che si chiudono (JJ, 10/10)", aq["lati"] == 4 and aq["coprono"], aq)

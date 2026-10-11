@@ -175,7 +175,12 @@ async def main():
         f.manda({"t": "qui", "id": "b1", "p": {"x": 1e999, "z": "x"}}); await p.wait_for_timeout(500)
         prova("una posizione assurda non lo sposta", abs((await altri(p))["visti"][0]["x"] - 6) < 0.3)
         n0 = len([m for m in f.arrivati if m.get("t") == "qui"])
-        await p.keyboard.down("w"); await p.wait_for_timeout(2500); await p.keyboard.up("w"); await p.wait_for_timeout(600)
+        # si cammina per un numero di fotogrammi, non di secondi: la posizione parte una volta per fotogramma (al massimo 4 al
+        # secondo), e in sandbox la città fa meno di un fotogramma al secondo. Con 2,5 s d'orologio la prova misurava la macchina
+        # (11/10: con le querce e i sanpietrini, 2 fotogrammi invece di 3, e un messaggio solo). Almeno 6 fotogrammi e 2,5 s
+        f0 = await p.evaluate("window.CITTA.fotogrammi()")
+        await p.keyboard.down("w"); await p.wait_for_timeout(2500)
+        await p.wait_for_function(f"window.CITTA.fotogrammi()>={f0 + 6}", timeout=30000); await p.keyboard.up("w"); await p.wait_for_timeout(600)
         qui = [m for m in f.arrivati if m.get("t") == "qui"][n0:]
         prova("camminando, la tua posizione va al server", len(qui) >= 2 and qui[-1]["p"]["z"] < 17.5, qui[-2:])
         await p.wait_for_timeout(1500); n1 = len(f.arrivati); await p.wait_for_timeout(1500)

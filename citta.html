@@ -1599,6 +1599,49 @@ const fascia=(rTop,rBot,h,th0,th1,c,zs=1,emi)=>{ const g=new THREE.CylinderGeome
   return new THREE.Mesh(g, emi? new THREE.MeshBasicMaterial({color:c,side:THREE.DoubleSide}) : matDoppio(c)); };
 const capsula=(r,l,c,seg=10)=>{ const k=`k${r},${l},${seg}`; GEO[k]=GEO[k]||new THREE.CapsuleGeometry(r,l,4,seg); return new THREE.Mesh(GEO[k], mat(c)); };
 const cilindro=(rt,rb,h,c,seg=10,emi)=>{ const k=`c${rt},${rb},${h},${seg}`; GEO[k]=GEO[k]||new THREE.CylinderGeometry(rt,rb,h,seg); return new THREE.Mesh(GEO[k], mat(c,emi)); };
+// le texture della natura (immagini/natura), ripetute: «volte» volte sul lato del pezzo, o a mano coi cerchi
+const caricaTex=new THREE.TextureLoader(), TEXN={};
+function natura(file,volte=1){ if(!TEXN[file]){ const t=caricaTex.load("immagini/natura/"+file); t.colorSpace=THREE.SRGBColorSpace; t.wrapS=t.wrapT=THREE.RepeatWrapping; t.anisotropy=1; TEXN[file]=t; }
+  const t=TEXN[file]; if(volte!==1){ const c=t.clone(); c.repeat.set(volte,volte); c.needsUpdate=true; return c; } return t; }
+// un disco a cerchi concentrici, con la texture che segue i cerchi (come il «radial tiling» del demo CC0 di Blender): i sanpietrini
+// di una piazza tonda vanno in file ad arco. Ogni cerchio ha un numero intero di ripetizioni, così la cucitura non si vede
+function aCerchi(r0,r1,lato){ const fasce=Math.max(1,Math.round((r1-r0)/lato)), giri=Math.ceil(2*Math.PI*r1/lato*1.5), pos=[], uv=[], ind=[];
+  // a fasce larghe un «lato»: in ogni fascia le ripetizioni intorno sono le stesse dentro e fuori, così i sanpietrini restano
+  // dritti (con un numero diverso per ogni cerchio la texture si stirava a righe). Fra una fascia e l'altra comincia una fila nuova
+  for(let i=0;i<fasce;i++){ const ra=r0+(r1-r0)*i/fasce, rb=r0+(r1-r0)*(i+1)/fasce, n=Math.max(1,Math.round(Math.PI*(ra+rb)/lato)), base=pos.length/3;
+    for(const [r,v] of [[ra,0],[rb,1]]) for(let j=0;j<=giri;j++){ const a=j/giri*Math.PI*2; pos.push(Math.cos(a)*r,Math.sin(a)*r,0); uv.push(j/giri*n,i+v); }
+    for(let j=0;j<giri;j++){ const a=base+j, b=a+giri+1; ind.push(a,b,a+1, a+1,b,b+1); } }   // in senso antiorario visti dall'alto (dopo la rotazione)
+  const g=new THREE.BufferGeometry(); g.setAttribute("position",new THREE.Float32BufferAttribute(pos,3)); g.setAttribute("uv",new THREE.Float32BufferAttribute(uv,2)); g.setIndex(ind); g.computeVertexNormals(); return g; }
+const PORTONI=[];   // chi ha la porta vera (per il collaudo)
+// la porta d'ingresso vera, in 3D (JJ, 11/10: «alla torre, bottega, radio, sartoria e palestra mancano le porte d'ingresso»):
+// telaio, due ante a vetri coi maniglioni, il gradino, una lampada per lato e la pensilina. Si apre verso +z (fuori)
+function portone({larga=2.2,alta=2.9,telaio=0x1b2433,accento=0x00B4D8}={}){
+  const g=new THREE.Group(); g.name="portone";
+  const sp=0.16, prof=0.24;
+  const st=scatola(0.12,alta,prof,telaio); for(const s of [-1,1]){ const m=st.clone(); m.position.set(s*(larga/2+0.06),alta/2,0); g.add(m); }
+  const arch=scatola(larga+0.36,sp,prof,telaio); arch.position.set(0,alta+sp/2,0); g.add(arch);
+  GEO.vetroPorta=GEO.vetroPorta||new THREE.MeshLambertMaterial({color:0x8fd8ef,emissive:0x0a3550,transparent:true,opacity:.55});
+  for(const s of [-1,1]){ const w=larga/2-0.03, cx=s*(larga/4);
+    const v=new THREE.Mesh(new THREE.BoxGeometry(w-0.14,alta-0.2,0.03),GEO.vetroPorta); v.position.set(cx,alta/2+0.02,0.02); g.add(v);
+    for(const [x,y,ww,hh] of [[cx-w/2+0.05,alta/2,0.08,alta-0.06],[cx+w/2-0.05,alta/2,0.08,alta-0.06],[cx,0.06,w,0.1],[cx,alta-0.05,w,0.08],[cx,1.0,w,0.06]]){ const f=scatola(ww,hh,0.06,0x2b3442); f.position.set(x,y,0.03); g.add(f); }
+    const mani=cilindro(0.025,0.025,0.9,0xd9dee4,8); mani.position.set(cx-s*(w/2-0.18),1.15,0.12); g.add(mani); }
+  const gr=scatola(larga+0.8,0.12,0.7,0x9a9389); gr.position.set(0,0.06,0.35); g.add(gr);
+  const pens=scatola(larga+1.0,0.12,1.0,telaio); pens.position.set(0,alta+0.42,0.48); g.add(pens);
+  const lin=scatola(larga+1.0,0.05,0.05,accento,true); lin.position.set(0,alta+0.36,0.99); g.add(lin);
+  for(const s of [-1,1]){ const l=scatola(0.16,0.34,0.12,accento,true); l.position.set(s*(larga/2+0.42),2.1,0.08); g.add(l); }
+  return unisci(g);
+}
+// tanti pezzi dello stesso materiale diventano un pezzo solo: una porta era una ventina di disegni separati, sedici porte
+// quasi quattrocento, e la città perdeva fotogrammi (misurato in sandbox, 11/10)
+function unisci(g){ g.updateMatrixWorld(true); const per=new Map();
+  g.traverse(o=>{ if(!o.isMesh) return; const k=o.material; if(!per.has(k)) per.set(k,[]); per.get(k).push(o); });
+  const u=new THREE.Group(); u.name=g.name;
+  for(const [m,lista] of per){ let n=0; const pz=lista.map(o=>{ const q=(o.geometry.index?o.geometry.toNonIndexed():o.geometry.clone()); q.applyMatrix4(o.matrixWorld); n+=q.attributes.position.count; return q; });
+    const pos=new Float32Array(n*3), nor=new Float32Array(n*3); let i=0;
+    for(const q of pz){ pos.set(q.attributes.position.array,i*3); nor.set(q.attributes.normal.array,i*3); i+=q.attributes.position.count; q.dispose(); }
+    const geo=new THREE.BufferGeometry(); geo.setAttribute("position",new THREE.BufferAttribute(pos,3)); geo.setAttribute("normal",new THREE.BufferAttribute(nor,3));
+    u.add(new THREE.Mesh(geo,m)); }
+  return u; }
 const tela=(w,h)=>{ const c=document.createElement("canvas"); c.width=w; c.height=h; return c; };
 const tex=c=>{ const t=new THREE.CanvasTexture(c); t.colorSpace=THREE.SRGBColorSpace; t.anisotropy=2; return t; };
 
@@ -1883,13 +1926,11 @@ async function costruisci(){
     S.add(new THREE.Points(sg, new THREE.PointsMaterial({color:0xcaf0f8,size:1.6,sizeAttenuation:false,fog:false}))); }
 
   // ── il suolo: prato, la piazza tonda con la griglia della pagina, l'anello tondo ──
-  { const prato=new THREE.Mesh(new THREE.PlaneGeometry(460,460), mat(0x10261c)); prato.rotation.x=-Math.PI/2; S.add(prato); }
-  { const c=tela(256,256), x=c.getContext("2d"); x.fillStyle="#0c2236"; x.fillRect(0,0,256,256);
-    x.strokeStyle="rgba(0,180,216,.35)"; x.lineWidth=2; for(let i=0;i<=256;i+=64){ x.beginPath(); x.moveTo(i,0); x.lineTo(i,256); x.stroke(); x.beginPath(); x.moveTo(0,i); x.lineTo(256,i); x.stroke(); }
-    x.fillStyle="rgba(255,255,255,.03)"; for(let i=0;i<256;i+=32) for(let j=0;j<256;j+=32) if((i+j)%64===0) x.fillRect(i,j,32,32);
-    const t=tex(c); t.wrapS=t.wrapT=THREE.RepeatWrapping; t.repeat.set(12,12);
-    const piazza=new THREE.Mesh(new THREE.CircleGeometry(22,72), new THREE.MeshLambertMaterial({map:t}));
-    piazza.rotation.x=-Math.PI/2; piazza.position.y=0.02; S.add(piazza); }
+  // JJ, 11/10: «il prato, il fondo del laghetto fallo con i ciottoli e il pavimento della piazza con i sanpietrini». Texture CC0
+  // di Poly Haven (cobblestone_square, leafy_grass, ganges_river_pebbles), scaricate dalla Action e rimpicciolite in immagini/natura
+  { const t=natura("prato.jpg",115); const prato=new THREE.Mesh(new THREE.PlaneGeometry(460,460), new THREE.MeshLambertMaterial({map:t,color:0x5f8a4a})); prato.rotation.x=-Math.PI/2; S.add(prato); scena._prato=prato; }
+  { const piazza=new THREE.Mesh(aCerchi(0.4,22,1.4), new THREE.MeshLambertMaterial({map:natura("sanpietrini.jpg"),color:0xc9c4bc}));
+    piazza.rotation.x=-Math.PI/2; piazza.position.y=0.02; S.add(piazza); scena._piazza=piazza; }
   { const anello=new THREE.Mesh(new THREE.RingGeometry(22,25.5,72), mat(0x161c27)); anello.rotation.x=-Math.PI/2; anello.position.y=0.01; S.add(anello);
     const bordo=new THREE.Mesh(new THREE.RingGeometry(21.85,22.05,72), mat(0x00B4D8,true)); bordo.rotation.x=-Math.PI/2; bordo.position.y=0.03; S.add(bordo); }
 
@@ -2002,6 +2043,7 @@ async function costruisci(){
     if(P.id==="torre"){ const piatta=insegna(P.titolo,P.sotto,8,P.colore), m=piatta.material.clone(), RIn=TORRE_BASE.r0-0.14, larga=8/RIn;
       m.map=piatta.material.map.clone(); m.map.wrapS=THREE.RepeatWrapping; m.map.repeat.x=-1; m.map.needsUpdate=true; m.side=THREE.BackSide;   // vista da dentro il cilindro: si gira il disegno
       const curva=new THREE.Mesh(new THREE.CylinderGeometry(RIn,RIn,2,24,1,true,TORRE_ANG*Math.PI/180-larga/2,larga),m); curva.position.y=4.4; S.add(curva); scena._insegnaTorre=curva; }   // JJ, 11/10: «il cartello deve fare la curva come il palazzo senó si taglia»
+    if(!P.serranda && P.id!=="torre"){ const po=portone({accento:P.palestra?0x2ECC71:(P.colore?new THREE.Color(P.colore).getHex():0x00B4D8)}); po.position.set(0,0,P.d/2+0.02); g.add(po); toccabili.push([po.children[0],chiave]); PORTONI.push(P.id); }   // la porta vera (JJ, 11/10)
     const ins=insegna(P.titolo,P.sotto,Math.min(P.w*0.85,8),P.colore); if(P.id==="torre") ins.visible=false;
     ins.position.set(0, P.id==="torre"?4.4:Math.min(P.h-1.2,4.3), P.d/2+(P.id==="torre"?0.36:0.06)); g.add(ins);
 
@@ -2077,6 +2119,7 @@ async function costruisci(){
         for(let k=40;k>=0;k--){ const t=A0+DA*k/40; forma.lineTo(Math.sin(t)*RI,Math.cos(t)*RI); }
         const tetto=new THREE.Mesh(new THREE.ShapeGeometry(forma), new THREE.MeshLambertMaterial({color:0x2b2f36,side:THREE.DoubleSide})); tetto.rotation.x=Math.PI/2; tetto.position.y=H;
         S.add(davanti,dietro,tetto); muri.push(davanti,dietro); toccabili.push([davanti,chiave]);
+        { const po=portone({larga:3.2,alta:3.4}), t=TORRE_ANG*Math.PI/180; po.position.set(Math.sin(t)*(RI-0.03),0,Math.cos(t)*(RI-0.03)); po.rotation.y=t+Math.PI; S.add(po); scena._portaTorre=po; PORTONI.push("torre"); }   // la porta della Torre, sulla base (JJ, 11/10)
         for(const t of [A0,A0+DA]){ const lato=scatola(0.25,H,RE-RI,0x1b2433); lato.position.set(Math.sin(t)*(RI+RE)/2,H/2,Math.cos(t)*(RI+RE)/2); lato.rotation.y=t; S.add(lato); muri.push(lato); }
         const cor=new THREE.Mesh(new THREE.CylinderGeometry(RI-0.12,RI-0.12,0.4,40,1,true,A0,DA), new THREE.MeshLambertMaterial({color:0x0D3A5C,side:THREE.DoubleSide})); cor.position.y=H+0.2; S.add(cor);
         const luce=new THREE.Mesh(new THREE.CylinderGeometry(RI-0.16,RI-0.16,0.08,40,1,true,A0,DA), new THREE.MeshBasicMaterial({color:0x00B4D8,side:THREE.DoubleSide})); luce.position.y=H+0.45; S.add(luce);
@@ -2185,7 +2228,15 @@ const COLLINA={r:4.2,h:1.0}, ACQUA=[4.2,6.13], MURETTO={r:6.25,alto:0.55}, PANCH
       const corpo=new THREE.Mesh(corpoG,m); corpo.scale.set(0.13,0.07,0.38); g.add(corpo);
       const coda=new THREE.Mesh(codaG,m); coda.rotation.x=Math.PI/2; coda.scale.set(1,1,0.35); coda.position.z=-0.25; g.add(coda);
       g.position.y=0.02; S.add(g); pesci.push({g,coda,raggio,vel,ang:i*1.05,fase:i*1.7}); });
-    acqua.material.opacity=0.78;   // un po' più trasparente: i pesci si vedono
+    acqua.material.opacity=0.55;   // più trasparente: si vedono i pesci e il fondo di ciottoli
+    { const fondo=new THREE.Mesh(aCerchi(ACQUA[0]-0.1,ACQUA[1],0.9), new THREE.MeshLambertMaterial({map:natura("ciottoli.jpg"),color:0x9fb2b8}));
+      fondo.rotation.x=-Math.PI/2; fondo.position.y=0.03; S.add(fondo); scena._fondo=fondo;
+      // e i ciottoli veri, in 3D: i sette sassi del demo CC0 di Blender (pebble scattering), sparsi sul fondo
+      caricatore.load("modelli/natura/ciottoli.glb",g=>{ const sassi=[]; g.scene.traverse(o=>{ if(o.isMesh) sassi.push(o); }); let n=0;
+        sassi.forEach((o,k)=>{ const N=46, im=new THREE.InstancedMesh(o.geometry, new THREE.MeshLambertMaterial({color:[0xa79e92,0x8c8f8a,0xbdb3a3,0x6f6a63][k%4]}), N), m4=new THREE.Matrix4(), q=new THREE.Quaternion(), e=new THREE.Euler();
+          for(let i=0;i<N;i++){ const a=((i*137.5+k*51)%360)*Math.PI/180, r=ACQUA[0]+0.15+((i*29+k*13)%97)/97*(ACQUA[1]-ACQUA[0]-0.3), s=1.2+((i*7+k)%9)/9*1.6;
+            e.set(0,a*3,0); q.setFromEuler(e); m4.compose(new THREE.Vector3(Math.sin(a)*r,0.03,Math.cos(a)*r),q,new THREE.Vector3(s,s*0.6,s)); im.setMatrixAt(i,m4); n++; }
+          S.add(im); }); scena._ciottoli=n; }); }
     const pietra=0x9aa3ad;
     for(const r of [MURETTO.r-0.15,MURETTO.r+0.15]){ const m=new THREE.Mesh(new THREE.CylinderGeometry(r,r,MURETTO.alto,64,1,true), new THREE.MeshLambertMaterial({color:pietra,side:THREE.DoubleSide})); m.position.y=MURETTO.alto/2; S.add(m); }
     const cima=new THREE.Mesh(new THREE.RingGeometry(MURETTO.r-0.15,MURETTO.r+0.15,64), mat(0xb7bfc8)); cima.rotation.x=-Math.PI/2; cima.position.y=MURETTO.alto; S.add(cima);
@@ -2243,6 +2294,8 @@ const COLLINA={r:4.2,h:1.0}, ACQUA=[4.2,6.13], MURETTO={r:6.25,alto:0.55}, PANCH
     const fig=persona({skin:"classica",corpo:T.corpo,vestito:"altro",statua:true}); fig.position.y=1.2; g.add(fig);
     solidi.push({cerchio:true,x:T.x,z:T.z,r:1.5}); occupa(T.x,T.z,0,2.4,2.4,"statua "+T.nome); }
   scena.statue=()=>STATUE.map(T=>T.nome);
+  scena.portoni=()=>({con:[...PORTONI], palazzi:PALAZZI.filter(P=>P.id!=="lotto").map(P=>P.id), torre:scena._portaTorre?+Math.hypot(scena._portaTorre.position.x,scena._portaTorre.position.z).toFixed(2):null});
+  scena.natura=()=>({sanpietrini:!!(scena._piazza&&scena._piazza.material.map&&scena._piazza.material.map.image), prato:!!scena._prato.material.map, fondo:!!scena._fondo, ciottoli:scena._ciottoli|0, querce:scena._querce|0});
   scena.manichini=()=>{ const P=PALAZZI.find(q=>q.id==="sartoria"); return S.children.filter(o=>o.userData&&o.userData.manichino).map(o=>+Math.hypot(o.position.x-P.x,o.position.z-P.z).toFixed(1)); };   // per il collaudo
   // per il collaudo: la pianta del reattore (10/10)
   scena.pianta=()=>({ torreBase:+(2*TORRE_BASE.r1*Math.sin(TORRE_BASE.mezzoAngolo*Math.PI/180)).toFixed(1), torreArco:[TORRE_ANG-TORRE_BASE.mezzoAngolo,TORRE_ANG+TORRE_BASE.mezzoAngolo,TORRE_BASE.r0,TORRE_BASE.r1], vie:radiali.map(R=>({g:R.g,larga:2*R.mezza})), vialetti:vialetti.map(V=>V.g),
@@ -2274,7 +2327,23 @@ const COLLINA={r:4.2,h:1.0}, ACQUA=[4.2,6.13], MURETTO={r:6.25,alto:0.55}, PANCH
     alberi.forEach(([x,z,giardino],i)=>{ const s=0.8+((i*7)%5)/10; m4.makeTranslation(x,0.8,z); tronchi.setMatrixAt(i,m4);
       m4.makeScale(s,s,s).setPosition(x,1.6+2.3*s,z); chiome.setMatrixAt(i,m4); col.setHex([0x1f4a33,0x245a3a,0x1a3d2b][i%3]); chiome.setColorAt(i,col);
       if(giardino){ solidi.push({cerchio:true,x,z,r:0.5}); occupa(x,z,0,0.6,0.6,"albero del giardino"); } });
-    chiome.instanceColor.needsUpdate=true; S.add(tronchi,chiome); }
+    chiome.instanceColor.needsUpdate=true; S.add(tronchi,chiome);
+    // le querce (JJ, 11/10: «usa anche le altre librerie per fare gli alberi»): dal demo CC0 di Blender con le foglie e il muschio,
+    // ridotte da modelli/prepara_natura.py. Nei parchi la quercia, nel bosco fuori la sua versione leggera. Finché non arrivano,
+    // restano i coni; quando arrivano, i coni di quegli alberi spariscono
+    const vuota=new THREE.Matrix4().makeScale(0,0,0), m5=new THREE.Matrix4(), qq=new THREE.Quaternion(), su=new THREE.Vector3(0,1,0);
+    let querce=0;
+    for(const [url,giardino,k] of [["modelli/natura/quercia.glb",1,0.62]])   // il bosco lontano resta di coni: sotto la nebbia non si vede, e le querce costavano (fotogrammi da 1,4 a 0,75 in sandbox)
+      caricatore.load(url,g=>{ const scelti=alberi.map((a,i)=>[a,i]).filter(([a])=>a[2]===giardino), pezzi=[]; g.scene.updateMatrixWorld(true);
+        g.scene.traverse(o=>{ if(o.isMesh) pezzi.push(o); });
+        for(const o of pezzi){ const geo=o.geometry.clone().applyMatrix4(o.matrixWorld);
+          // Lambert come il resto della città: il materiale PBR del glTF costa molto di più a ogni punto dello schermo
+          const mt=o.material.map? new THREE.MeshLambertMaterial({map:o.material.map,alphaTest:0.45,side:THREE.DoubleSide}) : new THREE.MeshLambertMaterial({color:0x4a3626});
+          const im=new THREE.InstancedMesh(geo,mt,scelti.length); im.frustumCulled=false; im.renderOrder=2;   // dopo i palazzi: quello che sta dietro un muro non si disegna
+          scelti.forEach(([[x,z],i],j)=>{ const s=(0.8+((i*7)%5)/10)*k; qq.setFromAxisAngle(su,i*2.39996); m5.compose(new THREE.Vector3(x,0,z),qq,new THREE.Vector3(s,s,s)); im.setMatrixAt(j,m5); });
+          S.add(im); }
+        scelti.forEach(([,i])=>{ tronchi.setMatrixAt(i,vuota); chiome.setMatrixAt(i,vuota); }); tronchi.instanceMatrix.needsUpdate=chiome.instanceMatrix.needsUpdate=true;
+        querce+=scelti.length; scena._querce=querce; }); }
 
   // ── tu, e chi passeggia ──
   // si entra in piazza, a sud dell'albero, guardando la Torre: dove l'ha voluto JJ (foto del 3/10)
@@ -2908,7 +2977,7 @@ const COLLINA={r:4.2,h:1.0}, ACQUA=[4.2,6.13], MURETTO={r:6.25,alto:0.55}, PANCH
       dir.set(Math.sin(stato.yaw)*cp, Math.sin(stato.pitch), Math.cos(stato.yaw)*cp).normalize();
       const testa=new THREE.Vector3(tu.position.x,q+1.6,tu.position.z); ray.set(testa,dir); ray.far=dist; const muro=ray.intersectObjects(muri,false); if(muro.length) dist=Math.max(1.2,muro[0].distance-0.4);
       ideale.set(tu.position.x,q+1.6,tu.position.z).addScaledVector(dir,dist); if(ideale.y<q+0.5) ideale.y=q+0.5; ray.far=Infinity; }
-    cam.position.lerp(ideale, Math.min(1,dt*9)); cam.lookAt(bersaglio);
+    if(scena._fotoDa){ cam.position.set(...scena._fotoDa[0]); cam.lookAt(...scena._fotoDa[1]); } else { cam.position.lerp(ideale, Math.min(1,dt*9)); cam.lookAt(bersaglio); }   // _fotoDa: solo per le foto del collaudo
 
     if(scena._globo){ scena._globo.rotation.y+=dt*0.35; scena._globo.position.y=36+Math.sin(t*0.8)*0.4; scena._globo.visible=!sulTetto; }   // sulla terrazza la telecamera ci starebbe dentro
     if(scena._chioma){ scena._chioma.rotation.y+=dt*0.04; }
