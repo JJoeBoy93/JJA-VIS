@@ -70,7 +70,8 @@ def scarica(ids, ris):
     for i in [x.strip() for x in ids.split(",") if x.strip()]:
         try:
             f = json.loads(prendi(f"{API}/files/{i}"))
-            if "gltf" not in f and "Diffuse" in f: fatti.append(texture(i, f, ris)); continue
+            if "Diffuse" in f:   # le texture hanno anche «gltf» (un piano d'esempio): si riconoscono dalla mappa del colore
+                fatti.append(texture(i, f, ris)); continue
             g = f.get("gltf", {})
             r = ris if ris in g else sorted(g, key=lambda k: int(k.rstrip("k") or 0))[0]
             voce = g[r]["gltf"]; tmp = os.path.join("/tmp/polyhaven", i); os.makedirs(tmp, exist_ok=True)
@@ -84,6 +85,8 @@ def scarica(ids, ris):
         except Exception as e:   # un guasto si dice: «non ci sono riuscito» non è «zero»
             mancati.append(f"{i}: {e}")
     print("scaricati:", fatti or "nessuno"); print("NON scaricati:", mancati or "nessuno")
+    for m in mancati: print(f"::error::{m}")   # il registro dalla sandbox non si legge: le annotazioni sì
+    if fatti: print(f"::notice::scaricati {', '.join(fatti)}")
     if mancati: sys.exit(1)
 
 if __name__ == "__main__":
