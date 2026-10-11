@@ -201,6 +201,9 @@ async def main():
         prova("la Torre in fondo alla via nord", abs(torre_["ang"] - 180) < 0.1 and torre_["r"] > 40, torre_)
         vicini_t = [a_ for a_ in pi["anello2"] if a_["id"] == "lotto" and abs(a_["ang"] - 180) < 20]
         prova("accanto alla Torre niente lotti: la sua base è larga come i due lotti e la Torre di prima (JJ, 10/10)", not vicini_t and pi["torreBase"] >= 28, [vicini_t, pi["torreBase"]])
+        prova("la base della Torre è a semicerchio: un pezzo d'anello intorno alla piazza, non un rettangolo (JJ, 11/10)", pi["torreArco"][1] - pi["torreArco"][0] >= 30 and pi["torreArco"][2] > 40.5 and pi["torreArco"][3] < 52, pi["torreArco"])
+        mn = await p.evaluate("window.CITTA.manichini()")
+        prova("i tre manichini stanno davanti alla Sartoria, non davanti al Ristorante (JJ, 11/10)", len(mn) == 3 and all(d_ < 9 for d_ in mn), mn)
         lv = await p.evaluate("Object.entries(window.CITTA.porte).filter(([k,P])=>P.id==='lotto').map(([k,P])=>({x:+P.cx.toFixed(1),z:+P.cz.toFixed(1),r:+Math.hypot(P.cx,P.cz).toFixed(1)}))")
         fuori = [l for l in lv if l["r"] > 50]
         prova("i lotti fuori dal reattore stanno sulla Via delle Attività, a ovest, ai due lati (JJ, 10/10)", len(fuori) >= 4 and all(l["x"] < -60 and abs(l["z"]) < 10 for l in fuori)
@@ -553,11 +556,13 @@ async def main():
         await p.click("#piani .scelta:has-text('Terrazza')"); await p.wait_for_timeout(1500)
         tt = await p.evaluate("window.CITTA.sulTetto()")
         prova("dalla terrazza si guarda la città dall'alto: si è sul tetto della Torre", tt["su"] and tt["y"] > 29, tt)
+        ct = await p.evaluate("(()=>{ const T=window.CITTA.porte.torre; return [T.cx, T.cz]; })()")
+        prova("sul tetto non si arriva dentro il palo del globo, che sta al centro (JJ, 11/10)", ((tt["x"] - ct[0]) ** 2 + (tt["z"] - ct[1]) ** 2) ** 0.5 > 1.5, [tt, ct])
         j = await p.query_selector("#joy"); bb = await j.bounding_box(); cx, cy = bb["x"] + bb["width"] / 2, bb["y"] + bb["height"] / 2
         await p.mouse.move(cx, cy); await p.mouse.down(); await p.mouse.move(cx, cy - 55, steps=4); await p.wait_for_timeout(4000); await p.mouse.up()
         t2 = await p.evaluate("window.CITTA.sulTetto()")
         prova("sulla terrazza si cammina ma non si cade: si resta dentro il parapetto", t2["su"] and t2["y"] == tt["y"] and (abs(t2["x"] - tt["x"]) + abs(t2["z"] - tt["z"])) > 0.5
-              and max(abs(t2["x"] - tt["x"]), abs(t2["z"] - tt["z"])) < 4.2, [tt, t2])
+              and max(abs(t2["x"] - ct[0]), abs(t2["z"] - ct[1])) < 4.2, [tt, t2, ct])   # dentro il parapetto: si misura dal centro della torre (si arriva 2,6 m fuori centro, 11/10)
         await foto(p, "16d-terrazza")
         await p.click("#entra"); await p.wait_for_function("document.getElementById('stanza-nome').textContent==='La Torre'", timeout=20000)
         prova("«Scendi» riporta alla Reception", not (await p.evaluate("window.CITTA.sulTetto()"))["su"])

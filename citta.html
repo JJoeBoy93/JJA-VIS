@@ -467,7 +467,7 @@ const STRADE=[0,45,90,135,180,225,270,315];
 const LARGA=g=>g%90===0?2.5:1.5;               // mezza larghezza: 5 m le grandi, 3 m le diagonali
 const VIALETTI=[22.5,67.5,112.5,157.5,202.5,247.5,292.5,337.5];   // fra i due lotti di ogni spicchio, dall'anello 2 al 3
 const TORRE_ANG=180;
-const TORRE_BASE={w:29,h:6,d:7.2};   // la base della Torre: larga come i due lotti e la Torre di prima (JJ, 10/10)
+const TORRE_BASE={w:29,h:6,mezzoAngolo:18,r0:41.2,r1:50.5};   // la base a semicerchio: da 162° a 198° intorno alla piazza (w: la corda, per il collaudo)   // la base della Torre: larga come i due lotti e la Torre di prima (JJ, 10/10)
 // i parchi negli angoli fra il reattore e il quadrato, con le statue degli dèi (gli agenti di JARVIS)
 const STATUE=[{nome:"Athena",fa:"scrive il codice",corpo:"donna",x:47,z:-58.5},{nome:"Hera",fa:"collauda tutto",corpo:"donna",x:-58.5,z:-47},
               {nome:"Apollo",fa:"riconosce le canzoni",corpo:"uomo",x:-47,z:58.5},{nome:"Hermes",fa:"porta i messaggi",corpo:"uomo",x:58.5,z:47}];             // la Torre in fondo alla via nord (JJ, 10/10: «mi sta bene quello che hai proposto»)
@@ -2061,16 +2061,25 @@ async function costruisci(){
       g.userData.antenna={alto:y0+alto+0.3};
     }
     if(P.id==="torre"){
-      // la base (JJ, 10/10: «la torre deve partire larga come tutti e 3 gli attuali lotti e torre»): un piano terra largo 29 m,
-      // a vetrate, un filo più avanti della torre (così le facce non si sovrappongono); dentro, la hall più grande
-      const BD=TORRE_BASE.d, bz=P.d/2+0.3-BD/2;   // profonda 7,2 m e tirata avanti: dietro, i suoi angoli restano fuori dall'anello 3
-      const bf=facciata(TORRE_BASE.w,TORRE_BASE.h,{muro:P.muro,porta:true,vetro:true,luce:0.9,seme:seme++}), bl=facciata(BD,TORRE_BASE.h,{muro:P.muro,luce:0.8,seme:seme++});
-      const Mb=t=>new THREE.MeshLambertMaterial({map:t.map,emissiveMap:t.emi,emissive:0xffffff,emissiveIntensity:0.95});
-      const base=new THREE.Mesh(new THREE.BoxGeometry(TORRE_BASE.w,TORRE_BASE.h,BD),[Mb(bl),Mb(bl),mat(0x2b2f36),mat(0x2b2f36),Mb(bf),Mb(bf)]);
-      base.position.set(0,TORRE_BASE.h/2,bz); g.add(base); toccabili.push([base,chiave]); muri.push(base);
-      const cor=scatola(TORRE_BASE.w+0.3,0.4,BD+0.3,0x0D3A5C); cor.position.set(0,TORRE_BASE.h+0.2,bz); g.add(cor);
-      const lb=scatola(TORRE_BASE.w+0.32,0.08,0.08,0x00B4D8,true); lb.position.set(0,TORRE_BASE.h+0.4,P.d/2+0.46); g.add(lb);
-      const bx=px+fx*bz, bzz=pz+fz*bz; solidi.push({x:bx,z:bzz,rot:P.rot,w:TORRE_BASE.w,d:BD}); occupa(bx,bzz,P.rot,TORRE_BASE.w,BD,"torre: la base");
+      // la base a semicerchio (JJ, 11/10: «la base della torre non è corretta, va fatta a semicerchio non un rettangolo dritto»):
+      // un pezzo d'anello del reattore, da 162° a 198° (larga come i due lotti e la torre di prima), dal bordo dell'anello 2
+      // (41,2 m dal centro) a poco prima dell'anello 3 (50,5). Si disegna nel mondo, non nel gruppo della torre
+      { const A0=(TORRE_ANG-TORRE_BASE.mezzoAngolo)*Math.PI/180, DA=2*TORRE_BASE.mezzoAngolo*Math.PI/180, RI=TORRE_BASE.r0, RE=TORRE_BASE.r1, H=TORRE_BASE.h;
+        const tx=t=>{ t.map.wrapS=THREE.RepeatWrapping; t.map.repeat.x=-1; t.emi.wrapS=THREE.RepeatWrapping; t.emi.repeat.x=-1; return t; };   // la faccia di dentro del cilindro si vede da dentro: si gira il disegno
+        const ff=tx(facciata(RI*DA,H,{muro:P.muro,porta:true,vetro:true,luce:0.9,seme:seme++})), fr=facciata(RE*DA,H,{muro:P.muro,luce:0.7,seme:seme++});
+        const Mb=(t,lato)=>new THREE.MeshLambertMaterial({map:t.map,emissiveMap:t.emi,emissive:0xffffff,emissiveIntensity:0.95,side:lato});
+        const davanti=new THREE.Mesh(new THREE.CylinderGeometry(RI,RI,H,40,1,true,A0,DA),Mb(ff,THREE.BackSide)); davanti.position.y=H/2;
+        const dietro=new THREE.Mesh(new THREE.CylinderGeometry(RE,RE,H,40,1,true,A0,DA),Mb(fr,THREE.FrontSide)); dietro.position.y=H/2;
+        const forma=new THREE.Shape(); for(let k=0;k<=40;k++){ const t=A0+DA*k/40; k?forma.lineTo(Math.sin(t)*RE,Math.cos(t)*RE):forma.moveTo(Math.sin(t)*RE,Math.cos(t)*RE); }
+        for(let k=40;k>=0;k--){ const t=A0+DA*k/40; forma.lineTo(Math.sin(t)*RI,Math.cos(t)*RI); }
+        const tetto=new THREE.Mesh(new THREE.ShapeGeometry(forma), new THREE.MeshLambertMaterial({color:0x2b2f36,side:THREE.DoubleSide})); tetto.rotation.x=Math.PI/2; tetto.position.y=H;
+        S.add(davanti,dietro,tetto); muri.push(davanti,dietro); toccabili.push([davanti,chiave]);
+        for(const t of [A0,A0+DA]){ const lato=scatola(0.25,H,RE-RI,0x1b2433); lato.position.set(Math.sin(t)*(RI+RE)/2,H/2,Math.cos(t)*(RI+RE)/2); lato.rotation.y=t; S.add(lato); muri.push(lato); }
+        const cor=new THREE.Mesh(new THREE.CylinderGeometry(RI-0.12,RI-0.12,0.4,40,1,true,A0,DA), new THREE.MeshLambertMaterial({color:0x0D3A5C,side:THREE.DoubleSide})); cor.position.y=H+0.2; S.add(cor);
+        const luce=new THREE.Mesh(new THREE.CylinderGeometry(RI-0.16,RI-0.16,0.08,40,1,true,A0,DA), new THREE.MeshBasicMaterial({color:0x00B4D8,side:THREE.DoubleSide})); luce.position.y=H+0.45; S.add(luce);
+        // per non attraversarla: sei pezzi dritti lungo l'arco
+        for(let k=0;k<6;k++){ const t=A0+DA*(k+0.5)/6, rm=(RI+RE)/2, w=2*rm*Math.sin(DA/12)+0.2, x=Math.sin(t)*rm, z=Math.cos(t)*rm;
+          solidi.push({x,z,rot:t,w,d:RE-RI}); occupa(x,z,t,w,RE-RI,"torre: la base"); } }
       // il parapetto della terrazza
       for(const [x,z,w,d] of [[0,P.d/2,P.w,0.15],[0,-P.d/2,P.w,0.15],[P.w/2,0,0.15,P.d],[-P.w/2,0,0.15,P.d]]){ const pa=scatola(w,1.0,d,0x9fb3c8); pa.position.set(x,P.h+0.9,z); g.add(pa); }
       // 2 ottobre, JJ: «in alto alla torre, dove c'è la luce spenta, metterei il logo di JJA-VIS». Sui quattro lati
@@ -2143,10 +2152,10 @@ async function costruisci(){
     scena._isolati=n; }
 
   // i manichini della Sartoria: tre vestiti in vetrina, fuori
-  { const P=PALAZZI[1], px=P.x, pz=P.z, dx=Math.sin(P.rot), dz=Math.cos(P.rot);
+  { const P=PALAZZI.find(q=>q.id==="sartoria"), px=P.x, pz=P.z, dx=Math.sin(P.rot), dz=Math.cos(P.rot);   // per nome: col reattore l'ordine è cambiato e finivano davanti al Ristorante (JJ, 11/10)
     ["guida","artigiano","creator"].forEach((v,i)=>{ const m=avatar({vestito:v,pelle:[0,2,4][i],corpo:i===1?"donna":"uomo",capelli:i===1?"coda":"corti"});
       const off=(i-1)*2.4; m.position.set(px+dx*(P.d/2+1.0)+(-dz)*off, 0.25, pz+dz*(P.d/2+1.0)+dx*off); m.rotation.y=P.rot;
-      const ped=cilindro(0.45,0.5,0.25,0x0D3A5C,14); ped.position.set(m.position.x,0.125,m.position.z); S.add(ped, m); toccabili.push([m,"sartoria"]); solidi.push({cerchio:true,x:m.position.x,z:m.position.z,r:0.5}); }); }
+      const ped=cilindro(0.45,0.5,0.25,0x0D3A5C,14); ped.position.set(m.position.x,0.125,m.position.z); S.add(ped, m); toccabili.push([m,"sartoria"]); m.userData.manichino=true; solidi.push({cerchio:true,x:m.position.x,z:m.position.z,r:0.5}); }); }
 
   // ── l'Albero della Vita, al centro ──
   // (JJ, 4/10, col disegno: «l'albero in mezzo mettilo sopra a una piccola collinetta, circondata dall'acqua, circondata da
@@ -2222,8 +2231,9 @@ const COLLINA={r:4.2,h:1.0}, ACQUA=[4.2,6.13], MURETTO={r:6.25,alto:0.55}, PANCH
     const fig=persona({skin:"classica",corpo:T.corpo,vestito:"altro",statua:true}); fig.position.y=1.2; g.add(fig);
     solidi.push({cerchio:true,x:T.x,z:T.z,r:1.5}); occupa(T.x,T.z,0,2.4,2.4,"statua "+T.nome); }
   scena.statue=()=>STATUE.map(T=>T.nome);
+  scena.manichini=()=>{ const P=PALAZZI.find(q=>q.id==="sartoria"); return S.children.filter(o=>o.userData&&o.userData.manichino).map(o=>+Math.hypot(o.position.x-P.x,o.position.z-P.z).toFixed(1)); };   // per il collaudo
   // per il collaudo: la pianta del reattore (10/10)
-  scena.pianta=()=>({ torreBase:TORRE_BASE.w, vie:radiali.map(R=>({g:R.g,larga:2*R.mezza})), vialetti:vialetti.map(V=>V.g),
+  scena.pianta=()=>({ torreBase:+(2*TORRE_BASE.r1*Math.sin(TORRE_BASE.mezzoAngolo*Math.PI/180)).toFixed(1), torreArco:[TORRE_ANG-TORRE_BASE.mezzoAngolo,TORRE_ANG+TORRE_BASE.mezzoAngolo,TORRE_BASE.r0,TORRE_BASE.r1], vie:radiali.map(R=>({g:R.g,larga:2*R.mezza})), vialetti:vialetti.map(V=>V.g),
     anello1:PALAZZI.filter(P=>P.anello===1).map(P=>({id:P.id,ang:+(((Math.atan2(P.x,P.z)*180/Math.PI)+360)%360).toFixed(1),r:+Math.hypot(P.x,P.z).toFixed(1)})),
     anello2:PALAZZI.filter(P=>P.anello===2).map(P=>({id:P.id,ang:+(((Math.atan2(P.x,P.z)*180/Math.PI)+360)%360).toFixed(1),r:+Math.hypot(P.x,P.z).toFixed(1)})),
     statue:STATUE.map(T=>({nome:T.nome,r:+Math.hypot(T.x,T.z).toFixed(1),dentroQuadrato:Math.max(Math.abs(T.x),Math.abs(T.z))<Q-MEZZA})) });
@@ -2617,7 +2627,7 @@ const COLLINA={r:4.2,h:1.0}, ACQUA=[4.2,6.13], MURETTO={r:6.25,alto:0.55}, PANCH
   // ── la terrazza in cima alla Torre (JJ, 4/10: «il terrazzo calpestabile da dove guardare la città dall'alto»): si cammina
   // sul tetto, dentro il parapetto, e si guarda giù; «Scendi» riporta alla Reception
   scena.terrazza=on=>{ const T=porte.torre; if(!T) return;
-    if(on){ sulTetto=true; stato.meta=null; tu.position.set(T.cx,TETTO,T.cz); tu.rotation.y=T.guarda+Math.PI; stato.yaw=T.guarda; stato.pitch=0.5;
+    if(on){ sulTetto=true; stato.meta=null; const vx=T.x-T.cx, vz=T.z-T.cz, l=Math.hypot(vx,vz)||1; tu.position.set(T.cx+vx/l*2.6,TETTO,T.cz+vz/l*2.6);   // al centro c'è il palo del globo (JJ, 11/10: «c'è un pilone dove spawna il personaggio») tu.rotation.y=T.guarda+Math.PI; stato.yaw=T.guarda; stato.pitch=0.5;
       const b=$("entra"); delete b.dataset.id; delete b.dataset.cosa; b.dataset.azione="scendi"; b.textContent="Scendi · in ascensore"; b.hidden=false; vicinoPrima="terrazza"; }
     else { sulTetto=false; tu.position.set(T.x,0,T.z); stato.pitch=0.14; const b=$("entra"); delete b.dataset.azione; b.hidden=true; vicinoPrima=null; } };
   scena.sulTetto=()=>({su:sulTetto, y:+tu.position.y.toFixed(2), x:+tu.position.x.toFixed(2), z:+tu.position.z.toFixed(2)});
