@@ -202,6 +202,8 @@ async def main():
         vicini_t = [a_ for a_ in pi["anello2"] if a_["id"] == "lotto" and abs(a_["ang"] - 180) < 20]
         prova("accanto alla Torre niente lotti: la sua base è larga come i due lotti e la Torre di prima (JJ, 10/10)", not vicini_t and pi["torreBase"] >= 28, [vicini_t, pi["torreBase"]])
         prova("la base della Torre è a semicerchio: un pezzo d'anello intorno alla piazza, non un rettangolo (JJ, 11/10)", pi["torreArco"][1] - pi["torreArco"][0] >= 30 and pi["torreArco"][2] > 40.5 and pi["torreArco"][3] < 52, pi["torreArco"])
+        ar = await p.evaluate("window.CITTA.archi()")
+        prova("all'inizio delle quattro vie grandi, sul cerchio della piazza, gli archi coi nomi (come il viale di Mimmo, JJ 11/10)", sorted(g_ for _, g_ in ar) == [0, 90, 180, 270], ar)
         mn = await p.evaluate("window.CITTA.manichini()")
         prova("i tre manichini stanno davanti alla Sartoria, non davanti al Ristorante (JJ, 11/10)", len(mn) == 3 and all(d_ < 9 for d_ in mn), mn)
         lv = await p.evaluate("Object.entries(window.CITTA.porte).filter(([k,P])=>P.id==='lotto').map(([k,P])=>({x:+P.cx.toFixed(1),z:+P.cz.toFixed(1),r:+Math.hypot(P.cx,P.cz).toFixed(1)}))")

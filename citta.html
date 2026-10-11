@@ -1999,7 +1999,10 @@ async function costruisci(){
       t.scale.set(P.w*1.08, 2.6, P.d*1.08); t.position.y=P.h+1.3; t.name="tetto-"+P.id; g.add(t); }
     else if(!P.vetro){ const c=scatola(P.w+0.4,0.4,P.d+0.4,0x2b2f36); c.position.y=P.h+0.2; g.add(c); }
 
-    const ins=insegna(P.titolo,P.sotto,Math.min(P.w*0.85,8),P.colore);
+    if(P.id==="torre"){ const piatta=insegna(P.titolo,P.sotto,8,P.colore), m=piatta.material.clone(), RIn=TORRE_BASE.r0-0.14, larga=8/RIn;
+      m.map=piatta.material.map.clone(); m.map.wrapS=THREE.RepeatWrapping; m.map.repeat.x=-1; m.map.needsUpdate=true; m.side=THREE.BackSide;   // vista da dentro il cilindro: si gira il disegno
+      const curva=new THREE.Mesh(new THREE.CylinderGeometry(RIn,RIn,2,24,1,true,TORRE_ANG*Math.PI/180-larga/2,larga),m); curva.position.y=4.4; S.add(curva); scena._insegnaTorre=curva; }   // JJ, 11/10: «il cartello deve fare la curva come il palazzo senó si taglia»
+    const ins=insegna(P.titolo,P.sotto,Math.min(P.w*0.85,8),P.colore); if(P.id==="torre") ins.visible=false;
     ins.position.set(0, P.id==="torre"?4.4:Math.min(P.h-1.2,4.3), P.d/2+(P.id==="torre"?0.36:0.06)); g.add(ins);
 
     if(P.tenda||P.ristorante){ const c=tela(64,16), x=c.getContext("2d"); for(let i=0;i<8;i++){ x.fillStyle=P.ristorante?(i%2?"#f4ecd6":"#b3262e"):(i%2?"#0D3A5C":"#00B4D8"); x.fillRect(i*8,0,8,16); }
@@ -2115,19 +2118,28 @@ async function costruisci(){
 
   // ── le porte dei quartieri: l'arco d'ingresso a sud, quello dei Mestieri a nord, i cartelli a est e ovest ──
   // un arco sulla via: «z» è dove sta lungo la via; sulle vie nord-sud (asse z) o est-ovest (asse x, la Via delle Attività)
-  const arco=(z,fuori,dentro,verso,asse="z")=>{ const P=(u,w)=>asse==="z"?[u,w]:[w,u], giro=asse==="z"?0:Math.PI/2;
-    for(const s of [-1,1]){ const [x,zz]=P(3.2*s,z); const p=scatola(0.6,6,0.6,0x0D3A5C); p.position.set(x,3,zz); S.add(p); solidi.push({cerchio:true,x,z:zz,r:0.45}); occupa(x,zz,0,0.6,0.6,"arco"); }
-    const [ax,az]=P(0,z+0.02*verso), [bx,bz]=P(0,z-0.02*verso);
-    const a=insegna(fuori[0],fuori[1],5.2); a.position.set(ax,6.4,az); a.rotation.y=(verso>0?0:Math.PI)+giro; S.add(a);
-    const b=insegna(dentro[0],dentro[1],5.2); b.position.set(bx,6.4,bz); b.rotation.y=(verso>0?Math.PI:0)+giro; S.add(b); };
-  arco(58.6,["LA CITTÀ DI JJA-VIS","benvenuto, entra pure"],["I QUARTIERI","fuori dal reattore"],1);
-  arco(-58.6,["VIA DELLE ATTIVITÀ","i lotti, qui avanti"],["VIA DELLE ATTIVITÀ","bottega · athena trasporti · i lotti"],-1,"x");
-  // i cartelli dei quartieri. Quello del Gusto sta in piazza, sul bordo, fra il JJA-VIS Café e il Ristorante (JJ, 4/10)
-  const aG=90*Math.PI/180, xG=Math.sin(aG)*20.6, zG=Math.cos(aG)*20.6+3.4;   // in piazza, accanto alla via est fra Café e Ristorante
-  for(const [x,z,ry,nome,sotto] of [[xG,zG,Math.atan2(-xG,-zG)+Math.PI,QUARTIERI.est,"café · ristorante"],[-27.6,4.6,Math.PI/2,QUARTIERI.ovest,"bottega · athena trasporti · i lotti"]]){
-    const g=new THREE.Group(); g.position.set(x,0,z); g.rotation.y=ry; S.add(g);
-    const p=cilindro(0.08,0.08,3.2,0x8a7a60,6); p.position.y=1.6; g.add(p);
-    const c=insegna(nome.toUpperCase(),sotto,3.4); c.position.set(0,3.2,0.1); g.add(c); solidi.push({cerchio:true,x,z,r:0.3}); occupa(x,z,0,0.3,0.3,"cartello"); }
+  // gli archi delle vie (JJ, 11/10: «i cartelli delle vie si vedono solo da un lato, levali del tutto anche il palo di legno, e
+  // fai dei cartelli ad arco come il viale delle briciole di mimmo, all'inizio delle vie non in fondo, nel cerchio della
+  // piazza»): sulle quattro vie grandi, dove escono dalla piazza. Un mezzo cerchio sopra la via, con le lettere una per una
+  // lungo l'arco, leggibili da tutte e due le parti (dalla piazza e da fuori)
+  const LETTERE=new Map();
+  const lettera=ch=>{ if(LETTERE.has(ch)) return LETTERE.get(ch); const c=tela(128,128), x=c.getContext("2d");
+    x.font="800 104px Archivo, sans-serif"; x.textAlign="center"; x.textBaseline="middle"; x.fillStyle="#CAF0F8"; x.shadowColor="#00B4D8"; x.shadowBlur=16; x.fillText(ch,64,70);
+    const m=new THREE.MeshBasicMaterial({map:tex(c),transparent:true,depthWrite:false}); LETTERE.set(ch,m); return m; };
+  const ARCO_R=3.1, ARCO_Y=5.2;
+  const arcoVia=(gradi,nome)=>{ const a=gradi*Math.PI/180, r=ANELLI[0][1]+0.8, g=new THREE.Group(); g.position.set(Math.sin(a)*r,0,Math.cos(a)*r); g.rotation.y=a; S.add(g);
+    for(const lato of [-1,1]){ const p=cilindro(0.22,0.26,ARCO_Y,0x0D3A5C,10); p.position.set(lato*ARCO_R,ARCO_Y/2,0); g.add(p);
+      const w=mondoDi(g,lato*ARCO_R,0); solidi.push({cerchio:true,x:w.x,z:w.z,r:0.35}); occupa(w.x,w.z,0,0.5,0.5,"arco "+nome); }
+    for(const [rr,col] of [[ARCO_R-0.45,0x0D3A5C],[ARCO_R+0.5,0x00B4D8]]){ const t=new THREE.Mesh(new THREE.TorusGeometry(rr,0.07,8,48,Math.PI), mat(col,col===0x00B4D8)); t.position.y=ARCO_Y; g.add(t); }
+    const ch=[...nome], n=ch.length, passo=Math.min(0.2,Math.PI*0.86/Math.max(1,n-1)), dimensione=Math.min(0.62,ARCO_R*passo*1.25);
+    for(const verso of [0,Math.PI]){ const lato=new THREE.Group(); lato.rotation.y=verso; lato.position.y=ARCO_Y; g.add(lato);   // 0: si legge da fuori; π: dalla piazza
+      ch.forEach((c,k)=>{ if(c===" ") return; const th=Math.PI/2+passo*((n-1)/2-k); const m=new THREE.Mesh(new THREE.PlaneGeometry(dimensione,dimensione),lettera(c));
+        m.position.set(Math.cos(th)*(ARCO_R+0.03),Math.sin(th)*(ARCO_R+0.03),0.05); m.rotation.z=th-Math.PI/2; lato.add(m); }); }
+    return g; };
+  // un punto del gruppo nel mondo (per i solidi)
+  function mondoDi(g,x,z){ const v=new THREE.Vector3(x,0,z); g.updateMatrixWorld(true); return g.localToWorld(v); }
+  arcoVia(0,"VIALE JJA-VIS"); arcoVia(90,"VIA DEL GUSTO"); arcoVia(180,"VIA DELLA TORRE"); arcoVia(270,"VIA DELLE ATTIVITÀ");
+  scena.archi=()=>[["VIALE JJA-VIS",0],["VIA DEL GUSTO",90],["VIA DELLA TORRE",180],["VIA DELLE ATTIVITÀ",270]];   // per il collaudo
 
   // ── gli isolati: i palazzi dei quartieri, tutti con le finestre accese ──
   // Disegnati in blocco (un disegno per altezza), così il telefono regge anche cento palazzi.
