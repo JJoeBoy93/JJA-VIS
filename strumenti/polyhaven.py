@@ -3,6 +3,8 @@ a scaricarle sul telefono»). Gira nelle Actions (.github/workflows/polyhaven.ym
 
   python3 strumenti/polyhaven.py catalogo            -> modelli/polyhaven/catalogo.json e catalogo.md
   python3 strumenti/polyhaven.py scarica id1,id2 1k  -> modelli/polyhaven/<id>.glb (un file solo, texture dentro)
+  python3 strumenti/polyhaven.py catalogo-texture    -> modelli/polyhaven/catalogo-texture.md (le texture: pavimenti, prati, sassi)
+  scarica riconosce da solo una texture: ne prende colore, normali (GL) e ruvidità in jpg -> modelli/polyhaven/tex/<id>_*.jpg
 
 Le regole (verificate il 9/10 su github.com/Poly-Haven/Public-API, ToS.md): gli asset sono CC0, senza attribuzione; l'API
 è gratis anche per uso commerciale ma vuole uno User-Agent col nome del programma. Il credito «Powered by Poly Haven»
@@ -37,11 +39,38 @@ def catalogo():
     open(os.path.join(DOVE, "catalogo.md"), "w", encoding="utf-8").write("\n".join(righe))
     print(f"catalogo: {len(voci)} modelli, {len(per)} categorie")
 
+def catalogo_texture():
+    dati = json.loads(prendi(f"{API}/assets?type=textures"))
+    per = {}
+    for i, a in dati.items():
+        for c in a.get("categories") or ["(senza categoria)"]: per.setdefault(c, []).append(i)
+    righe = [f"# Catalogo delle texture di Poly Haven — {len(dati)} texture", "", "Tutte CC0. Per scaricarne una: Action → scarica → id.", ""]
+    for c in sorted(per):
+        righe.append(f"## {c} ({len(per[c])})"); righe.append(", ".join(sorted(per[c]))); righe.append("")
+    os.makedirs(DOVE, exist_ok=True)
+    open(os.path.join(DOVE, "catalogo-texture.md"), "w", encoding="utf-8").write("\n".join(righe))
+    print(f"catalogo texture: {len(dati)}, {len(per)} categorie")
+
+def texture(i, f, ris):
+    # le mappe che servono alla città: colore, normali (convenzione GL, quella di three.js) e ruvidità; in jpg, già piccole
+    tex = os.path.join(DOVE, "tex"); os.makedirs(tex, exist_ok=True); fatte = []
+    for chiave, nome in (("Diffuse", "col"), ("nor_gl", "nor"), ("Rough", "rough")):
+        m = f.get(chiave, {})
+        if not m: continue
+        r = ris if ris in m else sorted(m, key=lambda k: int(k.rstrip("k") or 0))[0]
+        voce = m[r].get("jpg") or m[r].get("png")
+        b = prendi(voce["url"])
+        if voce.get("md5") and hashlib.md5(b).hexdigest() != voce["md5"]: raise RuntimeError(f"md5 diverso per {chiave}")
+        est = os.path.splitext(voce["url"])[1]; p = os.path.join(tex, f"{i}_{nome}{est}"); open(p, "wb").write(b); fatte.append(nome)
+    if "col" not in fatte: raise RuntimeError("niente mappa del colore")
+    return f"{i} (texture {r}: {', '.join(fatte)})"
+
 def scarica(ids, ris):
     os.makedirs(DOVE, exist_ok=True); fatti, mancati = [], []
     for i in [x.strip() for x in ids.split(",") if x.strip()]:
         try:
             f = json.loads(prendi(f"{API}/files/{i}"))
+            if "gltf" not in f and "Diffuse" in f: fatti.append(texture(i, f, ris)); continue
             g = f.get("gltf", {})
             r = ris if ris in g else sorted(g, key=lambda k: int(k.rstrip("k") or 0))[0]
             voce = g[r]["gltf"]; tmp = os.path.join("/tmp/polyhaven", i); os.makedirs(tmp, exist_ok=True)
@@ -60,5 +89,6 @@ def scarica(ids, ris):
 if __name__ == "__main__":
     cosa = sys.argv[1] if len(sys.argv) > 1 else ""
     if cosa == "catalogo": catalogo()
+    elif cosa == "catalogo-texture": catalogo_texture()
     elif cosa == "scarica": scarica(sys.argv[2], sys.argv[3] if len(sys.argv) > 3 else "1k")
     else: sys.exit(__doc__)
