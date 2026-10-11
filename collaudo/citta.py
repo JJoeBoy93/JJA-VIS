@@ -199,6 +199,8 @@ async def main():
         prova("i lotti sono tutto intorno sul 2° anello, in ogni spicchio (dalla piazza si vedono)", spicchi2 == set(range(8)), sorted(spicchi2))
         torre_ = next(a_ for a_ in pi["anello2"] if a_["id"] == "torre")
         prova("la Torre in fondo alla via nord", abs(torre_["ang"] - 180) < 0.1 and torre_["r"] > 40, torre_)
+        vicini_t = [a_ for a_ in pi["anello2"] if a_["id"] == "lotto" and abs(a_["ang"] - 180) < 20]
+        prova("accanto alla Torre niente lotti: la sua base è larga come i due lotti e la Torre di prima (JJ, 10/10)", not vicini_t and pi["torreBase"] >= 28, [vicini_t, pi["torreBase"]])
         lv = await p.evaluate("Object.entries(window.CITTA.porte).filter(([k,P])=>P.id==='lotto').map(([k,P])=>({x:+P.cx.toFixed(1),z:+P.cz.toFixed(1),r:+Math.hypot(P.cx,P.cz).toFixed(1)}))")
         fuori = [l for l in lv if l["r"] > 50]
         prova("i lotti fuori dal reattore stanno sulla Via delle Attività, a ovest, ai due lati (JJ, 10/10)", len(fuori) >= 4 and all(l["x"] < -60 and abs(l["z"]) < 10 for l in fuori)
@@ -325,8 +327,8 @@ async def main():
                 if await p.evaluate("window.CITTA.saltiDentro()") != s0: senza_salti.append((n, "salti", await p.evaluate("window.CITTA.saltiDentro()") - s0))
                 await p.click("#chiudi-carta"); await p.wait_for_timeout(300); f = await foglio(p)   # di nuovo la scheda intera
             if n == "La Torre":
-                prova("la Reception è dentro la Torre e saluta col nome; al piano terra solo il globo, l'ascensore e le scale", "Ettore" in f["testo"]
-                      and set(await p.evaluate("window.CITTA.cose()")) == {"globo", "ascensore", "scale"}, [f["testo"][:80], await p.evaluate("window.CITTA.cose()")])
+                prova("la Reception è dentro la Torre e saluta col nome; al piano terra il globo, la hall, l'ascensore e le scale (JJ, 10/10)", "Ettore" in f["testo"]
+                      and set(await p.evaluate("window.CITTA.cose()")) == {"globo", "hall", "ascensore", "scale"}, [f["testo"][:80], await p.evaluate("window.CITTA.cose()")])
                 await p.click("#stanza button:has-text('Parla con Ettore')"); await p.wait_for_timeout(400)
                 prova("«Parla con Ettore» apre la chat in città, non la pagina", await p.is_visible("#nova") and p.url.endswith("citta.html")
                       and await p.inner_text("#nova-titolo") == "Ettore", p.url)
@@ -525,6 +527,8 @@ async def main():
 
         # 3d1c. la Torre a dieci piani (JJ, 4/10): ascensore, scale, la Borsa al 2°, l'attico privato, la terrazza
         await vai(p, "La Torre")
+        ms_ = await p.evaluate("window.CITTA.misureStanza()"); cs_ = await p.evaluate("window.CITTA.cose()")
+        prova("il piano terra della Torre è largo (24×14) e ci sono reception col globo, hall, ascensore e scale (JJ, 10/10)", ms_ == [24, 14] and {"globo", "hall", "ascensore", "scale"} <= set(cs_), [ms_, cs_])
         prova("per terra, nel cerchio azzurro della Torre, c'è l'icona di JJA-VIS", await p.evaluate("window.CITTA.iconaPerTerra()"))
         await usa(p, "ascensore", "L'ascensore")
         prova("l'ascensore ha i dieci piani, e l'attico non si può scegliere", await p.evaluate("document.querySelectorAll('#piani .scelta').length") == 10
