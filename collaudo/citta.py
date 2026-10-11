@@ -71,7 +71,7 @@ def nessun_altro(ws):
         elif json.loads(m).get("t") == "ciao": ws.send(json.dumps({"t": "tu", "id": "io1", "max": 40, "altri": []}))
     ws.on_message(msg)
 
-async def nuova(b, profilo=None, citta=None, webgl=True):
+async def nuova(b, profilo=None, citta=None, webgl=True, skin_conto=None):
     ctx = await b.new_context(viewport={"width": 390, "height": 844}, device_scale_factor=2, is_mobile=True, has_touch=True)
     await ctx.add_init_script("try{ sessionStorage.setItem('jjavis-conto-dopo','1'); }catch(_){}")   # 6/10: il pannello dell'account che si apre all'ingresso qui non serve (lo prova conto.py)
     await ctx.route("**/*", instrada)
@@ -80,6 +80,14 @@ async def nuova(b, profilo=None, citta=None, webgl=True):
     if profilo is not None: script += f"localStorage.setItem('jjavis-io', {json.dumps(json.dumps(profilo))});"
     if citta is not None: script += f"localStorage.setItem('jjavis-citta', {json.dumps(json.dumps(citta))});"
     if not webgl: script += "HTMLCanvasElement.prototype.getContext=function(){return null};"
+    # un account (finto) che ha queste skin: le skin a pagamento sono dell'account, non del telefono (JJ, 11/10)
+    if skin_conto is not None:
+        script += "localStorage.setItem('jjavis-conto','" + "a" * 64 + "');"
+        conto_finto = {"conto": {"gettoni": 100, "skin": skin_conto, "admin": False, "portato": True, "soprannome": None, "nome": "Prova", "mail": "prova@prova.it"}}
+        async def conto_route(route):
+            if route.request.method == "OPTIONS": return await route.fulfill(status=204, headers={"Access-Control-Allow-Origin": "https://jjoeboy93.github.io", "Access-Control-Allow-Headers": "Content-Type, Authorization"})
+            return await route.fulfill(body=json.dumps(conto_finto), content_type="application/json", headers={"Access-Control-Allow-Origin": "https://jjoeboy93.github.io"})
+        await ctx.route("https://jjavis-citta.finta.workers.dev/conto**", conto_route)
     if script: await ctx.add_init_script(f"if(location.href.indexOf('citta.html')>=0 && !sessionStorage.getItem('gia')){{sessionStorage.setItem('gia','1');{script}}}" if webgl else script)
     p = await ctx.new_page()
     errori = []
@@ -219,6 +227,10 @@ async def main():
         po = await p.evaluate("window.CITTA.portoni()")
         senza = [x for x in po["palazzi"] if x not in po["con"] and x != "athena"]
         prova("ogni palazzo ha la porta d'ingresso vera (Torre, Bottega, Radio, Sartoria e Palestra comprese)", not senza and po["torre"] and 40.5 < po["torre"] < 41.5, po)
+        # gli dèi (JJ, 11/10): quindici skin nel negozio a 2000 gettoni, e ogni statua ha la skin del suo dio
+        de = await p.evaluate("window.CITTA.dei()")
+        prova("nel negozio i quindici dèi dell'Olimpo, a 2000 gettoni l'uno, e le statue hanno la skin del loro dio",
+              len(de["negozio"]) == 15 and all(x[1] == 2000 and x[2] in ("uomo", "donna") for x in de["negozio"]) and len(de["statue"]) == 4, de)
         # la natura (JJ, 11/10): sanpietrini in piazza, prato, fondo di ciottoli nel laghetto, le querce dai demo di Blender
         await p.wait_for_function("window.CITTA.natura().querce>0 && window.CITTA.natura().ciottoli>0 && window.CITTA.natura().sanpietrini", timeout=60000)
         na = await p.evaluate("window.CITTA.natura()")
@@ -257,7 +269,7 @@ async def main():
         # indossa). Toccando una scheda la skin ti va addosso in prova, gratis: «le skin se non hai gettoni non le puoi neanche vedere... non va bene»
         await usa(p, "manichini", "Il negozio")
         schede = await p.evaluate("[...document.querySelectorAll('#negozio .scheda-skin')].map(b=>[b.dataset.skin,b.querySelector('.prezzo').textContent])")
-        prova("il negozio è una griglia con tutte le skin, ognuna col suo prezzo (o «è tua»)", len(schede) == 4 and dict(schede).get("cavaliere") == "2000 🪙" and dict(schede).get("base") == "è tua", schede)
+        prova("il negozio è una griglia con tutte le skin, ognuna col suo prezzo (o «è tua»): le quattro e i quindici dèi", len(schede) == 19 and dict(schede).get("dio-athena") == "2000 🪙" and dict(schede).get("cavaliere") == "2000 🪙" and dict(schede).get("base") == "è tua", schede)
         prova("al negozio non si indossa: niente «Indossa»", not await p.evaluate("[...document.querySelectorAll('#stanza-carta button')].some(b=>/Indossa/.test(b.textContent))"))
         await p.click("#negozio .scheda-skin[data-skin='cavaliere']")
         prova("toccando una scheda la skin ti va addosso in prova, e i gettoni restano quelli",
@@ -269,26 +281,40 @@ async def main():
         prova("chiudendo la carta la prova finisce da sola", await p.evaluate("window.CONTO_PROVA.stato().provaSkin===null") and (await p.evaluate("window.CITTA.skinTua()"))["skin"] == "base")
         await usa(p, "manichini", "Il negozio")
         await p.click("#negozio .scheda-skin[data-skin='avventuriera']"); await p.click("#vetrina button:has-text('Compra')"); await p.wait_for_timeout(400)
-        prova("una skin da 1500 con 100 gettoni non si compra, e dice dove vincerli", "Sala giochi" in await p.inner_text("#esito-skin")
+        prova("senza account una skin da 1500 non si compra: dice di entrare nell'account (11/10)", "entra con Google" in await p.inner_text("#esito-skin")
               and not await p.evaluate("window.CONTO_PROVA.stato().skinMie.includes('avventuriera')"))
+        # 11/10, JJ: «chiudi assolutamente il buco dell'acquisto gratis». Senza account non si compra, anche con i gettoni del
+        # telefono (si cambiano a mano): si compra solo coi gettoni dell'account, e il prezzo lo dice il server (lo prova conto.py)
         await p.evaluate("window.CITTA.gettoni(1600)")
         await usa(p, "manichini", "Il negozio")
-        await p.click("#negozio .scheda-skin[data-skin='avventuriera']"); await p.click("#vetrina button:has-text('Compra')")
-        await p.wait_for_function("window.CITTA.skinTua().skin==='avventuriera' && window.CITTA.skinTua().ossi===true && window.CONTO_PROVA.stato().provaSkin===null", timeout=60000)
+        await p.click("#negozio .scheda-skin[data-skin='avventuriera']"); await p.click("#vetrina button:has-text('Compra')"); await p.wait_for_timeout(600)
+        esito_ = await p.inner_text("#esito-skin")
+        await p.click("#chiudi-carta"); await p.wait_for_timeout(600)   # chiudendo, la skin provata al negozio si toglie
         st_ = await p.evaluate("window.CITTA.skinTua()")
-        prova("con 1600 gettoni l'Avventuriera (1500) si compra, te la tieni addosso, e restano 100 gettoni", st_["gettoni"] == 100 and "avventuriera" in st_["mie"], st_)
+        prova("senza account, anche con 1600 gettoni sul telefono, l'Avventuriera non si compra: dice di entrare, e i gettoni restano",
+              "entra con Google" in esito_ and st_["gettoni"] == 1600 and st_["skin"] != "avventuriera" and "avventuriera" not in st_["mie"], st_)
+        await p.evaluate("(()=>{ const c=JSON.parse(localStorage.getItem('jjavis-citta')); c.skin='dio-athena'; c.skinMie=[...c.skinMie,'dio-athena']; localStorage.setItem('jjavis-citta',JSON.stringify(c)); })()")
+        await p.reload(); await p.wait_for_function("window.CITTA && window.CITTA.pronta && window.CITTA.skinTua().ossi===true", timeout=90000)
+        st_ = await p.evaluate("window.CITTA.skinTua()")   # (con l'avatar arrivato: prima «skin» dice «classica» per tutti)
+        prova("e scriversi a mano una skin nel telefono non serve: senza account si torna alla Base", st_["skin"] == "base" and "athena" not in (st_["file"] or ""), st_)
+        await vai(p, "Sartoria"); await usa(p, "manichini", "Il negozio")   # dopo il ricaricamento si torna al negozio, per guardare i prezzi
         prova("le Realista senza vestiti non sono più in negozio (JJ, 9/10)", not any(k.startswith("realista") for k, _ in schede), schede)
         prezzi = await p.evaluate("[...document.querySelectorAll('#negozio .scheda-skin .prezzo')].map(b=>b.textContent)")
-        prova("i prezzi delle skin da comprare sono fra 800 e 2000 gettoni", all(800 <= int(x.split()[0]) <= 2000 for x in prezzi if "🪙" in x) and len([x for x in prezzi if "🪙" in x]) == 1, prezzi)
+        prova("i prezzi delle skin da comprare sono fra 800 e 2000 gettoni", all(800 <= int(x.split()[0]) <= 2000 for x in prezzi if "🪙" in x) and len([x for x in prezzi if "🪙" in x]) == 17, prezzi)
         # tutte le skin si caricano e trovano i loro ossi (anche quelle coi punti nei nomi, che three toglie)
         tutte = await p.evaluate("""(async()=>{ const r={}; for(const id of ['base','classica','avventuriera','cavaliere']){ r[id]=await window.CITTA.provaSkin(id); } return r; })()""")
         prova("le quattro skin di Blender (le persone Base e Classica, le KayKit) si caricano, coi loro ossi, e il passo muove davvero le gambe avanti e indietro", all(v["ossi"] and v["passo"] > 0.05 and v["avanti"] for v in tutte.values()), tutte)
-        alte = await p.evaluate("window.CITTA.altezze()")
-        prova("tutte le skin sono alte più o meno uguali, 2,1-2,3 m (JJ, 9/10: «non devo vedere un puffo»)", all(v is not None and 2.1 <= v <= 2.3 for v in alte.values()), alte)
+        # gli dèi (11/10) si caricano solo quando servono: qui si aspetta che ci siano tutti, poi si misura (senza elmi e lance).
+        # Le dee hanno il corpo da donna, come le persone donna: un filo più basse (2,0-2,2), gli altri 2,1-2,3
+        try: await p.wait_for_function("Object.values(window.CITTA.altezze()).every(v=>v!==null)", timeout=180000)
+        except Exception: pass
+        alte = await p.evaluate("window.CITTA.altezze()"); donne = {x[0] for x in (await p.evaluate("window.CITTA.dei()"))["negozio"] if x[2] == "donna"}
+        prova("tutte le skin sono alte più o meno uguali: 2,1-2,3 m, le dee 2,0-2,2 (JJ, 9/10: «non devo vedere un puffo»)",
+              all(v is not None and ((2.0 <= v <= 2.2) if k in donne else (2.1 <= v <= 2.3)) for k, v in alte.items()), alte)
         # l'armadietto (JJ, 6/10: lo specchio diventa l'armadietto): ci sono solo le tue, e lì si indossano
         await usa(p, "specchio", "L'armadietto")
         mie = await p.evaluate("[...document.querySelectorAll('#armadietto .scheda-skin')].map(b=>b.dataset.skin)")
-        prova("all'armadietto ci sono solo le skin che hai", sorted(mie) == ["avventuriera", "base", "classica"], mie)
+        prova("all'armadietto ci sono solo le skin che hai (senza account: le gratis)", sorted(mie) == ["base", "classica"], mie)
         await p.click("#armadietto .scheda-skin[data-skin='classica']"); await p.wait_for_timeout(1200)
         prova("la Classica (la persona vestita normale) si rimette dall'armadietto", (await p.evaluate("window.CITTA.skinTua()"))["skin"] == "classica")
         await p.evaluate("window.CITTA.gettoni(100)")
@@ -758,7 +784,7 @@ async def main():
         # 4c. il sedersi delle skin (JJ, 6/10): le skin di Blender piegano il ginocchio, e ognuna ha il bacino sul sedile
         # (0,55 m) qualunque sia la lunghezza delle sue gambe — prima le KayKit si sedevano per terra attraverso la panchina
         for sk in ("base", "classica", "avventuriera", "cavaliere"):
-            ctx, p, err = await nuova(b, citta={"skin": sk, "skinMie": ["base", "classica", sk], "corpo": "uomo", "giroVisto": True})
+            ctx, p, err = await nuova(b, citta={"skin": sk, "skinMie": ["base", "classica", sk], "corpo": "uomo", "giroVisto": True}, skin_conto=["base", "classica", sk])
             await p.goto(BASE + "citta.html", timeout=60000)
             await p.wait_for_function(f"window.CITTA && window.CITTA.pronta && window.CITTA.skinTua().skin==={json.dumps(sk)} && window.CITTA.skinTua().ossi===true", timeout=60000)
             await p.evaluate("window.CITTA.siedi(0)"); await p.wait_for_timeout(1200)

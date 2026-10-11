@@ -858,13 +858,13 @@ let skinVista=null;
 function negozio(){
   const out=[], vista=SKIN.find(k=>k.id===skinVista)||null;
   const gr=el("div",{class:"negozio",role:"group","aria-label":"Le skin del negozio",id:"negozio"});
-  SKIN.forEach(k=>{ const mia=citta.skinMie.includes(k.id);
+  SKIN.forEach(k=>{ const mia=haSkin(k.id);
     const b=el("button",{class:"scheda-skin",type:"button","aria-pressed":String(skinVista===k.id)}); b.dataset.skin=k.id;
     b.append(el("span",{class:"nome",testo:k.nome}), el("span",{class:"prezzo",testo:mia?"è tua":`${k.prezzo} 🪙`}));
     b.addEventListener("click",()=>{ skinVista=k.id; esitoSkin=""; provaSkin=k.id===citta.skin?null:k.id; rivesti(); ridisegnaCarta(); });
     gr.appendChild(b); });
   out.push(el("div",{class:"sezione",testo:`Le skin · hai ${citta.gettoni} gettoni`}), gr);
-  if(vista){ const mia=citta.skinMie.includes(vista.id), box=el("div",{class:"vetrina",id:"vetrina"});
+  if(vista){ const mia=haSkin(vista.id), box=el("div",{class:"vetrina",id:"vetrina"});
     box.append(el("h3",{testo:vista.nome}), el("p",{class:"nota",testo:vista.nota||"la skin di partenza, fatta in Blender"}));
     if(mia) box.append(el("p",{testo:vista.id===citta.skin?"È tua, e ce l'hai addosso.":"È tua: la indossi all'armadietto."}));
     else box.append(AZIONI(bottone(`Compra · ${vista.prezzo} 🪙`,()=>compraSkin(vista))));
@@ -875,14 +875,18 @@ function negozio(){
 }
 function compraSkin(k){
   const fatto=()=>{ provaSkin=null; citta.skin=k.id; esitoSkin=`${k.nome}: è tua, e ce l'hai addosso.`; salva(); rivesti(); ridisegnaCarta(); };
+  // se i gettoni dell'account non bastano lo si dice subito (il server direbbe lo stesso, con un errore 409 nel registro)
+  if(conto&&!conto.admin&&conto.gettoni<k.prezzo){ esitoSkin=`Ti servono ${k.prezzo} gettoni, ne hai ${conto.gettoni}: si vincono in Sala giochi.`; ridisegnaCarta(); return; }
   if(conto){ esitoSkin="Un attimo…"; ridisegnaCarta();
-    chiamaConto("/conto/skin",{id:k.id,prezzo:k.prezzo}).then(r=>{ if(r.conto) applicaConto(r.conto);
+    // il prezzo lo sa il server (listino.js di JJA-VIS-Porta): qui non si manda
+    chiamaConto("/conto/skin",{id:k.id}).then(r=>{ if(r.conto) applicaConto(r.conto);
       if(r.no==="pochi") esitoSkin=`Ti servono ${k.prezzo} gettoni, ne hai ${citta.gettoni}: si vincono in Sala giochi.`;
       else if(r.conto&&r.conto.skin.includes(k.id)) return fatto();
+      else if(r.no==="skin") esitoSkin="Questa skin il server non la vende ancora: riprova più tardi.";
       else esitoSkin="Non ci sono riuscito: il server non risponde. Riprova fra poco.";
       ridisegnaCarta(); }); return; }
-  if(!spendi(k.prezzo)){ esitoSkin=`Ti servono ${k.prezzo} gettoni, ne hai ${citta.gettoni}: si vincono in Sala giochi.`; ridisegnaCarta(); return; }
-  citta.skinMie.push(k.id); fatto();
+  // senza account niente acquisti: i gettoni del telefono si cambiano a mano, quelli dell'account no (11/10)
+  esitoSkin="Le skin si comprano con i gettoni del tuo account: entra con Google (o con la mail) dal tasto sotto i gettoni. Quelli che hai qui li porti dentro."; ridisegnaCarta();
 }
 // La Sartoria, allo specchio: il mestiere serve a me, il vestito è tuo.
 let mestiereDaCambiare=false, esitoSkin="";
@@ -907,7 +911,7 @@ function specchio(){
     return box; };
   // l'armadietto (JJ, 6/10: lo specchio diventa l'armadietto): scorri le skin che hai e le indossi; le altre sono al negozio
   const arm=el("div",{class:"negozio",role:"group","aria-label":"Le tue skin",id:"armadietto"});
-  SKIN.filter(k=>citta.skinMie.includes(k.id)).forEach(k=>{ const su=citta.skin===k.id;
+  SKIN.filter(k=>haSkin(k.id)).forEach(k=>{ const su=citta.skin===k.id;
     const b=el("button",{class:"scheda-skin",type:"button","aria-pressed":String(su)}); b.dataset.skin=k.id;
     b.append(el("span",{class:"nome",testo:k.nome}), el("span",{class:"prezzo",testo:su?"addosso":"indossa"}));
     b.addEventListener("click",()=>{ provaSkin=null; citta.skin=k.id; rifai(); }); arm.appendChild(b); });
@@ -1020,11 +1024,12 @@ function applicaConto(c){ const giaDentro=!!conto; conto=c||null; if(!conto){ ag
   citta.gettoni=conto.gettoni;
   citta.skinMie=conto.admin?SKIN.map(k=>k.id):[...new Set([...(conto.skin||[]),...(SKIN.filter(k=>!k.prezzo).map(k=>k.id))])];   // all'amministratore tutte
   if(conto.soprannome&&!citta.soprannome) citta.soprannome=conto.soprannome;
+  if(!skinGiusta()) rivesti();
   salva(); aggiornaGettoni(); aggiornaTastoConto(); if(contoAperto) disegnaConto();
   if(!giaDentro) window.dispatchEvent(new Event("jjavis-conto")); }
 function esciDalConto(chiama=true,esito=""){ const t=contoToken(); if(chiama&&t) chiamaConto("/conto/esci",{},"POST",t);
   try{ localStorage.removeItem(CONTO_CHIAVE); }catch(_){}
-  conto=null; contoEsito=esito; aggiornaTastoConto(); if(contoAperto) disegnaConto(); window.dispatchEvent(new Event("jjavis-conto")); }
+  conto=null; contoEsito=esito; if(!skinGiusta()){ salva(); rivesti(); } aggiornaTastoConto(); if(contoAperto) disegnaConto(); window.dispatchEvent(new Event("jjavis-conto")); }
 function aggiornaTastoConto(){ const b=$("conto-tasto"); if(!b) return;
   b.dataset.stato=conto?(conto.admin?"admin":"dentro"):"fuori";
   b.textContent=!conto?"🔑 Accedi con Google":`${conto.admin?"👑":"👤"} ${conto.soprannome||conto.nome||"il tuo account"}${conto.admin?" · amministratore":""}`; }
@@ -1092,7 +1097,7 @@ $("conto-tasto").addEventListener("click",()=>contoAperto?chiudiConto():apriCont
 $("chiudi-conto").addEventListener("click",chiudiConto);
 aggiornaTastoConto();
 if(contoToken()) chiamaConto("/conto",null,"GET").then(r=>{ if(r.conto) applicaConto(r.conto); else if(r.no==="rete"||r.no==="server") contoEsito="Il server non risponde: i gettoni che vedi sono quelli del telefono."; });
-window.CONTO_PROVA={ stato:()=>({conto, provaSkin, gettoni:citta.gettoni, tasto:$("conto-tasto").textContent, skinMie:citta.skinMie.slice()}), spendi:n=>spendi(n), guadagna:n=>guadagna(n) };   // per il collaudo
+window.CONTO_PROVA={ stato:()=>({conto, provaSkin, gettoni:citta.gettoni, tasto:$("conto-tasto").textContent, skinMie:citta.skinMie.slice()}), spendi:n=>spendi(n), guadagna:n=>guadagna(n), compra:id=>compraSkin(SKIN.find(k=>k.id===id)), esitoSkin:()=>esitoSkin, listino:()=>Object.fromEntries(SKIN.map(k=>[k.id,k.prezzo])) };   // per il collaudo
 
 // ── Acchiappa i gettoni (Sala giochi, cabinato 1): uno strato a tutto schermo, 25 secondi.
 // JJ, 4/10: «rendi un po' difficile il prendi monete: qualche bomba che ti fa perdere le monete guadagnate se prendi quella al
@@ -1685,9 +1690,24 @@ const SKIN=[
   {id:"classica",nome:"Classica",prezzo:0,file:c=>`modelli/skin/persona-classica-${c.corpo==="donna"?"donna":"uomo"}.glb`,ossa:[["thigh_l","thigh_r"],["upperarm_l","upperarm_r"],["calf_l","calf_r"]],scala:1.17,colori:true,anim:true,nota:"la stessa persona, con maglietta, pantaloni e scarpe semplici"},
   {id:"avventuriera",nome:"L'Avventuriera",prezzo:1500,file:()=>"modelli/skin/avventuriera.glb",ossa:[["upperleg.l","upperleg.r"],["upperarm.l","upperarm.r"],["lowerleg.l","lowerleg.r"]],scala:1.16,nota:"stile gioco (KayKit)"},
   {id:"cavaliere",nome:"Il Cavaliere",prezzo:2000,file:()=>"modelli/skin/cavaliere.glb",ossa:[["upperleg.l","upperleg.r"],["upperarm.l","upperarm.r"],["lowerleg.l","lowerleg.r"]],scala:1.16,nota:"stile gioco (KayKit)"}];
+// gli dèi dell'Olimpo (JJ, 11/10: «gli agenti devono avere la loro skin»; poi «le skin degli dei le metterei nel negozio, a
+// 2000 gettoni, come le skin super fighe di Fortnite»). Persone MakeHuman con la veste e gli attributi del dio, fatte da
+// modelli/genera_dio.py. Il corpo è quello del dio, non quello scelto: Athena è Athena. I colori non si cambiano allo specchio
+const DEI_SKIN=[["zeus","Zeus","uomo","il fulmine e l'alloro d'oro"],["hera","Hera","donna","lo scettro e il diadema"],["athena","Athena","donna","l'elmo, la lancia e lo scudo"],
+  ["ares","Ares","uomo","l'elmo crestato, la lancia e lo scudo di bronzo"],["poseidone","Poseidone","uomo","il tridente e la corona"],["apollo","Apollo","uomo","la lira e l'alloro"],
+  ["artemide","Artemide","donna","l'arco e la luna d'argento"],["efesto","Efesto","uomo","il martello della fucina"],["afrodite","Afrodite","donna","lo specchio d'argento e il diadema"],
+  ["hestia","Hestia","donna","la fiamma del focolare"],["demetra","Demetra","donna","il covone e la corona di spighe"],["hermes","Hermes","uomo","il cappello alato e il caduceo"],
+  ["ade","Ade","uomo","il bidente e la corona scura"],["persefone","Persefone","donna","la pianta carnivora e i fiori di melograno"],["dioniso","Dioniso","uomo","la coppa e la corona d'edera"]];
+for(const [id,nome,corpo,cosa] of DEI_SKIN) SKIN.push({id:"dio-"+id,nome,prezzo:2000,dio:id,corpo,file:()=>`modelli/dei/${id}.glb`,ossa:[["thigh_l","thigh_r"],["upperarm_l","upperarm_r"],["calf_l","calf_r"]],scala:1.17,anim:true,nota:`un dio dell'Olimpo: ${cosa}`});
 if(citta.skin==="realista-uomo"||citta.skin==="realista-donna"){ citta.skin="base"; }   // JJ, 9/10: le Realista senza vestiti non hanno senso nel negozio: tolte
 if(citta.skin==="corriere"){ citta.skin="base"; citta.vestito="corriere"; }   // la prova del 9/10 è diventata la Base vestita da corriere
 if(!SKIN.some(k=>k.id===citta.skin)) citta.skin="base";
+// le skin a pagamento sono dell'account, non del telefono (JJ, 11/10: «chiudi assolutamente il buco dell'acquisto gratis, non ci
+// devono essere modi se non usando gettoni»). Il prezzo e chi ce l'ha li sa il server; qui si mostra solo quello che dice lui.
+// Senza account si indossano le gratis; le skin che il telefono aveva comprato prima diventano gettoni al primo accesso
+function haSkin(id){ const k=SKIN.find(x=>x.id===id); if(!k) return false; if(!k.prezzo) return true; return !!conto&&(conto.admin||(conto.skin||[]).includes(id)); }
+function skinGiusta(){ if(!haSkin(citta.skin)&&(!contoToken()||conto)){ citta.skin="base"; return false; } return true; }   // con un token e l'account non ancora arrivato si aspetta
+skinGiusta();
 if(!Array.isArray(citta.skinMie)) citta.skinMie=["base","classica"];
 // le skin gratis sono di tutti, anche di chi aveva già un elenco salvato prima che arrivassero (il Corriere, 9/10)
 SKIN.filter(k=>!k.prezzo).forEach(k=>{ if(!citta.skinMie.includes(k.id)) citta.skinMie.push(k.id); });
@@ -1744,7 +1764,7 @@ function avatarDaSkin(st){
       if(n.startsWith("maglia")||n.startsWith("abito")){ m.polygonOffset=true; m.polygonOffsetFactor=-2; m.polygonOffsetUnits=-4; }   // JJ, 9/10: «ancora un po' il buco dietro la maglietta»
       if(n.startsWith("maglia")) m.color.setHex(maglia); else if(n.startsWith("pantaloni")) m.color.setHex(pant);
       else if(n.startsWith("pelle")) tinta(m,PELLI[st.pelle??1]); else if(n.startsWith("capelli")) m.color.setHex(COLORI_CAPELLI[st.capelliColore??0]??COLORI_CAPELLI[0]); }); }
-  g.userData={anim:!!k.anim,radice:copia,ossiN:ossi,riposi:Object.fromEntries(Object.entries(ossi).map(([n,b])=>[n,b.quaternion.clone()])),gambe,braccia,tessuti:[],skin:k.id,corpo:st.corpo==="donna"?"donna":"uomo",capelli:{tipo:"modello"},fase:Math.random()*6,ginocchia,anca,ossa:[...gambe,...braccia,...ginocchia]};
+  g.userData={anim:!!k.anim,radice:copia,ossiN:ossi,riposi:Object.fromEntries(Object.entries(ossi).map(([n,b])=>[n,b.quaternion.clone()])),gambe,braccia,tessuti:[],skin:k.id,corpo:(k.corpo||st.corpo)==="donna"?"donna":"uomo",capelli:{tipo:"modello"},fase:Math.random()*6,ginocchia,anca,ossa:[...gambe,...braccia,...ginocchia]};
   return g;
 }
 const qX=new THREE.Quaternion(), asseX=new THREE.Vector3(1,0,0);
@@ -2291,9 +2311,10 @@ const COLLINA={r:4.2,h:1.0}, ACQUA=[4.2,6.13], MURETTO={r:6.25,alto:0.55}, PANCH
   for(const T of STATUE){ const g=new THREE.Group(); g.position.set(T.x,0,T.z); g.rotation.y=Math.atan2(-T.x,-T.z); S.add(g);
     const base=scatola(2.4,1.2,2.4,0x5f6670); base.position.y=0.6; g.add(base);
     const tar=insegna(T.nome.toUpperCase(),T.fa,2.3); tar.position.set(0,0.62,1.22); g.add(tar);
-    const fig=persona({skin:"classica",corpo:T.corpo,vestito:"altro",statua:true}); fig.position.y=1.2; g.add(fig);
+    const fig=persona({skin:"dio-"+T.nome.toLowerCase(),corpo:T.corpo,vestito:"altro",statua:true}); fig.position.y=1.2; g.add(fig);   // il suo dio, di pietra (JJ, 11/10)
     solidi.push({cerchio:true,x:T.x,z:T.z,r:1.5}); occupa(T.x,T.z,0,2.4,2.4,"statua "+T.nome); }
   scena.statue=()=>STATUE.map(T=>T.nome);
+  scena.dei=()=>({negozio:SKIN.filter(k=>k.dio).map(k=>[k.id,k.prezzo,k.corpo]), statue:STATUE.map(T=>"dio-"+T.nome.toLowerCase()).filter(id=>SKIN.some(k=>k.id===id&&k.file))});
   scena.portoni=()=>({con:[...PORTONI], palazzi:PALAZZI.filter(P=>P.id!=="lotto").map(P=>P.id), torre:scena._portaTorre?+Math.hypot(scena._portaTorre.position.x,scena._portaTorre.position.z).toFixed(2):null});
   scena.natura=()=>({sanpietrini:!!(scena._piazza&&scena._piazza.material.map&&scena._piazza.material.map.image), prato:!!scena._prato.material.map, fondo:!!scena._fondo, ciottoli:scena._ciottoli|0, querce:scena._querce|0});
   scena.manichini=()=>{ const P=PALAZZI.find(q=>q.id==="sartoria"); return S.children.filter(o=>o.userData&&o.userData.manichino).map(o=>+Math.hypot(o.position.x-P.x,o.position.z-P.z).toFixed(1)); };   // per il collaudo
@@ -2319,7 +2340,7 @@ const COLLINA={r:4.2,h:1.0}, ACQUA=[4.2,6.13], MURETTO={r:6.25,alto:0.55}, PANCH
     // inerente per non lasciare buchi»), lontano dalle diagonali e dalle statue, e il bosco fuori città
     const alberi=[];
     for(let x=-58.5;x<=58.5;x+=4.5) for(let z=-58.5;z<=58.5;z+=4.5){ const r=Math.hypot(x,z); if(r<57.5) continue;
-      if(vicinoVia(x,z,2)) continue; if(STATUE.some(T=>Math.hypot(x-T.x,z-T.z)<4.5)) continue; alberi.push([x,z,1]); }
+      if(vicinoVia(x,z,2)) continue; if(STATUE.some(T=>Math.hypot(x-T.x,z-T.z)<7.5)) continue; alberi.push([x,z,1]); }   // 7,5 m: le chiome delle querce (11/10) coprivano le statue
     for(let i=0;i<90;i++){ const a=i/90*Math.PI*2+0.05, r=104+(i*13%14); const m=Math.max(Math.abs(Math.sin(a)),Math.abs(Math.cos(a))); alberi.push([Math.sin(a)*r/m*0.92,Math.cos(a)*r/m*0.92,0]); }
     const tronchi=new THREE.InstancedMesh(new THREE.CylinderGeometry(0.2,0.3,1.6,6), mat(0x3b2a1e), alberi.length);
     const chiome=new THREE.InstancedMesh(new THREE.ConeGeometry(1.8,4.6,7), new THREE.MeshLambertMaterial({color:0xffffff}), alberi.length);
@@ -2912,7 +2933,7 @@ const COLLINA={r:4.2,h:1.0}, ACQUA=[4.2,6.13], MURETTO={r:6.25,alto:0.55}, PANCH
         if(busto&&v.y>0.65&&v.y<1.15) dietro=Math.min(dietro,v.z); } });
     return {dentro, tot, schiena:dietro===Infinity?null:+(dietro-(-0.23)).toFixed(3)}; };   // schiena: distanza dalla faccia dello schienale (0 = appoggiata)
   // per il collaudo: l'altezza di ogni skin com'è in città (uomo), misurata sul modello
-  scena.altezze=()=>{ const r={}; for(const k of SKIN){ const m=avatarDaSkin({...citta,skin:k.id,corpo:"uomo"}); if(!m){ r[k.id]=null; continue; } m.updateMatrixWorld(true); const b=new THREE.Box3().setFromObject(m,true); r[k.id]=+(b.max.y-b.min.y).toFixed(2); } return r; };
+  scena.altezze=()=>{ const r={}; for(const k of SKIN){ const m=avatarDaSkin({...citta,skin:k.id,corpo:"uomo"}); if(!m){ r[k.id]=null; continue; } m.updateMatrixWorld(true); const b=new THREE.Box3(); m.traverse(o=>{ if(o.isMesh&&!/^attributi/.test(o.name)) b.expandByObject(o,true); }); r[k.id]=+(b.max.y-b.min.y).toFixed(2); } return r; };   // senza elmi, lance e tridenti degli dèi
   scena.panchine=()=>panchine.map(b=>({x:+b.x.toFixed(2),z:+b.z.toFixed(2)}));
   scena.albero=()=>scena._albero;
   let sulTetto=false; const TETTO=(PALAZZI.find(P=>P.id==="torre").h)+0.4;
@@ -3043,7 +3064,7 @@ const COLLINA={r:4.2,h:1.0}, ACQUA=[4.2,6.13], MURETTO={r:6.25,alto:0.55}, PANCH
     r={id:o.id,n:nomeDi(o),a:o.a||{},p,m:null,re:o.re===true}; vestiAltro(r); altri.set(o.id,r); }
   function togli(id){ const r=altri.get(id); if(!r) return; if(r.m&&r.m.parent) r.m.parent.remove(r.m); if(r.cartello&&r.cartello.material.map) r.cartello.material.map.dispose(); altri.delete(id); }
   function svuota(){ [...altri.keys()].forEach(togli); }
-  const PERCHE={soprannome:"Questo soprannome non va: 3–16 lettere o numeri, niente parolacce né numeri di telefono.", piano:"Un attimo: un messaggio alla volta.",
+  const PERCHE={skin:"Quella skin non è nel tuo account: gli altri ti vedono con la Base. Le skin si comprano con i gettoni.", soprannome:"Questo soprannome non va: 3–16 lettere o numeri, niente parolacce né numeri di telefono.", piano:"Un attimo: un messaggio alla volta.",
     link:"I link in chat non passano.", numero:"I numeri di telefono in chat non passano: i dati personali tienili per te.", parole:"Quel messaggio non passa: niente parolacce né offese.",
     lungo:"Troppo lungo: al massimo 200 caratteri.", vuoto:"", account:"Per stare con gli altri serve l'account: entra con Google.", bloccato:"Il tuo account è stato bloccato: con gli altri non puoi più stare.", zitto:"Per un po' non puoi scrivere: troppe parole pesanti."};
   function ricevi(m){
@@ -3076,6 +3097,7 @@ const COLLINA={r:4.2,h:1.0}, ACQUA=[4.2,6.13], MURETTO={r:6.25,alto:0.55}, PANCH
     else if(m.t==="no"){ PZ.errore=PERCHE[m.perche]??""; 
       if(m.perche==="soprannome"){ delete citta.soprannome; salva(); scollegati("nome"); apriInsieme(); }
       if(m.perche==="account"){ scollegati("account"); }
+      if(m.perche==="skin"){ citta.skin="base"; salva(); rivesti(); }   // gli altri ti vedevano già con la Classica: ora anche tu
       if(m.perche==="bloccato"){ PZ.bloccato=true; scollegati("bloccato"); }
       const e=$("esito-insieme"); if(e) e.textContent=PZ.errore; } }
 

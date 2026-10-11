@@ -11,11 +11,13 @@ La libreria è nella variabile MAKEHUMAN_LIB (di base /home/claude/mh/lib).
 master) si copia src/mpfb in bpy.utils.user_resource('EXTENSIONS', path='user_default')/mpfb.
 Ogni vestito usato è CC0: la licenza si legge nell'intestazione del suo .mhclo, e VESTE controlla che ci sia.
 """
-import sys, os, glob, importlib, bpy
+import sys, os, glob, importlib, json, bpy
 
 LIB = os.environ.get("MAKEHUMAN_LIB", "/home/claude/mh/lib")
 MESTIERE, CORPO = sys.argv[1:3]; USCITA = sys.argv[3] if len(sys.argv) > 3 else None
 donna = CORPO == "donna"
+# un dio dell'Olimpo (genera_dio.py, 11/10): la veste e l'età vengono da lì, in DIO (json: {"vesti": [...], "eta": 0.5})
+DIO = json.loads(os.environ["DIO"]) if os.environ.get("DIO") else None
 # i vestiti per mestiere (le chiavi sono quelle di VESTITI in citta.html, più «classica»: maglietta, pantaloni e scarpe
 # semplici). JJ, 9/10: la skin base è la persona, e sotto «Base JJA-VIS» si sceglie il mestiere; la Classica è la stessa
 # persona vestita normale. Ogni .mhclo è CC0 (lo controlla trova()).
@@ -42,6 +44,7 @@ def ruolo(nome):
     n = nome.lower()
     if any(k in n for k in ("shirt", "sweater", "polo", "worksuit", "tee")): return "maglia"
     if "pants" in n: return "pantaloni"
+    if any(k in n for k in ("robe", "dress", "skirt")): return "veste"   # le vesti degli dèi: il colore lo mette genera_dio
     if "suit" in n: return "abito"
     return "scarpe"
 CAPELLI = {"uomo": "short02", "donna": "ponytail01"}
@@ -58,7 +61,7 @@ bpy.ops.wm.read_factory_settings(use_empty=True)
 bpy.ops.preferences.addon_enable(module="bl_ext.user_default.mpfb")
 M = lambda n: importlib.import_module("bl_ext.user_default.mpfb.services." + n)
 HS, TS = M("humanservice").HumanService, M("targetservice").TargetService
-h = HS.create_human(scale=0.1, macro_detail_dict={"gender": 0.0 if donna else 1.0, "age": 0.5, "muscle": 0.55, "weight": 0.5,
+h = HS.create_human(scale=0.1, macro_detail_dict={"gender": 0.0 if donna else 1.0, "age": (DIO or {}).get("eta", 0.5), "muscle": 0.55, "weight": 0.5,
     "height": 0.6, "proportions": 0.7, "cupsize": 0.5, "firmness": 0.5, "race": {"african": 0.33, "asian": 0.33, "caucasian": 0.34}})
 TS.bake_targets(h)
 arm = HS.add_builtin_rig(h, "game_engine")
@@ -73,7 +76,7 @@ nt.links.new(tx.outputs["Color"], nt.nodes["Principled BSDF"].inputs["Base Color
 metti(trova("eyebrow001"), "Eyebrows")
 
 metti(trova(CAPELLI[CORPO]), "Hair")
-for n in VESTE[MESTIERE][CORPO]: metti(trova(n), "Clothes").__setitem__("ruolo", ruolo(n))
+for n in (DIO["vesti"] if DIO else VESTE[MESTIERE][CORPO]): metti(trova(n), "Clothes").__setitem__("ruolo", ruolo(n))
 # il corpo è quello pieno di MakeHuman, SENZA decimate (il decimate rompe le coordinate della texture: bocca e mani a
 # macchie rosse, 9/10) e senza il corpo leggero (proxy): il proxy non sa dei vestiti, e i piedi nudi bucavano gli scarponi.
 # Le parti coperte le toglie la maschera che ogni vestito mette sul corpo (delete group), applicata qui sotto.

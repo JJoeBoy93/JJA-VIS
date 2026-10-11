@@ -60,16 +60,34 @@ class Server:
             if c["gettoni"] < corpo["n"]: return await ok({"no": "pochi", "conto": s.vedi(c)}, 409)
             c["gettoni"] -= corpo["n"]; return await ok({"conto": s.vedi(c)})
         if via == "/conto/guadagna": c["gettoni"] += corpo["n"]; return await ok({"conto": s.vedi(c), "dati": corpo["n"]})
-        if via == "/conto/skin":
+        if via == "/conto/skin":   # come il server vero (11/10): il prezzo è del listino, quello del telefono non si guarda
+            prezzo = LISTINO.get(corpo.get("id"))
+            if prezzo is None: return await ok({"no": "skin"}, 400)
             if corpo["id"] not in c["skin"]:
                 if not s.admin:
-                    if c["gettoni"] < corpo["prezzo"]: return await ok({"no": "pochi", "conto": s.vedi(c)}, 409)
-                    c["gettoni"] -= corpo["prezzo"]
+                    if c["gettoni"] < prezzo: return await ok({"no": "pochi", "conto": s.vedi(c)}, 409)
+                    c["gettoni"] -= prezzo
                 c["skin"].append(corpo["id"])
             return await ok({"conto": s.vedi(c)})
         if via == "/conto/esci": s.sessioni.clear(); return await ok({"fatto": True})
         if via == "/conto/elimina": s.conti.pop(uid, None); s.sessioni.clear(); return await ok({"fatto": True})
         return await ok({"no": "via"}, 404)
+
+# il listino del server vero (JJA-VIS-Porta/citta/listino.js): letto da lì, così se città e server dicono prezzi diversi la prova
+# lo vede. Se la rete non c'è, lo dice (un guasto si dice) e si usa la copia scritta qui sotto
+DEI_ = ["zeus", "hera", "athena", "ares", "poseidone", "apollo", "artemide", "efesto", "afrodite", "hestia", "demetra", "hermes", "ade", "persefone", "dioniso"]
+LISTINO = {"base": 0, "classica": 0, "avventuriera": 1500, "cavaliere": 2000, **{"dio-" + d: 2000 for d in DEI_}}
+LISTINO_DAL_SERVER = None
+try:
+    import urllib.request, re as _re
+    _t = urllib.request.urlopen("https://raw.githubusercontent.com/JJoeBoy93/JJA-VIS-Porta/main/citta/listino.js", timeout=15).read().decode()
+    _d = _re.search(r"const DEI = \[([^\]]*)\]", _t); _dei = _re.findall(r'"([a-z]+)"', _d.group(1)) if _d else []
+    _b = _re.search(r"Object\.freeze\(\{(.*?)\.\.\.Object", _t, _re.S)
+    LISTINO_DAL_SERVER = {k: int(v) for k, v in _re.findall(r'"([a-z0-9-]+)":\s*(\d+)', _b.group(1))} if _b else {}
+    _p = _re.search(r'\[\s*"dio-"\s*\+\s*d,\s*(\d+)\s*\]', _t)
+    if _p: LISTINO_DAL_SERVER.update({"dio-" + d: int(_p.group(1)) for d in _dei})
+except Exception as e:
+    print("::warning::il listino del server non si legge:", e)
 
 def instradatore(server):
     async def instrada(route):
@@ -136,6 +154,21 @@ async def main():
         await p.evaluate("window.CONTO_PROVA.guadagna(150)"); await p.wait_for_timeout(500)
         gu = [c["n"] for v, c in srv.chiamate if v == "/conto/guadagna"]
         prova("vincere passa dal server, a pezzi da 100 al massimo", gu == [100, 50] and srv.conti["g1"]["gettoni"] == 350, gu)
+        # le skin (11/10, JJ: «chiudi assolutamente il buco dell'acquisto gratis»): la città non manda il prezzo, lo sa il server
+        li = await p.evaluate("window.CONTO_PROVA.listino()")
+        prova("città e server hanno lo stesso listino delle skin (JJA-VIS-Porta/citta/listino.js)", LISTINO_DAL_SERVER is not None and li == LISTINO_DAL_SERVER, [li, LISTINO_DAL_SERVER])
+        await p.evaluate("window.CONTO_PROVA.compra('dio-athena')"); await p.wait_for_timeout(600)
+        sk = [c for v, c in srv.chiamate if v == "/conto/skin"]
+        prova("con 350 gettoni un dio (2000) non arriva, e lo dice", "dio-athena" not in srv.conti["g1"]["skin"]
+              and "Ti servono 2000" in await p.evaluate("window.CONTO_PROVA.esitoSkin()"), [sk, srv.conti["g1"]])
+        srv.conti["g1"]["gettoni"] = 2100   # i gettoni li ha il server: la città li rilegge ricaricando
+        await p.reload(); await p.wait_for_function("window.CONTO_PROVA && window.CONTO_PROVA.stato().conto!==null && window.CONTO_PROVA.stato().gettoni===2100", timeout=60000)
+        await p.evaluate("window.CONTO_PROVA.compra('dio-athena')"); await p.wait_for_timeout(2500)
+        S = await st(p)
+        sk = [c_ for v, c_ in srv.chiamate if v == "/conto/skin"]
+        prova("con 2100 gettoni nell'account Athena si compra: al server va solo quale (mai il prezzo), ne restano 100, ed è tua", sk == [{"id": "dio-athena"}] and srv.conti["g1"]["gettoni"] == 100 and S["gettoni"] == 100 and "dio-athena" in S["skinMie"],
+              [srv.conti["g1"], S, await p.evaluate("window.CONTO_PROVA.esitoSkin()"), [v for v, c_ in srv.chiamate][-6:]])
+        srv.conti["g1"]["gettoni"] = 350
         await p.reload(); await p.wait_for_function("window.CONTO_PROVA && window.CONTO_PROVA.stato().conto!==null", timeout=60000)
         prova("ricaricando la pagina si resta dentro, coi gettoni del server", (await st(p))["gettoni"] == 350)
         await p.click("#conto-tasto"); await p.click("#conto button:has-text('Esci')"); await p.wait_for_timeout(500)
