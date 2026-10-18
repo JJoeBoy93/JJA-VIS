@@ -1,0 +1,77 @@
+# I reel della città, girati dalla macchina (19 ottobre 2026, Athena).
+#
+# JJ, 11/10: JJA-VIS «si fa pubblicità da solo, si fa un video di come giocare nella città». Ogni due giorni questa
+# Action gira un reel (strumenti/reel_citta.py, il tema ruota) e lo lascia nella release «reel» di questo repository,
+# che è pubblico: reel.mp4 + reel.json. Il resto lo fa la porta di JJA-VIS (giroReel, ogni ora fra le 8 e le 16):
+# lo passa a Hermes, che ne fa una bozza fissata nella chat di JJ — Dioniso scrive, Hera controlla, Afrodite mette la
+# musica — e alle 18 esce da sola su @jjoe_boy93 se JJ non l'ha scartata.
+#
+# Repository pubblico: i minuti non si pagano. Un fotogramma in software (SwiftShader) costa secondi: da qui il timeout.
+name: reel della città
+
+on:
+  schedule:
+    # alle 6 di Roma: a metà mattina il reel è già nella release
+    - cron: "0 4 */2 * *"
+  workflow_dispatch:
+    inputs:
+      tema:
+        description: "cafe, torre, sartoria, giochi, radio (vuoto = quello del giorno)"
+        required: false
+        default: ""
+
+permissions:
+  contents: write
+
+concurrency:
+  group: reel
+  cancel-in-progress: false
+
+jobs:
+  gira:
+    # come Hera: con ubuntu-latest il 5/10 le macchine non arrivavano
+    runs-on: ubuntu-24.04
+    timeout-minutes: 150
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: il browser e ffmpeg
+        run: |
+          pip install --quiet playwright==1.56.0
+          python -m playwright install --with-deps chromium
+          sudo apt-get install -y -qq ffmpeg > /dev/null
+
+      - name: si gira
+        env:
+          TEMA: ${{ github.event.inputs.tema }}
+        run: |
+          # mai fermarsi qui: l'annotazione sotto deve dire PERCHÉ
+          python -u strumenti/reel_citta.py $TEMA > reel.log 2>&1 || true
+          tail -20 reel.log
+          if [ ! -s reel.mp4 ] || [ ! -s reel.json ]; then
+            echo "::error::reel della città NON girato — $(tail -6 reel.log | tr '\n' '|' | cut -c1-900)"; exit 1; fi
+          echo "::notice::reel girato: $(cat reel.json | tr '\n' ' ' | cut -c1-400)"
+
+      - name: nella release «reel»
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release view reel > /dev/null 2>&1 || gh release create reel --title "Reel della città" --notes "L'ultimo reel girato dalla macchina (strumenti/reel_citta.py). Lo prende la porta di JJA-VIS."
+          gh release upload reel reel.mp4 reel.json --clobber
+          echo "::notice::nella release: https://github.com/${{ github.repository }}/releases/download/reel/reel.mp4"
+
+      - name: da guardare (7 giorni)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reel
+          path: |
+            reel.mp4
+            reel.json
+            reel.log
+          retention-days: 7
+          if-no-files-found: ignore

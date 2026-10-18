@@ -1,0 +1,184 @@
+"""I reel della città, girati dalla macchina (19 ottobre 2026, Athena).
+
+    python3 strumenti/reel_citta.py [tema] [--prova]      (dalla radice del repository)
+    CHROMIUM=/percorso/chrome python3 strumenti/reel_citta.py cafe
+
+Esce: reel.mp4 (1080x1920, 24 fps, traccia audio muta: la musica la mette
+Afrodite su Instagram) e reel.json (tema, data, descrizione per Dioniso).
+Senza tema sceglie lui: i temi ruotano col giorno, uno ogni due giorni.
+
+Perché esiste: JJ, 11/10 — «si fa pubblicità da solo, si fa un video di come
+giocare nella città». Il reel lo gira la macchina, non JJ (decisione
+«le macchine producono»).
+
+Come gira: tempo del browser finto (24 fotogrammi al secondo esatti anche se
+ogni foto ne chiede quattro veri), città vera di questo repository, nessuna
+richiesta esce. Si cammina a velocità doppia e si taglia la parte lunga
+del cammino: un reel che segue un avatar per 34 secondi non lo guarda nessuno.
+
+Misurato il 19/10 in sandbox (un core, SwiftShader): un fotogramma a 432x768
+costa 4,4 s, a 1,5x 16 s. Qui si gira a 540x960 (1,25x) e si raddoppia con
+ffmpeg: è il prezzo per stare sotto l'ora nella Action.
+--prova: 4 fotogrammi al secondo e risoluzione piena da telefono, per guardare
+la sequenza senza aspettare.
+"""
+import asyncio, datetime, json, os, re, shutil, subprocess, sys
+from playwright.async_api import async_playwright
+
+CASA = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+BASE = "https://jjoeboy93.github.io/JJA-VIS/"
+PROVA = "--prova" in sys.argv
+FPS = 4 if PROVA else 24
+DSF = 1 if PROVA else 1.25
+OUT = os.path.join(CASA, "fotogrammi")
+
+# ══ I TEMI ══ Testi pubblici: mai nomi di altri giochi o marchi, mai JARVIS
+# (JJ, 6/10 e 11/10). Ogni tema: dove si va, cosa si tocca dentro, le scritte.
+TEMI = {
+    "cafe": {
+        "dove": "cafe", "nome": "JJA-VIS Café", "usa": "tavolini",
+        "dida": [("Una città intera per il tuo assistente", "si gioca dal telefono"),
+                 ("Si va al <b>JJA-VIS Café</b>", "colazione coi gettoni del gioco"),
+                 ("Ti siedi, scrivi, conosci gli altri", None)],
+        "descrizione": "Un giro nella città 3D di JJA-VIS, dal telefono: l'avatar attraversa la piazza e entra al JJA-VIS Café, dove si fa colazione coi gettoni del gioco e ci si siede ai tavolini.",
+    },
+    "torre": {
+        "dove": "torre", "nome": None, "usa": None,
+        "dida": [("Una città intera per il tuo assistente", "si gioca dal telefono"),
+                 ("In fondo alla via c'è <b>la Torre</b>", "dieci piani e la terrazza"),
+                 ("Al piano terra ti aspetta lui", "col nome che gli dai tu")],
+        "descrizione": "Un giro nella città 3D di JJA-VIS: l'avatar va verso la Torre, dieci piani con la terrazza; alla reception c'è l'assistente personale, che ognuno chiama col nome che vuole.",
+    },
+    "radio": {
+        "dove": "radio", "nome": None, "usa": None,
+        "dida": [("In questa città c'è anche <b>la radio</b>", None),
+                 ("Sei stazioni sotto l'antenna", "e le salvi come vuoi tu"),
+                 ("Suona anche a schermo spento", None)],
+        "descrizione": "La città 3D di JJA-VIS: l'avatar va all'antenna della radio, sei stazioni preselezionate che si cambiano a piacere e suonano anche col telefono bloccato.",
+    },
+    "giochi": {
+        "dove": "giochi", "nome": None, "usa": None,
+        "dida": [("I gettoni non si comprano soltanto", None),
+                 ("Si vincono in <b>Sala giochi</b>", "prendi i gettoni, schiva le bombe"),
+                 ("Poi li spendi in città", "skin, colazione, caffè")],
+        "descrizione": "La città 3D di JJA-VIS: l'avatar va in Sala giochi, dove si vincono i gettoni del gioco da spendere in città (skin, colazione al Café).",
+    },
+    "sartoria": {
+        "dove": "sartoria", "nome": None, "usa": None,
+        "dida": [("Nella città di JJA-VIS sei <b>una persona</b>", "non un omino"),
+                 ("In Sartoria scegli chi sei", "il tuo mestiere, i tuoi colori"),
+                 ("E il tuo assistente impara da lì", None)],
+        "descrizione": "La città 3D di JJA-VIS: l'avatar va in Sartoria, dove si sceglie la persona, il mestiere e i colori dei vestiti; l'assistente personale parte da quello che gli si racconta.",
+    },
+}
+ORDINE = ["cafe", "torre", "sartoria", "giochi", "radio"]
+CTA = ("Entra gratis", "link in bio · jjoeboy93.github.io/JJA-VIS")
+
+
+def tema_di_oggi(oggi=None):
+    oggi = oggi or datetime.date.today()
+    return ORDINE[(oggi.toordinal() // 2) % len(ORDINE)]
+
+
+TIPI = {".html": "text/html", ".js": "text/javascript", ".png": "image/png", ".jpg": "image/jpeg",
+        ".glb": "model/gltf-binary", ".json": "application/json", ".webmanifest": "application/manifest+json"}
+async def instrada(route):
+    u = route.request.url
+    if u.startswith(BASE):
+        nome = u[len(BASE):].split("#")[0].split("?")[0] or "index.html"
+        f = os.path.join(CASA, nome)
+        if os.path.isfile(f):
+            return await route.fulfill(body=open(f, "rb").read(), content_type=TIPI.get(os.path.splitext(f)[1], "application/octet-stream"))
+        return await route.fulfill(status=404, body="")
+    # niente porta, niente server degli altri: in città, nel reel, si è soli
+    await route.abort()
+
+
+DIDA = '''([t, piccola, finale])=>{let d=document.getElementById('dida-reel');
+ if(!d){d=document.createElement('div');d.id='dida-reel';document.body.appendChild(d);}
+ Object.assign(d.style,{position:'fixed',left:'6%',right:'6%',top:finale?'38%':'16%',zIndex:9999,padding:finale?'26px 16px':'14px 16px',
+   background:'rgba(2,11,24,.86)',border:'1px solid rgba(0,180,216,.7)',color:'#E8F7FF',textAlign:'center',
+   font:(finale?'800 34px':'800 25px')+'/1.18 "DejaVu Sans", sans-serif',boxShadow:'0 0 28px rgba(0,180,216,.4)',borderRadius:'6px',pointerEvents:'none'});
+ if(!t){d.style.display='none';return;} d.style.display='block';
+ d.innerHTML=t+(piccola?'<div style="font:600 15px/1.3 DejaVu Sans Mono,monospace;margin-top:8px;color:#7FDBFF">'+piccola+'</div>':'');}'''
+
+
+async def main():
+    tema = next((a for a in sys.argv[1:] if not a.startswith("--")), None) or tema_di_oggi()
+    if tema not in TEMI: sys.exit(f"tema sconosciuto: {tema} (ci sono: {', '.join(TEMI)})")
+    T = TEMI[tema]
+    shutil.rmtree(OUT, ignore_errors=True); os.makedirs(OUT)
+    n = [0]
+    errori = []
+    async with async_playwright() as pw:
+        b = await pw.chromium.launch(executable_path=os.environ.get("CHROMIUM") or None,
+                                     args=["--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--ignore-gpu-blocklist"])
+        ctx = await b.new_context(viewport={"width": 432, "height": 768}, device_scale_factor=DSF, is_mobile=True, has_touch=True)
+        # un visitatore che ha già detto nome e mestiere: niente pannelli d'ingresso davanti alla città
+        await ctx.add_init_script("try{ sessionStorage.setItem('jjavis-conto-dopo','1'); localStorage.setItem('jjavis-io', JSON.stringify({nome:'Atlas', mestiere:'Corriere'})); }catch(_){}")
+        await ctx.route("**/*", instrada)
+        p = await ctx.new_page()
+        p.on("pageerror", lambda e: errori.append(str(e)))
+        await p.clock.install()
+        # col tempo finto «load» può non arrivare mai
+        await p.goto(BASE + "citta.html", wait_until="commit", timeout=90000)
+        for _ in range(600):
+            await p.clock.run_for(100)
+            if await p.evaluate("!!(window.CITTA && window.CITTA.pronta)"): break
+        else:
+            sys.exit("la città non si è accesa: " + "; ".join(errori[:3]))
+        await p.clock.run_for(800)
+        # Nel reel si vede la città, non i comandi: il cartello in alto, i tasti, il cerchio per muoversi
+        # e la barra delle stanze coprivano le scritte (provini del 19/10: la didascalia sopra il cartello,
+        # «Sediti · in panchina» in mezzo alla piazza, la barra delle stanze in fondo anche fuori).
+        await p.add_style_tag(content="#dida-reel b{color:#FFD60A} ::-webkit-scrollbar{display:none} "
+                                      ".hud,#joy,#vai,#salta,#giu,#entra,#aiuto,#foglio,.stanza-barra,#stanza-carta,#nova,#conto,#insieme{visibility:hidden!important}")
+
+        dida = lambda t, s=None, finale=False: p.evaluate(DIDA, [t, s, finale])
+        stanza = "document.getElementById('stanza').hidden?'':document.getElementById('stanza-nome').textContent"
+
+        async def scatta(secondi, velocita=1.0):
+            for _ in range(int(secondi * FPS)):
+                await p.clock.run_for(int(1000 / FPS * velocita))
+                await p.screenshot(path=f"{OUT}/{n[0]:05d}.png", timeout=180000)
+                n[0] += 1
+
+        # 1 — l'aggancio, camminando (a velocità doppia: il cammino vero è lungo)
+        await p.evaluate(f"window.CITTA.vaiVerso({json.dumps(T['dove'])})")
+        await dida(*T["dida"][0]); await scatta(3.2, 2)
+        await dida(*T["dida"][1]); await scatta(3.4, 2)
+        # 2 — il resto del cammino non si gira: si arriva
+        await dida(None)
+        for _ in range(2500):
+            await p.clock.run_for(50)
+            if await p.evaluate(stanza): break
+        else:
+            sys.exit(f"l'avatar non è arrivato a «{T['dove']}» (è a {await p.evaluate('window.CITTA.dove()')})")
+        await p.clock.run_for(600)
+        # 3 — dentro
+        if T["usa"]:
+            if await p.evaluate("document.getElementById('stanza').classList.contains('con-carta')"):
+                await p.click("#chiudi-carta"); await p.clock.run_for(300)
+            await p.evaluate(f"window.CITTA.usa({json.dumps(T['usa'])})")
+        await dida(*T["dida"][2]); await scatta(3.6)
+        # 4 — l'invito
+        await dida(*CTA, True); await scatta(2.6)
+        await b.close()
+    if errori: print("errori della pagina (il reel è girato lo stesso):", errori[:5])
+
+    secondi = n[0] / FPS
+    scala = [] if PROVA else ["-vf", f"scale=1080:1920:flags=lanczos,fade=t=in:st=0:d=0.3,fade=t=out:st={secondi - 0.4:.2f}:d=0.4,format=yuv420p"]
+    subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-framerate", str(FPS), "-i", f"{OUT}/%05d.png",
+                    "-f", "lavfi", "-i", "anullsrc=r=44100:cl=stereo", "-shortest", *scala,
+                    *(["-vf", "format=yuv420p"] if PROVA else []),
+                    "-c:v", "libx264", "-crf", "20", "-preset", "medium", "-movflags", "+faststart", "-c:a", "aac", "reel.mp4"], check=True)
+    peso = os.path.getsize("reel.mp4")
+    info = {"tema": tema, "data": datetime.date.today().isoformat(), "secondi": round(secondi, 1), "byte": peso,
+            "descrizione": T["descrizione"], "scritte": [re.sub(r"<[^>]+>", "", x[0]) for x in T["dida"]] + [CTA[0]]}
+    json.dump(info, open("reel.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1)
+    print(json.dumps(info, ensure_ascii=False))
+    if peso > 20 * 1024 * 1024: sys.exit(f"reel.mp4 è {peso} byte: Telegram ne scarica al massimo 20 MB")
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
