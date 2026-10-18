@@ -783,8 +783,13 @@ async def main():
 
         # 4c. il sedersi delle skin (JJ, 6/10): le skin di Blender piegano il ginocchio, e ognuna ha il bacino sul sedile
         # (0,55 m) qualunque sia la lunghezza delle sue gambe — prima le KayKit si sedevano per terra attraverso la panchina
-        for sk in ("base", "classica", "avventuriera", "cavaliere"):
-            ctx, p, err = await nuova(b, citta={"skin": sk, "skinMie": ["base", "classica", sk], "corpo": "uomo", "giroVisto": True}, skin_conto=["base", "classica", sk])
+        # 19/10: anche gli dèi (Zeus uomo, Athena donna) — la prova li saltava, e si sedevano per terra senza che nessuno lo vedesse.
+        # Prima della correzione la posa non diventava mai «posata» (la misura sui pantaloni non trovava niente) e qui si cade.
+        # Le dee: la veste lunga scende dritta sotto il bacino (misurato in sandbox: 0,07 m), quindi per loro basta che la
+        # misura ci sia e che l'anca stia sul sedile — la veste che passa nella panchina è in problemi-noti/vesti-delle-dee.md
+        for sk in ("base", "classica", "avventuriera", "cavaliere", "dio-zeus", "dio-athena"):
+            corpo = "donna" if sk == "dio-athena" else "uomo"
+            ctx, p, err = await nuova(b, citta={"skin": sk, "skinMie": ["base", "classica", sk], "corpo": corpo, "giroVisto": True}, skin_conto=["base", "classica", sk])
             await p.goto(BASE + "citta.html", timeout=60000)
             await p.wait_for_function(f"window.CITTA && window.CITTA.pronta && window.CITTA.skinTua().skin==={json.dumps(sk)} && window.CITTA.skinTua().ossi===true", timeout=60000)
             await p.evaluate("window.CITTA.siedi(0)"); await p.wait_for_timeout(1200)
@@ -793,7 +798,8 @@ async def main():
             prova(f"{sk}: seduta, col bacino sul sedile e il ginocchio piegato (lo stinco scende verso terra)",
                   sd["seduto"] and 0.42 <= sd.get("anca", 0) <= 0.75 and abs(sd.get("ginocchio", 0) - sd["anca"]) < 0.12
                   and sd.get("piede", 9) < sd.get("ginocchio", 0) - 0.1
-                  and (sd["sedere"] is None or sd["sedere"] >= 0.52), sd)   # il sedere sopra il sedile (0,55), non dentro (9/10)
+                  and ((sd["sedere"] is None and not sk.startswith("dio-")) or (sd["sedere"] or 0) >= 0.52
+                       or (sk == "dio-athena" and sd["sedere"] is not None)), sd)   # il sedere sopra il sedile (0,55), non dentro (9/10)
             if sk in ("base", "classica"):   # le braccia da seduti stanno ferme lungo i fianchi (JJ, 10/10: «il braccio gira quando si siede»)
                 b1 = await p.evaluate("window.CITTA.braccia()"); await p.wait_for_timeout(1500); b2_ = await p.evaluate("window.CITTA.braccia()")
                 gira = max(math.degrees(2 * math.acos(min(1, abs(sum(x * y for x, y in zip(q1, q2)))))) for q1, q2 in zip(b1, b2_) if q1 and q2)

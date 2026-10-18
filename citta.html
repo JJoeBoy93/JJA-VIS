@@ -1777,7 +1777,7 @@ function posaSeduta(av){ const u=av.userData; if(u.anim && suona(av,"Sitting_Idl
 // quanto sta indietro la schiena (maglia o giacca, fra 10 e 60 cm sopra il sedile), nelle coordinate dell'avatar: serve a
 // metterla contro lo schienale (JJ, 9/10: «deve avere anche la schiena appoggiata allo schienale non dentro»)
 function schienaDietro(av, piano){ av.updateMatrixWorld(true); const v=new THREE.Vector3(); let min=Infinity;
-  av.traverse(o=>{ if(!o.isSkinnedMesh||!o.material) return; const n=o.material.name||""; if(!n.startsWith("maglia")&&!n.startsWith("abito")) return;
+  av.traverse(o=>{ if(!o.isSkinnedMesh||!o.material) return; const n=o.material.name||""; if(!n.startsWith("maglia")&&!n.startsWith("abito")&&!n.startsWith("veste")) return;
     const c=o.geometry.attributes.position.count; for(let i=0;i<c;i++){ o.getVertexPosition(i,v); o.localToWorld(v); if(v.y<piano+0.1||v.y>piano+0.6) continue; av.worldToLocal(v); min=Math.min(min,v.z); } });
   return min===Infinity?null:min; }
 // la panchina: il sedile va da -0,3 a +0,3 (avanti), lo schienale ha la faccia davanti a -0,23. Dove va l'avatar perché la
@@ -1811,9 +1811,14 @@ function gesto(av, vel){ const u=av.userData;
   return false; }
 // per il collaudo: la posa è arrivata (clip piena, e il sedere già misurato) — in sandbox, a 1 fotogramma al secondo, ci vuole un po'
 function posato(av){ const u=av.userData; return !u.mixer||!!(u.inCorso&&u.inCorso.getEffectiveWeight()>0.999&&u.sedere&&u.sedere[u.clip]!=null); }
-function sedereSottoAnca(av){ const u=av.userData, os=u.gambe[0]&&u.gambe[0].osso; if(!os||!os.parent) return null;
+// su cosa si misura il sedere: i pantaloni; chi non li ha (le skin degli dèi: «veste», 19/10) la veste e la pelle.
+// Prima solo «pantaloni»: sugli dèi la misura non trovava niente, si tornava alla formula dell'omino e si sedevano
+// per terra attraverso la panchina (JJ, 19/10: «tutte le skin degli dei nessuna esclusa si siedono per terra»)
+function stoffaSedere(av){ let p=false; av.traverse(o=>{ if(o.isSkinnedMesh&&o.material&&(o.material.name||"").startsWith("pantaloni")) p=true; });
+  return p?["pantaloni"]:["veste","pelle"]; }
+function sedereSottoAnca(av){ const u=av.userData, os=u.gambe[0]&&u.gambe[0].osso; if(!os||!os.parent) return null; const stoffa=stoffaSedere(av);
   av.updateMatrixWorld(true); const v=new THREE.Vector3(), b=new THREE.Vector3(); os.parent.getWorldPosition(b); const anca=os.getWorldPosition(new THREE.Vector3()).y; let min=Infinity;
-  av.traverse(o=>{ if(!o.isSkinnedMesh||!o.material||!(o.material.name||"").startsWith("pantaloni")) return; const n=o.geometry.attributes.position.count;
+  av.traverse(o=>{ if(!o.isSkinnedMesh||!o.material||!stoffa.some(s=>(o.material.name||"").startsWith(s))) return; const n=o.geometry.attributes.position.count;
     for(let i=0;i<n;i++){ o.getVertexPosition(i,v); o.localToWorld(v); if(Math.hypot(v.x-b.x,v.z-b.z)<0.22&&v.y>anca-0.35) min=Math.min(min,v.y); } });
   return min===Infinity?null:anca-min; }
 // l'altezza dell'avatar seduto: il sedere vero sul piano del sedile (0,93 sopra la y del posto: 0,55 in panchina). JJ, 9/10:
@@ -2784,7 +2789,7 @@ const COLLINA={r:4.2,h:1.0}, ACQUA=[4.2,6.13], MURETTO={r:6.25,alto:0.55}, PANCH
   // non dentro (JJ, 9/10: «quando fai la foto e guardi, non lo vedi che è dentro la panchina?»). Misura, non foto
   scena.sedere=()=>{ let min=Infinity; const v=new THREE.Vector3(), b=new THREE.Vector3(); const pel=tu.userData.gambe[0]&&tu.userData.gambe[0].osso&&tu.userData.gambe[0].osso.parent;
     if(!pel) return null; tu.updateMatrixWorld(true); pel.getWorldPosition(b);
-    tu.traverse(o=>{ if(!o.isSkinnedMesh||!o.material||!(o.material.name||"").startsWith("pantaloni")) return; const n=o.geometry.attributes.position.count;
+    const stoffa=stoffaSedere(tu); tu.traverse(o=>{ if(!o.isSkinnedMesh||!o.material||!stoffa.some(s=>(o.material.name||"").startsWith(s))) return; const n=o.geometry.attributes.position.count;
       for(let i=0;i<n;i++){ o.getVertexPosition(i,v); o.localToWorld(v); if(Math.hypot(v.x-b.x,v.z-b.z)<0.22) min=Math.min(min,v.y); } });
     return min===Infinity?null:+min.toFixed(3); };
   scena.coloriTua=()=>{ const r={}; tu.traverse(o=>{ if(o.isMesh&&o.material&&o.material.name){ const n=o.material.name.split(".")[0]; if(["maglia","pantaloni","pelle","capelli"].includes(n)) r[n]="#"+o.material.color.getHexString(); } }); return r; };   // per il collaudo
