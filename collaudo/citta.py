@@ -358,6 +358,10 @@ async def main():
                     rotti.append((n, h))
                 elif not h.startswith("https://jjoeboy93.github.io/") and not (n == "Cinema" and re.match(r"https://(www\.)?(instagram\.com|youtube\.com|youtu\.be|tiktok\.com)/", h)): rotti.append((n, h))
             parti = await p.evaluate("window.CITTA.parti()")
+            # 19/10: niente sotto il pavimento (la lavagna del Café stava a -1,5 m: argomenti scambiati), niente cartelli che girano
+            sotto_ = await p.evaluate("window.CITTA.sottoTerra()")
+            prova(f"{n}: nessuna cosa sotto il pavimento", not sotto_, sotto_)
+            prova(f"{n}: i cartelli stanno fermi (nessuno gira con la visuale)", await p.evaluate("window.CITTA.cartelliGirevoli()") == 0)
             if parti:
                 prova(f"{n}: dentro ci sono le cose del palazzo", len(parti) >= 2 and sorted(k for k, _ in parti) == sorted(await p.evaluate("window.CITTA.cose()")), parti)
                 s0 = await p.evaluate("window.CITTA.saltiDentro()")
@@ -385,6 +389,31 @@ async def main():
                 prova("la risposta di chi mi costruisce arriva in città, e una volta vista non resta «nuova»", [m["ruolo"] for m in io_["chat"]] == ["tu", "io", "io"]
                       and not io_["chat"][0]["attesa"] and not any(m.get("nuovo") for m in io_["chat"]), io_["chat"])
                 await p.click("#chiudi-nova"); await p.wait_for_timeout(300)
+                # il dialogo (JJ, 19/10: «come in fortnite»): il globo ha il nome dell'assistente, risponde alle domande, si chiude
+                await p.evaluate("window.CITTA.dialogo('globo')"); await p.wait_for_timeout(200)
+                dl = await p.evaluate("""(()=>({su:!document.getElementById('dialogo').hidden, nome:document.getElementById('dialogo-nome').textContent,
+                    testo:document.getElementById('dialogo-testo').textContent, scelte:[...document.querySelectorAll('#dialogo-scelte button')].map(b=>b.textContent),
+                    joy:getComputedStyle(document.getElementById('joy')).opacity}))()""")
+                prova("il globo si chiama come l'assistente (Ettore), parla, e ha le scelte con «Dimmi di più» ed «Esci»", dl["su"] and dl["nome"] == "Ettore"
+                      and "Ettore" in dl["testo"] and dl["scelte"][0] == "Chi sei?" and "Dimmi di più" in dl["scelte"] and dl["scelte"][-1] == "Esci" and dl["joy"] == "0", dl)
+                await p.click("#dialogo-scelte button:has-text('Chi sei?')")
+                prova("«Chi sei?» cambia quello che dice, e il dialogo resta aperto", "Io imparo chi sei" in await p.inner_text("#dialogo-testo") and await p.is_visible("#dialogo"))
+                await p.click("#dialogo-scelte button:has-text('Esci')")
+                prova("«Esci» chiude il dialogo", not await p.is_visible("#dialogo"))
+                # il 3° piano: gli dèi
+                await p.evaluate("window.CITTA.piano(3)"); await p.wait_for_function("document.getElementById('stanza-nome').textContent==='La Torre · 3° piano'", timeout=30000)
+                cose3 = await p.evaluate("window.CITTA.cose()")
+                prova("al 3° piano ci sono i dodici dèi, ognuno una cosa con cui parlare", sum(1 for k in cose3 if k.startswith("dio-")) == 12, cose3)
+                await p.evaluate("window.CITTA.dialogo('dio-hera')"); await p.wait_for_timeout(200)
+                prova("Hera dice chi è", await p.inner_text("#dialogo-nome") == "Hera" and "Hera" in await p.inner_text("#dialogo-testo"))
+                await p.click("#dialogo-scelte button:has-text('Cosa fai in JJA-VIS?')")
+                prova("e cosa fa in JJA-VIS", "Collaudo" in await p.inner_text("#dialogo-testo"))
+                await p.click("#dialogo-scelte button:has-text('Dimmi di più')"); await p.wait_for_timeout(300)
+                prova("«Dimmi di più» apre la carta intera e chiude il dialogo", await p.evaluate("document.getElementById('stanza').classList.contains('con-carta')") and not await p.is_visible("#dialogo"))
+                testi_dei = await p.evaluate("JSON.stringify(window.CITTA.parti())")
+                prova("al piano degli dèi nessun nome privato (JARVIS) né marchi", not re.search(r"jarvis|fortnite", testi_dei, re.I))
+                await p.click("#chiudi-carta"); await p.wait_for_timeout(200)
+                await p.evaluate("window.CITTA.piano(0)"); await p.wait_for_timeout(600)
             if n == "Bottega":
                 await foto(p, "04-bottega")
                 prima = await p.evaluate("(document.querySelector('#stanza .prodotto h3')||{}).textContent")

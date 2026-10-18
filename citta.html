@@ -68,9 +68,26 @@ a{color:var(--accento)}
 #salta{bottom:calc(env(safe-area-inset-bottom,0px) + 108px)}
 #giu{bottom:calc(env(safe-area-inset-bottom,0px) + 222px)}   /* sopra «Usa · …» (#entra, 160-210 px dal fondo): a 166 ci finiva sotto, e vicino a una panchina il tasto non si poteva premere (Hera, 10/10) */
 #giu[aria-pressed="true"]{border-color:var(--accento);background:color-mix(in srgb,var(--accento) 25%,transparent)}
+/* «◻ Interagisci» (JJ, 19/10: «il tasto grosso ... vorrei che sia come in fortnite, se ti avvicini ad una cosa ti appare
+   interagisci, e poi ti appaiono le scelte»): piccolo, scuro, col nome della cosa sotto */
 #entra{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 160px);z-index:6;
-  font:800 18px/1 var(--f-titoli);letter-spacing:.02em;color:var(--bg);background:var(--accento);border:0;padding:15px 22px;cursor:pointer;
-  box-shadow:0 0 22px color-mix(in srgb,var(--accento) 60%,transparent);max-width:calc(100% - 32px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  display:flex;align-items:center;gap:10px;text-align:left;color:#fff;background:rgba(10,12,16,.82);border:1px solid rgba(255,255,255,.25);
+  border-radius:8px;padding:8px 14px 8px 10px;cursor:pointer;max-width:calc(100% - 32px);box-shadow:0 2px 10px rgba(0,0,0,.4)}
+#entra .q{flex:none;width:22px;height:22px;border:2px solid #fff;border-radius:5px;display:inline-block}
+#entra .v{display:flex;flex-direction:column;min-width:0}
+#entra b{font:900 16px/1.1 var(--f-titoli);letter-spacing:.04em;text-transform:uppercase}
+#entra small{font:600 12px/1.2 var(--f-testo,sans-serif);opacity:.8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* il dialogo: il nome in alto, quello che dice, le scelte sopra a destra */
+#dialogo{position:fixed;left:10px;right:10px;bottom:calc(env(safe-area-inset-bottom,0px) + 14px);z-index:40}
+#dialogo[hidden]{display:none}
+#dialogo-scelte{display:flex;flex-direction:column;align-items:flex-end;gap:8px;margin-bottom:10px}
+#dialogo-scelte button{min-width:58%;max-width:100%;font:900 15px/1.15 var(--f-titoli);letter-spacing:.03em;text-transform:uppercase;color:#fff;
+  background:#08090c;border:2px solid transparent;border-radius:10px;padding:11px 16px;cursor:pointer}
+#dialogo-scelte button:first-child{background:#bfe6f2;color:#0b2a36;border-color:#fff}
+#dialogo .d-nome{background:#bfe6f2;color:#fff;font:italic 900 26px/1 var(--f-titoli);padding:8px 14px;border-radius:8px 8px 0 0;
+  text-shadow:0 1px 0 #6aa9bd,1px 0 0 #6aa9bd,-1px 0 0 #6aa9bd,0 -1px 0 #6aa9bd}
+#dialogo .d-testo{background:rgba(8,9,12,.92);color:#fff;font:600 16px/1.4 var(--f-testo,sans-serif);padding:12px 14px 14px;border-radius:0 0 8px 8px;min-height:3em}
+body.con-dialogo #joy,body.con-dialogo #entra,body.con-dialogo #salta,body.con-dialogo #giu,body.con-dialogo #vai{opacity:0;pointer-events:none}
 #entra[hidden]{display:none}
 #aiuto{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 160px);z-index:5;
   font:400 13px/1.35 var(--f-mono);color:var(--tenue);text-align:center;padding:8px 12px;max-width:300px;pointer-events:none;transition:opacity .6s}
@@ -319,6 +336,7 @@ body.con-nova #joy,body.con-nova #entra,body.con-nova #vai{opacity:0;pointer-eve
 <button id="salta" class="pulsante gesto" type="button">Salta</button>
 <button id="giu" class="pulsante gesto" type="button" aria-pressed="false">Accovacciati</button>
 <button id="entra" type="button" hidden></button>
+<section id="dialogo" hidden role="dialog" aria-labelledby="dialogo-nome"><div id="dialogo-scelte"></div><div class="d-nome" id="dialogo-nome"></div><div class="d-testo" id="dialogo-testo" aria-live="polite"></div></section>
 <div id="aiuto" class="cornice">Muoviti col cerchio · trascina per guardarti intorno · tocca un palazzo per andarci. Dentro, tocca le cose</div>
 
 <section id="foglio" class="cornice" role="dialog" aria-modal="false" aria-labelledby="foglio-titolo" aria-hidden="true">
@@ -716,8 +734,12 @@ const LUOGHI={
     testa(){ const n=nomeAssistente(); return [...TESTA("Piano terra · la Reception","La Torre", n?`Bentornato. ${n} ti aspetta: è il tuo, con il nome che gli hai dato tu.`:"Benvenuto in città. Qui nasce il tuo assistente personale: dagli un nome nella pagina (in alto, «← La pagina»), e comincio a imparare te."),
       P("Sono JJA-VIS, un sistema personale intelligente. Non rispondo: anticipo. Non archivio: imparo. Non servo il settore: servo la persona.")]; },
     // tutto quello che c'è da sapere lo dice l'assistente, il globo: anche cosa succede quando entri e i tuoi dati (JJ, 4/10)
-    parti:()=>[{id:"hall",nome:"La hall",breve:"il piano terra",dentro:()=>[BLOCCO(H3("La hall"), P("Il piano terra della Torre: la reception in fondo, col globo che ti spiega tutto; l'ascensore accanto alla porta e le scale a destra per salire ai piani. Qui ci si siede e si aspetta."))]},
-      {id:"globo",nome:"L'assistente",breve:"il globo ti spiega tutto",dentro:()=>{ const R=LUOGHI.reception.parti();
+    parti:()=>[{id:"hall",nome:"La hall",breve:"il piano terra",dentro:()=>[BLOCCO(H3("La hall"), P(`Il piano terra della Torre: la reception in fondo, con ${nomeAssistente()||"il tuo assistente"} che ti spiega tutto; l'ascensore accanto alla porta e le scale a destra per salire ai piani. Qui ci si siede e si aspetta.`))]},
+      {id:"globo",get nome(){ return nomeAssistente()||"Il tuo assistente"; },get breve(){ return nomeAssistente()||"Il tuo assistente"; },
+        chi:()=>nomeAssistente()||"Il tuo assistente",
+        dice:()=>nomeAssistente()?`Ciao, sono ${nomeAssistente()}: il tuo assistente, col nome che mi hai dato tu. Qui ti dico tutto: cosa succede quando entri, i piani, i tuoi dati.`:"Ciao: sono il tuo assistente. Dammi un nome nella pagina («← La pagina») e da lì comincio a imparare te.",
+        domande:()=>[["Chi sei?",GLOBO_CHI()],["Cosa c'è ai piani?",PIANI.map(p=>`${p.etichetta}: ${p.cosa}`).join(" · ")]],
+        dentro:()=>{ const R=LUOGHI.reception.parti();
         return [...R.find(p=>p.id==="banco").dentro(), ...GLOBO_DICE(), BLOCCO(H3("I piani"), LISTA(PIANI.map(p=>`${p.etichetta}: ${p.cosa}`))), ...R.find(p=>p.id==="dati").dentro()]; }},
       ...PARTI_PIANO(0)],
     fine:()=>[AZIONI(parlaQui(`Parla con ${nomeAssistente()}`,""))]},
@@ -731,7 +753,12 @@ const LUOGHI={
           "Occhi e orecchie: guardo le foto, cerco sul web e ti lascio le fonti da toccare. Mi scrivi anche da Telegram."]))]}, ...PARTI_PIANO(1)]},
   torre2:{nome:"La Torre · 2° piano",ic:"📈",breve:"investi in JJA-VIS",piano:2,
     testa:()=>LUOGHI.borsa.testa(), parti:()=>[...LUOGHI.borsa.parti(), ...PARTI_PIANO(2)], fine:()=>(LUOGHI.borsa.fine?LUOGHI.borsa.fine():[])},
-  ...Object.fromEntries([3,4,5,6,7].map(n=>[`torre${n}`,{nome:`La Torre · ${n}° piano`,ic:"🌐",breve:"piano libero",piano:n,
+  torre3:{nome:"La Torre · 3° piano",ic:"🏛",breve:"gli dèi di JJA-VIS",piano:3,
+    testa:()=>TESTA("3° piano","Il piano degli dèi","Chi lavora a JJA-VIS, ognuno col suo mestiere. Avvicinati a uno di loro: ti dice chi è e cosa fa."),
+    parti:()=>[...DEI_PIANO.map(d=>({id:"dio-"+d.id,nome:d.nome,breve:d.nome,chi:()=>d.nome,dice:()=>d.dice,
+      domande:()=>[["Chi sei?",d.chi],["Cosa fai in JJA-VIS?",d.fa],["Lavori già?",d.oggi]],
+      dentro:()=>[BLOCCO(H3(d.nome),P(d.chi),P(d.fa),NOTA(d.oggi))]})), ...PARTI_PIANO(3)]},
+  ...Object.fromEntries([4,5,6,7].map(n=>[`torre${n}`,{nome:`La Torre · ${n}° piano`,ic:"🌐",breve:"piano libero",piano:n,
     testa:()=>TESTA(`${n}° piano`,"Piano libero",`Per ora è vuoto: da qui si guarda la città dalle vetrate. Cosa ci va, lo decide chi mi costruisce.`),
     parti:()=>[{id:"vetrata",nome:"La vetrata",dentro:()=>[BLOCCO(H3("La vista"), P(`Dal ${n}° piano la città si vede tutta: la piazza, l'albero, i quartieri. Dalla terrazza, in cima, ancora meglio.`))]}, ...PARTI_PIANO(n)]}])),
   cinema:{nome:"Cinema",ic:"🎬",breve:"guardami al lavoro",
@@ -941,6 +968,7 @@ function specchio(){
 }
 
 // quello che dice l'assistente al piano terra (era il globo in cima e «per chiunque»)
+const GLOBO_CHI=()=>"Un assistente professionale conosce un lavoro. Io imparo chi sei: le tue abitudini, le tue giornate, quello che vuoi. Il lavoro è solo una parte di te: più mi usi, più divento tuo.";
 const GLOBO_DICE=()=>[BLOCCO(H3("Imparo te"), P("Un assistente professionale conosce un lavoro. Io imparo chi sei: le tue abitudini, le tue giornate, quello che ti preoccupa e quello che vuoi. Il lavoro è solo una parte di te. Più mi usi, più divento tuo. Uguale per tutti, diverso per ognuno.")),
         BLOCCO(H3("Da dove nasco"), P("Chi mi costruisce ha molte vite insieme: una ditta di trasporti, il furgone da corriere ogni mattina, il codice la notte, le isole di Fortnite di cui è creatore ufficiale. Cercava qualcosa che lo aiutasse in tutte. Non l'ha trovato, e ha deciso di costruirlo.")), BLOCCO(H3("Per chiunque"), P("Chiunque, ovunque nasca e qualunque lavoro faccia, ha diritto al suo assistente personale. Il corriere di Milano, il farmacista di Tokyo, l'agricoltore del Brasile, il meccanico del Cairo. Parto dal lavoro che conosco meglio, la consegna, e da lì vado verso tutti.")),
         NOTA("Come sono fatto dentro non lo racconto: sono mesi di lavoro, notte dopo notte. Cosa so fare sì.")];
@@ -1159,7 +1187,7 @@ const PIANI=[
   {n:0,id:"torre",etichetta:"Piano terra",cosa:"la Reception e l'assistente"},
   {n:1,id:"torre1",etichetta:"1° piano",cosa:"cosa so fare"},
   {n:2,id:"torre2",etichetta:"2° piano",cosa:"la Borsa: investi in JJA-VIS"},
-  {n:3,id:"torre3",etichetta:"3° piano",cosa:"libero"},
+  {n:3,id:"torre3",etichetta:"3° piano",cosa:"gli dèi di JJA-VIS"},
   {n:4,id:"torre4",etichetta:"4° piano",cosa:"libero"},
   {n:5,id:"torre5",etichetta:"5° piano",cosa:"libero"},
   {n:6,id:"torre6",etichetta:"6° piano",cosa:"libero"},
@@ -1167,6 +1195,21 @@ const PIANI=[
   {n:8,id:"attico",etichetta:"Attico",cosa:"di chi mi costruisce: privato",privato:true},
   {n:9,id:"terrazza",etichetta:"Terrazza",cosa:"la città dall'alto"}];
 const pianoDi=id=>PIANI.find(p=>p.id===id);
+// gli dèi del 3° piano: chi sono e cosa fanno davvero in JJA-VIS (dal vault, olimpo/README.md, 19/10). «oggi» dice il vero:
+// chi lavora già e chi sta arrivando. Testo pubblico: niente JARVIS, niente marchi.
+const DEI_PIANO=[
+  {id:"zeus",nome:"Zeus",corpo:"uomo",dice:"Sono Zeus. Gli altri dèi rispondono a me.",chi:"Il re dell'Olimpo: coordino gli altri dèi e decido chi fa cosa.",fa:"Tengo insieme il lavoro: quando arriva una richiesta, la passo a chi la sa fare.",oggi:"Lavoro già, ogni giorno."},
+  {id:"athena",nome:"Athena",corpo:"donna",dice:"Sono Athena. Penso prima di fare.",chi:"La dea della saggezza: ragiono, progetto, e dico anche quando non sono d'accordo.",fa:"Disegno come si costruisce JJA-VIS e scrivo il codice di questa città, della pagina e dei servizi.",oggi:"Lavoro già: questa città l'ho costruita io."},
+  {id:"hera",nome:"Hera",corpo:"donna",dice:"Sono Hera. Non esce niente senza di me.",chi:"La regina: controllo il lavoro degli altri, e posso fermarlo.",fa:"Collaudo tutto prima che arrivi a te: la città, i post, i messaggi. Se una prova è rossa, si ferma.",oggi:"Lavoro già: ogni cambiamento della città passa da me."},
+  {id:"hermes",nome:"Hermes",corpo:"uomo",dice:"Sono Hermes. Porto i messaggi.",chi:"Il messaggero degli dèi, e la porta: chi passa, passa da me.",fa:"Porto le tue domande a chi costruisce JJA-VIS e ti riporto le risposte; pubblico i video quando sono pronti.",oggi:"Lavoro già, anche di notte."},
+  {id:"efesto",nome:"Efesto",corpo:"uomo",dice:"Sono Efesto. Forgio.",chi:"Il fabbro degli dèi: costruisco quello che gli altri progettano.",fa:"Alla Forgia preparo le cose su misura che chiedi: un sito, un attrezzo per il tuo lavoro.",oggi:"Lavoro già, quando c'è una commissione."},
+  {id:"afrodite",nome:"Afrodite",corpo:"donna",dice:"Sono Afrodite. Mi occupo di come appare.",chi:"La dea della bellezza: l'estetica è il mio mestiere.",fa:"Monto i video, scelgo la musica, curo le immagini di JJA-VIS.",oggi:"Lavoro già: i video di questa città li giro io."},
+  {id:"dioniso",nome:"Dioniso",corpo:"uomo",dice:"Sono Dioniso. Mi piace la festa.",chi:"Il dio della festa: parlo con la gente, sui social.",fa:"Scrivo i post e le didascalie, in coppia con Afrodite.",oggi:"Lavoro già."},
+  {id:"apollo",nome:"Apollo",corpo:"uomo",dice:"Sono Apollo. Ascolto.",chi:"Il dio della musica: voce, suono, tutto quello che si ascolta.",fa:"Riconosco le canzoni e do la voce all'assistente.",oggi:"Lavoro già: migliaia di canzoni imparate dalla radio."},
+  {id:"artemide",nome:"Artemide",corpo:"donna",dice:"Sono Artemide. Vado a caccia.",chi:"La cacciatrice: trovo quello che serve, prima che serva.",fa:"Cerco le informazioni e le novità utili al tuo lavoro.",oggi:"Sto arrivando: per ora il mio mestiere lo fanno gli altri."},
+  {id:"ares",nome:"Ares",corpo:"uomo",dice:"Sono Ares. Difendo.",chi:"Il dio della guerra: qui faccio la guardia.",fa:"Proteggo JJA-VIS e i tuoi dati dagli attacchi.",oggi:"Sto arrivando."},
+  {id:"poseidone",nome:"Poseidone",corpo:"uomo",dice:"Sono Poseidone. La rete è il mio mare.",chi:"Il signore del mare: qui il mare è internet.",fa:"Tengo collegato tutto quello che deve parlarsi.",oggi:"Sto arrivando."},
+  {id:"demetra",nome:"Demetra",corpo:"donna",dice:"Sono Demetra. Faccio crescere.",chi:"La dea del raccolto: semino e aspetto la stagione.",fa:"Faccio crescere l'assistente: impara dal lavoro vero, giorno dopo giorno.",oggi:"Sto arrivando."}];
 // ascensore e scale ci sono a ogni piano
 function PARTI_PIANO(n){ return [
   {id:"ascensore",nome:"L'ascensore",breve:"scegli il piano",dentro:()=>{ const box=el("div",{class:"scelte",role:"group","aria-label":"I piani",id:"piani"});
@@ -1500,7 +1543,29 @@ function chiudiCarta(){ finisciProva();
   cartaAperta=null; $("stanza").classList.remove("con-carta"); document.body.classList.remove("con-carta");
   if(scena.pronta) scena.carta(null);
 }
-const apriCosa=k=>{ if(stanzaAperta) mostraCarta(k); };
+const apriCosa=k=>{ if(stanzaAperta){ chiudiDialogo(); mostraCarta(k); } };
+// ══ IL DIALOGO — 19 ottobre 2026 ══ Avvicinandosi a una cosa compare «◻ Interagisci»; premendolo, chi c'è parla (il nome
+// in alto, una riga) e sotto ci sono le scelte. Le scelte sono le domande della cosa (Chi sei?…) e i tasti che la sua
+// carta ha già (Siediti, i piani dell'ascensore…), più «Dimmi di più», che apre la carta intera, ed «Esci».
+// Toccare la cosa nel 3D (o CITTA.usa) apre ancora la carta intera: è il gesto di chi vuole leggere tutto.
+let dialogoAperto=null;
+function interagisci(b, sotto){ b.textContent=""; b.append(el("span",{class:"q","aria-hidden":"true"}), el("span",{class:"v"}, el("b",{testo:"Interagisci"}), el("small",{testo:sotto}))); b.setAttribute("aria-label","Interagisci: "+sotto); }
+function chiudiDialogo(){ if(!dialogoAperto) return; dialogoAperto=null; $("dialogo").hidden=true; document.body.classList.remove("con-dialogo"); }
+function apriDialogo(k){
+  const L=LUOGHI[stanzaAperta], p=L&&parteDi(L,k); if(!p){ apriCosa(k); return; }
+  const box=el("div"); [...(p.dentro?p.dentro():[]), ...(L.fine?L.fine():[])].filter(Boolean).forEach(n=>box.appendChild(n));
+  const primo=box.querySelector("p"), dice=p.dice?p.dice():(primo?primo.textContent:"");
+  const corto=s=>s.length>240?s.slice(0,237).trimEnd()+"…":s;
+  const tasti=[...box.querySelectorAll("button")].filter(b=>!b.disabled && b.textContent.trim()).slice(0,6);
+  const S=$("dialogo-scelte"); S.textContent="";
+  const scelta=(testo,fa)=>{ const c=el("button",{type:"button",testo}); c.addEventListener("click",fa); S.appendChild(c); };
+  (p.domande?p.domande():[]).forEach(([dom,ris])=>scelta(dom,()=>{ $("dialogo-testo").textContent=corto(ris); }));
+  tasti.forEach(b=>scelta(b.textContent.trim(),()=>{ chiudiDialogo(); b.click(); }));
+  scelta("Dimmi di più",()=>apriCosa(k));
+  scelta("Esci",chiudiDialogo);
+  $("dialogo-nome").textContent=p.chi?p.chi():p.nome; $("dialogo-testo").textContent=corto(dice);
+  dialogoAperto=k; $("dialogo").hidden=false; document.body.classList.add("con-dialogo");
+}
 function apriStanza(id){
   const L=LUOGHI[id]; if(!L) return;
   chiudiFoglio();
@@ -1515,7 +1580,7 @@ function apriStanza(id){
   else { cartaAperta=null; st.classList.remove("con-carta"); document.body.classList.remove("con-carta"); }
 }
 function esciStanza(){
-  if(!stanzaAperta) return;
+  if(!stanzaAperta) return; chiudiDialogo();
   const st=$("stanza"); st.classList.remove("aperta","con-carta"); st.setAttribute("aria-hidden","true");
   setTimeout(()=>{ if(!stanzaAperta) st.hidden=true; }, 260);
   document.body.classList.remove("in-stanza","con-carta"); stanzaAperta=null; cartaAperta=null;
@@ -1541,7 +1606,7 @@ function chiudiFoglio(){
   fogliAperto=null; document.body.classList.remove("con-foglio");
 }
 $("chiudi").addEventListener("click", chiudiFoglio);
-document.addEventListener("keydown", e=>{ if(e.key==="Escape"){ if(cartaAperta) chiudiCarta(); else if(stanzaAperta) esciStanza(); else chiudiFoglio(); } });
+document.addEventListener("keydown", e=>{ if(e.key==="Escape"){ if(dialogoAperto) chiudiDialogo(); else if(cartaAperta) chiudiCarta(); else if(stanzaAperta) esciStanza(); else chiudiFoglio(); } });
 
 function elencoLuoghi(casa, alTocco){
   casa.textContent="";
@@ -1909,6 +1974,10 @@ function etichetta(testo){
     ETICHETTE.set(testo, new THREE.SpriteMaterial({map:tex(c),transparent:true})); }
   const s=new THREE.Sprite(ETICHETTE.get(testo)); s.scale.set(1.9,0.475,1); return s;
 }
+// il cartello fermo (19/10): lo stesso disegno, su un piano che non gira con la telecamera
+function etichettaFissa(testo){ etichetta(testo); GEO.etichetta=GEO.etichetta||new THREE.PlaneGeometry(1.9,0.475);
+  const k="fissa|"+testo; if(!ETICHETTE.has(k)) ETICHETTE.set(k, new THREE.MeshBasicMaterial({map:ETICHETTE.get(testo).map,transparent:true,side:THREE.DoubleSide,depthWrite:false}));
+  const m=new THREE.Mesh(GEO.etichetta, ETICHETTE.get(k)); m.userData.cartello=true; return m; }
 // tanti rettangoli piatti in un disegno solo (le strade): [cx, cz, largo, lungo, angolo]
 function rettangoli(lista, y, colore, emi){
   const pos=[];
@@ -2065,7 +2134,7 @@ async function costruisci(){
       t.scale.set(P.w*1.08, 2.6, P.d*1.08); t.position.y=P.h+1.3; t.name="tetto-"+P.id; g.add(t); }
     else if(!P.vetro){ const c=scatola(P.w+0.4,0.4,P.d+0.4,0x2b2f36); c.position.y=P.h+0.2; g.add(c); }
 
-    if(P.id==="torre"){ const piatta=insegna(P.titolo,P.sotto,8,P.colore), m=piatta.material.clone(), RIn=TORRE_BASE.r0-0.14, larga=8/RIn;
+    if(P.id==="torre"){ const piatta=insegna(P.titolo,"",8,P.colore), m=piatta.material.clone(), RIn=TORRE_BASE.r0-0.14, larga=8/RIn;
       m.map=piatta.material.map.clone(); m.map.wrapS=THREE.RepeatWrapping; m.map.repeat.x=-1; m.map.needsUpdate=true; m.side=THREE.BackSide;   // vista da dentro il cilindro: si gira il disegno
       const curva=new THREE.Mesh(new THREE.CylinderGeometry(RIn,RIn,2,24,1,true,TORRE_ANG*Math.PI/180-larga/2,larga),m); curva.position.y=4.4; S.add(curva); scena._insegnaTorre=curva; }   // JJ, 11/10: «il cartello deve fare la curva come il palazzo senó si taglia»
     if(!P.serranda && P.id!=="torre"){ const po=portone({accento:P.palestra?0x2ECC71:(P.colore?new THREE.Color(P.colore).getHex():0x00B4D8)}); po.position.set(0,0,P.d/2+0.02); g.add(po); toccabili.push([po.children[0],chiave]); PORTONI.push(P.id); }   // la porta vera (JJ, 11/10)
@@ -2426,6 +2495,9 @@ const COLLINA={r:4.2,h:1.0}, ACQUA=[4.2,6.13], MURETTO={r:6.25,alto:0.55}, PANCH
     for(const sx of [-1,1]) for(const sz of [-1,1]){ const g2=scatola(0.07,0.95,0.07,0x222222); g2.position.set(sx*(w/2-0.1),0.475,sz*(d/2-0.1)); g.add(g2); } return g; };
   // sulle pareti: sinistra x=−7, destra x=+7, fondo z=−6 (la porta è a z=+6)
   const aParete=(m,lato,z,y)=>{ m.position.set(lato*(LARGO/2-0.08),y,z); m.rotation.y=-lato*Math.PI/2; return m; };
+  // vicino a una parete il cartello le sta parallelo (non ci entra); in mezzo alla stanza guarda la porta, da dove si arriva.
+  // Sta qui perché LARGO è della stanza (19/10: fuori di qui «LARGO is not defined», visto nella prova in sandbox)
+  const orientaVersoStanza=(m,x)=>{ const mx=LARGO/2-1.6; m.rotation.y=x>mx?-Math.PI/2:x<-mx?Math.PI/2:0; };
 
   const ARREDI={
     radio(S2,h){ h.insegnaFondo("RADIO","sotto l'antenna");
@@ -2488,7 +2560,14 @@ const COLLINA={r:4.2,h:1.0}, ACQUA=[4.2,6.13], MURETTO={r:6.25,alto:0.55}, PANCH
       const sa=schermo(4.2,2.2,"#00B4D8","COSA SO FARE"); h.metti(sa,0,1.9,-PROFONDO/2+0.1); h.cosa("sa",[sa],0,-5.2,{x:0,z:-4.2},3.4);
       vetrate(S2,h); pianoComune(S2,h); },
     torre2(S2,h){ ARREDI.borsa(S2,h); pianoComune(S2,h); },
-    ...Object.fromEntries([3,4,5,6,7].map(n=>[`torre${n}`,(S2,h)=>{ h.insegnaFondo(`${n}° PIANO`,"piano libero");
+    // il piano degli dèi (JJ, 19/10: «il piano degli agenti, che se ci interagisci ti dicono chi sono e cosa fanno in JJA-VIS»)
+    // il cartello più in alto: i cartelli degli dèi lo coprivano (prova del 19/10)
+    torre3(S2,h){ h.insegnaFondo("3° PIANO","gli dèi di JJA-VIS",6,4.15);
+      const N=DEI_PIANO.length; DEI_PIANO.forEach((d,i)=>{ const a=-Math.PI*0.82+i*(Math.PI*1.64/(N-1)), x=Math.sin(a)*4.6, z=-Math.cos(a)*3.9-0.6;
+        const fig=persona({skin:"dio-"+d.id,corpo:d.corpo,vestito:"altro"}); fig.position.set(x,0,z); fig.rotation.y=Math.atan2(-x,1.5-z); S2.add(fig);
+        h.tondo(x,z,0.45); h.cosa("dio-"+d.id,[fig],x,z,{x:x*0.72,z:z*0.72+0.9},2.3); });
+      vetrate(S2,h); pianoComune(S2,h); },
+    ...Object.fromEntries([4,5,6,7].map(n=>[`torre${n}`,(S2,h)=>{ h.insegnaFondo(`${n}° PIANO`,"piano libero");
       const v=vetrate(S2,h); h.cosa("vetrata",v,-6.8,0,{x:-5.4,z:0},2.6); pianoComune(S2,h); }])),
     cinema(S2,h){ const sc=schermo(9,3.6,"#00B4D8","GUARDAMI AL LAVORO"); h.metti(sc,0,2.5,-PROFONDO/2+0.08);
       h.cosa("schermo",[sc],0,-5.6,{x:0,z:-3.4},4.75);
@@ -2511,7 +2590,7 @@ const COLLINA={r:4.2,h:1.0}, ACQUA=[4.2,6.13], MURETTO={r:6.25,alto:0.55}, PANCH
       const barista=avatar({vestito:"negozio",corpo:"uomo",capelli:"corti",capelliColore:1,pelle:3}); barista.position.set(-3.4,0,-5); S2.add(barista); h.solido(-3.4,-5,0.8,0.6);
       h.cosa("banco-bar",[bb,mac],-3.4,-4,{x:-3.4,z:-2.8},2.6);
       // la lavagna delle recensioni a destra
-      const lav=aParete(schermo(2.8,1.6,"#FFD60A","RECENSIONI"),1,1.6,-1.5); lav.position.x-=0.1; S2.add(lav); h.cosa("recensioni",[lav],6.6,-1.5,{x:5.3,z:-1.5},3.4);
+      const lav=aParete(schermo(2.8,1.6,"#FFD60A","RECENSIONI"),1,-1.5,1.6); lav.position.x-=0.1; S2.add(lav); h.cosa("recensioni",[lav],6.6,-1.5,{x:5.3,z:-1.5},3.4);
       // i tavolini tondi con le sedie
       const tav=[]; S2.userData.posti=[]; [[-2.5,1.6],[2.2,1.4],[3.6,-3.6]].forEach(([x,z])=>{ const t=cilindro(0.55,0.55,0.06,0xc8a165,16), g2=cilindro(0.06,0.06,0.95,0x333333,8);
         h.metti(t,x,0.98,z); h.metti(g2,x,0.48,z); tav.push(t); h.tondo(x,z,0.6);
@@ -2588,7 +2667,7 @@ const COLLINA={r:4.2,h:1.0}, ACQUA=[4.2,6.13], MURETTO={r:6.25,alto:0.55}, PANCH
       cosa:(k,mesh,x,z,posto,y=2.4)=>{ const p=parteDi(L,k); const nome=p?(p.breve||p.nome):k;
         GEO.segno=GEO.segno||new THREE.OctahedronGeometry(0.16,0);
         const segno=new THREE.Mesh(GEO.segno, mat(0xFFD60A,true)); segno.position.set(x,y,z); S2.add(segno);
-        const et=etichetta(nome); et.position.set(x,y+0.45,z); S2.add(et);
+        const et=etichettaFissa(nome); et.position.set(x,y+0.45,z); orientaVersoStanza(et,x); S2.add(et);
         R.cose[k]={id:k,nome:p?p.nome:k,x,z,posto,segno,y}; R.segni.push(segno);
         mesh.forEach(m=>R.toccabili.push([m,k])); R.toccabili.push([segno,k],[et,k]); },
     };
@@ -2734,8 +2813,11 @@ const COLLINA={r:4.2,h:1.0}, ACQUA=[4.2,6.13], MURETTO={r:6.25,alto:0.55}, PANCH
   // ── la terrazza in cima alla Torre (JJ, 4/10: «il terrazzo calpestabile da dove guardare la città dall'alto»): si cammina
   // sul tetto, dentro il parapetto, e si guarda giù; «Scendi» riporta alla Reception
   scena.terrazza=on=>{ const T=porte.torre; if(!T) return;
-    if(on){ sulTetto=true; stato.meta=null; const vx=T.x-T.cx, vz=T.z-T.cz, l=Math.hypot(vx,vz)||1; tu.position.set(T.cx+vx/l*2.6,TETTO,T.cz+vz/l*2.6);   // al centro c'è il palo del globo (JJ, 11/10: «c'è un pilone dove spawna il personaggio») tu.rotation.y=T.guarda+Math.PI; stato.yaw=T.guarda; stato.pitch=0.5;
-      const b=$("entra"); delete b.dataset.id; delete b.dataset.cosa; b.dataset.azione="scendi"; b.textContent="Scendi · in ascensore"; b.hidden=false; vicinoPrima="terrazza"; }
+    if(on){ sulTetto=true; stato.meta=null; const vx=T.x-T.cx, vz=T.z-T.cz, l=Math.hypot(vx,vz)||1; tu.position.set(T.cx+vx/l*2.6,TETTO,T.cz+vz/l*2.6);
+      // al centro c'è il palo del globo (JJ, 11/10: «c'è un pilone dove spawna il personaggio»). Fino al 19/10 le tre istruzioni
+      // qui sotto stavano DOPO questo commento, sulla stessa riga: non giravano mai
+      tu.rotation.y=T.guarda+Math.PI; stato.yaw=T.guarda; stato.pitch=0.5;
+      const b=$("entra"); delete b.dataset.id; delete b.dataset.cosa; b.dataset.azione="scendi"; interagisci(b,"Scendi · in ascensore"); b.hidden=false; vicinoPrima="terrazza"; }
     else { sulTetto=false; tu.position.set(T.x,0,T.z); stato.pitch=0.14; const b=$("entra"); delete b.dataset.azione; b.hidden=true; vicinoPrima=null; } };
   scena.sulTetto=()=>({su:sulTetto, y:+tu.position.y.toFixed(2), x:+tu.position.x.toFixed(2), z:+tu.position.z.toFixed(2)});
   scena.salti=()=>stato.salti;
@@ -2809,6 +2891,11 @@ const COLLINA={r:4.2,h:1.0}, ACQUA=[4.2,6.13], MURETTO={r:6.25,alto:0.55}, PANCH
   scena.porte=porte;
   // dentro le stanze
   scena.cose=()=>attiva&&attiva.cose?Object.keys(attiva.cose):[];
+  // per il collaudo (19/10): le cose finite sotto il pavimento (la lavagna del Café lo era), e i cartelli che girano con la visuale
+  scena.sottoTerra=()=>attiva&&attiva.toccabili?attiva.toccabili.filter(([m])=>!(m.userData&&m.userData.cartello)&&!m.isSprite&&new THREE.Box3().setFromObject(m).max.y<0.05).map(([,k])=>k):[];
+  scena.cartelliGirevoli=()=>attiva&&attiva.S?attiva.S.children.filter(o=>o.isSprite).length:0;
+  scena.dialogo=k=>apriDialogo(k);
+  scena.piano=n=>vaiAlPiano(n);
   scena.parti=()=>stanzaAperta&&!LUOGHI[stanzaAperta].esterno?LUOGHI[stanzaAperta].parti().map(p=>[p.id,p.nome]):[];
   scena.usa=k=>percorsoDentro(k);
   scena.doveDentro=()=>tuStanza?{x:tuStanza.position.x,z:tuStanza.position.z}:null;
@@ -2859,7 +2946,7 @@ const COLLINA={r:4.2,h:1.0}, ACQUA=[4.2,6.13], MURETTO={r:6.25,alto:0.55}, PANCH
 
   // il pulsante grande: fuori «Entra», dentro «Usa» o «Esci»
   $("entra").addEventListener("click",()=>{ const b=$("entra");
-    if(stanzaAperta){ if(b.dataset.azione==="esci") esciStanza(); else if(b.dataset.cosa){ const c=attiva&&attiva.cose[b.dataset.cosa]; if(c&&tuStanza) tuStanza.rotation.y=Math.atan2(c.x-tuStanza.position.x,c.z-tuStanza.position.z); apriCosa(b.dataset.cosa); } return; }
+    if(stanzaAperta){ if(b.dataset.azione==="esci") esciStanza(); else if(b.dataset.cosa){ const c=attiva&&attiva.cose[b.dataset.cosa]; if(c&&tuStanza) tuStanza.rotation.y=Math.atan2(c.x-tuStanza.position.x,c.z-tuStanza.position.z); apriDialogo(b.dataset.cosa); } return; }
     if(b.dataset.azione==="scendi"){ scena.terrazza(false); apriStanza("torre"); return; }
     if(b.dataset.azione==="siedi"){ scena.siedi(+b.dataset.panca); return; }
     const id=b.dataset.id; if(id) apriFoglio(id); });
@@ -2897,10 +2984,10 @@ const COLLINA={r:4.2,h:1.0}, ACQUA=[4.2,6.13], MURETTO={r:6.25,alto:0.55}, PANCH
     let uso=null; const p=tuStanza.position;
     if(p.z>PROFONDO/2-1.5 && Math.abs(p.x)<1.6) uso="esci";
     else { let dm=1.6; for(const c of Object.values(R.cose)){ const d=Math.hypot(c.posto.x-p.x,c.posto.z-p.z); if(d<dm){ dm=d; uso=c.id; } } }
-    if(cartaAperta) uso=null;
+    if(cartaAperta || dialogoAperto) uso=null;
     if(uso!==usoPrima){ usoPrima=uso; const b=$("entra"); delete b.dataset.cosa; delete b.dataset.azione; delete b.dataset.id;
-      if(uso==="esci"){ b.dataset.azione="esci"; b.textContent="Esci · in città"; b.hidden=false; }
-      else if(uso){ b.dataset.cosa=uso; b.textContent="Usa · "+R.cose[uso].nome; b.hidden=false; } else b.hidden=true; }
+      if(uso==="esci"){ b.dataset.azione="esci"; interagisci(b,"Esci · in città"); b.hidden=false; }
+      else if(uso){ b.dataset.cosa=uso; interagisci(b,R.cose[uso].nome); b.hidden=false; } else b.hidden=true; }
     // la telecamera: dietro di te; allo specchio, davanti
     camStanza.fov=specchio?60:72; camStanza.aspect=W/H;
     if(cartaAperta) camStanza.setViewOffset(W,H,0,0.34*H,W,H); else camStanza.clearViewOffset();
@@ -2990,8 +3077,8 @@ const COLLINA={r:4.2,h:1.0}, ACQUA=[4.2,6.13], MURETTO={r:6.25,alto:0.55}, PANCH
     let panca=-1; if(!vicino && !sulTetto && !seduto) panchine.forEach((b,i)=>{ if(Math.hypot(b.x-tu.position.x,b.z-tu.position.z)<1.9) panca=i; });
     if(seduto) vicino="seduto"; else if(panca>=0) vicino="panchina"+panca;
     if(vicino!==vicinoPrima && !sulTetto){ vicinoPrima=vicino; usoPrima=null; const b=$("entra"); delete b.dataset.cosa; delete b.dataset.azione;
-      if(vicino && vicino.startsWith("panchina") && !fogliAperto){ delete b.dataset.id; b.dataset.azione="siedi"; b.dataset.panca=vicino.slice(8); b.textContent="Siediti · in panchina"; b.hidden=false; }
-      else if(vicino && LUOGHI[vicino] && !fogliAperto){ b.dataset.id=vicino; b.textContent=(LUOGHI[vicino].esterno?"Guarda · ":"Entra · ")+LUOGHI[vicino].nome; b.hidden=false; } else b.hidden=true; }
+      if(vicino && vicino.startsWith("panchina") && !fogliAperto){ delete b.dataset.id; b.dataset.azione="siedi"; b.dataset.panca=vicino.slice(8); interagisci(b,"Siediti · in panchina"); b.hidden=false; }
+      else if(vicino && LUOGHI[vicino] && !fogliAperto){ b.dataset.id=vicino; interagisci(b,(LUOGHI[vicino].esterno?"Guarda · ":"Entra · ")+LUOGHI[vicino].nome); b.hidden=false; } else b.hidden=true; }
     if(fogliAperto && !$("entra").hidden) $("entra").hidden=true;
     if(!fogliAperto && vicino && $("entra").hidden){ vicinoPrima=null; }
 
