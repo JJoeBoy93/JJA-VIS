@@ -2069,7 +2069,7 @@ async function costruisci(){
   const PALAZZI=[
     {id:"sartoria", ang:22.5, w:9, d:7,h:7,muro:"#c99a8a",vetrine:1,tetto:"falde",titolo:"SARTORIA",sotto:"vesti il tuo avatar"},
     {id:"ristorante",ang:67.5,w:11,d:10,h:8,muro:"#7a3b2a",porta:true,vetrine:1,tetto:"falde",titolo:"RISTORANTE",sotto:"alla cassa: il menù",colore:"#FFD60A",ristorante:true},
-    {id:"cafe",     ang:112.5, w:11,d:9,h:9,muro:"#b5654a",porta:true,tetto:"piano",titolo:"JJA-VIS CAFÈ",sotto:"colazione · recensioni · due chiacchiere",orologio:true},
+    {id:"cafe",     ang:112.5, w:11,d:9,h:9,muro:"#b5654a",porta:true,tetto:"piano",titolo:"JJA-VIS CAFÉ",sotto:"colazione · recensioni · due chiacchiere",orologio:true},
     {id:"cinema",   ang:157.5,w:11,d:9,h:8,muro:"#3b2a4f",porta:true,tetto:"piano",titolo:"CINEMA",sotto:"guardami al lavoro",colore:"#FFD60A"},
     {id:"giochi",   ang:202.5,w:10,d:9,h:8,muro:"#24123a",porta:true,tetto:"piano",titolo:"SALA GIOCHI",sotto:"i giochi di chi mi costruisce",colore:"#ff4fd8",neon:true},
     {id:"bottega",  ang:247.5,w:13,d:9,h:7,muro:"#e3cfa8",vetrine:1,tetto:"falde",titolo:"BOTTEGA",sotto:"i prodotti di JJA-VIS",tenda:true},
@@ -2581,7 +2581,7 @@ const COLLINA={r:4.2,h:1.0}, ACQUA=[4.2,6.13], MURETTO={r:6.25,alto:0.55}, PANCH
       const bb=scatola(1.4,1.1,0.8,0x3b2a4f); h.metti(bb,-3.0,0.55,5.0); h.metti(scatola(1.42,0.06,0.82,0xFFD60A,true),-3.0,1.12,5.0); h.solido(-3.0,5.0,1.4,0.8);
       const cartello=schermo(1.6,0.6,"#FFD60A","BIGLIETTI"); h.metti(cartello,-3.0,2.0,5.38,Math.PI);
       h.cosa("biglietteria",[bb,cartello],-3.0,5.0,{x:-1.8,z:4.6},2.6); },
-    cafe(S2,h){ h.insegnaFondo("JJA-VIS CAFÈ","colazione · recensioni · due chiacchiere");
+    cafe(S2,h){ h.insegnaFondo("JJA-VIS CAFÉ","colazione · recensioni · due chiacchiere");
       // il bancone del bar in fondo a sinistra, con la vetrina delle brioche e la macchina del caffè
       const bb=scatola(4,1.1,0.9,0x6b4a2e); h.metti(bb,-3.4,0.55,-4); h.metti(scatola(4.1,0.06,1,0xc8a165),-3.4,1.13,-4); h.solido(-3.4,-4,4,0.9);
       const vetr=scatola(1.4,0.5,0.7,0xcfeaf2); vetr.material=vetr.material.clone(); vetr.material.transparent=true; vetr.material.opacity=0.5; h.metti(vetr,-4.5,1.4,-4);
