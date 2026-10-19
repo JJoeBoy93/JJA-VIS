@@ -1225,6 +1225,18 @@ const CHIAVE="jjavis-io";
 let io={};
 try{ io=JSON.parse(localStorage.getItem(CHIAVE)||"{}")||{}; }catch(_){ io={}; }
 const salva=()=>{ try{ localStorage.setItem(CHIAVE, JSON.stringify(io)); }catch(_){} };
+// Ritrovarsi da qualsiasi telefono (JJ, 19/10: Jessica «non si ricorda più chi è e gli richiede tutto da capo»): ogni mail
+// porta il link personale ?chi=…&k=…; qui si chiede alla porta chi sei, si rimette nel telefono e si riapre la pagina pulita.
+// Finché non ha risposto la pagina resta nascosta: niente «come vuoi chiamarmi?» a chi è già di casa.
+(()=>{ const q=new URLSearchParams(location.search), chi=q.get("chi"), k=q.get("k"); if(!chi||!k) return;
+  const pulita=location.pathname+location.hash; document.documentElement.style.visibility="hidden";
+  const fine=()=>{ document.documentElement.style.visibility=""; history.replaceState(null,"",pulita); };
+  fetch(INVIO.replace("/risposta","/io")+"?chi="+encodeURIComponent(chi)+"&k="+encodeURIComponent(k)).then(r=>r.ok?r.json():null).then(d=>{
+    if(!d||!d.io){ fine(); return; }
+    const stessa=io.id===d.io.id; io={...(stessa?io:{}), id:d.io.id};
+    for(const c of ["nome","mestiere","tema","tuo"]) if(d.io[c]) io[c]=d.io[c];
+    salva(); location.replace(pulita);
+  }).catch(fine); })();
 function applicaTema(t){
   if(t==="tech") document.documentElement.removeAttribute("data-tema"); else document.documentElement.setAttribute("data-tema",t);
   document.querySelectorAll(".tema").forEach(b=>b.setAttribute("aria-pressed", String(b.dataset.tema===t)));
