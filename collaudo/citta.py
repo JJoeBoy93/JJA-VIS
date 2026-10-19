@@ -372,7 +372,7 @@ async def main():
                 await p.click("#chiudi-carta"); await p.wait_for_timeout(300); f = await foglio(p)   # di nuovo la scheda intera
             if n == "La Torre":
                 prova("la Reception è dentro la Torre e saluta col nome; al piano terra il globo, la hall, l'ascensore e le scale (JJ, 10/10)", "Ettore" in f["testo"]
-                      and set(await p.evaluate("window.CITTA.cose()")) == {"globo", "hall", "ascensore", "scale"}, [f["testo"][:80], await p.evaluate("window.CITTA.cose()")])
+                      and set(await p.evaluate("window.CITTA.cose()")) == {"globo", "ascensore", "scale"}, [f["testo"][:80], await p.evaluate("window.CITTA.cose()")])
                 await p.click("#stanza button:has-text('Parla con Ettore')"); await p.wait_for_timeout(400)
                 prova("«Parla con Ettore» apre la chat in città, non la pagina", await p.is_visible("#nova") and p.url.endswith("citta.html")
                       and await p.inner_text("#nova-titolo") == "Ettore", p.url)
@@ -403,16 +403,18 @@ async def main():
                 # il 3° piano: gli dèi
                 await p.evaluate("window.CITTA.piano(3)"); await p.wait_for_function("document.getElementById('stanza-nome').textContent==='La Torre · 3° piano'", timeout=30000)
                 cose3 = await p.evaluate("window.CITTA.cose()")
-                prova("al 3° piano ci sono i dodici dèi, ognuno una cosa con cui parlare", sum(1 for k in cose3 if k.startswith("dio-")) == 12, cose3)
+                prova("al 3° piano ci sono sei dèi alle scrivanie, ognuno una cosa con cui parlare", sum(1 for k in cose3 if k.startswith("dio-")) == 6, cose3)
                 await p.evaluate("window.CITTA.dialogo('dio-hera')"); await p.wait_for_timeout(200)
                 prova("Hera dice chi è", await p.inner_text("#dialogo-nome") == "Hera" and "Hera" in await p.inner_text("#dialogo-testo"))
                 await p.click("#dialogo-scelte button:has-text('Cosa fai in JJA-VIS?')")
                 prova("e cosa fa in JJA-VIS", "Collaudo" in await p.inner_text("#dialogo-testo"))
+                prova("si accende il tasto premuto, non il primo", await p.evaluate("[...document.querySelectorAll('#dialogo-scelte button')].filter(b=>b.classList.contains('premuto')).map(b=>b.textContent)") == ["Cosa fai in JJA-VIS?"])
                 await p.click("#dialogo-scelte button:has-text('Dimmi di più')"); await p.wait_for_timeout(300)
-                prova("«Dimmi di più» apre la carta intera e chiude il dialogo", await p.evaluate("document.getElementById('stanza').classList.contains('con-carta')") and not await p.is_visible("#dialogo"))
+                prova("«Dimmi di più» resta nel dialogo: tutto il testo, niente mezza carta (JJ, 19/10: «devono essere tutte uguali»)", await p.is_visible("#dialogo")
+                      and not await p.evaluate("document.getElementById('stanza').classList.contains('con-carta')") and "Lavoro già" in await p.inner_text("#dialogo-testo"))
+                await p.click("#dialogo-scelte button:has-text('Esci')")
                 testi_dei = await p.evaluate("JSON.stringify(window.CITTA.parti())")
                 prova("al piano degli dèi nessun nome privato (JARVIS) né marchi", not re.search(r"jarvis|fortnite", testi_dei, re.I))
-                await p.click("#chiudi-carta"); await p.wait_for_timeout(200)
                 await p.evaluate("window.CITTA.piano(0)"); await p.wait_for_timeout(600)
             if n == "Bottega":
                 await foto(p, "04-bottega")
@@ -597,7 +599,7 @@ async def main():
         # 3d1c. la Torre a dieci piani (JJ, 4/10): ascensore, scale, la Borsa al 2°, l'attico privato, la terrazza
         await vai(p, "La Torre")
         ms_ = await p.evaluate("window.CITTA.misureStanza()"); cs_ = await p.evaluate("window.CITTA.cose()")
-        prova("il piano terra della Torre è largo (24×14) e ci sono reception col globo, hall, ascensore e scale (JJ, 10/10)", ms_ == [24, 14] and {"globo", "hall", "ascensore", "scale"} <= set(cs_), [ms_, cs_])
+        prova("il piano terra della Torre è largo (24×14) e ci sono reception col globo, ascensore e scale; la hall non parla più (JJ, 19/10)", ms_ == [24, 14] and {"globo", "ascensore", "scale"} <= set(cs_) and "hall" not in cs_, [ms_, cs_])
         prova("per terra, nel cerchio azzurro della Torre, c'è l'icona di JJA-VIS", await p.evaluate("window.CITTA.iconaPerTerra()"))
         await usa(p, "ascensore", "L'ascensore")
         prova("l'ascensore ha i dieci piani, e l'attico non si può scegliere", await p.evaluate("document.querySelectorAll('#piani .scelta').length") == 10
@@ -616,10 +618,10 @@ async def main():
             await usa(p, "ascensore", "L'ascensore")
             await p.click(f"#piani .scelta:has-text('{k}° piano')")
             await p.wait_for_function(f"document.getElementById('stanza-nome').textContent==='La Torre · {k}° piano' && window.CITTA.cose().length>0", timeout=20000)
-            attese = ({f"dio-{d}" for d in ("zeus", "athena", "hera", "hermes", "efesto", "afrodite", "dioniso", "apollo", "artemide", "ares", "poseidone", "demetra")}
-                      if k == 3 else {"vetrata"}) | {"ascensore", "scale"}
+            attese = ({f"dio-{d}" for d in ("zeus", "athena", "hera", "hermes", "efesto", "afrodite")} if k == 3 else
+                      {f"dio-{d}" for d in ("dioniso", "apollo", "artemide", "ares", "poseidone", "demetra")} if k == 4 else {"vetrata"}) | {"ascensore", "scale"}
             if set(await p.evaluate("window.CITTA.cose()")) != attese: senza.append(k)
-        prova("i piani dal 3° al 7° ci sono: al 3° gli dèi (19/10), dal 4° al 7° liberi con la vetrata; tutti con ascensore e scale", not senza, senza)
+        prova("i piani dal 3° al 7° ci sono: al 3° e al 4° gli dèi, sei per piano alle scrivanie (19/10), dal 5° al 7° liberi con la vetrata; tutti con ascensore e scale", not senza, senza)
         await usa(p, "ascensore", "L'ascensore")
         await p.click("#piani .scelta:has-text('Terrazza')"); await p.wait_for_timeout(1500)
         tt = await p.evaluate("window.CITTA.sulTetto()")
