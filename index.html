@@ -292,6 +292,40 @@ body.con-nome[data-scheda="inizia"] #esito-chat{margin:6px 0 0}
 </style>
 </head>
 <body>
+<!-- 19/10, JJ: «prima di entrare devi fare l'account con la mail, così poi non ricominci mai da capo» -->
+<section id="ingresso" hidden role="dialog" aria-labelledby="ingresso-titolo">
+  <div class="ingresso-scheda">
+    <h1 id="ingresso-titolo">Entra in JJA-VIS</h1>
+    <p>Con la tua mail: così il tuo assistente si ricorda di te da qualsiasi telefono, e non ricominci mai da capo.</p>
+    <div id="ingresso-passo1">
+      <label for="ingresso-mail">La tua mail</label>
+      <input id="ingresso-mail" type="email" autocomplete="email" inputmode="email" placeholder="nome@esempio.it">
+      <label class="ingresso-eta"><input id="ingresso-eta" type="checkbox"> Ho almeno 14 anni</label>
+      <button id="ingresso-manda" type="button">Mandami il codice</button>
+    </div>
+    <div id="ingresso-passo2" hidden>
+      <label for="ingresso-codice">Il codice di 6 cifre che ti ho mandato</label>
+      <input id="ingresso-codice" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="123456">
+      <button id="ingresso-entra" type="button">Entra</button>
+      <button id="ingresso-indietro" type="button" class="ingresso-link">Cambia mail</button>
+    </div>
+    <p id="ingresso-esito" role="status"></p>
+    <p class="ingresso-piccolo"><a href="privacy.html">Privacy</a> · <a href="regole.html">Regole</a></p>
+  </div>
+</section>
+<style>
+#ingresso{position:fixed;inset:0;z-index:9999;background:rgba(2,11,24,.97);display:flex;align-items:center;justify-content:center;padding:20px}
+#ingresso[hidden]{display:none}
+.ingresso-scheda{width:100%;max-width:380px;color:#E8F7FF;font:500 16px/1.45 system-ui,sans-serif}
+.ingresso-scheda h1{font:800 26px/1.15 system-ui,sans-serif;margin:0 0 10px}
+.ingresso-scheda label{display:block;margin:14px 0 6px;font-weight:700}
+.ingresso-scheda input[type=email],.ingresso-scheda input[inputmode=numeric]{width:100%;box-sizing:border-box;padding:12px;font-size:18px;border-radius:8px;border:1px solid #00B4D8;background:#071a2c;color:#fff}
+.ingresso-eta{font-weight:500!important;display:flex!important;gap:8px;align-items:center}
+.ingresso-scheda button{width:100%;margin-top:14px;padding:13px;font:800 17px system-ui,sans-serif;border:0;border-radius:8px;background:#00B4D8;color:#02121f;cursor:pointer}
+.ingresso-scheda button.ingresso-link{background:transparent;color:#7FDBFF;font-weight:600}
+#ingresso-esito{min-height:1.4em;color:#FFD60A}
+.ingresso-piccolo{font-size:13px;opacity:.75}.ingresso-piccolo a{color:#7FDBFF}
+</style>
 <nav class="schede" role="tablist" aria-label="Sezioni">
   <button role="tab" id="s-inizia" data-scheda="inizia" aria-controls="p-inizia" aria-selected="false"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M4.5 9.5h15M4.5 14.5h15M12 4c2.5 2.3 2.5 13.7 0 16M12 4c-2.5 2.3-2.5 13.7 0 16"/></svg><span class="et" id="et-inizia">Inizia</span></button>
   <button role="tab" id="s-chi-sono" data-scheda="chi-sono" aria-controls="p-chi-sono" aria-selected="false"><svg viewBox="0 0 24 24"><path d="M12 3l2.4 5.2 5.6.6-4.2 3.8 1.2 5.6L12 15.4 7 18.2l1.2-5.6L4 8.8l5.6-.6z"/></svg><span class="et">Chi sono</span></button>
@@ -1224,7 +1258,49 @@ const globo=(function(){
 const CHIAVE="jjavis-io";
 let io={};
 try{ io=JSON.parse(localStorage.getItem(CHIAVE)||"{}")||{}; }catch(_){ io={}; }
-const salva=()=>{ try{ localStorage.setItem(CHIAVE, JSON.stringify(io)); }catch(_){} };
+const CONTO_CHIAVE="jjavis-conto";
+const contoToken=()=>{ try{ return localStorage.getItem(CONTO_CHIAVE)||""; }catch(_){ return ""; } };
+let serverConti=null;
+async function contoSrv(){ if(serverConti!==null) return serverConti;
+  try{ const d=await (await fetch("insieme.json",{cache:"no-store"})).json(); serverConti=(typeof d.indirizzo==="string"&&/^wss:\/\//.test(d.indirizzo))?d.indirizzo.replace(/^wss:/,"https:").replace(/\/entra$/,""):""; }catch(_){ serverConti=""; }
+  return serverConti; }
+async function conto_(via,corpo,metodo="POST"){ const s=await contoSrv(); if(!s) return {no:"server"}; const t=contoToken();
+  try{ const r=await fetch(s+via,{method:metodo,headers:{"Content-Type":"application/json",...(t?{Authorization:"Bearer "+t}:{})},body:metodo==="POST"?JSON.stringify(corpo||{}):undefined});
+    return {stato:r.status,...(await r.json().catch(()=>({})))}; }catch(_){ return {no:"rete"}; } }
+// il profilo va anche sull'account, un attimo dopo ogni cambio (un salvataggio solo per una raffica di cambi)
+let ioVerso=null;
+const salva=()=>{ try{ localStorage.setItem(CHIAVE, JSON.stringify(io)); }catch(_){}
+  if(contoToken()){ clearTimeout(ioVerso); ioVerso=setTimeout(()=>conto_("/conto/io",{io}),1200); } };
+// la porta d'ingresso (JJ, 19/10): senza account non si entra. Entrati, se l'account ha già un profilo quello vince
+// (è chi sei, da un altro telefono); se non ce l'ha, ci va quello di questo telefono. Poi la pagina riparte pulita.
+(async()=>{ if(new URLSearchParams(location.search).get("chi")) return;   // il link della mail fa il suo giro, poi si torna qui
+  if(contoToken()){ const r=await conto_("/conto",null,"GET");
+    // l'account vince una volta per sessione (alla prima apertura): dopo, la pagina cambia il profilo e lo manda su.
+    // Senza il segno si ricaricava in giro (la pagina tocca il profilo appena parte: provato in sandbox, 19/10)
+    let preso=false; try{ preso=!!sessionStorage.getItem("jjavis-io-preso"); sessionStorage.setItem("jjavis-io-preso","1"); }catch(_){ preso=true; }
+    if(r.conto){ if(!preso && r.conto.io && JSON.stringify(r.conto.io)!==JSON.stringify(io)){ io=r.conto.io; try{ localStorage.setItem(CHIAVE, JSON.stringify(io)); }catch(_){} location.reload(); }
+      else if(Object.keys(io).length) conto_("/conto/io",{io}); return; }
+    if(r.stato!==401) return;   // il server non risponde: si entra lo stesso, col profilo del telefono (un guasto non chiude la porta)
+    try{ localStorage.removeItem(CONTO_CHIAVE); }catch(_){} }
+  // la porta si chiude solo se il server dei conti risponde: senza, non si potrebbe più entrare (un guasto non chiude la porta)
+  const srv=await contoSrv(); if(!srv) return;
+  try{ const p=await fetch(srv+"/conto/classifica?gioco=acchiappa",{cache:"no-store"}); if(!p.ok) return; }catch(_){ return; }
+  const $i=id=>document.getElementById(id), esito=t=>{ $i("ingresso-esito").textContent=t; };
+  $i("ingresso").hidden=false; let mail="";
+  $i("ingresso-manda").onclick=async()=>{ mail=$i("ingresso-mail").value.trim(); if(!mail){ esito("Scrivi la tua mail."); return; }
+    esito("Mando il codice…"); const r=await conto_("/conto/mail/codice",{mail});
+    if(r.fatto){ $i("ingresso-passo1").hidden=true; $i("ingresso-passo2").hidden=false; esito(`Codice mandato a ${mail}: guarda la posta (anche lo spam).`); $i("ingresso-codice").focus(); }
+    else esito(r.no==="mail"?"Questa non sembra una mail.":r.no==="presto"?`Un codice al minuto: riprova fra ${r.fra||60} secondi.`:r.no==="troppi"?"Per oggi i codici sono finiti: riprova domani.":"Non sono riuscito a mandare il codice: riprova fra poco."); };
+  $i("ingresso-indietro").onclick=()=>{ $i("ingresso-passo2").hidden=true; $i("ingresso-passo1").hidden=false; esito(""); };
+  $i("ingresso-entra").onclick=async()=>{ const codice=$i("ingresso-codice").value.replace(/\D/g,"");
+    if(codice.length!==6){ esito("Il codice ha 6 cifre."); return; }
+    esito("Entro…"); const r=await conto_("/conto/mail/entra",{mail,codice,eta14:$i("ingresso-eta").checked});
+    if(!r.token){ esito(r.no==="eta"?"Per creare l'account spunta «Ho almeno 14 anni».":r.no==="codice"?`Codice sbagliato${Number.isInteger(r.restano)?`: restano ${r.restano} tentativi`:""}.`:r.no==="scaduto"?"Il codice è scaduto: fattene mandare un altro.":r.no==="bloccato"?"Questo account è bloccato.":"Non sono riuscito a entrare: riprova."); return; }
+    try{ localStorage.setItem(CONTO_CHIAVE, r.token); sessionStorage.setItem("jjavis-io-preso","1"); }catch(_){}
+    if(r.conto&&r.conto.io){ io=r.conto.io; try{ localStorage.setItem(CHIAVE, JSON.stringify(io)); }catch(_){} }
+    else if(Object.keys(io).length) await conto_("/conto/io",{io});
+    location.reload(); };
+})();
 // Ritrovarsi da qualsiasi telefono (JJ, 19/10: Jessica «non si ricorda più chi è e gli richiede tutto da capo»): ogni mail
 // porta il link personale ?chi=…&k=…; qui si chiede alla porta chi sei, si rimette nel telefono e si riapre la pagina pulita.
 // Finché non ha risposto la pagina resta nascosta: niente «come vuoi chiamarmi?» a chi è già di casa.
