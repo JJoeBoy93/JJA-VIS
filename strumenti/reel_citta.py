@@ -13,8 +13,8 @@ giocare nella città». Il reel lo gira la macchina, non JJ (decisione
 
 Come gira: tempo del browser finto (24 fotogrammi al secondo esatti anche se
 ogni foto ne chiede quattro veri), città vera di questo repository, nessuna
-richiesta esce. Si cammina a velocità doppia e si taglia la parte lunga
-del cammino: un reel che segue un avatar per 34 secondi non lo guarda nessuno.
+richiesta esce. Si cammina a velocità vera (a doppia, JJ: «troppo veloce») e si taglia la parte
+lunga del cammino: un reel che segue un avatar per 34 secondi non lo guarda nessuno.
 
 Misurato il 19/10 in sandbox (un core, SwiftShader): un fotogramma a 432x768
 costa 4,4 s, a 1,5x 16 s. Qui si gira a 540x960 (1,25x) e si raddoppia con
@@ -35,6 +35,14 @@ OUT = os.path.join(CASA, "fotogrammi")
 # ══ I TEMI ══ Testi pubblici: mai nomi di altri giochi o marchi, mai JARVIS
 # (JJ, 6/10 e 11/10). Ogni tema: dove si va, cosa si tocca dentro, le scritte.
 TEMI = {
+    # il primo (JJ, 19/10): cos'è JJA-VIS e perché usarlo, col servizio di Atlas (gli appuntamenti per mail, il promemoria
+    # della sera). Non è la città: è una pagina animata (strumenti/reel_jjavis.html), senza nomi né dati veri.
+    "jjavis": {
+        "pagina": "strumenti/reel_jjavis.html",
+        "dida": [("Cos'è JJA-VIS?", None), ("Gli dai un nome, gli racconti la tua giornata", None),
+                 ("Già oggi: gli appuntamenti per mail, il promemoria la sera prima", None)],
+        "descrizione": "Cos'è JJA-VIS: un assistente personale che impara chi sei. Gli dai un nome e gli racconti la tua giornata. Già oggi c'è chi gli scrive i suoi appuntamenti per mail e ogni sera riceve il promemoria di quelli del giorno dopo. Si entra gratis.",
+    },
     "cafe": {
         "dove": "cafe", "nome": "JJA-VIS Café", "usa": "tavolini",
         "dida": [("Una città intera per il tuo assistente", "si gioca dal telefono"),
@@ -71,13 +79,14 @@ TEMI = {
         "descrizione": "La città 3D di JJA-VIS: l'avatar va in Sartoria, dove si sceglie la persona, il mestiere e i colori dei vestiti; l'assistente personale parte da quello che gli si racconta.",
     },
 }
-ORDINE = ["cafe", "torre", "sartoria", "giochi", "radio"]
+ORDINE = ["jjavis", "cafe", "torre", "sartoria", "giochi", "radio"]
+PARTENZA = datetime.date(2026, 10, 19)   # il primo giro: «jjavis» (JJ, 19/10: prima di tutto, cos'è)
 CTA = ("Entra gratis", "link in bio · jjoeboy93.github.io/JJA-VIS")
 
 
 def tema_di_oggi(oggi=None):
     oggi = oggi or datetime.date.today()
-    return ORDINE[(oggi.toordinal() // 2) % len(ORDINE)]
+    return ORDINE[((oggi - PARTENZA).days // 2) % len(ORDINE)]
 
 
 TIPI = {".html": "text/html", ".js": "text/javascript", ".png": "image/png", ".jpg": "image/jpeg",
@@ -96,7 +105,7 @@ async def instrada(route):
 
 DIDA = '''([t, piccola, finale])=>{let d=document.getElementById('dida-reel');
  if(!d){d=document.createElement('div');d.id='dida-reel';document.body.appendChild(d);}
- Object.assign(d.style,{position:'fixed',left:'6%',right:'6%',top:finale?'38%':'16%',zIndex:9999,padding:finale?'26px 16px':'14px 16px',
+ Object.assign(d.style,{position:'fixed',left:'6%',right:'6%',top:finale?'38%':'7%',zIndex:9999,padding:finale?'26px 16px':'14px 16px',
    background:'rgba(2,11,24,.86)',border:'1px solid rgba(0,180,216,.7)',color:'#E8F7FF',textAlign:'center',
    font:(finale?'800 34px':'800 25px')+'/1.18 "DejaVu Sans", sans-serif',boxShadow:'0 0 28px rgba(0,180,216,.4)',borderRadius:'6px',pointerEvents:'none'});
  if(!t){d.style.display='none';return;} d.style.display='block';
@@ -113,13 +122,41 @@ async def main():
     async with async_playwright() as pw:
         b = await pw.chromium.launch(executable_path=os.environ.get("CHROMIUM") or None,
                                      args=["--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--ignore-gpu-blocklist"])
-        ctx = await b.new_context(viewport={"width": 432, "height": 768}, device_scale_factor=DSF, is_mobile=True, has_touch=True)
+        # la pagina animata è leggera: si gira direttamente a 1080x1920 (2,5x)
+        ctx = await b.new_context(viewport={"width": 432, "height": 768}, device_scale_factor=(1 if PROVA else 2.5) if T.get("pagina") else DSF, is_mobile=True, has_touch=True)
         # un visitatore che ha già detto nome e mestiere: niente pannelli d'ingresso davanti alla città
         await ctx.add_init_script("try{ sessionStorage.setItem('jjavis-conto-dopo','1'); localStorage.setItem('jjavis-io', JSON.stringify({nome:'Atlas', mestiere:'Corriere'})); }catch(_){}")
         await ctx.route("**/*", instrada)
         p = await ctx.new_page()
         p.on("pageerror", lambda e: errori.append(str(e)))
-        await p.clock.install()
+        # il tempo FERMO: install() da solo lascia scorrere l'orologio a tempo vero, e ogni foto (secondi, in SwiftShader)
+        # spingeva avanti la scena — misurato il 19/10: 83 ms finti in più a foto anche sulla pagina leggera. Era il
+        # «troppo veloce» di JJ (19/10). Da fermo il tempo avanza solo con run_for: 1/24 di secondo a fotogramma, esatto.
+        await p.clock.install(time=1_800_000_000_000)
+        await p.clock.pause_at(1_800_000_001_000)
+        if T.get("pagina"):
+            await p.goto(BASE + T["pagina"], wait_until="commit", timeout=90000)
+            for _ in range(300):
+                await p.clock.run_for(100)
+                if await p.evaluate("!!window.PRONTA && [...document.images].every(i=>i.complete)"): break
+            else:
+                sys.exit("la pagina del reel non si è accesa")
+            await p.evaluate("window.RIPARTI()")
+            durata = await p.evaluate("window.DURATA")
+            for _ in range(int(durata * FPS)):
+                await p.clock.run_for(int(1000 / FPS))
+                await p.screenshot(path=f"{OUT}/{n[0]:05d}.png", timeout=180000)
+                n[0] += 1
+            await b.close()
+        else:
+            await gira_citta(p, T, n, errori)
+            await b.close()
+    if errori: print("errori della pagina (il reel è girato lo stesso):", errori[:5])
+    await monta(tema, T, n)
+
+
+async def gira_citta(p, T, n, errori):
+    if True:
         # col tempo finto «load» può non arrivare mai
         await p.goto(BASE + "citta.html", wait_until="commit", timeout=90000)
         for _ in range(600):
@@ -143,10 +180,10 @@ async def main():
                 await p.screenshot(path=f"{OUT}/{n[0]:05d}.png", timeout=180000)
                 n[0] += 1
 
-        # 1 — l'aggancio, camminando (a velocità doppia: il cammino vero è lungo)
+        # 1 — l'aggancio, camminando a velocità vera (JJ, 19/10: «il video è troppo veloce»: a velocità doppia correva)
         await p.evaluate(f"window.CITTA.vaiVerso({json.dumps(T['dove'])})")
-        await dida(*T["dida"][0]); await scatta(3.2, 2)
-        await dida(*T["dida"][1]); await scatta(3.4, 2)
+        await dida(*T["dida"][0]); await scatta(3.6)
+        await dida(*T["dida"][1]); await scatta(3.6)
         # 2 — il resto del cammino non si gira: si arriva
         await dida(None)
         for _ in range(2500):
@@ -163,9 +200,9 @@ async def main():
         await dida(*T["dida"][2]); await scatta(3.6)
         # 4 — l'invito
         await dida(*CTA, True); await scatta(2.6)
-        await b.close()
-    if errori: print("errori della pagina (il reel è girato lo stesso):", errori[:5])
 
+
+async def monta(tema, T, n):
     secondi = n[0] / FPS
     scala = [] if PROVA else ["-vf", f"scale=1080:1920:flags=lanczos,fade=t=in:st=0:d=0.3,fade=t=out:st={secondi - 0.4:.2f}:d=0.4,format=yuv420p"]
     subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-framerate", str(FPS), "-i", f"{OUT}/%05d.png",
