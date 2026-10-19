@@ -1553,6 +1553,15 @@ const apriCosa=k=>{ if(stanzaAperta){ chiudiDialogo(); mostraCarta(k); } };
 // Toccare la cosa nel 3D (o CITTA.usa) apre ancora la carta intera: è il gesto di chi vuole leggere tutto.
 let dialogoAperto=null;
 function interagisci(b, sotto){ b.textContent=""; b.append(el("span",{class:"q","aria-hidden":"true"}), el("span",{class:"v"}, el("b",{testo:"Interagisci"}), el("small",{testo:sotto}))); b.setAttribute("aria-label","Interagisci: "+sotto); }
+function apriSeduto(){
+  const k=scena.cosaPosti&&scena.cosaPosti(), L=LUOGHI[stanzaAperta];
+  if(k && L && parteDi(L,k)){ apriDialogo(k,true); return; }
+  const S=$("dialogo-scelte"); S.textContent="";
+  const alzati=el("button",{type:"button",testo:"Alzati"}); alzati.addEventListener("click",()=>{ scena.alzatiDalBar(); chiudiDialogo(); });
+  const esci=el("button",{type:"button",testo:"Resta seduto"}); esci.addEventListener("click",chiudiDialogo); S.append(alzati,esci);
+  $("dialogo-nome").textContent="Seduto"; $("dialogo-testo").classList.remove("lungo"); $("dialogo-testo").textContent="Ti sei seduto. Per alzarti: «Alzati», o muovi il cerchio.";
+  dialogoAperto="__posto"; $("dialogo").hidden=false; document.body.classList.add("con-dialogo");
+}
 function chiudiDialogo(){ if(!dialogoAperto) return; dialogoAperto=null; $("dialogo").hidden=true; document.body.classList.remove("con-dialogo"); }
 function apriDialogo(k, tutto=false){
   const L=LUOGHI[stanzaAperta], p=L&&parteDi(L,k); if(!p){ apriCosa(k); return; }
@@ -2568,7 +2577,8 @@ const COLLINA={r:4.2,h:1.0}, ACQUA=[4.2,6.13], MURETTO={r:6.25,alto:0.55}, PANCH
       const ico=new THREE.Mesh(new THREE.CircleGeometry(1.18,48), new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(ICONA)})); ico.material.map.colorSpace=THREE.SRGBColorSpace; (scena._iconeTex=scena._iconeTex||[]).push(ico.material.map); h.metti(ico,0,0.035,-0.6).rotation.x=-Math.PI/2; S2.userData.icona=ico;
       h.cosa("globo",[g,banco],0,-4.6,{x:0,z:-3.1},3.9);
       // la hall: due divani uno di fronte all'altro, un tavolino, una pianta, e il cartello sulla parete
-      const hall=[]; for(const dz of [-1.6,1.6]){ const d=scatola(3.2,0.8,0.9,0x3b4a5c); h.metti(d,-7.5,0.4,dz); const sp=scatola(3.2,0.6,0.2,0x2e3b4a); h.metti(sp,-7.5,1.0,dz+Math.sign(dz)*0.45); hall.push(d,sp); h.solido(-7.5,dz,3.2,1.1); }
+      const hall=[]; for(const dz of [-1.6,1.6]){ const d=scatola(3.2,0.8,0.9,0x3b4a5c); h.metti(d,-7.5,0.4,dz); const sp=scatola(3.2,0.6,0.2,0x2e3b4a); h.metti(sp,-7.5,1.0,dz+Math.sign(dz)*0.45); hall.push(d,sp); h.solido(-7.5,dz,3.2,1.1);
+        S2.userData.posti=S2.userData.posti||[]; for(const sx of [-8.5,-7.5,-6.5]) S2.userData.posti.push({x:sx,z:dz-Math.sign(dz)*0.05,tx:sx,tz:0,piano:0.8}); }
       const tav=scatola(1.6,0.45,0.9,0x6b4a2e); h.metti(tav,-7.5,0.23,0); h.solido(-7.5,0,1.6,0.9); hall.push(tav);
       const vaso=cilindro(0.35,0.3,0.6,0x5a3a26,10); h.metti(vaso,-10.8,0.3,-5.6); h.metti(palla(0.7,0x245a3a),-10.8,1.2,-5.6); h.tondo(-10.8,-5.6,0.5);
       const ch=schermo(2.4,0.7,"#00B4D8","HALL"); h.metti(ch,-LARGO/2+0.09,3.4,0,Math.PI/2); hall.push(ch);
@@ -2581,8 +2591,14 @@ const COLLINA={r:4.2,h:1.0}, ACQUA=[4.2,6.13], MURETTO={r:6.25,alto:0.55}, PANCH
       DEI_DEL_PIANO(n).forEach((d,i)=>{ const x=[-4,0,4][i%3], z=i<3?-3.0:0.9;
         const tv=tavolo(1.7,0.8,0x2b2f36); tv.position.set(x,0,z); S2.add(tv); h.solido(x,z,1.7,0.8);
         const sc=schermo(0.9,0.55,"#00B4D8",""); h.metti(sc,x,1.33,z-0.2);
-        const fig=persona({skin:"dio-"+d.id,corpo:d.corpo,vestito:"altro"}); fig.position.set(x,0,z-0.95); S2.add(fig); h.tondo(x,z-0.95,0.4);
+        const fig=persona({skin:"dio-"+d.id,corpo:d.corpo,vestito:"altro"}); fig.position.set(x,0,z-0.95); S2.add(fig);
+        // la sedia, dietro la scrivania (sedile a 0,5 m), girata verso lo schermo
+        const sd=scatola(0.5,0.08,0.5,0x15161a); h.metti(sd,x,0.46,z-0.95); const sp=scatola(0.5,0.6,0.07,0x15161a); h.metti(sp,x,0.8,z-1.22);
+        const posto={x,z:z-0.95,tx:x,tz:z,piano:0.5}; S2.userData.posti=S2.userData.posti||[]; S2.userData.posti.push(posto);
+        S2.userData.dei=S2.userData.dei||[]; S2.userData.dei.push({g:fig,posto,stato:"seduto",t:6+Math.random()*20,st:null});
         h.cosa("dio-"+d.id,[fig,tv],x,z-0.95,{x,z:z+1.1},2.4); });
+      // dove vanno quando si alzano: la macchinetta del caffè e la finestra
+      const caf=scatola(0.7,1.6,0.6,0x9aa3ad); h.metti(caf,5.8,0.8,3.6); S2.userData.mete=[{x:5.0,z:3.4},{x:-5.6,z:-1.0},{x:5.4,z:-1.0}];
       vetrate(S2,h); pianoComune(S2,h); }])),
     ...Object.fromEntries([1,5,6,7].map(n=>[`torre${n}`,(S2,h)=>{ h.insegnaFondo(`${n}° PIANO`,"piano libero");
       const v=vetrate(S2,h); h.cosa("vetrata",v,-6.8,0,{x:-5.4,z:0},2.6); pianoComune(S2,h); }])),
@@ -2593,7 +2609,7 @@ const COLLINA={r:4.2,h:1.0}, ACQUA=[4.2,6.13], MURETTO={r:6.25,alto:0.55}, PANCH
       for(const s of [-1,1]){ for(let r=0;r<4;r++) for(let k=0;k<3;k++){ const x=s*(2.8+k*1.4), z=-1+r*1.4; const se=scatola(1.1,0.5,0.55,0x8a1f2c); h.metti(se,x,0.25+r*0.15,z+0.03);   /* seduta profonda 55 cm (era 80): con le persone le gambe finivano dentro la poltrona (JJ, 9/10) */ h.metti(scatola(1.1,0.8,0.15,0x8a1f2c),x,0.7+r*0.15,z+0.38);
           S2.userData.posti.push({x,z:z-0.05,tx:x,tz:-6,y:-0.38+r*0.15,piano:0.5+r*0.15,dietro:0.355,pieni:[{x,y:0.25+r*0.15,z:z+0.03,w:1.1,h:0.5,d:0.55},{x,y:0.7+r*0.15,z:z+0.38,w:1.1,h:0.8,d:0.15}]}); if(k===0) pol.push(se); }   // seduta a 0,5 (+gradino), schienale 35,5 cm dietro il posto
         h.solido(s*4.2,1.3,4.2,5.4); }
-      h.cosa("poltrone",pol,0,0.4,{x:0,z:0.4},1.6);
+      h.cosa("poltrone",pol,0,0.4,{x:0,z:0.4},1.6); S2.userData.cosaPosti="poltrone";
       // la biglietteria, accanto alla porta: ci si arriva dal corridoio, fra le poltrone e la porta
       const bb=scatola(1.4,1.1,0.8,0x3b2a4f); h.metti(bb,-3.0,0.55,5.0); h.metti(scatola(1.42,0.06,0.82,0xFFD60A,true),-3.0,1.12,5.0); h.solido(-3.0,5.0,1.4,0.8);
       const cartello=schermo(1.6,0.6,"#FFD60A","BIGLIETTI"); h.metti(cartello,-3.0,2.0,5.38,Math.PI);
@@ -2607,13 +2623,13 @@ const COLLINA={r:4.2,h:1.0}, ACQUA=[4.2,6.13], MURETTO={r:6.25,alto:0.55}, PANCH
       const barista=avatar({vestito:"negozio",corpo:"uomo",capelli:"corti",capelliColore:1,pelle:3}); barista.position.set(-3.4,0,-5); S2.add(barista); h.solido(-3.4,-5,0.8,0.6);
       h.cosa("banco-bar",[bb,mac],-3.4,-4,{x:-3.4,z:-2.8},2.6);
       // la lavagna delle recensioni a destra
-      const lav=aParete(schermo(2.8,1.6,"#FFD60A","RECENSIONI"),1,-1.5,1.6); lav.position.x-=0.1; S2.add(lav); h.cosa("recensioni",[lav],6.6,-1.5,{x:5.3,z:-1.5},3.4);
+      const lav=aParete(schermo(4.6,2.6,"#FFD60A","RECENSIONI"),1,-1.5,2.1); lav.position.x-=0.1; S2.add(lav); h.cosa("recensioni",[lav],6.6,-1.5,{x:5.3,z:-1.5},3.4);
       // i tavolini tondi con le sedie
       const tav=[]; S2.userData.posti=[]; [[-2.5,1.6],[2.2,1.4],[3.6,-3.6]].forEach(([x,z])=>{ const t=cilindro(0.55,0.55,0.06,0xc8a165,16), g2=cilindro(0.06,0.06,0.95,0x333333,8);
         h.metti(t,x,0.98,z); h.metti(g2,x,0.48,z); tav.push(t); h.tondo(x,z,0.6);
         for(const a of [0,Math.PI]){ const sx=x+Math.cos(a)*0.85, sz=z+Math.sin(a)*0.85; h.metti(cilindro(0.22,0.22,0.5,0x2a3f57,10),sx,0.25,sz);
           S2.userData.posti.push({x:sx,z:sz,tx:x,tz:z,piano:0.5,tondo:{x:sx,z:sz,r:0.22,h:0.5}}); } });   // sgabello tondo: niente schienale, il sedere al centro
-      h.cosa("tavolini",tav,2.2,1.4,{x:2.2,z:2.6},2.2);
+      h.cosa("tavolini",tav,2.2,1.4,{x:2.2,z:2.6},2.2); S2.userData.cosaPosti="tavolini";
       // la tazzina del caffè sospeso, accanto alla porta
       const taz=cilindro(0.18,0.14,0.22,0xffffff,12); h.metti(scatola(0.8,1,0.8,0x3a2a1e),-5.6,0.5,4.4); h.metti(taz,-5.6,1.12,4.4); h.solido(-5.6,4.4,0.8,0.8);
       h.cosa("caffe",[taz],-5.6,4.4,{x:-4.4,z:4.2},1.9); },
@@ -2708,6 +2724,7 @@ const COLLINA={r:4.2,h:1.0}, ACQUA=[4.2,6.13], MURETTO={r:6.25,alto:0.55}, PANCH
   // il Café: sedersi a un tavolino, le cose ordinate sul tavolo, il braccio alla bocca
   let alBar=null, boccaFino=0; const piatti=[];
   scena.sedutoAlBar=()=>!!alBar;
+  scena.cosaPosti=()=>attiva&&attiva.S?attiva.S.userData.cosaPosti||null:null;
   scena.siediAlBar=()=>{ if(!attiva||!attiva.S.userData.posti||!tuStanza) return; const p=tuStanza.position;
     const posto=attiva.S.userData.posti.slice().sort((a,b)=>Math.hypot(a.x-p.x,a.z-p.z)-Math.hypot(b.x-p.x,b.z-p.z))[0];
     alBar=posto; dentro.meta=null; tuStanza.position.set(posto.x,altezzaSeduta(tuStanza,posto.y,posto.piano),posto.z); tuStanza.rotation.y=Math.atan2(posto.tx-posto.x,posto.tz-posto.z);
@@ -2965,7 +2982,7 @@ const COLLINA={r:4.2,h:1.0}, ACQUA=[4.2,6.13], MURETTO={r:6.25,alto:0.55}, PANCH
 
   // il pulsante grande: fuori «Entra», dentro «Usa» o «Esci»
   $("entra").addEventListener("click",()=>{ const b=$("entra");
-    if(stanzaAperta){ if(b.dataset.azione==="esci") esciStanza(); else if(b.dataset.cosa){ const c=attiva&&attiva.cose[b.dataset.cosa]; if(c&&tuStanza) tuStanza.rotation.y=Math.atan2(c.x-tuStanza.position.x,c.z-tuStanza.position.z); apriDialogo(b.dataset.cosa); } return; }
+    if(stanzaAperta){ if(b.dataset.azione==="esci") esciStanza(); else if(b.dataset.azione==="sediti"){ scena.siediAlBar(); apriSeduto(); } else if(b.dataset.cosa){ const c=attiva&&attiva.cose[b.dataset.cosa]; if(c&&tuStanza) tuStanza.rotation.y=Math.atan2(c.x-tuStanza.position.x,c.z-tuStanza.position.z); apriDialogo(b.dataset.cosa); } return; }
     if(b.dataset.azione==="scendi"){ scena.terrazza(false); apriStanza("torre"); return; }
     if(b.dataset.azione==="siedi"){ scena.siedi(+b.dataset.panca); return; }
     const id=b.dataset.id; if(id) apriFoglio(id); });
@@ -2986,8 +3003,21 @@ const COLLINA={r:4.2,h:1.0}, ACQUA=[4.2,6.13], MURETTO={r:6.25,alto:0.55}, PANCH
     return [dx/d,dz/d,Math.min(veloce,d*3+1)];
   }
 
+  // gli dèi al lavoro (19/10): seduti un po', poi in piedi, a una meta e ritorno. Se ti siedi al posto di uno, lui si alza
+  function muoviDei(R,dt){ const D=R.S.userData.dei; if(!D) return; const mete=R.S.userData.mete||[];
+    for(const d of D){ const g=d.g; d.t-=dt;
+      if(d.stato==="seduto"){ if(alBar===d.posto||d.t<0){ d.stato="va"; g.position.y=0; const m=mete[Math.floor(Math.random()*mete.length)]||{x:0,z:3};
+          d.st={meta:new THREE.Vector3(m.x+(Math.random()-0.5),0,m.z+(Math.random()-0.5)),tappe:[],fermoDa:0,distPrima:Infinity,salti:0}; continue; }
+        g.position.set(d.posto.x,altezzaSeduta(g,undefined,d.posto.piano),d.posto.z); g.rotation.y=Math.atan2(d.posto.tx-d.posto.x,d.posto.tz-d.posto.z); posaSeduta(g); continue; }
+      if(d.stato==="in piedi"){ fermo(g); if(d.t<0){ d.stato="torna"; d.st={meta:new THREE.Vector3(d.posto.x+0.6,0,d.posto.z+0.2),tappe:[],fermoDa:0,distPrima:Infinity,salti:0}; } continue; }
+      const r=versoTappa(g,d.st,dt,1.3,()=>{ if(d.stato==="va"){ d.stato="in piedi"; d.t=4+Math.random()*6; }
+        else if(alBar===d.posto){ d.stato="in piedi"; d.t=8; } else { d.stato="seduto"; d.t=12+Math.random()*25; } });
+      if(r){ const [vx,vz,vel]=r; g.position.x+=vx*vel*dt; g.position.z+=vz*vel*dt; g.rotation.y=Math.atan2(vx,vz); cammina(g,vel*dt); } }
+    // (non gesto(): quello porta il salto e l'accovacciarsi di chi gioca, e lo darebbe anche agli dèi)
+  }
+  scena.deiAlLavoro=()=>attiva&&attiva.S&&attiva.S.userData.dei?attiva.S.userData.dei.map(d=>d.stato):[];
   function passoDentro(dt){
-    const R=attiva; tStanza+=dt; const H=innerHeight, W=innerWidth;
+    const R=attiva; tStanza+=dt; const H=innerHeight, W=innerWidth; muoviDei(R,dt);
     let [mx,my]=ingresso(); const fx=-Math.sin(stato.yaw), fz=-Math.cos(stato.yaw);
     let vx=fx*(-my)+(-fz)*mx, vz=fz*(-my)+fx*mx, vel=0;
     const specchio=cartaAperta==="specchio"||cartaAperta==="manichini";   // davanti a te, e intero (JJ, 4/10)
@@ -3003,9 +3033,13 @@ const COLLINA={r:4.2,h:1.0}, ACQUA=[4.2,6.13], MURETTO={r:6.25,alto:0.55}, PANCH
     let uso=null; const p=tuStanza.position;
     if(p.z>PROFONDO/2-1.5 && Math.abs(p.x)<1.6) uso="esci";
     else { let dm=1.6; for(const c of Object.values(R.cose)){ const d=Math.hypot(c.posto.x-p.x,c.posto.z-p.z); if(d<dm){ dm=d; uso=c.id; } } }
+    // ogni sedia, divano e poltrona della stanza (19/10): se nessuna cosa è vicina, a 1,1 m da un posto compare «Siediti»
+    if(!uso && !alBar && R.S.userData.posti){ for(const q of R.S.userData.posti) if(Math.hypot(q.x-p.x,q.z-p.z)<1.1){ uso="__posto"; break; } }
+    if(alBar) uso=null;
     if(cartaAperta || dialogoAperto) uso=null;
     if(uso!==usoPrima){ usoPrima=uso; const b=$("entra"); delete b.dataset.cosa; delete b.dataset.azione; delete b.dataset.id;
       if(uso==="esci"){ b.dataset.azione="esci"; interagisci(b,"Esci · in città"); b.hidden=false; }
+      else if(uso==="__posto"){ b.dataset.azione="sediti"; interagisci(b,"Siediti"); b.hidden=false; }
       else if(uso){ b.dataset.cosa=uso; interagisci(b,R.cose[uso].nome); b.hidden=false; } else b.hidden=true; }
     // la telecamera: dietro di te; allo specchio, davanti
     camStanza.fov=specchio?60:72; camStanza.aspect=W/H;
