@@ -1812,8 +1812,9 @@ function avatarDaSkin(st){
   // capelli, piccoli intorno alla testa, sparivano appena la testa scendeva (accovacciati, seduti: persona calva, 9/10)
   // i vestiti a due facce (JJ, 19/10: «questa skin ha i buchi all'attacco delle braccia»): la maglia ha una faccia sola e sotto
   // non c'è pelle; dall'apertura della manica si vedeva il dentro, che three non disegna, cioè il fondo — un buco
-  const VESTITI=/^(maglia|pantaloni|veste|abito)/;
-  const ossi={}; copia.traverse(o=>{ if(o.isBone) ossi[o.name]=o; if(o.isMesh){ o.material=o.material.clone(); if(VESTITI.test(o.material.name||"")) o.material.side=THREE.DoubleSide; if(o.isSkinnedMesh&&!o.geometry.userData.sfera){ o.geometry.boundingSphere=new THREE.Sphere(new THREE.Vector3(0,0.9,0),1.4); o.geometry.userData.sfera=true; } if(o.isSkinnedMesh) o.boundingSphere=new THREE.Sphere(new THREE.Vector3(0,0.9,0),1.4); o.frustumCulled=!!o.geometry.userData.sfera; } });
+  // (il nome non è VESTITI: quello è l'elenco dei vestiti, e qui dentro lo copriva — Hera, 19/10: la skin non si vestiva più)
+  const DUE_FACCE=/^(maglia|pantaloni|veste|abito)/;
+  const ossi={}; copia.traverse(o=>{ if(o.isBone) ossi[o.name]=o; if(o.isMesh){ o.material=o.material.clone(); if(DUE_FACCE.test(o.material.name||"")) o.material.side=THREE.DoubleSide; if(o.isSkinnedMesh&&!o.geometry.userData.sfera){ o.geometry.boundingSphere=new THREE.Sphere(new THREE.Vector3(0,0.9,0),1.4); o.geometry.userData.sfera=true; } if(o.isSkinnedMesh) o.boundingSphere=new THREE.Sphere(new THREE.Vector3(0,0.9,0),1.4); o.frustumCulled=!!o.geometry.userData.sfera; } });
   copia.updateMatrixWorld(true); const qw=new THREE.Quaternion();
   // three toglie i punti dai nomi (upperleg.l → upperlegl). L'asse del passo è l'asse X del mondo (destra-sinistra),
   // riportato dentro l'osso: così il passo va avanti-indietro qualunque sia l'orientamento dell'osso nel modello
