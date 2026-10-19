@@ -213,7 +213,7 @@ async def main():
         ar = await p.evaluate("window.CITTA.archi()")
         prova("all'inizio delle quattro vie grandi, sul cerchio della piazza, gli archi coi nomi (come il viale di Mimmo, JJ 11/10)", sorted(g_ for _, g_ in ar) == [0, 90, 180, 270], ar)
         mn = await p.evaluate("window.CITTA.manichini()")
-        prova("i tre manichini stanno davanti alla Sartoria, non davanti al Ristorante (JJ, 11/10)", len(mn) == 3 and all(d_ < 9 for d_ in mn), mn)
+        prova("i due manichini stanno davanti alla Sartoria, non davanti al Ristorante (11/10), e nessuno davanti alla porta (19/10)", len(mn) == 2 and all(d_ < 9 for d_ in mn), mn)
         lv = await p.evaluate("Object.entries(window.CITTA.porte).filter(([k,P])=>P.id==='lotto').map(([k,P])=>({x:+P.cx.toFixed(1),z:+P.cz.toFixed(1),r:+Math.hypot(P.cx,P.cz).toFixed(1)}))")
         fuori = [l for l in lv if l["r"] > 50]
         prova("i lotti fuori dal reattore stanno sulla Via delle Attività, a ovest, ai due lati (JJ, 10/10)", len(fuori) >= 4 and all(l["x"] < -60 and abs(l["z"]) < 10 for l in fuori)
@@ -398,6 +398,9 @@ async def main():
                       and "Ettore" in dl["testo"] and dl["scelte"][0] == "Chi sei?" and "Dimmi di più" in dl["scelte"] and dl["scelte"][-1] == "Esci" and dl["joy"] == "0", dl)
                 await p.click("#dialogo-scelte button:has-text('Chi sei?')")
                 prova("«Chi sei?» cambia quello che dice, e il dialogo resta aperto", "Io imparo chi sei" in await p.inner_text("#dialogo-testo") and await p.is_visible("#dialogo"))
+                await p.click("#dialogo-scelte button:has-text('Cosa sai fare?')")
+                cs2 = await p.inner_text("#dialogo-testo")
+                prova("«Cosa sai fare?» lo dice l'assistente, coi numeri veri della porta (era il 1° piano)", "42" in cs2 and "4.639" in cs2 and "8.385" in cs2, cs2[:160])
                 await p.click("#dialogo-scelte button:has-text('Esci')")
                 prova("«Esci» chiude il dialogo", not await p.is_visible("#dialogo"))
                 # il 3° piano: gli dèi
@@ -607,7 +610,7 @@ async def main():
         await p.click("#piani .scelta:has-text('1° piano')")
         await p.wait_for_function("document.getElementById('stanza-nome').textContent==='La Torre · 1° piano' && window.CITTA.cose().length>0", timeout=20000)
         f1 = await foglio(p)
-        prova("al 1° piano cosa so fare, coi numeri veri della porta", "42" in f1["testo"] and "4.639" in f1["testo"] and "8.385" in f1["testo"], f1["testo"][:120])
+        prova("il 1° piano è libero: «cosa so fare» lo dice l'assistente alla reception (JJ, 19/10)", "Piano libero" in f1["testo"] and "Cosa so fare" not in f1["testo"], f1["testo"][:120])
         await usa(p, "scale", "Le scale")
         await p.click("#stanza-carta button:has-text('Sali al 2° piano')")
         await p.wait_for_function("document.getElementById('stanza-nome').textContent==='La Torre · 2° piano' && window.CITTA.cose().length>0", timeout=20000)
@@ -641,7 +644,8 @@ async def main():
         # 3d1d. la Sala giochi: si vincono gettoni; la macchinetta non è accesa
         await vai(p, "Sala giochi")
         await usa(p, "macchinetta", "La macchinetta dei gettoni")
-        prova("la macchinetta dei gettoni dice che comprarli coi soldi non è ancora acceso", "Non ancora accesa" in await p.inner_text("#stanza-carta"))
+        mc_ = await p.inner_text("#stanza-carta")
+        prova("la macchinetta dice solo che non è ancora attiva, senza i perché (JJ, 19/10)", "Non ancora attiva" in mc_ and "commercialista" not in mc_, mc_[:200])
         await usa(p, "cab1", "Acchiappa i gettoni")
         g1 = await p.evaluate("window.CITTA.gettoni()")
         await p.click("#stanza-carta button:has-text('Gioca')")
@@ -689,7 +693,8 @@ async def main():
         await p.wait_for_function("document.getElementById('radio-stato').textContent.includes('Non sono riuscito')", timeout=15000)
         prova("se la ricerca non va, lo dice: non è uguale a «non c'è»", "Non sono riuscito a cercare" in await p.inner_text("#radio-stato"))
         await foto(p, "16b-radio")
-        await usa(p, "stazioni", "Le tue stazioni")
+        # 19/10: le tue stazioni sono dentro la radio, non in un altro punto della stanza
+        await usa(p, "radio", "La radio")
         await p.fill("#radio-caselle input >> nth=0", "Radio Capital"); await p.press("#radio-caselle input >> nth=0", "Tab"); await p.wait_for_timeout(300)
         st = await p.evaluate("JSON.parse(localStorage.getItem('jjavis-citta')||'{}')")
         prova("le tue stazioni: una casella si riscrive e resta nel telefono", st.get("radio", [None])[0] == "Radio Capital", st.get("radio"))

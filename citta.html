@@ -728,7 +728,8 @@ const LUOGHI={
     fine:()=>[AZIONI(vai(PAGINA+"#costruisci","Chiedi un preventivo"))]},
   radio:{nome:"Radio",ic:"📻",breve:"accendi le tue stazioni",
     testa:()=>TESTA("Sotto l'antenna","Radio","La stessa radio che ho nell'app sul furgone: sei stazioni, una per tasto. Qui le accendi mentre giri per la città."),
-    parti:()=>[{id:"radio",nome:"La radio",dentro:()=>laRadio()},{id:"stazioni",nome:"Le tue stazioni",dentro:()=>leTueStazioni()}]},
+    // le tue stazioni stanno nella radio (JJ, 19/10: «non devo cambiare posto per cambiare radio e poi tornare alla radio»)
+    parti:()=>[{id:"radio",nome:"La radio",dentro:()=>[...laRadio(), ...leTueStazioni()]}]},
   // ── LA TORRE, dieci piani come si vedono da fuori (JJ, 4/10: «me la immagino come la torre Stark: all'attico ci vado io;
   // piano terra la reception, con il bancone e l'assistente, il globo, che ti dà le informazioni di base e ti descrive i piani;
   // il salottino toglilo; "per chiunque" è una cosa che dice il globo»). Si sale con l'ascensore o con le scale; in cima la terrazza.
@@ -739,19 +740,11 @@ const LUOGHI={
     parti:()=>[{id:"globo",get nome(){ return nomeAssistente()||"Il tuo assistente"; },get breve(){ return nomeAssistente()||"Il tuo assistente"; },
         chi:()=>nomeAssistente()||"Il tuo assistente",
         dice:()=>nomeAssistente()?`Ciao, sono ${nomeAssistente()}: il tuo assistente, col nome che mi hai dato tu. Qui ti dico tutto: cosa succede quando entri, i piani, i tuoi dati.`:"Ciao: sono il tuo assistente. Dammi un nome nella pagina («← La pagina») e da lì comincio a imparare te.",
-        domande:()=>[["Chi sei?",GLOBO_CHI()],["Cosa c'è ai piani?",PIANI.map(p=>`${p.etichetta}: ${p.cosa}`).join(" · ")]],
+        domande:()=>[["Chi sei?",GLOBO_CHI()],["Cosa sai fare?",COSA_SO_FARE()],["Cosa c'è ai piani?",PIANI.map(p=>`${p.etichetta}: ${p.cosa}`).join(" · ")]],
         dentro:()=>{ const R=LUOGHI.reception.parti();
         return [...R.find(p=>p.id==="banco").dentro(), ...GLOBO_DICE(), BLOCCO(H3("I piani"), LISTA(PIANI.map(p=>`${p.etichetta}: ${p.cosa}`))), ...R.find(p=>p.id==="dati").dentro()]; }},
       ...PARTI_PIANO(0)],
     fine:()=>[AZIONI(parlaQui(`Parla con ${nomeAssistente()}`,""))]},
-  torre1:{nome:"La Torre · 1° piano",ic:"🌐",breve:"cosa so fare",piano:1,
-    testa:()=>TESTA("1° piano","Cosa so fare","Quello che so già fare oggi, sul telefono di chi mi costruisce."),
-    parti:()=>[{id:"sa",nome:"Cosa so fare",dentro:()=>[BLOCCO(H3("Cosa so già fare, oggi"), P("Su un telefono solo: quello di chi mi costruisce, ogni giorno sul furgone."),
-        FATTI([[VETRINA.attrezzi?String(VETRINA.attrezzi):"40+","attrezzi"],["8.385","numeri civici di un paese, uno per uno"],["18","zone di consegna"],[VETRINA.canzoni?VETRINA.canzoni.toLocaleString("it-IT"):"4.639","canzoni che riconosco, imparate ascoltando la radio"]]),
-        LISTA(["In macchina: sono una sorgente di Android Auto, con sei radio preselezionate. Mi parli mentre guidi, anche con la musica accesa.",
-          "Al lavoro: metti un pacco nel giro e la giornata parte; a sera la chiudo io, e non la chiudo se resta qualcosa da fare.",
-          "La tua giornata: sveglie, appuntamenti, compleanni; la mattina ti dico cosa ti aspetta. Se dici «mia figlia», so di chi parli.",
-          "Occhi e orecchie: guardo le foto, cerco sul web e ti lascio le fonti da toccare. Mi scrivi anche da Telegram."]))]}, ...PARTI_PIANO(1)]},
   torre2:{nome:"La Torre · 2° piano",ic:"📈",breve:"investi in JJA-VIS",piano:2,
     testa:()=>LUOGHI.borsa.testa(), parti:()=>[...LUOGHI.borsa.parti(), ...PARTI_PIANO(2)], fine:()=>(LUOGHI.borsa.fine?LUOGHI.borsa.fine():[])},
   // gli dèi: una squadra di informatici, sei per piano (JJ, 19/10: «come un team vero di informatici con scrivanie»)
@@ -760,7 +753,7 @@ const LUOGHI={
     parti:()=>[...DEI_DEL_PIANO(n).map(d=>({id:"dio-"+d.id,nome:d.nome,breve:d.nome,chi:()=>d.nome,dice:()=>d.dice,
       domande:()=>[["Chi sei?",d.chi],["Cosa fai in JJA-VIS?",d.fa],["Lavori già?",d.oggi]],
       dentro:()=>[BLOCCO(H3(d.nome),P(d.chi),P(d.fa),NOTA(d.oggi))]})), ...PARTI_PIANO(n)]}])),
-  ...Object.fromEntries([5,6,7].map(n=>[`torre${n}`,{nome:`La Torre · ${n}° piano`,ic:"🌐",breve:"piano libero",piano:n,
+  ...Object.fromEntries([1,5,6,7].map(n=>[`torre${n}`,{nome:`La Torre · ${n}° piano`,ic:"🌐",breve:"piano libero",piano:n,
     testa:()=>TESTA(`${n}° piano`,"Piano libero",`Per ora è vuoto: da qui si guarda la città dalle vetrate. Cosa ci va, lo decide chi mi costruisce.`),
     parti:()=>[{id:"vetrata",nome:"La vetrata",dentro:()=>[BLOCCO(H3("La vista"), P(`Dal ${n}° piano la città si vede tutta: la piazza, l'albero, i quartieri. Dalla terrazza, in cima, ancora meglio.`))]}, ...PARTI_PIANO(n)]}])),
   cinema:{nome:"Cinema",ic:"🎬",breve:"guardami al lavoro",
@@ -833,13 +826,11 @@ const LUOGHI={
     testa:()=>TESTA("Si gioca, si vincono gettoni","Sala giochi","I gettoni sono la moneta della città: se ne vincono qui, si spendono al Café."),
     parti:()=>[
       {id:"cab1",nome:"Acchiappa i gettoni",dentro:()=>[BLOCCO(H3("Acchiappa i gettoni"), P("25 secondi: compaiono i gettoni di JJA-VIS, toccali prima che spariscano. Attento alle 💣: se ne tocchi una perdi i gettoni presi in quella partita. ⚡ per 5 secondi ne escono il doppio; ×2 per 6 secondi ogni gettone vale doppio. Più va avanti, più spariscono in fretta. Ne vinci fino a 25 a partita."),
-        AZIONI(bottone("Gioca",giocaAcchiappa)), NOTA(`Hai ${citta.gettoni} gettoni.`))]},
+        AZIONI(bottone("Gioca",giocaAcchiappa)), NOTA(`Hai ${citta.gettoni} gettoni.`))],
+        domande:()=>[["Classifica",classificaTesto]]},
       {id:"cab2",nome:"Cabinato 2",dentro:()=>[BLOCCO(CARTE([["Cabinato 2","libero","Quello che chiedete in tanti."]]))]},
-      {id:"macchinetta",nome:"La macchinetta dei gettoni",dentro:()=>[BLOCCO(H3("La macchinetta"), P("Qui un giorno i gettoni si compreranno."),
-        NOTA("Non ancora accesa: comprare coi soldi veri vuol dire decidere prima chi incassa (col commercialista). Intanto i gettoni si vincono giocando."))]},
-      {id:"chi",nome:"Chi li fa",dentro:()=>[BLOCCO(H3("Chi li fa"), P("Chi mi costruisce è creatore ufficiale di isole di Fortnite. Le isole su commissione le trovi alla Forgia.")),
-        NOTA("A cosa vorresti giocare? Dimmelo nella chat: le idee più chieste diventano il prossimo cabinato.")]}],
-    fine:()=>[AZIONI(parlaQui("Dimmi a cosa vorresti giocare","Mi piacerebbe giocare a "))]},
+      {id:"macchinetta",nome:"La macchinetta dei gettoni",dentro:()=>[BLOCCO(H3("La macchinetta"), P("Non ancora attiva: per ora i gettoni si vincono giocando."))]}],
+    senzaPiu:true},
   ristorante:{nome:"Ristorante",ic:"🍝",breve:"alla cassa: il menù, scegli e paghi",
     testa:()=>TESTA(QUARTIERI.est+" · in piazza","Ristorante","Vai alla cassa: c'è il menù. Scegli, e arrivi al conto. Oggi è la vetrina di come funzionerà: il menù è d'esempio, il pagamento non è acceso e nessun ordine parte."),
     parti:()=>[
@@ -970,6 +961,8 @@ function specchio(){
 }
 
 // quello che dice l'assistente al piano terra (era il globo in cima e «per chiunque»)
+// era il 1° piano (JJ, 19/10: «è inutile, lo dice la reception tra le interazioni»). Anche i giochi: li fa chi mi costruisce
+const COSA_SO_FARE=()=>`Oggi, sul telefono di chi mi costruisce: ${VETRINA.attrezzi?VETRINA.attrezzi:"40+"} attrezzi, ${VETRINA.canzoni?VETRINA.canzoni.toLocaleString("it-IT"):"4.639"} canzoni riconosciute, 8.385 numeri civici di un paese, uno per uno. In macchina mi parli anche con la musica accesa; al lavoro metti un pacco nel giro e la giornata parte; ti ricordo sveglie, appuntamenti e compleanni; guardo le foto e cerco sul web. Per chi ha tanti appuntamenti: me li scrivi per mail, e la sera ti mando quelli di domani. E i giochi della Sala giochi li costruisce chi costruisce me.`;
 const GLOBO_CHI=()=>"Un assistente professionale conosce un lavoro. Io imparo chi sei: le tue abitudini, le tue giornate, quello che vuoi. Il lavoro è solo una parte di te: più mi usi, più divento tuo.";
 const GLOBO_DICE=()=>[BLOCCO(H3("Imparo te"), P("Un assistente professionale conosce un lavoro. Io imparo chi sei: le tue abitudini, le tue giornate, quello che ti preoccupa e quello che vuoi. Il lavoro è solo una parte di te. Più mi usi, più divento tuo. Uguale per tutti, diverso per ognuno.")),
         BLOCCO(H3("Da dove nasco"), P("Chi mi costruisce ha molte vite insieme: una ditta di trasporti, il furgone da corriere ogni mattina, il codice la notte, le isole di Fortnite di cui è creatore ufficiale. Cercava qualcosa che lo aiutasse in tutte. Non l'ha trovato, e ha deciso di costruirlo.")), BLOCCO(H3("Per chiunque"), P("Chiunque, ovunque nasca e qualunque lavoro faccia, ha diritto al suo assistente personale. Il corriere di Milano, il farmacista di Tokyo, l'agricoltore del Brasile, il meccanico del Cairo. Parto dal lavoro che conosco meglio, la consegna, e da lì vado verso tutti.")),
@@ -1138,6 +1131,13 @@ window.CONTO_PROVA={ stato:()=>({conto, provaSkin, gettoni:citta.gettoni, tasto:
 const GIOCO={durata:25, massimo:25, probabilita:[["gettone",0.68],["bomba",0.2],["turbo",0.06],["x2",0.06]], turbo:5000, x2:6000};
 // la classifica a fine partita (JJ, 6/10: «non mostra la classifica a fine gioco»): la stessa per tutti, sul server della città.
 // Con l'account il record entra in classifica; senza, si vede la classifica e il record resta nel telefono
+// la classifica nel dialogo della Sala giochi (JJ, 19/10: «tra le opzioni, gioca e classifica»)
+async function classificaTesto(){
+  const r=await chiamaConto("/conto/classifica?gioco=acchiappa",null,"GET").catch(()=>null);
+  if(!r||!Array.isArray(r.classifica)) return "La classifica adesso non risponde: riprova fra poco.";
+  if(!r.classifica.length) return "Ancora nessuno in classifica: il primo posto è libero.";
+  return r.classifica.slice(0,10).map((x,i)=>`${["🥇","🥈","🥉"][i]||(i+1)+"."} ${x.n} · ${x.punti}`).join("\n")+`\n\nIl tuo record: ${citta.recordAcchiappa|0}`;
+}
 async function mostraClassifica(campo, punti){
   const box=el("div",{id:"gioco-classifica",style:"max-width:420px;margin:16px auto;padding:0 16px;font:500 16px/1.5 var(--f-testo)"});
   box.append(el("p",{testo:"Classifica in arrivo…",style:"text-align:center"})); campo.append(box);
@@ -1187,7 +1187,7 @@ function giocaAcchiappa(){
 // ── i piani della Torre
 const PIANI=[
   {n:0,id:"torre",etichetta:"Piano terra",cosa:"la Reception e l'assistente"},
-  {n:1,id:"torre1",etichetta:"1° piano",cosa:"cosa so fare"},
+  {n:1,id:"torre1",etichetta:"1° piano",cosa:"libero"},
   {n:2,id:"torre2",etichetta:"2° piano",cosa:"la Borsa: investi in JJA-VIS"},
   {n:3,id:"torre3",etichetta:"3° piano",cosa:"gli dèi di JJA-VIS"},
   {n:4,id:"torre4",etichetta:"4° piano",cosa:"gli dèi di JJA-VIS, la seconda squadra"},
@@ -1554,22 +1554,29 @@ const apriCosa=k=>{ if(stanzaAperta){ chiudiDialogo(); mostraCarta(k); } };
 let dialogoAperto=null;
 function interagisci(b, sotto){ b.textContent=""; b.append(el("span",{class:"q","aria-hidden":"true"}), el("span",{class:"v"}, el("b",{testo:"Interagisci"}), el("small",{testo:sotto}))); b.setAttribute("aria-label","Interagisci: "+sotto); }
 function chiudiDialogo(){ if(!dialogoAperto) return; dialogoAperto=null; $("dialogo").hidden=true; document.body.classList.remove("con-dialogo"); }
-function apriDialogo(k){
+function apriDialogo(k, tutto=false){
   const L=LUOGHI[stanzaAperta], p=L&&parteDi(L,k); if(!p){ apriCosa(k); return; }
-  const box=el("div"); [...(p.dentro?p.dentro():[]), ...(L.fine?L.fine():[])].filter(Boolean).forEach(n=>box.appendChild(n));
-  const primo=box.querySelector("p"), dice=p.dice?p.dice():(primo?primo.textContent:"");
+  const nodi=[...(p.dentro?p.dentro():[]), ...(L.fine?L.fine():[])].filter(Boolean);
+  const T=$("dialogo-testo"), S=$("dialogo-scelte"), su=T.scrollTop; S.textContent="";
   const corto=s=>s.length>240?s.slice(0,237).trimEnd()+"…":s;
+  // i tasti della carta vivono nel dialogo: «tutto» li mostra col loro contenuto; altrimenti stanno in una scatola fuori
+  // pagina finché non si premono — e premuti, il contenuto entra nel dialogo prima del clic (19/10: in Bottega i tasti
+  // del commesso non facevano niente, perché lavoravano su una carta che non c'era)
+  const box=el("div"); nodi.forEach(n=>box.appendChild(n));
   const tasti=[...box.querySelectorAll("button")].filter(b=>!b.disabled && b.textContent.trim()).slice(0,6);
-  const S=$("dialogo-scelte"); S.textContent="";
   const scelta=(testo,fa)=>{ const c=el("button",{type:"button",testo}); c.addEventListener("click",()=>{ S.querySelectorAll("button").forEach(x=>x.classList.toggle("premuto",x===c)); fa(); }); S.appendChild(c); };
-  (p.domande?p.domande():[]).forEach(([dom,ris])=>scelta(dom,()=>{ $("dialogo-testo").textContent=corto(ris); }));
-  tasti.forEach(b=>scelta(b.textContent.trim(),()=>{ chiudiDialogo(); b.click(); }));
-  scelta("Dimmi di più",()=>{ const T=$("dialogo-testo"); T.textContent=""; T.classList.add("lungo");
-    [...(p.dentro?p.dentro():[]), ...(L.fine?L.fine():[])].filter(Boolean).forEach(n=>T.appendChild(n)); T.scrollTop=0; });
+  const scrivi=(v,taglia)=>{ T.classList.remove("lungo"); T.style.whiteSpace=String(v).includes("\n")?"pre-line":""; T.textContent=taglia?corto(String(v)):String(v); };
+  (p.domande?p.domande():[]).forEach(([dom,ris])=>scelta(dom,async()=>{ if(typeof ris==="function"){ scrivi("…"); scrivi(await ris()); } else scrivi(ris); }));
+  tasti.forEach(b=>{ const testo=b.textContent.trim(); scelta(testo,()=>{ if(!tutto){ T.textContent=""; T.classList.add("lungo"); T.appendChild(box); }
+    b.click(); if(dialogoAperto===k && !document.getElementById("strato-gioco")) setTimeout(()=>{ if(dialogoAperto===k) apriDialogo(k,true); },60); }); });
+  if(!L.senzaPiu && !tutto) scelta("Dimmi di più",()=>apriDialogo(k,true));
   scelta("Esci",chiudiDialogo);
-  $("dialogo-nome").textContent=p.chi?p.chi():p.nome; $("dialogo-testo").classList.remove("lungo"); $("dialogo-testo").textContent=corto(dice);
+  $("dialogo-nome").textContent=p.chi?p.chi():p.nome;
+  if(tutto){ T.textContent=""; T.style.whiteSpace=""; T.classList.add("lungo"); T.appendChild(box); T.scrollTop=su; }
+  else { const primo=box.querySelector("p"); scrivi(p.dice?p.dice():(primo?primo.textContent:""),true); }
   dialogoAperto=k; $("dialogo").hidden=false; document.body.classList.add("con-dialogo");
 }
+
 function apriStanza(id){
   const L=LUOGHI[id]; if(!L) return;
   chiudiFoglio();
@@ -2312,7 +2319,8 @@ async function costruisci(){
 
   // i manichini della Sartoria: tre vestiti in vetrina, fuori
   { const P=PALAZZI.find(q=>q.id==="sartoria"), px=P.x, pz=P.z, dx=Math.sin(P.rot), dz=Math.cos(P.rot);   // per nome: col reattore l'ordine è cambiato e finivano davanti al Ristorante (JJ, 11/10)
-    ["guida","artigiano","creator"].forEach((v,i)=>{ const m=avatar({vestito:v,pelle:[0,2,4][i],corpo:i===1?"donna":"uomo",capelli:i===1?"coda":"corti"});
+    // il manichino centrale stava davanti alla porta (JJ, 19/10): restano i due ai lati
+    ["guida","artigiano","creator"].forEach((v,i)=>{ if(i===1) return; const m=avatar({vestito:v,pelle:[0,2,4][i],corpo:i===1?"donna":"uomo",capelli:i===1?"coda":"corti"});
       const off=(i-1)*2.4; m.position.set(px+dx*(P.d/2+1.0)+(-dz)*off, 0.25, pz+dz*(P.d/2+1.0)+dx*off); m.rotation.y=P.rot;
       const ped=cilindro(0.45,0.5,0.25,0x0D3A5C,14); ped.position.set(m.position.x,0.125,m.position.z); S.add(ped, m); toccabili.push([m,"sartoria"]); m.userData.manichino=true; solidi.push({cerchio:true,x:m.position.x,z:m.position.z,r:0.5}); }); }
 
@@ -2516,7 +2524,7 @@ const COLLINA={r:4.2,h:1.0}, ACQUA=[4.2,6.13], MURETTO={r:6.25,alto:0.55}, PANCH
       for(let i=0;i<6;i++){ h.metti(scatola(0.42,0.08,0.3,[0x00B4D8,0xFFD60A,0xE63946,0x2ECC71,0x8E44AD,0xF5F5F5][i],true),-1.35+i*0.54,1.04,-3.0); }
       const rad=scatola(1.4,0.8,0.5,0x3a2a20); h.metti(rad,0,1.45,-3.4); h.metti(palla(0.25,0x111111),-0.35,1.45,-3.14).scale.z=0.2; h.metti(scatola(0.5,0.3,0.02,0xFFD60A,true),0.3,1.5,-3.14);
       h.cosa("radio",[cons,rad],0,-3.2,{x:0,z:-1.9},2.4);
-      const sch=aParete(schermo(2.6,1.4,"#00B4D8","LE TUE STAZIONI"),1,1.5,1.5); sch.position.x-=0.1; S2.add(sch); h.cosa("stazioni",[sch],6.6,1.5,{x:5.3,z:1.5},3.3);
+      const sch=aParete(schermo(2.6,1.4,"#00B4D8","LE TUE STAZIONI"),1,1.5,1.5); sch.position.x-=0.1; S2.add(sch);
       h.metti(new THREE.Mesh(new THREE.CylinderGeometry(1.4,1.4,0.02,32),mat(0x00B4D8,true)),0,0.02,0); },
     sartoria(S2,h){ h.insegnaFondo("SARTORIA","vestiti come vuoi");
       const man=[]; ["corriere","negozio","sanita","ufficio"].forEach((v,i)=>{ const m=avatar({vestito:v,pelle:i%5,corpo:i%2?"donna":"uomo",capelli:i%2?"lunghi":"corti",capelliColore:i}); const x=-4.5+i*3; h.metti(cilindro(0.45,0.5,0.25,0x0D3A5C,14),x,0.125,-4); h.metti(m,x,0.25,-4); man.push(m); h.tondo(x,-4,0.55); });
@@ -2566,9 +2574,6 @@ const COLLINA={r:4.2,h:1.0}, ACQUA=[4.2,6.13], MURETTO={r:6.25,alto:0.55}, PANCH
       const ch=schermo(2.4,0.7,"#00B4D8","HALL"); h.metti(ch,-LARGO/2+0.09,3.4,0,Math.PI/2); hall.push(ch);
       // la hall resta (i divani), ma non è più una cosa con cui parlare (JJ, 19/10: «una copia che non serve»)
       vetrate(S2,h); pianoComune(S2,h); },
-    torre1(S2,h){ h.insegnaFondo("1° PIANO","cosa so fare");
-      const sa=schermo(4.2,2.2,"#00B4D8","COSA SO FARE"); h.metti(sa,0,1.9,-PROFONDO/2+0.1); h.cosa("sa",[sa],0,-5.2,{x:0,z:-4.2},3.4);
-      vetrate(S2,h); pianoComune(S2,h); },
     torre2(S2,h){ ARREDI.borsa(S2,h); pianoComune(S2,h); },
     // gli dèi come una squadra di informatici (JJ, 19/10): sei scrivanie per piano, due file da tre, uno schermo a testa;
     // il dio sta in piedi dietro la scrivania e guarda lo schermo. Seduti e in giro per il piano: il prossimo passo
@@ -2579,7 +2584,7 @@ const COLLINA={r:4.2,h:1.0}, ACQUA=[4.2,6.13], MURETTO={r:6.25,alto:0.55}, PANCH
         const fig=persona({skin:"dio-"+d.id,corpo:d.corpo,vestito:"altro"}); fig.position.set(x,0,z-0.95); S2.add(fig); h.tondo(x,z-0.95,0.4);
         h.cosa("dio-"+d.id,[fig,tv],x,z-0.95,{x,z:z+1.1},2.4); });
       vetrate(S2,h); pianoComune(S2,h); }])),
-    ...Object.fromEntries([5,6,7].map(n=>[`torre${n}`,(S2,h)=>{ h.insegnaFondo(`${n}° PIANO`,"piano libero");
+    ...Object.fromEntries([1,5,6,7].map(n=>[`torre${n}`,(S2,h)=>{ h.insegnaFondo(`${n}° PIANO`,"piano libero");
       const v=vetrate(S2,h); h.cosa("vetrata",v,-6.8,0,{x:-5.4,z:0},2.6); pianoComune(S2,h); }])),
     cinema(S2,h){ const sc=schermo(9,3.6,"#00B4D8","GUARDAMI AL LAVORO"); h.metti(sc,0,2.5,-PROFONDO/2+0.08);
       h.cosa("schermo",[sc],0,-5.6,{x:0,z:-3.4},4.75);
@@ -2629,7 +2634,7 @@ const COLLINA={r:4.2,h:1.0}, ACQUA=[4.2,6.13], MURETTO={r:6.25,alto:0.55}, PANCH
       // la macchinetta dei gettoni, accanto alla porta
       const mac=scatola(1,2,0.8,0x2a3f57); h.metti(mac,5.6,1,4.6); h.metti(scatola(0.6,0.4,0.04,0xFFD60A,true),5.6,1.5,4.18); h.solido(5.6,4.6,1,0.8);
       h.cosa("macchinetta",[mac],5.6,4.6,{x:4.4,z:4.4},2.4);
-      [[-5,0xff4fd8,"cab1","1"],[-2.5,0x00B4D8,"cab2","2"],[2.5,0xFFD60A,"chi","?"],[5,0x2ECC71,null,"?"]].forEach(([x,c,k,t])=>{ const m=scatola(1.2,2.2,0.9,0x15161a); h.metti(m,x,1.1,-5);
+      [[-5,0xff4fd8,"cab1","1"],[-2.5,0x00B4D8,"cab2","2"],[2.5,0xFFD60A,null,"?"],[5,0x2ECC71,null,"?"]].forEach(([x,c,k,t])=>{ const m=scatola(1.2,2.2,0.9,0x15161a); h.metti(m,x,1.1,-5);
         const sc=schermo(0.9,0.7,"#"+c.toString(16).padStart(6,"0"),t); h.metti(sc,x,1.55,-4.54); h.metti(scatola(1.21,0.12,0.12,c,true),x,2.25,-4.55); h.solido(x,-5,1.2,0.9);
         if(k) h.cosa(k,[m,sc],x,-5,{x,z:-3.6},2.95); });
       for(const s of [-1,1]) h.metti(scatola(0.1,0.1,PROFONDO-1,0xff4fd8,true),s*(LARGO/2-0.1),ALTO-0.4,0); },
