@@ -1288,6 +1288,10 @@ const salva=()=>{ try{ localStorage.setItem(CHIAVE, JSON.stringify(io)); }catch(
 const pesoIo=x=>!x||typeof x!=="object"?0:Object.keys(x).length+(x.inviato?20:0)+(x.mestiere?5:0)+(Array.isArray(x.chat)?Math.min(x.chat.length,50):0)+(x.risposte&&typeof x.risposte==="object"?Object.keys(x.risposte).length*2:0);
 // i due profili si uniscono: il più avanti vince dove dicono cose diverse, e dall'altro si prende quello che manca.
 // La mail dell'account è la tua mail: se il profilo non ce l'ha, la prende (JJ, 19/10: «la mail dovrebbe averla già»)
+// la mail fa da ponte (JJ, 19/10): la porta riconosce chi ha già conosciuto con la mail dell'account (Atlas, i messaggi)
+// e rimanda il suo profilo; la prima volta del giorno gli scrive «Bentornata/o». La mail la conferma il server dei conti.
+const ponte=async()=>{ try{ const r=await fetch(INVIO.replace("/risposta","/io/dal-conto"),{method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+contoToken()},body:"{}"});
+  const d=r.ok?await r.json():null; return d&&d.io||null; }catch(_){ return null; } };
 const unisciIo=(a,b,mail)=>{ const [f,d]=pesoIo(a)>=pesoIo(b)?[a||{},b||{}]:[b||{},a||{}]; const u={...d,...f}; if(!u.mail&&mail) u.mail=mail; return u; };
 // la porta d'ingresso (JJ, 19/10): senza account non si entra. Entrati, se l'account ha già un profilo quello vince
 // (è chi sei, da un altro telefono); se non ce l'ha, ci va quello di questo telefono. Poi la pagina riparte pulita.
@@ -1296,7 +1300,7 @@ const unisciIo=(a,b,mail)=>{ const [f,d]=pesoIo(a)>=pesoIo(b)?[a||{},b||{}]:[b||
     // l'account vince una volta per sessione (alla prima apertura): dopo, la pagina cambia il profilo e lo manda su.
     // Senza il segno si ricaricava in giro (la pagina tocca il profilo appena parte: provato in sandbox, 19/10)
     let preso=false; try{ preso=!!sessionStorage.getItem("jjavis-io-preso"); sessionStorage.setItem("jjavis-io-preso","1"); }catch(_){ preso=true; }
-    if(r.conto){ const u=preso?{...io,...(!io.mail&&r.conto.mail?{mail:r.conto.mail}:{})}:unisciIo(r.conto.io,io,r.conto.mail);
+    if(r.conto){ const u=preso?{...io,...(!io.mail&&r.conto.mail?{mail:r.conto.mail}:{})}:unisciIo(unisciIo(r.conto.io,io,r.conto.mail),await ponte(),r.conto.mail);
       if(JSON.stringify(u)!==JSON.stringify(io)){ io=u; try{ localStorage.setItem(CHIAVE, JSON.stringify(io)); }catch(_){} await conto_("/conto/io",{io}); location.reload(); return; }
       if(Object.keys(io).length && JSON.stringify(r.conto.io)!==JSON.stringify(io)) conto_("/conto/io",{io}); return; }
     if(r.stato!==401) return;   // il server non risponde: si entra lo stesso, col profilo del telefono (un guasto non chiude la porta)
@@ -1314,7 +1318,7 @@ const unisciIo=(a,b,mail)=>{ const [f,d]=pesoIo(a)>=pesoIo(b)?[a||{},b||{}]:[b||
     presto:"Un codice al minuto: riprova fra poco.",troppi:"Per oggi i codici sono finiti: riprova domani."};
   const dimmi=r=>esito(r.no==="attendi"?`Troppi tentativi: riprova fra ${r.fra} minuti.`:MSG[r.no]||"Qualcosa non ha funzionato: riprova.");
   const dentro=async r=>{ try{ localStorage.setItem(CONTO_CHIAVE, r.token); sessionStorage.setItem("jjavis-io-preso","1"); }catch(_){}
-    io=unisciIo(r.conto&&r.conto.io,io,r.conto&&r.conto.mail); try{ localStorage.setItem(CHIAVE, JSON.stringify(io)); }catch(_){}
+    io=unisciIo(unisciIo(r.conto&&r.conto.io,io,r.conto&&r.conto.mail),await ponte(),r.conto&&r.conto.mail); try{ localStorage.setItem(CHIAVE, JSON.stringify(io)); }catch(_){}
     if(Object.keys(io).length) await conto_("/conto/io",{io});
     location.reload(); };
   const vista=v=>{ for(const k of ["accedi","registrati","codice"]) $i("ing-"+k).hidden=k!==v;
