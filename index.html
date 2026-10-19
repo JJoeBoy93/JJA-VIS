@@ -295,20 +295,29 @@ body.con-nome[data-scheda="inizia"] #esito-chat{margin:6px 0 0}
 <!-- 19/10, JJ: «prima di entrare devi fare l'account con la mail, così poi non ricominci mai da capo» -->
 <section id="ingresso" hidden role="dialog" aria-labelledby="ingresso-titolo">
   <div class="ingresso-scheda">
-    <h1 id="ingresso-titolo">Entra in JJA-VIS</h1>
-    <p>Con la tua mail: così il tuo assistente si ricorda di te da qualsiasi telefono, e non ricominci mai da capo.</p>
-    <div id="ingresso-passo1">
-      <label for="ingresso-mail">La tua mail</label>
-      <input id="ingresso-mail" type="email" autocomplete="email" inputmode="email" placeholder="nome@esempio.it">
-      <label class="ingresso-eta"><input id="ingresso-eta" type="checkbox"> Ho almeno 14 anni</label>
-      <button id="ingresso-manda" type="button">Mandami il codice</button>
+    <h1 id="ingresso-titolo">JJA-VIS</h1>
+    <div class="ingresso-schede" role="tablist"><button id="tab-accedi" type="button" role="tab" class="su">Accedi</button><button id="tab-registrati" type="button" role="tab">Registrati</button></div>
+    <div id="ing-accedi">
+      <label for="acc-chi">Mail o nome utente</label><input id="acc-chi" autocomplete="username">
+      <label for="acc-pw">Password</label><input id="acc-pw" type="password" autocomplete="current-password">
+      <button id="acc-entra" type="button">Accedi</button>
+      <button id="acc-dimenticata" type="button" class="ingresso-link">Password dimenticata?</button>
     </div>
-    <div id="ingresso-passo2" hidden>
-      <label for="ingresso-codice">Il codice di 6 cifre che ti ho mandato</label>
-      <input id="ingresso-codice" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="123456">
-      <button id="ingresso-entra" type="button">Entra</button>
-      <button id="ingresso-indietro" type="button" class="ingresso-link">Cambia mail</button>
+    <div id="ing-registrati" hidden>
+      <label for="reg-nome">Nome utente</label><input id="reg-nome" autocomplete="nickname" maxlength="16" placeholder="da 3 a 16 caratteri">
+      <label for="reg-mail">Mail</label><input id="reg-mail" type="email" autocomplete="email" inputmode="email">
+      <label for="reg-pw">Password</label><input id="reg-pw" type="password" autocomplete="new-password" placeholder="almeno 8 caratteri">
+      <label class="ingresso-eta"><input id="reg-eta" type="checkbox"> Ho almeno 14 anni</label>
+      <button id="reg-manda" type="button">Registrati</button>
     </div>
+    <div id="ing-codice" hidden>
+      <label for="ing-cod">Il codice di 6 cifre che ti ho mandato alla mail</label><input id="ing-cod" inputmode="numeric" autocomplete="one-time-code" maxlength="6">
+      <div id="ing-nuova" hidden><label for="ing-pw2">La nuova password</label><input id="ing-pw2" type="password" autocomplete="new-password" placeholder="almeno 8 caratteri"></div>
+      <button id="ing-conferma" type="button">Conferma</button>
+      <button id="ing-indietro" type="button" class="ingresso-link">Indietro</button>
+    </div>
+    <div class="ingresso-o">oppure</div>
+    <div id="ing-google"></div>
     <p id="ingresso-esito" role="status"></p>
     <p class="ingresso-piccolo"><a href="privacy.html">Privacy</a> · <a href="regole.html">Regole</a></p>
   </div>
@@ -319,7 +328,9 @@ body.con-nome[data-scheda="inizia"] #esito-chat{margin:6px 0 0}
 .ingresso-scheda{width:100%;max-width:380px;color:#E8F7FF;font:500 16px/1.45 system-ui,sans-serif}
 .ingresso-scheda h1{font:800 26px/1.15 system-ui,sans-serif;margin:0 0 10px}
 .ingresso-scheda label{display:block;margin:14px 0 6px;font-weight:700}
-.ingresso-scheda input[type=email],.ingresso-scheda input[inputmode=numeric]{width:100%;box-sizing:border-box;padding:12px;font-size:18px;border-radius:8px;border:1px solid #00B4D8;background:#071a2c;color:#fff}
+.ingresso-schede{display:flex;gap:8px;margin:6px 0 4px}.ingresso-schede button{margin:0!important;background:#0b2a40!important;color:#cfefff!important}.ingresso-schede button.su{background:#00B4D8!important;color:#02121f!important}
+.ingresso-o{text-align:center;opacity:.7;margin:16px 0 8px}#ing-google{display:flex;justify-content:center;min-height:44px}
+.ingresso-scheda input{width:100%;box-sizing:border-box;padding:12px;font-size:18px;border-radius:8px;border:1px solid #00B4D8;background:#071a2c;color:#fff}
 .ingresso-eta{font-weight:500!important;display:flex!important;gap:8px;align-items:center}
 .ingresso-scheda button{width:100%;margin-top:14px;padding:13px;font:800 17px system-ui,sans-serif;border:0;border-radius:8px;background:#00B4D8;color:#02121f;cursor:pointer}
 .ingresso-scheda button.ingresso-link{background:transparent;color:#7FDBFF;font-weight:600}
@@ -1271,6 +1282,10 @@ async function conto_(via,corpo,metodo="POST"){ const s=await contoSrv(); if(!s)
 let ioVerso=null;
 const salva=()=>{ try{ localStorage.setItem(CHIAVE, JSON.stringify(io)); }catch(_){}
   if(contoToken()){ clearTimeout(ioVerso); ioVerso=setTimeout(()=>conto_("/conto/io",{io}),1200); } };
+// quale profilo vince fra quello del telefono e quello dell'account: il più avanti (JJ, 19/10: Jessica si è registrata da
+// un browser nuovo, ha rifatto tutto da capo, e il suo profilo vero è rimasto nel browser di prima — entrando da lì deve
+// tornare quello, non essere coperto da quello rifatto in fretta)
+const pesoIo=x=>!x||typeof x!=="object"?0:Object.keys(x).length+(x.inviato?20:0)+(x.mestiere?5:0)+(Array.isArray(x.chat)?Math.min(x.chat.length,50):0)+(x.risposte&&typeof x.risposte==="object"?Object.keys(x.risposte).length*2:0);
 // la porta d'ingresso (JJ, 19/10): senza account non si entra. Entrati, se l'account ha già un profilo quello vince
 // (è chi sei, da un altro telefono); se non ce l'ha, ci va quello di questo telefono. Poi la pagina riparte pulita.
 (async()=>{ if(new URLSearchParams(location.search).get("chi")) return;   // il link della mail fa il suo giro, poi si torna qui
@@ -1278,28 +1293,47 @@ const salva=()=>{ try{ localStorage.setItem(CHIAVE, JSON.stringify(io)); }catch(
     // l'account vince una volta per sessione (alla prima apertura): dopo, la pagina cambia il profilo e lo manda su.
     // Senza il segno si ricaricava in giro (la pagina tocca il profilo appena parte: provato in sandbox, 19/10)
     let preso=false; try{ preso=!!sessionStorage.getItem("jjavis-io-preso"); sessionStorage.setItem("jjavis-io-preso","1"); }catch(_){ preso=true; }
-    if(r.conto){ if(!preso && r.conto.io && JSON.stringify(r.conto.io)!==JSON.stringify(io)){ io=r.conto.io; try{ localStorage.setItem(CHIAVE, JSON.stringify(io)); }catch(_){} location.reload(); }
+    if(r.conto){ if(!preso && r.conto.io && JSON.stringify(r.conto.io)!==JSON.stringify(io) && pesoIo(r.conto.io)>=pesoIo(io)){ io=r.conto.io; try{ localStorage.setItem(CHIAVE, JSON.stringify(io)); }catch(_){} location.reload(); }
       else if(Object.keys(io).length) conto_("/conto/io",{io}); return; }
     if(r.stato!==401) return;   // il server non risponde: si entra lo stesso, col profilo del telefono (un guasto non chiude la porta)
     try{ localStorage.removeItem(CONTO_CHIAVE); }catch(_){} }
   // la porta si chiude solo se il server dei conti risponde: senza, non si potrebbe più entrare (un guasto non chiude la porta)
   const srv=await contoSrv(); if(!srv) return;
   try{ const p=await fetch(srv+"/conto/classifica?gioco=acchiappa",{cache:"no-store"}); if(!p.ok) return; }catch(_){ return; }
+  // accedi o registrati (JJ, 19/10: «la classica schermata di login ... username, mail e password ... e i vari metodi di
+  // accesso con Google»). Chi è registrato entra con la password, senza codice; il codice solo per confermare la mail
+  // alla registrazione e per rifare la password
   const $i=id=>document.getElementById(id), esito=t=>{ $i("ingresso-esito").textContent=t; };
-  $i("ingresso").hidden=false; let mail="";
-  $i("ingresso-manda").onclick=async()=>{ mail=$i("ingresso-mail").value.trim(); if(!mail){ esito("Scrivi la tua mail."); return; }
-    esito("Mando il codice…"); const r=await conto_("/conto/mail/codice",{mail});
-    if(r.fatto){ $i("ingresso-passo1").hidden=true; $i("ingresso-passo2").hidden=false; esito(`Codice mandato a ${mail}: guarda la posta (anche lo spam).`); $i("ingresso-codice").focus(); }
-    else esito(r.no==="mail"?"Questa non sembra una mail.":r.no==="presto"?`Un codice al minuto: riprova fra ${r.fra||60} secondi.`:r.no==="troppi"?"Per oggi i codici sono finiti: riprova domani.":"Non sono riuscito a mandare il codice: riprova fra poco."); };
-  $i("ingresso-indietro").onclick=()=>{ $i("ingresso-passo2").hidden=true; $i("ingresso-passo1").hidden=false; esito(""); };
-  $i("ingresso-entra").onclick=async()=>{ const codice=$i("ingresso-codice").value.replace(/\D/g,"");
-    if(codice.length!==6){ esito("Il codice ha 6 cifre."); return; }
-    esito("Entro…"); const r=await conto_("/conto/mail/entra",{mail,codice,eta14:$i("ingresso-eta").checked});
-    if(!r.token){ esito(r.no==="eta"?"Per creare l'account spunta «Ho almeno 14 anni».":r.no==="codice"?`Codice sbagliato${Number.isInteger(r.restano)?`: restano ${r.restano} tentativi`:""}.`:r.no==="scaduto"?"Il codice è scaduto: fattene mandare un altro.":r.no==="bloccato"?"Questo account è bloccato.":"Non sono riuscito a entrare: riprova."); return; }
-    try{ localStorage.setItem(CONTO_CHIAVE, r.token); sessionStorage.setItem("jjavis-io-preso","1"); }catch(_){}
-    if(r.conto&&r.conto.io){ io=r.conto.io; try{ localStorage.setItem(CHIAVE, JSON.stringify(io)); }catch(_){} }
+  const MSG={mail:"Questa non sembra una mail.",username:"Il nome utente: da 3 a 16 caratteri, lettere e numeri, niente parolacce.",password:"La password deve avere almeno 8 caratteri.",
+    eta:"Per creare l'account spunta «Ho almeno 14 anni».",esiste:"Questa mail ha già un account: accedi (o «Password dimenticata?»).",preso:"Questo nome utente è già preso.",
+    credenziali:"Mail, nome utente o password sbagliati.",codice:"Codice sbagliato.",scaduto:"Il codice è scaduto: rifai la richiesta.",bloccato:"Questo account è bloccato.",
+    presto:"Un codice al minuto: riprova fra poco.",troppi:"Per oggi i codici sono finiti: riprova domani."};
+  const dimmi=r=>esito(r.no==="attendi"?`Troppi tentativi: riprova fra ${r.fra} minuti.`:MSG[r.no]||"Qualcosa non ha funzionato: riprova.");
+  const dentro=async r=>{ try{ localStorage.setItem(CONTO_CHIAVE, r.token); sessionStorage.setItem("jjavis-io-preso","1"); }catch(_){}
+    if(r.conto&&r.conto.io&&pesoIo(r.conto.io)>=pesoIo(io)){ io=r.conto.io; try{ localStorage.setItem(CHIAVE, JSON.stringify(io)); }catch(_){} }
     else if(Object.keys(io).length) await conto_("/conto/io",{io});
     location.reload(); };
+  const vista=v=>{ for(const k of ["accedi","registrati","codice"]) $i("ing-"+k).hidden=k!==v;
+    $i("tab-accedi").classList.toggle("su",v==="accedi"); $i("tab-registrati").classList.toggle("su",v==="registrati"); esito(""); };
+  let attesa=null;   // cosa conferma il codice: la registrazione, o la password nuova
+  $i("tab-accedi").onclick=()=>vista("accedi"); $i("tab-registrati").onclick=()=>vista("registrati"); $i("ing-indietro").onclick=()=>vista(attesa&&attesa.via==="/conto/registra"?"registrati":"accedi");
+  $i("acc-entra").onclick=async()=>{ esito("Entro…"); const r=await conto_("/conto/accedi",{chi:$i("acc-chi").value,password:$i("acc-pw").value}); r.token?dentro(r):dimmi(r); };
+  const manda=async(mail,dopo)=>{ esito("Mando il codice…"); const r=await conto_("/conto/mail/codice",{mail}); if(!r.fatto){ dimmi(r); return; }
+    attesa=dopo; vista("codice"); $i("ing-nuova").hidden=dopo.via!=="/conto/password"; esito(`Codice mandato a ${mail}: guarda la posta (anche lo spam).`); };
+  $i("reg-manda").onclick=()=>{ const d={via:"/conto/registra",mail:$i("reg-mail").value.trim(),username:$i("reg-nome").value,password:$i("reg-pw").value,eta14:$i("reg-eta").checked};
+    if(d.password.length<8){ dimmi({no:"password"}); return; } if(!d.eta14){ dimmi({no:"eta"}); return; } manda(d.mail,d); };
+  $i("acc-dimenticata").onclick=()=>{ const m=$i("acc-chi").value.trim(); if(!/@/.test(m)){ esito("Scrivi la tua mail qui sopra, poi «Password dimenticata?»."); return; } manda(m,{via:"/conto/password",mail:m}); };
+  $i("ing-conferma").onclick=async()=>{ if(!attesa) return; const corpo={...attesa,codice:$i("ing-cod").value}; delete corpo.via;
+    if(attesa.via==="/conto/password") corpo.password=$i("ing-pw2").value;
+    esito("Un attimo…"); const r=await conto_(attesa.via,corpo); r.token?dentro(r):dimmi(r); };
+  // Google: lo stesso accesso della città (ID client di JJA-VIS)
+  const g=document.createElement("script"); g.src="https://accounts.google.com/gsi/client"; g.async=true;
+  g.onload=()=>{ try{ google.accounts.id.initialize({client_id:"644831505498-sb1lrkalu9maun2f8vcv2e7l3au31akm.apps.googleusercontent.com",callback:async x=>{
+      esito("Entro con Google…"); const r=await conto_("/conto/google",{credential:x.credential,eta14:$i("reg-eta").checked});
+      if(r.token) dentro(r); else if(r.no==="eta"){ vista("registrati"); esito("Account nuovo: spunta «Ho almeno 14 anni» e ripremi Google."); } else esito("Google non ha funzionato: riprova."); }});
+    google.accounts.id.renderButton($i("ing-google"),{theme:"filled_black",size:"large",text:"continue_with",shape:"pill",locale:"it"}); }catch(_){} };
+  document.head.appendChild(g);
+  $i("ingresso").hidden=false;
 })();
 // Ritrovarsi da qualsiasi telefono (JJ, 19/10: Jessica «non si ricorda più chi è e gli richiede tutto da capo»): ogni mail
 // porta il link personale ?chi=…&k=…; qui si chiede alla porta chi sei, si rimette nel telefono e si riapre la pagina pulita.
