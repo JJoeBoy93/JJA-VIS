@@ -616,8 +616,10 @@ async def main():
             await usa(p, "ascensore", "L'ascensore")
             await p.click(f"#piani .scelta:has-text('{k}° piano')")
             await p.wait_for_function(f"document.getElementById('stanza-nome').textContent==='La Torre · {k}° piano' && window.CITTA.cose().length>0", timeout=20000)
-            if set(await p.evaluate("window.CITTA.cose()")) != {"vetrata", "ascensore", "scale"}: senza.append(k)
-        prova("i piani dal 3° al 7° ci sono, liberi, con vetrata, ascensore e scale", not senza, senza)
+            attese = ({f"dio-{d}" for d in ("zeus", "athena", "hera", "hermes", "efesto", "afrodite", "dioniso", "apollo", "artemide", "ares", "poseidone", "demetra")}
+                      if k == 3 else {"vetrata"}) | {"ascensore", "scale"}
+            if set(await p.evaluate("window.CITTA.cose()")) != attese: senza.append(k)
+        prova("i piani dal 3° al 7° ci sono: al 3° gli dèi (19/10), dal 4° al 7° liberi con la vetrata; tutti con ascensore e scale", not senza, senza)
         await usa(p, "ascensore", "L'ascensore")
         await p.click("#piani .scelta:has-text('Terrazza')"); await p.wait_for_timeout(1500)
         tt = await p.evaluate("window.CITTA.sulTetto()")

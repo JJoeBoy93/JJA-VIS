@@ -1810,7 +1810,10 @@ function avatarDaSkin(st){
   // fuori dall'inquadratura, con una sfera larga per tutte le pose (quella calcolata da three vale solo per la posa di riposo).
   // Va messa anche sull'oggetto: three la calcola una volta, alla prima posa, per ogni mesh con ossa (o.boundingSphere), e i
   // capelli, piccoli intorno alla testa, sparivano appena la testa scendeva (accovacciati, seduti: persona calva, 9/10)
-  const ossi={}; copia.traverse(o=>{ if(o.isBone) ossi[o.name]=o; if(o.isMesh){ o.material=o.material.clone(); if(o.isSkinnedMesh&&!o.geometry.userData.sfera){ o.geometry.boundingSphere=new THREE.Sphere(new THREE.Vector3(0,0.9,0),1.4); o.geometry.userData.sfera=true; } if(o.isSkinnedMesh) o.boundingSphere=new THREE.Sphere(new THREE.Vector3(0,0.9,0),1.4); o.frustumCulled=!!o.geometry.userData.sfera; } });
+  // i vestiti a due facce (JJ, 19/10: «questa skin ha i buchi all'attacco delle braccia»): la maglia ha una faccia sola e sotto
+  // non c'è pelle; dall'apertura della manica si vedeva il dentro, che three non disegna, cioè il fondo — un buco
+  const VESTITI=/^(maglia|pantaloni|veste|abito)/;
+  const ossi={}; copia.traverse(o=>{ if(o.isBone) ossi[o.name]=o; if(o.isMesh){ o.material=o.material.clone(); if(VESTITI.test(o.material.name||"")) o.material.side=THREE.DoubleSide; if(o.isSkinnedMesh&&!o.geometry.userData.sfera){ o.geometry.boundingSphere=new THREE.Sphere(new THREE.Vector3(0,0.9,0),1.4); o.geometry.userData.sfera=true; } if(o.isSkinnedMesh) o.boundingSphere=new THREE.Sphere(new THREE.Vector3(0,0.9,0),1.4); o.frustumCulled=!!o.geometry.userData.sfera; } });
   copia.updateMatrixWorld(true); const qw=new THREE.Quaternion();
   // three toglie i punti dai nomi (upperleg.l → upperlegl). L'asse del passo è l'asse X del mondo (destra-sinistra),
   // riportato dentro l'osso: così il passo va avanti-indietro qualunque sia l'orientamento dell'osso nel modello
@@ -2892,7 +2895,8 @@ const COLLINA={r:4.2,h:1.0}, ACQUA=[4.2,6.13], MURETTO={r:6.25,alto:0.55}, PANCH
   // dentro le stanze
   scena.cose=()=>attiva&&attiva.cose?Object.keys(attiva.cose):[];
   // per il collaudo (19/10): le cose finite sotto il pavimento (la lavagna del Café lo era), e i cartelli che girano con la visuale
-  scena.sottoTerra=()=>attiva&&attiva.toccabili?attiva.toccabili.filter(([m])=>!(m.userData&&m.userData.cartello)&&!m.isSprite&&new THREE.Box3().setFromObject(m).max.y<0.05).map(([,k])=>k):[];
+  // «sotto»: la cima sotto il pavimento di 5 cm almeno — i tappetini della Palestra stanno a terra, sottili (Hera, 19/10)
+  scena.sottoTerra=()=>attiva&&attiva.toccabili?attiva.toccabili.filter(([m])=>!(m.userData&&m.userData.cartello)&&!m.isSprite&&new THREE.Box3().setFromObject(m).max.y<-0.05).map(([,k])=>k):[];
   scena.cartelliGirevoli=()=>attiva&&attiva.S?attiva.S.children.filter(o=>o.isSprite).length:0;
   scena.dialogo=k=>apriDialogo(k);
   scena.piano=n=>vaiAlPiano(n);
