@@ -363,7 +363,8 @@ async def main():
             prova(f"{n}: nessuna cosa sotto il pavimento", not sotto_, sotto_)
             prova(f"{n}: i cartelli stanno fermi (nessuno gira con la visuale)", await p.evaluate("window.CITTA.cartelliGirevoli()") == 0)
             if parti:
-                prova(f"{n}: dentro ci sono le cose del palazzo", len(parti) >= 2 and sorted(k for k, _ in parti) == sorted(await p.evaluate("window.CITTA.cose()")), parti)
+                # la Radio dal 19/10 è una cosa sola: la radio con dentro le tue stazioni (JJ)
+                prova(f"{n}: dentro ci sono le cose del palazzo", len(parti) >= (1 if n == "Radio" else 2) and sorted(k for k, _ in parti) == sorted(await p.evaluate("window.CITTA.cose()")), parti)
                 s0 = await p.evaluate("window.CITTA.saltiDentro()")
                 for k, nome_cosa in parti:
                     await usa(p, k, nome_cosa)
@@ -409,6 +410,9 @@ async def main():
                 prova("al 3° piano ci sono sei dèi alle scrivanie, ognuno una cosa con cui parlare", sum(1 for k in cose3 if k.startswith("dio-")) == 6, cose3)
                 await p.evaluate("window.CITTA.dialogo('dio-hera')"); await p.wait_for_timeout(200)
                 prova("Hera dice chi è", await p.inner_text("#dialogo-nome") == "Hera" and "Hera" in await p.inner_text("#dialogo-testo"))
+                await p.wait_for_timeout(1500)
+                st_dei = await p.evaluate("window.CITTA.deiAlLavoro()")
+                prova("al piano degli dèi ognuno ha la sua sedia e un da fare (seduto, in piedi, va, torna) (JJ, 19/10)", len(st_dei) == 6 and set(st_dei) <= {"seduto", "in piedi", "va", "torna"}, st_dei)
                 await p.click("#dialogo-scelte button:has-text('Cosa fai in JJA-VIS?')")
                 prova("e cosa fa in JJA-VIS", "Collaudo" in await p.inner_text("#dialogo-testo"))
                 prova("si accende il tasto premuto, non il primo", await p.evaluate("[...document.querySelectorAll('#dialogo-scelte button')].filter(b=>b.classList.contains('premuto')).map(b=>b.textContent)") == ["Cosa fai in JJA-VIS?"])
