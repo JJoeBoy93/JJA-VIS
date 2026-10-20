@@ -259,6 +259,11 @@ body.con-nome[data-scheda="inizia"] #parla{background:none;border:0;padding:0;ma
 body.con-nome[data-scheda="inizia"] #tp{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 body.con-nome[data-scheda="inizia"] .spiega-chat{font-size:13px;text-align:center;color:var(--tenue);margin:8px 12px 4px;opacity:.85}
 body.con-nome[data-scheda="inizia"] .chat{max-height:none;overflow:visible}
+.anteprima-foto{position:relative;display:inline-block;margin:6px 0}.anteprima-foto img{max-height:120px;max-width:60vw;border-radius:8px;display:block}
+.anteprima-foto button{position:absolute;top:-8px;right:-8px;width:28px;height:28px;border-radius:50%;border:0;background:#000c;color:#fff;font-size:15px;cursor:pointer}
+.bolla img.foto-bolla{display:block;max-width:220px;max-height:220px;border-radius:8px;margin-bottom:6px}
+.cancella-chat{display:block;margin:4px 0 8px auto;background:transparent;border:0;color:var(--tenue,#9a9a9a);font:inherit;font-size:13px;cursor:pointer}
+.vecchia .via{float:right;background:transparent;border:0;color:var(--tenue,#9a9a9a);cursor:pointer;font-size:15px}
 .doc-chat{display:block;margin:4px 0 10px auto;padding:8px 12px;border:1px solid var(--accento,#00B4D8);background:transparent;color:inherit;font:inherit;cursor:pointer;border-radius:8px}
 .foto-chat{flex:none;min-width:48px;font-size:22px;background:transparent;border:1px solid var(--linea,#3a3a3a);color:inherit;cursor:pointer}
 body.con-nome[data-scheda="inizia"] .barra-chat{position:fixed;left:0;right:0;bottom:var(--alto-schede,72px);z-index:19;
@@ -502,6 +507,8 @@ body.con-nome[data-scheda="inizia"] #esito-chat{margin:6px 0 0}
     <p class="piccolo spiega-chat" id="spiega-chat">Chiedimi quello che vuoi, sul tuo lavoro o su di me. Non rispondo in automatico: ogni risposta la scelgo con chi mi costruisce, e compare qui da sola. Se mi lasci la mail nel <a href="#profilo-mail">Profilo</a>, quando serve arriva anche lì.</p>
     <details id="vecchie" class="vecchie" hidden><summary id="vecchie-titolo">Conversazioni precedenti</summary><div id="vecchie-elenco"></div></details>
     <div id="chat" class="chat" aria-live="polite"></div>
+    <button type="button" id="cancella-chat" class="cancella-chat" hidden aria-label="Cancella questa conversazione">✕ Cancella la conversazione</button>
+    <div id="anteprima-foto" class="anteprima-foto" hidden><img id="anteprima-img" alt="La foto che stai per mandare"><button type="button" id="anteprima-via" aria-label="Togli la foto">✕</button></div>
     <div class="barra-chat" id="barra-chat">
       <label for="scrivi" class="nascosto">Scrivimi</label>
       <button type="button" id="foto-chat" class="foto-chat" aria-label="Manda una foto o un PDF" title="Una foto o una bolletta">📷</button>
@@ -1047,7 +1054,8 @@ function bolla(chi, testo, attesa, azione){ const b=document.createElement("div"
   // come JARVIS: l'ultimo messaggio resta in vista sopra la casella
   if(document.body.classList.contains("con-nome") && document.body.dataset.scheda==="inizia") requestAnimationFrame(()=>window.scrollTo(0, document.body.scrollHeight));
   return b; }
-function ridisegnaChat(){ $("chat").innerHTML=""; (io.chat||[]).forEach(m=>{ bolla(m.ruolo, m.testo, m.ruolo==="tu" && m.attesa, m.azione);
+function ridisegnaChat(){ $("chat").innerHTML=""; $("cancella-chat").hidden=!(io.chat||[]).length; (io.chat||[]).forEach(m=>{ bolla(m.ruolo, m.testo, m.ruolo==="tu" && m.attesa, m.azione);
+    if(m.foto){ const i=document.createElement("img"); i.className="foto-bolla"; i.alt="la foto che hai mandato"; i.src=m.foto; $("chat").lastElementChild.prepend(i); }
     // i documenti chiesti in chat (20/10): un tasto per ognuno, che lo scarica con la tua sessione e lo apre
     (m.documenti||[]).forEach(dc=>{ const b=document.createElement("button"); b.type="button"; b.className="doc-chat"; b.textContent="📎 "+dc.titolo;
       b.addEventListener("click",()=>apriDocumento(dc.id,b)); $("chat").appendChild(b); }); });
@@ -1076,7 +1084,12 @@ function disegnaVecchie(){
     const primo=(c.messaggi.find(m=>m.ruolo==="tu")||c.messaggi[0]||{}).testo||"";
     sm.append(q, primo.slice(0,70)); d.appendChild(sm);
     const ch=document.createElement("div"); ch.className="chat";
+    // ✕ per cancellare una conversazione vecchia (JJ, 20/10)
+    const via=document.createElement("button"); via.type="button"; via.className="via"; via.textContent="✕"; via.setAttribute("aria-label","Cancella questa conversazione");
+    via.addEventListener("click",ev=>{ ev.preventDefault(); if(!confirm("Cancello questa conversazione?")) return; io.thread=(io.thread||[]).filter(x=>x!==c); salva(); disegnaVecchie(); });
+    sm.appendChild(via);
     c.messaggi.forEach(m=>{ const b=document.createElement("div"); b.className="bolla "+m.ruolo; b.textContent=m.testo;
+      if(m.foto){ const i=document.createElement("img"); i.className="foto-bolla"; i.alt=""; i.src=m.foto; b.prepend(i); }
       // il pulsante verso la Bottega resta anche nelle conversazioni chiuse
       if(m.azione && AZIONI[m.azione.servizio]){ const x=document.createElement("button"); x.className="salto azione"; x.type="button";
         x.textContent=AZIONI[m.azione.servizio]; x.addEventListener("click", ()=>apriBottega(m.azione)); b.append(document.createElement("br"), x); }
@@ -1094,24 +1107,40 @@ function fotoInBase64(file){ return new Promise((ok,no)=>{
   img.onload=()=>{ const s=Math.min(1,1600/Math.max(img.width,img.height)), c=document.createElement("canvas"); c.width=Math.round(img.width*s); c.height=Math.round(img.height*s);
     c.getContext("2d").drawImage(img,0,0,c.width,c.height); URL.revokeObjectURL(url); ok({tipo:"image/jpeg",dati:c.toDataURL("image/jpeg",0.82).split(",")[1],nome:file.name||"foto.jpg"}); };
   img.onerror=()=>no(new Error("non riesco ad aprire la foto")); img.src=url; }); }
-async function mandaFoto(file){
+// l'anteprima (JJ, 20/10: «mette l'anteprima dell'immagine sopra al testo e poi resta anche nella chat»): la foto si
+// prepara appena scelta, si vede sopra «Scrivimi», parte con «Manda»; nella chat resta una miniatura (160 px, pochi kB)
+let fotoPronta=null;
+function miniatura(file){ return new Promise(ok=>{ if(file.type==="application/pdf"){ ok(""); return; }
+  const img=new Image(), u=URL.createObjectURL(file); img.onload=()=>{ const s=Math.min(1,160/Math.max(img.width,img.height)), c=document.createElement("canvas");
+    c.width=Math.round(img.width*s); c.height=Math.round(img.height*s); c.getContext("2d").drawImage(img,0,0,c.width,c.height); URL.revokeObjectURL(u); ok(c.toDataURL("image/jpeg",0.6)); };
+  img.onerror=()=>ok(""); img.src=u; }); }
+async function preparaFoto(file){
+  if(!file) return; const e=$("esito-chat"); e.className="avviso"; e.textContent="";
+  try{ fotoPronta={dati:await fotoInBase64(file), mini:await miniatura(file)}; }catch(err){ e.classList.add("errore"); e.textContent=err.message; return; }
+  $("anteprima-img").src=fotoPronta.mini||""; $("anteprima-img").alt=fotoPronta.mini?"La foto che stai per mandare":"📄 "+(file.name||"PDF");
+  $("anteprima-foto").hidden=false; $("scrivi").placeholder="Scrivi cosa vuoi sapere (o premi Manda)"; $("scrivi").focus();
+}
+function togliFoto(){ fotoPronta=null; $("anteprima-foto").hidden=true; $("foto-file").value=""; $("scrivi").placeholder="Scrivimi…"; }
+async function mandaFoto(file, testoDato){
   const e=$("esito-chat"); e.className="avviso"; if(!file||parlando) return;
   if(!contoToken()){ e.classList.add("errore"); e.textContent="Per mandarmi foto e documenti entra col tuo account."; return; }
   parlando=true; $("manda-chat").disabled=$("foto-chat").disabled=true; e.textContent="Guardo la foto…";
-  const testo=$("scrivi").value.trim();
+  const testo=String(testoDato!==undefined?testoDato:$("scrivi").value).trim(), pronta=file&&file.dati?file:null;
   try{
-    const f=await fotoInBase64(file);
+    const f=pronta?pronta.dati:await fotoInBase64(file);
     const r=await fetch(INVIO.replace("/risposta","/foto"),{method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+contoToken()},
       body:JSON.stringify({...f,testo,nome_assistente:io.nome||"",tuo:io.tuo||""})});
     const d=await r.json().catch(()=>({}));
     if(!r.ok||!d.risposta) throw new Error(d.errore||("errore "+r.status));
-    io.chat=io.chat||[]; io.chat.push({ruolo:"tu",testo:(f.tipo==="application/pdf"?"📄 ":"📷 ")+(testo||f.nome||"una foto")}); io.chat.push({ruolo:"io",testo:d.risposta});
+    io.chat=io.chat||[]; io.chat.push({ruolo:"tu",testo:testo||(f.tipo==="application/pdf"?"📄 "+(f.nome||"un PDF"):""),...(pronta&&pronta.mini?{foto:pronta.mini}:{})}); io.chat.push({ruolo:"io",testo:d.risposta});
     io.chat=io.chat.slice(-20); salva(); ridisegnaChat(); $("scrivi").value=""; e.textContent="";
   }catch(err){ e.classList.add("errore"); e.textContent="Non è partita: "+err.message+"."; }
-  finally{ parlando=false; $("manda-chat").disabled=$("foto-chat").disabled=false; $("foto-file").value=""; }
+  finally{ parlando=false; $("manda-chat").disabled=$("foto-chat").disabled=false; togliFoto(); }
 }
 $("foto-chat").addEventListener("click",()=>$("foto-file").click());
-$("foto-file").addEventListener("change",ev=>mandaFoto(ev.target.files&&ev.target.files[0]));
+$("foto-file").addEventListener("change",ev=>preparaFoto(ev.target.files&&ev.target.files[0]));
+$("anteprima-via").addEventListener("click",togliFoto);
+$("cancella-chat").addEventListener("click",()=>{ if(!confirm("Cancello questa conversazione? Gli impegni, le scadenze e i documenti restano.")) return; io.chat=[]; delete io.chatDa; salva(); ridisegnaChat(); });
 async function apriDocumento(id,b){
   const prima=b.textContent; b.textContent="📎 apro…";
   try{ const r=await fetch(INVIO.replace("/risposta","/doc")+"?id="+encodeURIComponent(id),{headers:{Authorization:"Bearer "+contoToken()}});
@@ -1135,6 +1164,8 @@ async function parlaAssistente(testo){
   finally{ parlando=false; $("manda-chat").disabled=false; }
 }
 async function parla(testo, daDove){
+  // c'è una foto pronta: parte lei, col testo come domanda
+  if(fotoPronta && !parlando && (daDove||"chat")==="chat"){ mandaFoto(fotoPronta, testo||""); return true; }
   testo=(testo||"").trim(); if(!testo||parlando) return false;
   if(contoToken() && (daDove||"chat")==="chat" && INVIO) return parlaAssistente(testo);
   const e=$("esito-chat"); e.className="avviso"; e.textContent="";
@@ -1339,7 +1370,8 @@ async function conto_(via,corpo,metodo="POST"){ const s=await contoSrv(); if(!s)
 // il profilo va anche sull'account, un attimo dopo ogni cambio (un salvataggio solo per una raffica di cambi)
 let ioVerso=null;
 const salva=()=>{ try{ localStorage.setItem(CHIAVE, JSON.stringify(io)); }catch(_){}
-  if(contoToken()){ clearTimeout(ioVerso); ioVerso=setTimeout(()=>conto_("/conto/io",{io}),1200); } };
+  if(contoToken()){ clearTimeout(ioVerso); ioVerso=setTimeout(()=>{ const senza=m=>{ const {foto,...r}=m; return r; };
+    conto_("/conto/io",{io:{...io,chat:(io.chat||[]).map(senza),thread:(io.thread||[]).map(c=>({...c,messaggi:(c.messaggi||[]).map(senza)}))}}); },1200); } };
 // quale profilo vince fra quello del telefono e quello dell'account: il più avanti (JJ, 19/10: Jessica si è registrata da
 // un browser nuovo, ha rifatto tutto da capo, e il suo profilo vero è rimasto nel browser di prima — entrando da lì deve
 // tornare quello, non essere coperto da quello rifatto in fretta)
