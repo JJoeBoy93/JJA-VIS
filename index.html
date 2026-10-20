@@ -259,6 +259,7 @@ body.con-nome[data-scheda="inizia"] #parla{background:none;border:0;padding:0;ma
 body.con-nome[data-scheda="inizia"] #tp{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 body.con-nome[data-scheda="inizia"] .spiega-chat{font-size:13px;text-align:center;color:var(--tenue);margin:8px 12px 4px;opacity:.85}
 body.con-nome[data-scheda="inizia"] .chat{max-height:none;overflow:visible}
+.foto-chat{flex:none;min-width:48px;font-size:22px;background:transparent;border:1px solid var(--linea,#3a3a3a);color:inherit;cursor:pointer}
 body.con-nome[data-scheda="inizia"] .barra-chat{position:fixed;left:0;right:0;bottom:var(--alto-schede,72px);z-index:19;
   display:flex;gap:8px;align-items:flex-end;
   padding:8px max(16px,calc((100% - 560px)/2 + 16px));
@@ -502,6 +503,8 @@ body.con-nome[data-scheda="inizia"] #esito-chat{margin:6px 0 0}
     <div id="chat" class="chat" aria-live="polite"></div>
     <div class="barra-chat" id="barra-chat">
       <label for="scrivi" class="nascosto">Scrivimi</label>
+      <button type="button" id="foto-chat" class="foto-chat" aria-label="Manda una foto o un PDF" title="Una foto o una bolletta">📷</button>
+      <input type="file" id="foto-file" accept="image/*,application/pdf" hidden>
       <textarea id="scrivi" maxlength="800" placeholder="Scrivimi…"></textarea>
       <button class="invia" id="manda-chat">Manda</button>
     </div>
@@ -1077,6 +1080,34 @@ function disegnaVecchie(){
     d.appendChild(ch); casa.appendChild(d); });
 }
 let parlando=false;
+// 📷 nella chat (JJ, 20/10: «si possono mandare immagini da dentro la pagina ... non è il massimo della comodità dover fare le
+// cose via mail»). Una foto si rimpicciolisce nel telefono (1600 px, JPEG): bollette leggibili, poco da mandare. Va alla porta
+// con la sessione dell'account: una bolletta si archivia cifrata e diventa scadenza, un'altra foto riceve una risposta.
+function fotoInBase64(file){ return new Promise((ok,no)=>{
+  if(file.type==="application/pdf"){ if(file.size>4e6){ no(new Error("il PDF è troppo grande (massimo 4 MB)")); return; }
+    const fr=new FileReader(); fr.onload=()=>ok({tipo:"application/pdf",dati:String(fr.result).split(",")[1],nome:file.name}); fr.onerror=()=>no(new Error("non riesco a leggerlo")); fr.readAsDataURL(file); return; }
+  const img=new Image(), url=URL.createObjectURL(file);
+  img.onload=()=>{ const s=Math.min(1,1600/Math.max(img.width,img.height)), c=document.createElement("canvas"); c.width=Math.round(img.width*s); c.height=Math.round(img.height*s);
+    c.getContext("2d").drawImage(img,0,0,c.width,c.height); URL.revokeObjectURL(url); ok({tipo:"image/jpeg",dati:c.toDataURL("image/jpeg",0.82).split(",")[1],nome:file.name||"foto.jpg"}); };
+  img.onerror=()=>no(new Error("non riesco ad aprire la foto")); img.src=url; }); }
+async function mandaFoto(file){
+  const e=$("esito-chat"); e.className="avviso"; if(!file||parlando) return;
+  if(!contoToken()){ e.classList.add("errore"); e.textContent="Per mandarmi foto e documenti entra col tuo account."; return; }
+  parlando=true; $("manda-chat").disabled=$("foto-chat").disabled=true; e.textContent="Guardo la foto…";
+  const testo=$("scrivi").value.trim();
+  try{
+    const f=await fotoInBase64(file);
+    const r=await fetch(INVIO.replace("/risposta","/foto"),{method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+contoToken()},
+      body:JSON.stringify({...f,testo,nome_assistente:io.nome||"",tuo:io.tuo||""})});
+    const d=await r.json().catch(()=>({}));
+    if(!r.ok||!d.risposta) throw new Error(d.errore||("errore "+r.status));
+    io.chat=io.chat||[]; io.chat.push({ruolo:"tu",testo:(f.tipo==="application/pdf"?"📄 ":"📷 ")+(testo||f.nome||"una foto")}); io.chat.push({ruolo:"io",testo:d.risposta});
+    io.chat=io.chat.slice(-20); salva(); ridisegnaChat(); $("scrivi").value=""; e.textContent="";
+  }catch(err){ e.classList.add("errore"); e.textContent="Non è partita: "+err.message+"."; }
+  finally{ parlando=false; $("manda-chat").disabled=$("foto-chat").disabled=false; $("foto-file").value=""; }
+}
+$("foto-chat").addEventListener("click",()=>$("foto-file").click());
+$("foto-file").addEventListener("change",ev=>mandaFoto(ev.target.files&&ev.target.files[0]));
 async function parla(testo, daDove){
   testo=(testo||"").trim(); if(!testo||parlando) return false;
   const e=$("esito-chat"); e.className="avviso"; e.textContent="";
