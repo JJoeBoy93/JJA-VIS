@@ -259,6 +259,7 @@ body.con-nome[data-scheda="inizia"] #parla{background:none;border:0;padding:0;ma
 body.con-nome[data-scheda="inizia"] #tp{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 body.con-nome[data-scheda="inizia"] .spiega-chat{font-size:13px;text-align:center;color:var(--tenue);margin:8px 12px 4px;opacity:.85}
 body.con-nome[data-scheda="inizia"] .chat{max-height:none;overflow:visible}
+.doc-chat{display:block;margin:4px 0 10px auto;padding:8px 12px;border:1px solid var(--accento,#00B4D8);background:transparent;color:inherit;font:inherit;cursor:pointer;border-radius:8px}
 .foto-chat{flex:none;min-width:48px;font-size:22px;background:transparent;border:1px solid var(--linea,#3a3a3a);color:inherit;cursor:pointer}
 body.con-nome[data-scheda="inizia"] .barra-chat{position:fixed;left:0;right:0;bottom:var(--alto-schede,72px);z-index:19;
   display:flex;gap:8px;align-items:flex-end;
@@ -1046,7 +1047,10 @@ function bolla(chi, testo, attesa, azione){ const b=document.createElement("div"
   // come JARVIS: l'ultimo messaggio resta in vista sopra la casella
   if(document.body.classList.contains("con-nome") && document.body.dataset.scheda==="inizia") requestAnimationFrame(()=>window.scrollTo(0, document.body.scrollHeight));
   return b; }
-function ridisegnaChat(){ $("chat").innerHTML=""; (io.chat||[]).forEach(m=>bolla(m.ruolo, m.testo, m.ruolo==="tu" && m.attesa, m.azione));
+function ridisegnaChat(){ $("chat").innerHTML=""; (io.chat||[]).forEach(m=>{ bolla(m.ruolo, m.testo, m.ruolo==="tu" && m.attesa, m.azione);
+    // i documenti chiesti in chat (20/10): un tasto per ognuno, che lo scarica con la tua sessione e lo apre
+    (m.documenti||[]).forEach(dc=>{ const b=document.createElement("button"); b.type="button"; b.className="doc-chat"; b.textContent="📎 "+dc.titolo;
+      b.addEventListener("click",()=>apriDocumento(dc.id,b)); $("chat").appendChild(b); }); });
   if((io.chat||[]).length && !io.chatDa){ io.chatDa=Date.now(); salva(); }
   segnaLette(); }
 // «Letta» vuol dire mostrata: pagina davanti agli occhi, scheda della chat, nome dato.
@@ -1108,8 +1112,31 @@ async function mandaFoto(file){
 }
 $("foto-chat").addEventListener("click",()=>$("foto-file").click());
 $("foto-file").addEventListener("change",ev=>mandaFoto(ev.target.files&&ev.target.files[0]));
+async function apriDocumento(id,b){
+  const prima=b.textContent; b.textContent="📎 apro…";
+  try{ const r=await fetch(INVIO.replace("/risposta","/doc")+"?id="+encodeURIComponent(id),{headers:{Authorization:"Bearer "+contoToken()}});
+    if(!r.ok) throw new Error(r.status===401?"entra col tuo account":"non si apre");
+    const u=URL.createObjectURL(await r.blob()); window.open(u,"_blank")||(location.href=u); b.textContent=prima; }
+  catch(err){ b.textContent="📎 "+err.message; setTimeout(()=>{ b.textContent=prima; },3000); }
+}
+// con l'account la chat parla con l'assistente vero (20/10, JJ: «direi di farle tutte»): lo stesso della posta, con gli
+// impegni, le scadenze, i documenti e la memoria della conversazione; può cercare sul web. Senza account resta Nova.
+async function parlaAssistente(testo){
+  const e=$("esito-chat"); e.className="avviso"; e.textContent="Ci penso…";
+  parlando=true; $("manda-chat").disabled=true;
+  try{
+    const r=await fetch(INVIO.replace("/risposta","/assistente"),{method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+contoToken()},
+      body:JSON.stringify({testo,nome_assistente:io.nome||"",tuo:io.tuo||""})});
+    const d=await r.json().catch(()=>({}));
+    if(!r.ok||!d.risposta) throw new Error(d.errore||("errore "+r.status));
+    io.chat=io.chat||[]; io.chat.push({ruolo:"tu",testo}); io.chat.push({ruolo:"io",testo:d.risposta,...(d.documenti&&d.documenti.length?{documenti:d.documenti}:{})});
+    io.chat=io.chat.slice(-20); salva(); ridisegnaChat(); e.textContent=""; return true;
+  }catch(err){ e.classList.add("errore"); e.textContent="Non è partito: "+err.message+". Riprova tra poco."; return false; }
+  finally{ parlando=false; $("manda-chat").disabled=false; }
+}
 async function parla(testo, daDove){
   testo=(testo||"").trim(); if(!testo||parlando) return false;
+  if(contoToken() && (daDove||"chat")==="chat" && INVIO) return parlaAssistente(testo);
   const e=$("esito-chat"); e.className="avviso"; e.textContent="";
   if(!INVIO){ e.textContent="Anteprima: qui il messaggio partirebbe."; return false; }
   parlando=true; $("manda-chat").disabled=true;
