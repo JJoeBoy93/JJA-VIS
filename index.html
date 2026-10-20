@@ -1086,7 +1086,7 @@ function disegnaVecchie(){
     const ch=document.createElement("div"); ch.className="chat";
     // ✕ per cancellare una conversazione vecchia (JJ, 20/10)
     const via=document.createElement("button"); via.type="button"; via.className="via"; via.textContent="✕"; via.setAttribute("aria-label","Cancella questa conversazione");
-    via.addEventListener("click",ev=>{ ev.preventDefault(); if(!confirm("Cancello questa conversazione?")) return; io.thread=(io.thread||[]).filter(x=>x!==c); salva(); disegnaVecchie(); });
+    via.addEventListener("click",ev=>{ ev.preventDefault(); if(!confirm("Cancello questa conversazione?")) return; io.viste=[...new Set([...(io.viste||[]), ...(c.messaggi||[]).filter(m=>m.id).map(m=>m.id)])].slice(-300); io.thread=(io.thread||[]).filter(x=>x!==c); salva(); disegnaVecchie(); });
     sm.appendChild(via);
     c.messaggi.forEach(m=>{ const b=document.createElement("div"); b.className="bolla "+m.ruolo; b.textContent=m.testo;
       if(m.foto){ const i=document.createElement("img"); i.className="foto-bolla"; i.alt=""; i.src=m.foto; b.prepend(i); }
@@ -1140,7 +1140,8 @@ async function mandaFoto(file, testoDato){
 $("foto-chat").addEventListener("click",()=>$("foto-file").click());
 $("foto-file").addEventListener("change",ev=>preparaFoto(ev.target.files&&ev.target.files[0]));
 $("anteprima-via").addEventListener("click",togliFoto);
-$("cancella-chat").addEventListener("click",()=>{ if(!confirm("Cancello questa conversazione? Gli impegni, le scadenze e i documenti restano.")) return; io.chat=[]; delete io.chatDa; salva(); ridisegnaChat(); });
+$("cancella-chat").addEventListener("click",()=>{ if(!confirm("Cancello questa conversazione? Gli impegni, le scadenze e i documenti restano.")) return;
+  io.viste=[...new Set([...(io.viste||[]), ...(io.chat||[]).filter(m=>m.id).map(m=>m.id)])].slice(-300); io.chat=[]; delete io.chatDa; salva(); ridisegnaChat(); });
 async function apriDocumento(id,b){
   const prima=b.textContent; b.textContent="📎 apro…";
   try{ const r=await fetch(INVIO.replace("/risposta","/doc")+"?id="+encodeURIComponent(id),{headers:{Authorization:"Bearer "+contoToken()}});
@@ -1198,8 +1199,12 @@ async function controllaRisposte(){
     const d=await r.json(); let nuove=0; io.chat=io.chat||[];
     // la porta rimanda tutte le risposte, anche quelle di conversazioni già chiuse: quelle non tornano
     const archiviate=new Set((io.thread||[]).flatMap(c=>c.messaggi).filter(m=>m.ruolo==="io").map(m=>m.id));
+    // 20/10, JJ: «se cancello la conversazione, e poi aggiorno, riappare» — la porta rimanda tutte le risposte, e quelle di una
+    // conversazione cancellata tornavano. Ogni risposta già arrivata una volta si segna in io.viste e non torna più
+    const viste=new Set(io.viste||[]);
     (d.risposte||[]).forEach(x=>{
-      if(archiviate.has(x.id) || io.chat.some(m=>m.ruolo==="io"&&m.id===x.id)) return;
+      if(viste.has(x.id) || archiviate.has(x.id) || io.chat.some(m=>m.ruolo==="io"&&m.id===x.id)){ viste.add(x.id); return; }
+      viste.add(x.id);
       // la risposta subito di Nova ha l'id della domanda con «-n»
       const i=io.chat.findIndex(m=>m.ruolo==="tu"&&(m.id===x.id||m.id+"-n"===x.id));
       const risp={ruolo:"io", testo:x.risposta, id:x.id, nuovo:true, ...(x.azione?{azione:x.azione}:{})};
@@ -1207,7 +1212,8 @@ async function controllaRisposte(){
       else io.chat.push({ruolo:"tu", testo:x.domanda, id:x.id, attesa:false}, risp);
       nuove++;
     });
-    if(nuove){ io.chat=io.chat.slice(-20); salva(); ridisegnaChat(); }
+    const prima=(io.viste||[]).length; io.viste=[...viste].slice(-300);
+    if(nuove){ io.chat=io.chat.slice(-20); salva(); ridisegnaChat(); } else if(io.viste.length!==prima) salva();
     return nuove;
   }catch(_){ return 0; }
 }
