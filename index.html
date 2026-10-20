@@ -1290,7 +1290,7 @@ const pesoIo=x=>!x||typeof x!=="object"?0:Object.keys(x).length+(x.inviato?20:0)
 // La mail dell'account è la tua mail: se il profilo non ce l'ha, la prende (JJ, 19/10: «la mail dovrebbe averla già»)
 // la mail fa da ponte (JJ, 19/10): la porta riconosce chi ha già conosciuto con la mail dell'account (Atlas, i messaggi)
 // e rimanda il suo profilo; la prima volta del giorno gli scrive «Bentornata/o». La mail la conferma il server dei conti.
-const ponte=async()=>{ try{ const r=await fetch(INVIO.replace("/risposta","/io/dal-conto"),{method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+contoToken()},body:"{}"});
+const ponte=async()=>{ try{ const r=await fetch(INVIO.replace("/risposta","/io/dal-conto"),{method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+contoToken()},body:JSON.stringify({assistente:io.nome||"",tuo:io.tuo||""})});
   const d=r.ok?await r.json():null; return d&&d.io||null; }catch(_){ return null; } };
 const unisciIo=(a,b,mail)=>{ const [f,d]=pesoIo(a)>=pesoIo(b)?[a||{},b||{}]:[b||{},a||{}]; const u={...d,...f}; if(!u.mail&&mail) u.mail=mail; return u; };
 // la porta d'ingresso (JJ, 19/10): senza account non si entra. Entrati, se l'account ha già un profilo quello vince
