@@ -1375,7 +1375,7 @@ async function conto_(via,corpo,metodo="POST"){ const s=await contoSrv(); if(!s)
     return {stato:r.status,...(await r.json().catch(()=>({})))}; }catch(_){ return {no:"rete"}; } }
 // il profilo va anche sull'account, un attimo dopo ogni cambio (un salvataggio solo per una raffica di cambi)
 let ioVerso=null;
-const salva=()=>{ try{ localStorage.setItem(CHIAVE, JSON.stringify(io)); }catch(_){}
+const salva=()=>{ io.agg=Date.now(); try{ localStorage.setItem(CHIAVE, JSON.stringify(io)); }catch(_){}
   if(contoToken()){ clearTimeout(ioVerso); ioVerso=setTimeout(()=>{ const senza=m=>{ const {foto,...r}=m; return r; };
     conto_("/conto/io",{io:{...io,chat:(io.chat||[]).map(senza),thread:(io.thread||[]).map(c=>({...c,messaggi:(c.messaggi||[]).map(senza)}))}}); },1200); } };
 // quale profilo vince fra quello del telefono e quello dell'account: il più avanti (JJ, 19/10: Jessica si è registrata da
@@ -1388,7 +1388,12 @@ const pesoIo=x=>!x||typeof x!=="object"?0:Object.keys(x).length+(x.inviato?20:0)
 // e rimanda il suo profilo; la prima volta del giorno gli scrive «Bentornata/o». La mail la conferma il server dei conti.
 const ponte=async()=>{ try{ const r=await fetch(INVIO.replace("/risposta","/io/dal-conto"),{method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+contoToken()},body:JSON.stringify({assistente:io.nome||"",tuo:io.tuo||""})});
   const d=r.ok?await r.json():null; return d&&d.io||null; }catch(_){ return null; } };
-const unisciIo=(a,b,mail)=>{ const [f,d]=pesoIo(a)>=pesoIo(b)?[a||{},b||{}]:[b||{},a||{}]; const u={...d,...f}; if(!u.mail&&mail) u.mail=mail; return u; };
+// chi vince (21/10, JJ: la conversazione cancellata tornava lo stesso, dall'account): se tutti e due hanno finito la prima
+// conversazione, vince il più RECENTE (io.agg, segnato a ogni salvataggio): una cancellazione è più recente della copia
+// vecchia sull'account. Se uno solo l'ha finita, vince quello (Jessica da un browser nuovo); altrimenti il più avanti.
+const piuForte=(a,b)=>{ a=a||{}; b=b||{}; if(!!a.inviato!==!!b.inviato) return a.inviato?[a,b]:[b,a];
+  if(a.agg&&b.agg&&a.agg!==b.agg) return a.agg>b.agg?[a,b]:[b,a]; return pesoIo(a)>=pesoIo(b)?[a,b]:[b,a]; };
+const unisciIo=(a,b,mail)=>{ const [f,d]=piuForte(a,b); const u={...d,...f}; if(!u.mail&&mail) u.mail=mail; return u; };
 // la porta d'ingresso (JJ, 19/10): senza account non si entra. Entrati, se l'account ha già un profilo quello vince
 // (è chi sei, da un altro telefono); se non ce l'ha, ci va quello di questo telefono. Poi la pagina riparte pulita.
 (async()=>{ if(new URLSearchParams(location.search).get("chi")) return;   // il link della mail fa il suo giro, poi si torna qui
