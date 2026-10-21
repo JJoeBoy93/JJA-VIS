@@ -45,6 +45,9 @@ TEMI = {
     },
     "cafe": {
         "dove": "cafe", "nome": "JJA-VIS Café", "usa": "tavolini",
+        "scena": [("dialogo", "tavolini", ("Ti avvicini: <b>Interagisci</b>", "come nei giochi"), 2.6, "Ti siedi, ordini coi gettoni, chiacchieri con chi c'è."),
+                  ("scelta", "Siediti", ("Ti siedi al tavolino", "e ordini coi gettoni del gioco"), 3.0, "chiudi"),
+                  ("fermo", None, ("Qui conosci gli altri", "e parli col tuo assistente"), 2.4)],
         "dida": [("Una città intera per il tuo assistente", "si gioca dal telefono"),
                  ("Si va al <b>JJA-VIS Café</b>", "colazione coi gettoni del gioco"),
                  ("Ti siedi, scrivi, conosci gli altri", None)],
@@ -52,6 +55,10 @@ TEMI = {
     },
     "torre": {
         "dove": "torre", "nome": None, "usa": None,
+        "scena": [("dialogo", "globo", ("Alla reception c'è <b>lui</b>", "col nome che gli dai tu"), 2.8),
+                  ("scelta", "Chi sei?", ("Gli chiedi chi è…", None), 3.0),
+                  ("piano", 3, ("Al 3° piano lavora la squadra", "che lo costruisce"), 2.6),
+                  ("dialogo", "dio-hera", ("Ognuno ti dice cosa fa", None), 2.8)],
         "dida": [("Una città intera per il tuo assistente", "si gioca dal telefono"),
                  ("In fondo alla via c'è <b>la Torre</b>", "dieci piani e la terrazza"),
                  ("Al piano terra ti aspetta lui", "col nome che gli dai tu")],
@@ -59,6 +66,8 @@ TEMI = {
     },
     "radio": {
         "dove": "radio", "nome": None, "usa": None,
+        "scena": [("dialogo", "radio", ("Accendi <b>la radio</b>", "e scegli la stazione"), 3.2, "Accendo? Scegli una delle tue stazioni."),
+                  ("fermo", None, ("Le tue stazioni, salvate", "suonano anche a schermo spento"), 2.6)],
         "dida": [("In questa città c'è anche <b>la radio</b>", None),
                  ("Sei stazioni sotto l'antenna", "e le salvi come vuoi tu"),
                  ("Suona anche a schermo spento", None)],
@@ -66,6 +75,8 @@ TEMI = {
     },
     "giochi": {
         "dove": "giochi", "nome": None, "usa": None,
+        "scena": [("dialogo", "cab1", ("In <b>Sala giochi</b>", "Gioca o guarda la classifica"), 3.0, "Prendi i gettoni, schiva le bombe. Si gioca dal telefono."),
+                  ("fermo", None, ("I gettoni che vinci", "li spendi in città"), 2.6)],
         "dida": [("I gettoni non si comprano soltanto", None),
                  ("Si vincono in <b>Sala giochi</b>", "prendi i gettoni, schiva le bombe"),
                  ("Poi li spendi in città", "skin, colazione, caffè")],
@@ -73,6 +84,8 @@ TEMI = {
     },
     "sartoria": {
         "dove": "sartoria", "nome": None, "usa": None,
+        "scena": [("dialogo", "manichini", ("In <b>Sartoria</b>", "scegli chi vuoi essere"), 3.0, "Scegli il tuo mestiere e i tuoi vestiti."),
+                  ("dialogo", "specchio", ("L'armadietto", "i tuoi vestiti, i tuoi colori"), 2.8, "Qui cambi colori e vestiti quando vuoi.")],
         "dida": [("Nella città di JJA-VIS sei <b>una persona</b>", "non un omino"),
                  ("In Sartoria scegli chi sei", "il tuo mestiere, i tuoi colori"),
                  ("E il tuo assistente impara da lì", None)],
@@ -169,7 +182,7 @@ async def gira_citta(p, T, n, errori):
         # e la barra delle stanze coprivano le scritte (provini del 19/10: la didascalia sopra il cartello,
         # «Sediti · in panchina» in mezzo alla piazza, la barra delle stanze in fondo anche fuori).
         await p.add_style_tag(content="#dida-reel b{color:#FFD60A} ::-webkit-scrollbar{display:none} "
-                                      ".hud,#joy,#vai,#salta,#giu,#entra,#aiuto,#foglio,.stanza-barra,#stanza-carta,#nova,#conto,#insieme{visibility:hidden!important}")
+                                      ".hud,#joy,#vai,#salta,#giu,#aiuto,#foglio,.stanza-barra,#stanza-carta,#nova,#conto,#insieme{visibility:hidden!important}")
 
         dida = lambda t, s=None, finale=False: p.evaluate(DIDA, [t, s, finale])
         stanza = "document.getElementById('stanza').hidden?'':document.getElementById('stanza-nome').textContent"
@@ -182,8 +195,7 @@ async def gira_citta(p, T, n, errori):
 
         # 1 — l'aggancio, camminando a velocità vera (JJ, 19/10: «il video è troppo veloce»: a velocità doppia correva)
         await p.evaluate(f"window.CITTA.vaiVerso({json.dumps(T['dove'])})")
-        await dida(*T["dida"][0]); await scatta(3.6)
-        await dida(*T["dida"][1]); await scatta(3.6)
+        await dida(*T["dida"][0]); await scatta(2.2)
         # 2 — il resto del cammino non si gira: si arriva
         await dida(None)
         for _ in range(2500):
@@ -192,12 +204,28 @@ async def gira_citta(p, T, n, errori):
         else:
             sys.exit(f"l'avatar non è arrivato a «{T['dove']}» (è a {await p.evaluate('window.CITTA.dove()')})")
         await p.clock.run_for(600)
-        # 3 — dentro
-        if T["usa"]:
-            if await p.evaluate("document.getElementById('stanza').classList.contains('con-carta')"):
-                await p.click("#chiudi-carta"); await p.clock.run_for(300)
-            await p.evaluate(f"window.CITTA.usa({json.dumps(T['usa'])})")
-        await dida(*T["dida"][2]); await scatta(3.6)
+        # 3 — dentro: il dialogo, le scelte, i piani (21/10); la scritta in alto spiega cosa succede
+        for (fai, cosa, scritta, secondi, *extra) in T.get("scena", []):
+            if fai == "dialogo":
+                await p.evaluate(f"window.CITTA.dialogo({json.dumps(cosa)})")
+                if extra and extra[0] != "chiudi":
+                    await p.evaluate("t=>{ const x=document.getElementById('dialogo-testo'); x.classList.remove('lungo'); x.textContent=t; }", extra[0])
+            elif fai == "scelta":
+                await p.evaluate("t=>{ const b=[...document.querySelectorAll('#dialogo-scelte button')].find(x=>x.textContent.includes(t)); if(b) b.click(); }", cosa)
+                if extra and extra[0] == "chiudi":
+                    await p.clock.run_for(200)
+                    await p.evaluate("document.querySelectorAll('#dialogo-scelte button').forEach(b=>{ if(b.textContent==='Esci') b.click(); })")
+            elif fai == "piano":
+                await p.evaluate("document.querySelectorAll('#dialogo-scelte button').forEach(b=>{ if(b.textContent==='Esci') b.click(); })")
+                await p.evaluate(f"window.CITTA.piano({int(cosa)})")
+                for _ in range(400):
+                    await p.clock.run_for(50)
+                    if await p.evaluate(f"document.getElementById('stanza-nome').textContent.includes('{int(cosa)}° piano')"): break
+                await p.clock.run_for(1500)
+            await dida(*scritta); await scatta(secondi)
+        if not T.get("scena"):
+            await dida(*T["dida"][2]); await scatta(3.6)
+        await p.evaluate("document.querySelectorAll('#dialogo-scelte button').forEach(b=>{ if(b.textContent==='Esci') b.click(); })")
         # 4 — l'invito
         await dida(*CTA, True); await scatta(2.6)
 
