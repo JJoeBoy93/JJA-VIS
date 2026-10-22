@@ -1609,8 +1609,17 @@ $("sigla").addEventListener("input", e=>{
 $("avanti-o1").addEventListener("click", ()=>{ if(!nomeScelto) return; io.nome=nomeScelto; salva(); applicaNome(io.nome); $("o1").hidden=true; apri("o2"); });
 ["temi","temi-profilo"].forEach(id=>$(id).addEventListener("click", e=>{ const b=e.target.closest(".tema"); if(!b) return; io.tema=b.dataset.tema; salva(); applicaTema(io.tema); }));
 $("avanti-o2").addEventListener("click", ()=>{ if(!io.tema){ io.tema="tech"; salva(); } apri("o3"); });
-$("avanti-o3").addEventListener("click", ()=>{ io.tuo=$("tuo-nome").value.trim().slice(0,40); salva(); benvenuto(false); apri("benvenuto"); });
-$("salta-o3").addEventListener("click", ()=>{ io.tuo=""; salva(); benvenuto(false); apri("benvenuto"); });
+// ══ NASCE ══ 22/10, JJ: «dopo che uno entra ha già fatto la registrazione, ha scelto nome e tema, qui deve arrivare a telegram
+// che c'è un nuovo assistente e un nuovo user… con tutte le domande inizia a conoscere la persona, ma esiste già». Appena finiti
+// nome, tema e «come ti chiami», la porta fa nascere la persona (POST /nato); se non riesce, riprova alla prossima apertura.
+async function nasce(){
+  if(io.nato||!io.nome||!contoToken()||!INVIO) return;
+  try{ const r=await fetch(INVIO.replace("/risposta","/nato"),{method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+contoToken()},
+      body:JSON.stringify({chi:io.id||"",nome_assistente:io.nome||"",tema:io.tema||"",tuo:io.tuo||""})});
+    const d=await r.json().catch(()=>({})); if(r.ok&&(d.detto||d.gia)){ io.nato=true; salva(); } }catch(_){}
+}
+$("avanti-o3").addEventListener("click", ()=>{ io.tuo=$("tuo-nome").value.trim().slice(0,40); salva(); benvenuto(false); apri("benvenuto"); nasce(); });
+$("salta-o3").addEventListener("click", ()=>{ io.tuo=""; salva(); benvenuto(false); apri("benvenuto"); nasce(); });
 // la chat si ridisegna qui, dopo che «io» e' stato letto dal telefono:
 // prima, «io» non esiste ancora e lo script si fermerebbe.
 // Con l'account la chat è l'assistente vero (22/10: la frase diceva «non rispondo in automatico» sopra la sua risposta)
@@ -1619,6 +1628,8 @@ apertura();
 ridisegnaChat();
 // chi aveva già finito il sondaggio prima del 22/10 e non ha mai avuto la proposta: la riceve alla prima apertura
 if(io.inviato && !io.primo && contoToken()) setTimeout(()=>primoIncontro(""), 2500);
+// nome e tema fatti ma la nascita non è arrivata (porta giù, o chi c'era già prima del 22/10): riprova all'apertura
+if(io.nome && !io.nato && !io.inizio && contoToken()) setTimeout(nasce, 1500);
 controllaRisposte().then(n=>{ if(n && $("benvenuto").classList.contains("aperta")){
   $("saluto2").textContent += n>1 ? ` Ti ho risposto a ${n} messaggi: li trovi nella chat qui sotto.` : " Ti ho risposto: lo trovi nella chat qui sotto."; } });
 // ══ LE RISPOSTE ARRIVANO DA SOLE ══ JJ, 26 settembre: «se uno fa una
