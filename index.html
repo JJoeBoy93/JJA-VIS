@@ -1018,7 +1018,10 @@ async function manda(conMail){
     io.inviato=true; delete io.passo; delete io.bozza; io.mestiere=risposte.mestiere||io.mestiere||""; io.tempo=risposte.tempo||io.tempo||"";
     if(conMail){ io.mail=corpo.mail; if(corpo.nome) io.tuo=io.tuo||corpo.nome; } salva();
     const libero=[corpo.proposta, corpo.dettaglio].filter(Boolean).join("\n");
-    if(libero){ parla(libero,"sondaggio").then(ok=>{ if(ok){ esito.textContent += " A quello che mi hai scritto ti rispondo nella chat qui sotto, appena posso."; } }); }
+    // 22/10, JJ: «quando viene usato per la prima volta è proprio quando deve colpire per la sua utilità». Con l'account
+    // quello che hai scritto va subito al tuo assistente, che ti dice cosa fa per te da oggi (primoIncontro); senza, come prima
+    if(contoToken() && INVIO){ setTimeout(()=>primoIncontro(libero), 1300); }
+    else if(libero){ parla(libero,"sondaggio").then(ok=>{ if(ok){ esito.textContent += " A quello che mi hai scritto ti rispondo nella chat qui sotto, appena posso."; } }); }
   }catch(err){
     $("manda").disabled=$("senza").disabled=false;
     esito.classList.add("errore"); esito.textContent="Non è arrivato (" + err.message + "). Riprova fra un minuto.";
@@ -1164,6 +1167,26 @@ async function parlaAssistente(testo){
   }catch(err){ e.classList.add("errore"); e.textContent="Non è partito: "+err.message+". Riprova tra poco."; return false; }
   finally{ parlando=false; $("manda-chat").disabled=false; }
 }
+// ══ IL PRIMO INCONTRO ══ 22/10, JJ: «quando viene usato per la prima volta è proprio quando deve colpire per la sua
+// utilità… non ha neanche proposto niente, deve farlo». Finito il sondaggio (o alla prima apertura dopo, per chi l'aveva già
+// fatto), l'assistente vero prende quello che hai scritto e risponde subito: cosa fa per te da oggi, e il primo passo.
+// Una volta sola: la porta lo sa (f.primo) e lo dice con «gia»; il telefono se lo segna in io.primo.
+let primoInCorso=false;
+async function primoIncontro(testo){
+  if(io.primo||primoInCorso||!contoToken()||!INVIO) return;
+  primoInCorso=true; const e=$("esito-chat"); e.className="avviso"; e.textContent=`${io.nome||"Il tuo assistente"} sta leggendo cosa ti serve…`;
+  try{
+    const r=await fetch(INVIO.replace("/risposta","/assistente"),{method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+contoToken()},
+      body:JSON.stringify({primo:true,chi:io.id||"",testo:testo||"",nome_assistente:io.nome||"",tuo:io.tuo||"",mestiere:io.mestiere||"",tempo:io.tempo||""})});
+    const d=await r.json().catch(()=>({}));
+    if(d.gia){ io.primo=true; salva(); e.textContent=""; return; }
+    if(!r.ok||!d.risposta) throw new Error(d.errore||("errore "+r.status));
+    io.primo=true; io.chat=io.chat||[]; io.chat.push({ruolo:"io",testo:d.risposta}); io.chat=io.chat.slice(-20); salva();
+    $("parla").hidden=false; ridisegnaChat(); e.textContent=d.mail?"Te l'ho scritto anche per mail.":"";
+    $("chat").lastElementChild&&$("chat").lastElementChild.scrollIntoView({block:"center",behavior:"smooth"});
+  }catch(err){ e.classList.add("errore"); e.textContent="Volevo dirti subito cosa posso fare per te, ma non ci sono riuscito: riprovo la prossima volta che apri."; }
+  finally{ primoInCorso=false; }
+}
 async function parla(testo, daDove){
   // c'è una foto pronta: parte lei, col testo come domanda
   if(fotoPronta && !parlando && (daDove||"chat")==="chat"){ mandaFoto(fotoPronta, testo||""); return true; }
@@ -1220,7 +1243,7 @@ async function controllaRisposte(){
 $("manda-chat").addEventListener("click", ()=>{ const t=$("scrivi").value; $("scrivi").value=""; parla(t,"chat"); });
 // Con Nova accesa la frase «non rispondo in automatico» sarebbe falsa: si
 // chiede alla porta come stanno le cose, e si dice quella vera.
-if(INVIO) fetch(INVIO.replace("/risposta","/nova")).then(r=>r.ok?r.json():{}).then(d=>{ if(!d.acceso) return;
+if(INVIO) fetch(INVIO.replace("/risposta","/nova")).then(r=>r.ok?r.json():{}).then(d=>{ if(!d.acceso||localStorage.getItem("jjavis-conto")) return;
   $("spiega-chat").innerHTML='Ti rispondo subito: quando una cosa non la so, o mi chiedi un prezzo o una data, la passo a chi mi costruisce e la sua risposta compare qui da sola. Se mi lasci la mail nel <a href="#profilo">Profilo</a>, arriva anche lì.';
 }).catch(()=>{});
 
@@ -1590,8 +1613,12 @@ $("avanti-o3").addEventListener("click", ()=>{ io.tuo=$("tuo-nome").value.trim()
 $("salta-o3").addEventListener("click", ()=>{ io.tuo=""; salva(); benvenuto(false); apri("benvenuto"); });
 // la chat si ridisegna qui, dopo che «io» e' stato letto dal telefono:
 // prima, «io» non esiste ancora e lo script si fermerebbe.
+// Con l'account la chat è l'assistente vero (22/10: la frase diceva «non rispondo in automatico» sopra la sua risposta)
+if(contoToken()) $("spiega-chat").textContent='Ti rispondo subito. Gli impegni, le scadenze e le cose da portarti dietro te li ricordo io per mail; bollette e documenti mandameli col 📷.';
 apertura();
 ridisegnaChat();
+// chi aveva già finito il sondaggio prima del 22/10 e non ha mai avuto la proposta: la riceve alla prima apertura
+if(io.inviato && !io.primo && contoToken()) setTimeout(()=>primoIncontro(""), 2500);
 controllaRisposte().then(n=>{ if(n && $("benvenuto").classList.contains("aperta")){
   $("saluto2").textContent += n>1 ? ` Ti ho risposto a ${n} messaggi: li trovi nella chat qui sotto.` : " Ti ho risposto: lo trovi nella chat qui sotto."; } });
 // ══ LE RISPOSTE ARRIVANO DA SOLE ══ JJ, 26 settembre: «se uno fa una
