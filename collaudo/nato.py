@@ -77,6 +77,6 @@ async def main():
         nati.clear(); ctx, pg = await apri(b, {**IO}, "")
         prova("4. senza account: niente /nato", len(nati) == 0, nati); await ctx.close()
         await b.close()
-    print(f"\n{sum(prove)}/{len(prove)} verdi"); sys.exit(0 if all(prove) else 1)
+    print(f"\n{sum(prove)}/{len(prove)} verdi"); print("VERDE" if all(prove) else "ROSSO"); sys.exit(0 if all(prove) else 1)   # VERDE/ROSSO: è l'ultima riga che legge Hera
 
 asyncio.run(main())

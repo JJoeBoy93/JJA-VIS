@@ -88,6 +88,6 @@ async def main():
         await pg.screenshot(path="/tmp/primo-senza.png")
         await ctx.close()
         await b.close()
-    print(f"\n{sum(prove)}/{len(prove)} verdi"); sys.exit(0 if all(prove) else 1)
+    print(f"\n{sum(prove)}/{len(prove)} verdi"); print("VERDE" if all(prove) else "ROSSO"); sys.exit(0 if all(prove) else 1)   # VERDE/ROSSO: è l'ultima riga che legge Hera
 
 asyncio.run(main())
