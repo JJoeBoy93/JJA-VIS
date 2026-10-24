@@ -675,6 +675,39 @@ async def main():
         prova("a fine partita si vincono i gettoni presi, al massimo 25", await p.evaluate("window.CITTA.gettoni()") == g1 + 25 and "ne vinci 25" in await p.inner_text("#gioco-esito"), gc)
         await foto(p, "16e-gioco")
         await p.click("#gioco-esci"); await p.wait_for_timeout(300)
+
+        # 3d1e. gli altri giochi della Sala (giochi/elenco.js, uno per file): per ognuno il cabinato, «Gioca», lo strato, la fine.
+        # Generico: non sa niente del gioco (le sue regole le prova collaudo/giochi.mjs, in node)
+        ids = await p.evaluate("window.CITTA.giochiSala()")
+        prova("la Sala giochi ha l'elenco dei giochi dopo Acchiappa", isinstance(ids, list) and len(ids) > 0 and "cab2" not in await p.evaluate("window.CITTA.cose()"), ids)
+        for gid in ids:
+            k = "gioco-" + gid; prima = len(err)
+            try:
+                await p.wait_for_function(f"window.CITTA.cose().includes({json.dumps(k)})", timeout=20000); c_ok = True
+            except Exception:
+                c_ok = False
+            prova(f"«{gid}»: nella Sala giochi c'è il suo cabinato", c_ok, await p.evaluate("window.CITTA.cose()"))
+            if not c_ok: continue
+            nome_g = dict(await p.evaluate("window.CITTA.parti()")).get(k, k)
+            await usa(p, k, nome_g)
+            await p.click("#stanza-carta button:has-text('Gioca')")
+            try:
+                await p.wait_for_function(f"!!document.getElementById('strato-gioco') && window.CITTA._gioco && window.CITTA._gioco.id==={json.dumps(gid)} && !!window.CITTA._gioco.partita"
+                                          " && document.querySelector('#campo-gioco').children.length>0 && !document.querySelector('#strato-gioco .gioco-errore')", timeout=15000); s_ok = True
+            except Exception:
+                s_ok = False
+            bar_g = await p.evaluate("(()=>{ const b=document.querySelector('#strato-gioco .barra-gioco'), e=document.getElementById('gioco-esci'); return !!b && !!e && b.getBoundingClientRect().height>30; })()")
+            prova(f"«{gid}»: «Gioca» apre lo strato a tutto schermo, col gioco dentro, la barra e «Esci»", s_ok and bar_g, await p.evaluate("(document.getElementById('strato-gioco')||{}).innerText||''"))
+            await foto(p, f"16f-{gid}")
+            await p.evaluate("window.CITTA._gioco.fine2()")
+            try:
+                await p.wait_for_selector("#gioco-classifica", timeout=10000); f_ok = True
+            except Exception:
+                f_ok = False
+            await p.wait_for_timeout(800)
+            prova(f"«{gid}»: a fine partita il record e la classifica, e nessun errore in console", f_ok and "record" in await p.inner_text("#gioco-classifica") and len(err) == prima, err[prima:][:3])
+            await p.click("#gioco-esci"); await p.wait_for_timeout(300)
+            prova(f"«{gid}»: «Esci» chiude lo strato", not await p.evaluate("!!document.getElementById('strato-gioco')"))
         await p.click("#esci-stanza"); await p.wait_for_timeout(400)
 
         # 3d2. la Radio sotto l'antenna (JJ, 3/10): le sei stazioni dell'app, e si accendono davvero

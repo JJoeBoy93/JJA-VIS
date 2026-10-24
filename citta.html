@@ -828,7 +828,8 @@ const LUOGHI={
       {id:"cab1",nome:"Acchiappa i gettoni",dentro:()=>[BLOCCO(H3("Acchiappa i gettoni"), P("25 secondi: compaiono i gettoni di JJA-VIS, toccali prima che spariscano. Attento alle 💣: se ne tocchi una perdi i gettoni presi in quella partita. ⚡ per 5 secondi ne escono il doppio; ×2 per 6 secondi ogni gettone vale doppio. Più va avanti, più spariscono in fretta. Ne vinci fino a 25 a partita."),
         AZIONI(bottone("Gioca",giocaAcchiappa)), NOTA(`Hai ${citta.gettoni} gettoni.`))],
         domande:()=>[["Classifica",classificaTesto]]},
-      {id:"cab2",nome:"Cabinato 2",dentro:()=>[BLOCCO(CARTE([["Cabinato 2","libero","Quello che chiedete in tanti."]]))]},
+      ...SALA.ids.map(cabinatoGioco),
+      ...(SALA.ids.length?[]:[{id:"cab2",nome:"Cabinato 2",dentro:()=>[BLOCCO(CARTE([["Cabinato 2","libero","Quello che chiedete in tanti."]]))]}]),
       {id:"macchinetta",nome:"La macchinetta dei gettoni",dentro:()=>[BLOCCO(H3("La macchinetta"), P("Non ancora attiva: per ora i gettoni si vincono giocando."))]}],
     senzaPiu:true},
   ristorante:{nome:"Ristorante",ic:"🍝",breve:"alla cassa: il menù, scegli e paghi",
@@ -1132,19 +1133,22 @@ const GIOCO={durata:25, massimo:25, probabilita:[["gettone",0.68],["bomba",0.2],
 // la classifica a fine partita (JJ, 6/10: «non mostra la classifica a fine gioco»): la stessa per tutti, sul server della città.
 // Con l'account il record entra in classifica; senza, si vede la classifica e il record resta nel telefono
 // la classifica nel dialogo della Sala giochi (JJ, 19/10: «tra le opzioni, gioca e classifica»)
-async function classificaTesto(){
-  const r=await chiamaConto("/conto/classifica?gioco=acchiappa",null,"GET").catch(()=>null);
+// il record: quello di Acchiappa sta dov'è sempre stato (citta.recordAcchiappa), gli altri giochi in citta.record[id]
+const recordDi=g=>g==="acchiappa"?citta.recordAcchiappa|0:(citta.record&&citta.record[g])|0;
+const segnaRecord=(g,v)=>{ if(g==="acchiappa") citta.recordAcchiappa=v; else { if(!citta.record||typeof citta.record!=="object") citta.record={}; citta.record[g]=v; } salva(); };
+async function classificaTesto(gioco="acchiappa"){
+  const r=await chiamaConto("/conto/classifica?gioco="+encodeURIComponent(gioco),null,"GET").catch(()=>null);
   if(!r||!Array.isArray(r.classifica)) return "La classifica adesso non risponde: riprova fra poco.";
   if(!r.classifica.length) return "Ancora nessuno in classifica: il primo posto è libero.";
-  return r.classifica.slice(0,10).map((x,i)=>`${["🥇","🥈","🥉"][i]||(i+1)+"."} ${x.n} · ${x.punti}`).join("\n")+`\n\nIl tuo record: ${citta.recordAcchiappa|0}`;
+  return r.classifica.slice(0,10).map((x,i)=>`${["🥇","🥈","🥉"][i]||(i+1)+"."} ${x.n} · ${x.punti}`).join("\n")+`\n\nIl tuo record: ${recordDi(gioco)}`;
 }
-async function mostraClassifica(campo, punti){
+async function mostraClassifica(campo, punti, gioco="acchiappa"){
   const box=el("div",{id:"gioco-classifica",style:"max-width:420px;margin:16px auto;padding:0 16px;font:500 16px/1.5 var(--f-testo)"});
   box.append(el("p",{testo:"Classifica in arrivo…",style:"text-align:center"})); campo.append(box);
-  const prima=citta.recordAcchiappa|0; if(punti>prima){ citta.recordAcchiappa=punti; salva(); }
-  let r=conto?await chiamaConto("/conto/partita",{gioco:"acchiappa",punti:Math.min(punti,200)}):await chiamaConto("/conto/classifica?gioco=acchiappa",null,"GET");
+  const prima=recordDi(gioco); if(punti>prima) segnaRecord(gioco,punti);
+  let r=conto?await chiamaConto("/conto/partita",{gioco,punti:Math.min(punti,200)}):await chiamaConto("/conto/classifica?gioco="+encodeURIComponent(gioco),null,"GET");
   box.textContent="";
-  const record=conto&&Number.isInteger(r.record)?r.record:citta.recordAcchiappa|0;
+  const record=conto&&Number.isInteger(r.record)?r.record:recordDi(gioco);
   box.append(el("p",{style:"text-align:center;font-weight:700;font-size:18px",testo:(conto&&r.nuovoRecord)||(!conto&&punti>prima&&punti>0)?`🎉 Nuovo record: ${record}!`:`Il tuo record: ${record}`}));
   if(!Array.isArray(r.classifica)){ box.append(el("p",{style:"text-align:center;opacity:.8",testo:"La classifica adesso non risponde: riprova alla prossima partita."})); return; }
   box.append(el("p",{style:"margin:10px 0 4px;font-weight:700",testo:"🏆 Classifica"}));
@@ -1182,6 +1186,60 @@ function giocaAcchiappa(){
   st.fine2=fine; st.turbo=()=>ora()<st.turboFino; st.x2=()=>ora()<st.x2Fino;
   giro(); st.t2=setInterval(()=>{ const s=Math.max(0,Math.ceil((st.fine-ora())/1000)); $("gioco-tempo").textContent=s; buff(); if(s<=0) fine(); },250);
   $("gioco-esci").addEventListener("click",()=>{ fine(); L.remove(); document.body.classList.remove("con-twitch"); ridisegnaCarta(); });
+}
+
+// ══ LA CORNICE DEI GIOCHI ══ — dopo Acchiappa, ogni gioco della Sala giochi è un file suo: giochi/<id>.js, in giochi/elenco.js.
+// Il modulo esporta gioco={id, nome, cabinato:{schermo, colore}, regole, massimo, avvia(campo, api)} e logica (funzioni pure,
+// provate in node da collaudo/giochi.mjs). Il nome e le regole stanno nel modulo: lo si importa entrando nella Sala giochi (per
+// il cabinato e la sua carta) o al «Gioca», mai all'avvio della città. avvia disegna nel campo dello stesso strato di Acchiappa
+// e restituisce {ferma()}; l'api: punti(n), tempo(testo), esito(testo), fine(punti), ora().
+// A fine partita: gettoni = min(punti convertiti con gioco.gettoni, se c'è, gioco.massimo), record in citta.record[id],
+// classifica del server con gioco=<id>.
+const SALA={ids:[], moduli:{}, attese:{}, errori:{}};
+SALA.elenco=import("./giochi/elenco.js").then(m=>{ SALA.ids=(Array.isArray(m.GIOCHI)?m.GIOCHI:[]).filter(id=>typeof id==="string"&&/^[a-z][a-z0-9-]*$/.test(id));
+  if(stanzaAperta==="giochi") ridisegnaCarta(); return SALA.ids; }).catch(()=>SALA.ids);
+function caricaGioco(id){
+  if(!SALA.attese[id]) SALA.attese[id]=import(`./giochi/${id}.js`).then(m=>{ const g=m.gioco;
+      if(!g||g.id!==id||typeof g.avvia!=="function"||!Number.isInteger(g.massimo)) throw new Error(`giochi/${id}.js non esporta il gioco`);
+      SALA.moduli[id]=g; delete SALA.errori[id]; return g; })
+    .catch(e=>{ SALA.errori[id]=String(e&&e.message||e); delete SALA.attese[id]; throw e; });
+  return SALA.attese[id];
+}
+const ridisegnaSala=()=>{ if(stanzaAperta==="giochi") ridisegnaCarta(); };
+// il cabinato di un gioco nella Sala giochi (una parte del luogo, e la sua cosa nella stanza)
+const cabinatoGioco=(id,i)=>({id:"gioco-"+id, get nome(){ const g=SALA.moduli[id]; return g?g.nome:`Cabinato ${i+2}`; },
+  dentro(){ const g=SALA.moduli[id];
+    if(!g){ if(!SALA.errori[id]) caricaGioco(id).then(ridisegnaSala,ridisegnaSala);   // dopo un errore si riprova solo con «Riprova» (niente giri a vuoto)
+      return [BLOCCO(H3(`Cabinato ${i+2}`), P(SALA.errori[id]?"Questo gioco adesso non si carica: riprova fra poco.":"Il gioco si sta accendendo…"),
+        SALA.errori[id]?AZIONI(bottone("Riprova",()=>{ delete SALA.errori[id]; ridisegnaSala(); })):null)]; }
+    return [BLOCCO(H3(g.nome), P(g.regole), AZIONI(bottone("Gioca",()=>giocaSala(id))), NOTA(`Il tuo record: ${recordDi(id)} · Hai ${citta.gettoni} gettoni.`))]; },
+  domande:()=>[["Classifica",()=>classificaTesto(id)]]});
+async function giocaSala(id){
+  let L=$("strato-gioco"); if(L) L.remove();
+  L=document.createElement("div"); L.id="strato-gioco";
+  L.innerHTML='<div class="barra-gioco"><span>🪙 <b id="gioco-punti">0</b> · <span id="gioco-tempo"></span></span><button type="button" class="pulsante" id="gioco-esci">Esci</button></div><div id="campo-gioco"></div><p id="gioco-esito" style="text-align:center;margin:10px;min-height:1.2em">Il gioco si sta accendendo…</p>';
+  document.body.appendChild(L); document.body.classList.add("con-twitch");
+  const campo=L.querySelector("#campo-gioco"), scrivi=(sel,t)=>{ const e=L.querySelector(sel); if(e) e.textContent=String(t); };
+  const st={id, punti:0, finito:false, partita:null}; scena._gioco=st;
+  const fine=punti=>{ if(st.finito) return; st.finito=true;
+    if(st.partita) try{ st.partita.ferma(); }catch(_){}
+    const g=SALA.moduli[id]; if(!g||!st.partita) return;   // il gioco non è mai partito: niente da vincere
+    const p=Math.max(0,Math.floor(Number(punti)||0)); st.punti=p; scrivi("#gioco-punti",p);
+    const vinti=Math.max(0,Math.min(Math.floor(Number(g.gettoni?g.gettoni(p):p))||0,g.massimo)); guadagna(vinti);
+    scrivi("#gioco-esito",`Fine! Hai fatto ${p} punti: ne vinci ${vinti} gettoni. Ora ne hai ${citta.gettoni}.`); campo.textContent="";
+    mostraClassifica(campo,p,id); };
+  st.fine2=()=>fine(st.punti);
+  L.querySelector("#gioco-esci").addEventListener("click",()=>{ fine(st.punti); L.remove(); document.body.classList.remove("con-twitch"); ridisegnaCarta(); });
+  const api={punti:n=>{ if(st.finito) return; st.punti=Math.max(0,Math.floor(Number(n)||0)); scrivi("#gioco-punti",st.punti); },
+    tempo:t=>{ if(!st.finito) scrivi("#gioco-tempo",t); }, esito:t=>{ if(!st.finito) scrivi("#gioco-esito",t); },
+    fine:p=>fine(p===undefined?st.punti:p), ora:()=>Date.now()};
+  try{ delete SALA.errori[id]; const g=await caricaGioco(id); if(st.finito||!L.isConnected) return;
+    scrivi("#gioco-esito",""); st.partita=g.avvia(campo,api)||{ferma(){}}; }
+  catch(e){ if(!L.isConnected) return; st.finito=true; campo.textContent=""; scrivi("#gioco-esito","");
+    campo.append(el("div",{class:"gioco-errore",style:"max-width:420px;margin:40px auto;padding:0 16px;text-align:center;font:500 17px/1.5 var(--f-testo)"},
+      el("p",{style:"font:800 22px/1.2 var(--f-titoli);color:var(--oro)",testo:"Questo gioco adesso non si carica"}),
+      el("p",{testo:"Forse manca la rete. Esci e riprova fra poco: i tuoi gettoni sono al sicuro."}),
+      el("p",{style:"font:400 12px/1.4 var(--f-mono);color:var(--tenue)",testo:String(e&&e.message||e).slice(0,160)}))); ridisegnaSala(); }
 }
 
 // ── i piani della Torre
@@ -1677,6 +1735,7 @@ disegnaGiro();
 // ══ LA SCENA ══
 const scena={pronta:false, modo(){}, vaiVerso(){}, carta(){}, _luci:[]};
 window.CITTA=scena;
+scena.giochiSala=()=>SALA.ids.slice();   // per il collaudo: i giochi della Sala dopo Acchiappa (giochi/elenco.js)
 
 const MAT=new Map();
 const mat=(c,emi)=>{ const k=c+"|"+(emi||0); if(!MAT.has(k)) MAT.set(k, emi? new THREE.MeshBasicMaterial({color:c}) : new THREE.MeshLambertMaterial({color:c})); return MAT.get(k); };
@@ -2650,9 +2709,17 @@ const COLLINA={r:4.2,h:1.0}, ACQUA=[4.2,6.13], MURETTO={r:6.25,alto:0.55}, PANCH
       // la macchinetta dei gettoni, accanto alla porta
       const mac=scatola(1,2,0.8,0x2a3f57); h.metti(mac,5.6,1,4.6); h.metti(scatola(0.6,0.4,0.04,0xFFD60A,true),5.6,1.5,4.18); h.solido(5.6,4.6,1,0.8);
       h.cosa("macchinetta",[mac],5.6,4.6,{x:4.4,z:4.4},2.4);
-      [[-5,0xff4fd8,"cab1","1"],[-2.5,0x00B4D8,"cab2","2"],[2.5,0xFFD60A,null,"?"],[5,0x2ECC71,null,"?"]].forEach(([x,c,k,t])=>{ const m=scatola(1.2,2.2,0.9,0x15161a); h.metti(m,x,1.1,-5);
+      const cab=[[-5,0xff4fd8,"1"],[-2.5,0x00B4D8,"2"],[2.5,0xFFD60A,"?"],[5,0x2ECC71,"?"]].map(([x,c,t])=>{ const m=scatola(1.2,2.2,0.9,0x15161a); h.metti(m,x,1.1,-5);
         const sc=schermo(0.9,0.7,"#"+c.toString(16).padStart(6,"0"),t); h.metti(sc,x,1.55,-4.54); h.metti(scatola(1.21,0.12,0.12,c,true),x,2.25,-4.55); h.solido(x,-5,1.2,0.9);
-        if(k) h.cosa(k,[m,sc],x,-5,{x,z:-3.6},2.95); });
+        return {x,pezzi:[m,sc]}; });
+      const metticosa=(k,{x,pezzi})=>h.cosa(k,pezzi,x,-5,{x,z:-3.6},2.95);
+      metticosa("cab1",cab[0]);
+      // dal 2° cabinato i giochi di giochi/elenco.js (sullo schermo il loro cabinato.schermo); senza giochi il 2° resta libero.
+      // Oltre il 4° cabinato un gioco c'è solo nella scheda
+      SALA.elenco.then(ids=>{ if(!ids.length){ metticosa("cab2",cab[1]); return; }
+        ids.slice(0,cab.length-1).forEach((id,i)=>{ const c=cab[i+1];
+          caricaGioco(id).then(g=>{ const cb=g.cabinato||{}, vecchio=c.pezzi[1], nuovo=schermo(0.9,0.7,/^#[0-9a-fA-F]{6}$/.test(cb.colore||"")?cb.colore:"#00B4D8",String(cb.schermo||g.nome).slice(0,12));
+            S2.remove(vecchio); h.metti(nuovo,c.x,1.55,-4.54); c.pezzi[1]=nuovo; }).catch(()=>{}).finally(()=>metticosa("gioco-"+id,c)); }); });
       for(const s of [-1,1]) h.metti(scatola(0.1,0.1,PROFONDO-1,0xff4fd8,true),s*(LARGO/2-0.1),ALTO-0.4,0); },
     ristorante(S2,h){ h.insegnaFondo("RISTORANTE","alla cassa: il menù",5,3.7);
       const banco=scatola(3.2,1.1,1,0x5a2f22), piano=scatola(3.24,0.06,1.04,0xFFD60A,true), reg=scatola(0.5,0.35,0.4,0x15161a), tab=schermo(2.6,1.4,"#FFD60A","MENÙ");
