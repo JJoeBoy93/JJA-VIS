@@ -11,6 +11,7 @@ export default async function (prova, { logica: L }) {
   prova("vincitore: partita aperta, o vuota, è null", L.vincitore(G("XO.......")) === null && L.vincitore(L.vuota()) === null);
   prova("l'ultima mossa che fa tris riempiendo la griglia vince, non pareggia", L.vincitore(G("XOXOXOOXX")) === "X");
   prova("la riga vincente è quella giusta (si illumina quella)", JSON.stringify(L.rigaVincente(G("..O.O.O.."))) === "[2,4,6]" && L.rigaVincente(G("XO.......")) === null);
+  prova("punti per livello (JJ, 25/10): Facile ×1, Medio ×3, Difficile ×10", L.puntiRound(G("XXX.OO..."), "X", "medio") === 9 && L.puntiRound(G("XOXXOOOXX"), "O", "medio") === 3 && L.puntiRound(G("XOXXOOOXX"), "O", "difficile") === 10 && L.puntiRound(G("XXX.OO..."), "X", "difficile") === 30 && L.puntiRound(G("XXX.OO..."), "O", "difficile") === 0);
   prova("punti del round: vittoria 3, pareggio 1, sconfitta 0", L.puntiRound(G("XXX.OO..."), "X") === 3 && L.puntiRound(G("XOXXOOOXX"), "O") === 1 && L.puntiRound(G("XXX.OO..."), "O") === 0);
 
   // la media: vince se può, blocca se deve

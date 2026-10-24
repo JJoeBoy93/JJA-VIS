@@ -2,12 +2,14 @@
 //   Facile     mosse a caso
 //   Medio      vince se può, blocca se deve, se no a caso
 //   Difficile  minimax: non perde mai (si può solo pareggiare)
-// Punti: vittoria 3, pareggio 1. Gettoni: 1 per punto, al massimo 9.
+// Punti: vittoria 3, pareggio 1, per il moltiplicatore del livello (JJ, 25/10: Facile ×1, Medio ×3, Difficile ×10 —
+// al Difficile si può solo pareggiare: 3 pareggi = 30). Gettoni: 1 per punto, al massimo 30.
 // Come nel tris di carta comincia sempre la X: al 1° e al 3° round sei tu la X, al 2° comincia JJA-VIS.
 // La griglia è un array di 9 caselle ("X", "O" o null), riga per riga. Le prove: collaudo/giochi/tris.mjs.
 
 const RIGHE = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
 const PUNTI = {vittoria:3, pareggio:1, sconfitta:0};
+const PER_LIVELLO = {facile:1, medio:3, difficile:10};
 const ROUND = 3, ATTESA = 400, PAUSA = 1600;
 
 // ══ la logica: solo funzioni pure, niente DOM (si prova in node)
@@ -48,9 +50,9 @@ function mossaPerfetta(g){
 const LIVELLI = {facile:mossaFacile, medio:mossaMedia, difficile:g => mossaPerfetta(g)};
 const mossaPer = (livello, g, caso = Math.random) => (LIVELLI[livello] || mossaFacile)(g, caso);
 // i punti di un round finito, per chi gioca col segno tu
-const puntiRound = (g, tu) => { const v = vincitore(g); return v === tu ? PUNTI.vittoria : v === "pari" ? PUNTI.pareggio : PUNTI.sconfitta; };
+const puntiRound = (g, tu, livello = "facile") => { const v = vincitore(g); return (PER_LIVELLO[livello] || 1) * (v === tu ? PUNTI.vittoria : v === "pari" ? PUNTI.pareggio : PUNTI.sconfitta); };
 
-export const logica = {RIGHE, PUNTI, ROUND, vuota, libere, rigaVincente, vincitore, chiMuove, altro, metti, mossaFacile, mossaMedia, mossaPerfetta, mossaPer, puntiRound};
+export const logica = {RIGHE, PUNTI, PER_LIVELLO, ROUND, vuota, libere, rigaVincente, vincitore, chiMuove, altro, metti, mossaFacile, mossaMedia, mossaPerfetta, mossaPer, puntiRound};
 
 // ══ il gioco nello strato
 const STILE = `
@@ -112,7 +114,7 @@ function avvia(campo, api){
   }
   function finito(){
     const v = vincitore(st.griglia); if (!v) return false;
-    const p = puntiRound(st.griglia, st.tu); st.punti += p; api.punti(st.punti); disegna();
+    const p = puntiRound(st.griglia, st.tu, st.livello); st.punti += p; api.punti(st.punti); disegna();
     api.esito(v === st.tu ? `Tris! Round vinto: +${p}.` : v === "pari" ? `Pareggio: +${p}.` : "Tris di JJA-VIS: questo round è suo.");
     dopo(PAUSA, () => { if (st.round < ROUND) nuovoRound(); else api.fine(st.punti); });
     return true;
@@ -123,6 +125,6 @@ function avvia(campo, api){
 
 export const gioco = {
   id:"tris", nome:"Tris", cabinato:{schermo:"X O", colore:"#FFD60A"},
-  regole:"Tre in fila contro JJA-VIS, su una griglia 3×3. Scegli il livello: Facile (gioca a caso), Medio (vince se può, ti blocca se deve), Difficile (non perde mai). Tre round: la vittoria vale 3 punti, il pareggio 1. Un gettone per punto, fino a 9 a partita.",
-  massimo:9, gettoni:p => p, avvia,
+  regole:"Tre in fila contro JJA-VIS, su una griglia 3×3. Scegli il livello: Facile (gioca a caso), Medio (vince se può, ti blocca se deve), Difficile (non perde mai). Tre round: la vittoria vale 3 punti, il pareggio 1 — al Medio ×3, al Difficile ×10 (lì al massimo si pareggia). Un gettone per punto, fino a 30 a partita.",
+  massimo:30, gettoni:p => p, avvia,
 };
