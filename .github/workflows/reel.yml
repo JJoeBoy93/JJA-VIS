@@ -10,9 +10,11 @@
 name: reel della città
 
 on:
-  schedule:
-    # alle 6 di Roma: a metà mattina il reel è già nella release
-    - cron: "0 4 */2 * *"
+  # IN PAUSA dal 26/10 (JJ: «non mi piace, prima che faccia altri video così voglio che studi un po' i video fatti
+  # bene… se li fa male non vengono visti»). Si riaccende quando Afrodite ha studiato i reel che funzionano (Artemide).
+  # schedule:
+  #   # alle 6 di Roma: a metà mattina il reel è già nella release
+  #   - cron: "0 4 */2 * *"
   workflow_dispatch:
     inputs:
       tema:
