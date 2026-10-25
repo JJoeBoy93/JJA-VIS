@@ -394,6 +394,7 @@ body.con-nova #joy,body.con-nova #entra,body.con-nova #vai{opacity:0;pointer-eve
 import * as THREE from "./lib/three.module.min.js";
 import { GLTFLoader } from "./lib/addons/loaders/GLTFLoader.js";
 import * as SkeletonUtils from "./lib/addons/utils/SkeletonUtils.js";
+import { postiCabinati, postoDavanti, ingombro, macchinetta } from "./giochi/sala.js";   // dove stanno i cabinati della Sala giochi (puro, provato in node)
 
 // ══ LA CITTÀ DI JJA-VIS ══ — nata il 2 ottobre 2026 (Athena), su richiesta di JJ:
 // «non voglio la piazzetta, voglio una piccola città: la reception, la bottega
@@ -2543,8 +2544,10 @@ const COLLINA={r:4.2,h:1.0}, ACQUA=[4.2,6.13], MURETTO={r:6.25,alto:0.55}, PANCH
   const camStanza=new THREE.PerspectiveCamera(70, innerWidth/innerHeight, 0.1, 300);
   const interni={}; let attiva=null, tuStanza=null, tStanza=0;
   // la misura delle stanze: 14×12, tranne il piano terra della Torre (JJ, 10/10: «espandiamo il piano terra dentro la torre e
-  // distribuiamo ascensore, hall, scale e reception»): 24×14, nella base larga. Valgono per la stanza attiva (stanzaMisure)
-  const DIM_STANZE={torre:[24,14]};
+  // distribuiamo ascensore, hall, scale e reception»): 24×14, nella base larga. Valgono per la stanza attiva (stanzaMisure).
+  // La Sala giochi 22×18: un cabinato per ogni gioco (giochi/sala.js) — 17 sulla parete di fondo, 9 per lato, poi le isole in
+  // mezzo con corridoi da 2 m: in tutto oltre cento posti; più larga della Torre non serve, e la porta resta lontana dal fondo
+  const DIM_STANZE={torre:[24,14],giochi:[22,18]};
   let LARGO=14, PROFONDO=12; const ALTO=5, HUB={x:0,z:1.2}, ENTRATA={x:0,z:3.0};
   function stanzaMisure(id){ [LARGO,PROFONDO]=DIM_STANZE[id]||[14,12]; ENTRATA.z=PROFONDO/2-3; HUB.z=PROFONDO/2-4.8; }
   const dentro={meta:null,tappe:[],metaId:null,fermoDa:0,distPrima:Infinity,salti:0};
@@ -2705,22 +2708,40 @@ const COLLINA={r:4.2,h:1.0}, ACQUA=[4.2,6.13], MURETTO={r:6.25,alto:0.55}, PANCH
       h.cosa("scaffali",sc,-4.2,-4.6,{x:-4.2,z:-3.2},3.7);
       h.metti(scatola(1.2,0.15,1.2,0x8a6a40),0,0.08,-1.6); for(let k=0;k<5;k++) h.metti(scatola(0.5,0.4,0.5,0xc8a165),-0.25+(k%2)*0.5,0.36+Math.floor(k/2)*0.4,-1.6+(k%2?0.2:-0.2)); h.solido(0,-1.6,1.4,1.4);
       const sito=aParete(schermo(2.6,1.5,"#00B4D8","IL SITO"),1,1.5,2.0); S2.add(sito); h.cosa("sito",[sito],6.6,1.5,{x:5.3,z:1.5},3.3); },
-    giochi(S2,h){ h.insegnaFondo("SALA GIOCHI","si gioca, si vincono gettoni");
+    giochi(S2,h){ h.insegnaFondo("SALA GIOCHI","si gioca, si vincono gettoni",9,3.9);
+      const L=LARGO, P=PROFONDO;   // le misure di questa stanza (i cabinati arrivano dopo, quando l'elenco dei giochi è carico)
+      // il pavimento a scacchi, le luci colorate, le strisce al neon e le scritte: la sala giochi (tutto con le misure della stanza)
+      const sc=tela(128,128), x2=sc.getContext("2d"); x2.fillStyle="#1b0f33"; x2.fillRect(0,0,128,128); x2.fillStyle="#2a1650"; x2.fillRect(0,0,64,64); x2.fillRect(64,64,64,64);
+      const tp=tex(sc); tp.wrapS=tp.wrapT=THREE.RepeatWrapping; tp.repeat.set(L/2,P/2);
+      const pav=new THREE.Mesh(new THREE.PlaneGeometry(L,P), new THREE.MeshLambertMaterial({map:tp})); pav.rotation.x=-Math.PI/2; pav.position.y=0.02; S2.add(pav);
+      for(const [c,x,z] of [[0xff4fd8,-L/4,-P/4],[0x00B4D8,L/4,-P/4],[0xFFD60A,-L/4,P/5],[0x2ECC71,L/4,P/5]]){ const l=new THREE.PointLight(c,22,13,2); l.position.set(x,ALTO-0.8,z); S2.add(l); }
+      for(const [c,z] of [[0xff4fd8,-P/4],[0x00B4D8,P/5]]) h.metti(scatola(L-2,0.05,0.14,c,true),0,ALTO-0.04,z);
+      for(const s of [-1,1]){ h.metti(scatola(0.1,0.1,P-1,0xff4fd8,true),s*(L/2-0.1),ALTO-0.4,0);
+        S2.add(aParete(schermo(3.2,0.9,s<0?"#ff4fd8":"#00B4D8",s<0?"INSERT COIN":"GAME ON"),s,0,3.7)); }
       // la macchinetta dei gettoni, accanto alla porta
-      const mac=scatola(1,2,0.8,0x2a3f57); h.metti(mac,5.6,1,4.6); h.metti(scatola(0.6,0.4,0.04,0xFFD60A,true),5.6,1.5,4.18); h.solido(5.6,4.6,1,0.8);
-      h.cosa("macchinetta",[mac],5.6,4.6,{x:4.4,z:4.4},2.4);
-      const cab=[[-5,0xff4fd8,"1"],[-2.5,0x00B4D8,"2"],[2.5,0xFFD60A,"?"],[5,0x2ECC71,"?"]].map(([x,c,t])=>{ const m=scatola(1.2,2.2,0.9,0x15161a); h.metti(m,x,1.1,-5);
-        const sc=schermo(0.9,0.7,"#"+c.toString(16).padStart(6,"0"),t); h.metti(sc,x,1.55,-4.54); h.metti(scatola(1.21,0.12,0.12,c,true),x,2.25,-4.55); h.solido(x,-5,1.2,0.9);
-        return {x,pezzi:[m,sc]}; });
-      const metticosa=(k,{x,pezzi})=>h.cosa(k,pezzi,x,-5,{x,z:-3.6},2.95);
-      metticosa("cab1",cab[0]);
-      // dal 2° cabinato i giochi di giochi/elenco.js (sullo schermo il loro cabinato.schermo); senza giochi il 2° resta libero.
-      // Oltre il 4° cabinato un gioco c'è solo nella scheda
-      SALA.elenco.then(ids=>{ if(!ids.length){ metticosa("cab2",cab[1]); return; }
-        ids.slice(0,cab.length-1).forEach((id,i)=>{ const c=cab[i+1];
-          caricaGioco(id).then(g=>{ const cb=g.cabinato||{}, vecchio=c.pezzi[1], nuovo=schermo(0.9,0.7,/^#[0-9a-fA-F]{6}$/.test(cb.colore||"")?cb.colore:"#00B4D8",String(cb.schermo||g.nome).slice(0,12));
-            S2.remove(vecchio); h.metti(nuovo,c.x,1.55,-4.54); c.pezzi[1]=nuovo; }).catch(()=>{}).finally(()=>metticosa("gioco-"+id,c)); }); });
-      for(const s of [-1,1]) h.metti(scatola(0.1,0.1,PROFONDO-1,0xff4fd8,true),s*(LARGO/2-0.1),ALTO-0.4,0); },
+      const M=macchinetta(L,P), mac=scatola(M.w,2,M.d,0x2a3f57); h.metti(mac,M.x,1,M.z); h.metti(scatola(0.6,0.4,0.04,0xFFD60A,true),M.x,1.5,M.z-0.42); h.solido(M.x,M.z,M.w,M.d);
+      h.cosa("macchinetta",[mac],M.x,M.z,M.posto,2.4);
+      // un cabinato: il corpo, lo schermo, la striscia in cima, la pulsantiera. Lo schermo guarda dove dice il posto (verso)
+      const cabinato=(k,p,colore,testo)=>{ const g=new THREE.Group(); g.position.set(p.x,0,p.z); g.rotation.y=p.verso; S2.add(g);
+        const m=scatola(1.2,2.2,0.9,0x15161a); m.position.y=1.1; g.add(m);
+        const sch=schermo(0.9,0.7,colore,testo); sch.position.set(0,1.55,0.46); g.add(sch);
+        const top=scatola(1.21,0.12,0.12,parseInt(colore.slice(1),16),true); top.position.set(0,2.25,0.45); g.add(top);
+        const pan=scatola(1.0,0.08,0.4,0x2b2f36); pan.position.set(0,0.95,0.6); g.add(pan);
+        const st=cilindro(0.025,0.025,0.16,0x888888,6); st.position.set(-0.25,1.06,0.6); g.add(st); const pl=palla(0.06,0xe63946,false,8); pl.position.set(-0.25,1.17,0.6); g.add(pl);
+        for(const bx of [0.1,0.28]){ const b=cilindro(0.05,0.05,0.04,parseInt(colore.slice(1),16),8,true); b.position.set(bx,1.0,0.6); g.add(b); }
+        const ing=ingombro(p); h.solido(ing.x,ing.z,ing.w,ing.d);
+        h.cosa(k,[m,sch,top,pan],p.x,p.z,postoDavanti(p),2.95);
+        return sch; };
+      const hex=c=>"#"+c.toString(16).padStart(6,"0");
+      const p1=postiCabinati(1,L,P)[0]; cabinato("cab1",p1,hex(0xff4fd8),"1");
+      // un cabinato per ogni gioco di giochi/elenco.js, dopo Acchiappa: lo schermo e il colore sono del gioco (cabinato.schermo,
+      // .colore) e arrivano quando il suo modulo è carico; il cabinato c'è subito. Senza giochi resta solo Acchiappa.
+      // Se i giochi sono più di quanti ne entrano in sala (giochi/sala.js dice quanti), quelli in più restano solo nella scheda.
+      SALA.elenco.then(ids=>{ const posti=postiCabinati(1+Math.max(1,ids.length),L,P).slice(1);
+        if(!ids.length){ if(posti.length) cabinato("cab2",posti[0],hex(0x00B4D8),"?"); return; }   // senza giochi il 2° cabinato è «libero», come la sua carta
+        ids.slice(0,posti.length).forEach((id,i)=>{ const sch=cabinato("gioco-"+id,posti[i],hex(0x00B4D8),String(i+2));
+          caricaGioco(id).then(g=>{ const cb=g.cabinato||{}, nuovo=schermo(0.9,0.7,/^#[0-9a-fA-F]{6}$/.test(cb.colore||"")?cb.colore:"#00B4D8",String(cb.schermo||g.nome).slice(0,12));
+            sch.material.map=nuovo.material.map; sch.material.needsUpdate=true; }).catch(()=>{}); }); }); },
     ristorante(S2,h){ h.insegnaFondo("RISTORANTE","alla cassa: il menù",5,3.7);
       const banco=scatola(3.2,1.1,1,0x5a2f22), piano=scatola(3.24,0.06,1.04,0xFFD60A,true), reg=scatola(0.5,0.35,0.4,0x15161a), tab=schermo(2.6,1.4,"#FFD60A","MENÙ");
       h.metti(banco,4.3,0.55,-4.4); h.metti(piano,4.3,1.12,-4.4); h.metti(reg,3.6,1.33,-4.4); h.metti(tab,4.3,3.0,-PROFONDO/2+0.09); h.solido(4.3,-4.4,3.2,1);
@@ -2902,10 +2923,26 @@ const COLLINA={r:4.2,h:1.0}, ACQUA=[4.2,6.13], MURETTO={r:6.25,alto:0.55}, PANCH
   // ── il percorso dentro: dritto se si può, se no passando dal centro della stanza ──
   function lineaLibera(a,b){ const l=Math.hypot(b.x-a.x,b.z-a.z), n=Math.ceil(l/0.2);
     for(let i=1;i<n;i++){ const x=a.x+(b.x-a.x)*i/n, z=a.z+(b.z-a.z)*i/n; if(attiva.solidi.some(s=>dentroUno(x,z,s,0.38))) return false; } return true; }
+  // la stanza è piena di cabinati (Sala giochi): se né dritto né dal centro si passa, si cerca la strada su una griglia da 30 cm
+  // (come cammina chi ha 38 cm di raggio), poi si tengono solo le svolte; se non c'è strada si ripiega sul centro come prima
+  function giroLibero(a,b){
+    const st=0.3, nx=Math.floor(LARGO/st)+1, nz=Math.floor(PROFONDO/st)+1, X=i=>-LARGO/2+i*st, Z=j=>-PROFONDO/2+j*st;
+    const libero=(i,j)=>Math.abs(X(i))<=LARGO/2-0.4&&Math.abs(Z(j))<=PROFONDO/2-0.4&&!attiva.solidi.some(q=>dentroUno(X(i),Z(j),q,0.38));
+    const cella=q=>[Math.max(0,Math.min(nx-1,Math.round((q.x+LARGO/2)/st))),Math.max(0,Math.min(nz-1,Math.round((q.z+PROFONDO/2)/st)))];
+    const [ai,aj]=cella(a), [bi,bj]=cella(b), da=new Map([[ai*nz+aj,-1]]); const coda=[[ai,aj]];
+    for(let q=0;q<coda.length&&!da.has(bi*nz+bj);q++){ const [i,j]=coda[q];
+      for(const [di,dj] of [[1,0],[-1,0],[0,1],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1]]){ const u=i+di, v=j+dj;
+        if(u<0||v<0||u>=nx||v>=nz||da.has(u*nz+v)||!libero(u,v)) continue; da.set(u*nz+v,i*nz+j); coda.push([u,v]); } }
+    if(!da.has(bi*nz+bj)) return [HUB,b];
+    const via=[]; for(let c=bi*nz+bj;c!==-1;c=da.get(c)) via.push({x:X(Math.floor(c/nz)),z:Z(c%nz)}); via.reverse();
+    const tappe=[]; let cur=a, i=0;
+    while(i<via.length-1){ let k=via.length-1; while(k>i+1&&!lineaLibera(cur,via[k])) k--; cur=via[k]; i=k; tappe.push(cur); }
+    tappe.push(b); return tappe;
+  }
   function percorsoDentro(k){
     const c=attiva&&attiva.cose&&attiva.cose[k]; if(!c) return;
     const a={x:tuStanza.position.x,z:tuStanza.position.z};
-    const tappe=lineaLibera(a,c.posto)?[c.posto]:[HUB,c.posto];
+    const tappe=lineaLibera(a,c.posto)?[c.posto]:lineaLibera(a,HUB)&&lineaLibera(HUB,c.posto)?[HUB,c.posto]:giroLibero(a,c.posto);
     dentro.tappe=tappe.map(q=>new THREE.Vector3(q.x,0,q.z)); dentro.meta=dentro.tappe.shift(); dentro.metaId=k; dentro.perCarta=false; dentro.fermoDa=0; dentro.distPrima=Infinity;
   }
 

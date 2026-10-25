@@ -33,6 +33,10 @@ for (const id of Array.isArray(GIOCHI) ? GIOCHI : []) {
   try { const p = await import(pathToFileURL(file).href); await p.default((nome, ok, d) => prova(`${id}: ${nome}`, ok, d), m); }
   catch (e) { prova(`${id}: le prove girano fino in fondo`, false, String(e && e.stack || e)); }
 }
+// la stanza: dove stanno i cabinati (giochi/sala.js), non è un gioco
+console.log("\n── sala (la stanza, i posti dei cabinati)");
+try { const p = await import(url("collaudo", "giochi", "sala.mjs")); await p.default((nome, ok, d) => prova(`sala: ${nome}`, ok, d)); }
+catch (e) { prova("sala: le prove girano fino in fondo", false, String(e && e.stack || e)); }
 console.log("");
 console.log(rossi ? `ROSSO: ${rossi}` : "VERDE");
 process.exit(rossi ? 1 : 0);
