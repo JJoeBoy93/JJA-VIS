@@ -672,7 +672,11 @@ async def main():
         await p.wait_for_selector("#gioco-classifica", timeout=10000); await p.wait_for_timeout(1500)
         fin = await p.inner_text("#gioco-classifica")
         prova("a fine partita c'è il record, e la classifica o perché non c'è (qui il server è spento)", "record" in fin and ("Classifica" in fin or "non risponde" in fin), fin)
-        prova("a fine partita si vincono i gettoni presi, al massimo 25", await p.evaluate("window.CITTA.gettoni()") == g1 + 25 and "ne vinci 25" in await p.inner_text("#gioco-esito"), gc)
+        # 25/10: alla prima partita il record si batte sempre → +5 di premio (giochi/fine.js), scritto nell'esito. Prima era «== g1 + 25».
+        es_ = await p.inner_text("#gioco-esito"); gf_ = await p.evaluate("window.CITTA.gettoni()")
+        pr_ = re.search(r"\+(\d+) gettoni di premio", es_); pr_ = int(pr_.group(1)) if pr_ else 0
+        prova("a fine partita si vincono i gettoni presi, al massimo 25, più il premio del primo record (+5)", gf_ == g1 + 25 + pr_ and pr_ == 5 and "ne vinci 25" in es_ and "Nuovo record" in es_, [g1, gf_, es_[:200]])
+        prova("a fine partita c'è «Gioca di nuovo» (JJ, 25/10)", await p.locator("#strato-gioco button:has-text('Gioca di nuovo')").count() > 0)
         await foto(p, "16e-gioco")
         await p.click("#gioco-esci"); await p.wait_for_timeout(300)
 
