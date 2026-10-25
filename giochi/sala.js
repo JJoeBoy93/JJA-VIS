@@ -1,14 +1,20 @@
 // Dove stanno i cabinati nella Sala giochi (citta.html, ARREDI.giochi). Puro: nessun elemento della pagina, si prova in node
 // (collaudo/giochi/sala.mjs). Un cabinato per ogni gioco, senza un numero massimo fisso: finché c'è spazio.
-// Ordine dei posti, come nelle sale giochi vere: la parete di fondo (dal centro verso gli angoli), le due pareti laterali
-// (una a sinistra e una a destra, dal fondo verso la porta), poi le isole in mezzo: due file schiena contro schiena, con
-// il corridoio d'ingresso (dalla porta al centro e oltre) sempre libero.
+// Ordine dei posti, come nelle sale giochi vere. Fra due cabinati della stessa fila c'è sempre un varco da passarci (1,4 m,
+// mai meno di 0,8), così con pochi giochi la sala non è una fila di scatole attaccate:
+//   1. i primi 3 cabinati sulla parete di fondo: in mezzo, poi uno per parte (spaziati);
+//   2. il primo posto di ciascuna parete laterale (sinistra, poi destra): con 5 giochi, 3 sul fondo e uno per lato;
+//   3. il resto della parete di fondo, dal centro verso gli angoli;
+//   4. il resto delle due pareti laterali (una a sinistra e una a destra, dal fondo verso la porta);
+//   5. le isole in mezzo: due file schiena contro schiena, con il corridoio d'ingresso (dalla porta al centro e oltre) sempre libero.
+// Il posto di un cabinato non cambia se ne arrivano altri (l'ordine è sempre lo stesso).
 // Le misure sono in metri, nel sistema della stanza: x verso destra, z verso la porta (la porta è a z = +profondo/2).
 // verso = la rotazione y del cabinato: il suo schermo guarda (sin verso, cos verso). 0 → guarda la porta (+z), π → il fondo,
 // ±π/2 → le pareti laterali. Sono solo questi quattro, così l'ingombro resta un rettangolo dritto.
 
 export const CAB = { w: 1.2, d: 0.9 };   // larghezza (lungo lo schermo) e profondità del cabinato
-const PASSO = 1.3;        // da un cabinato al vicino della stessa fila: 10 cm di fessura
+export const PASSO = 2.6;   // da un cabinato al vicino della stessa fila: 1,4 m di varco (almeno 0,8)
+export const VARCO_MIN = 0.8;
 const DAVANTI = 1.35;     // dal centro del cabinato al punto da cui si gioca (90 cm davanti allo schermo)
 const ARIA = 0.4;         // intorno al punto da cui si gioca (e a chi cammina) non c'è niente: il raggio della persona
 const CORRIDOIO = 1.4;    // fra due file, o fra una fila e la parete, ci si passa: almeno 1,4 m...
@@ -39,15 +45,18 @@ function* candidati(L, P) {
   // 1. la parete di fondo, dal centro: 0, −1, +1, −2, +2… (il primo cabinato sta in mezzo)
   const m = Math.floor((L - CAB.w) / PASSO + EPS) + 1;
   const fondo = Array.from({ length: m }, (_, k) => k - (m - 1) / 2).sort((a, b) => Math.abs(a) - Math.abs(b) || a - b);
-  for (const k of fondo) yield { x: k * PASSO, z: -mezzoP + CAB.d / 2, verso: 0 };
+  const sulFondo = k => ({ x: k * PASSO, z: -mezzoP + CAB.d / 2, verso: 0 });
+  for (const k of fondo.slice(0, 3)) yield sulFondo(k);
   // 2. le pareti laterali: la prima fila parte dopo l'angolo (il punto da cui si gioca dell'ultimo cabinato del fondo non si tocca)
   const z0 = -mezzoP + CAB.d + CORRIDOIO + CAB.w / 2;
   //    (fino alla macchinetta dei gettoni, da tutte e due le parti: la stanza resta simmetrica)
   const mac = macchinetta(L, P), zMax = mac.z - mac.d / 2 - CORRIDOIO - CAB.w / 2;
-  for (let k = 0, z = z0; z <= zMax + EPS; k++, z = z0 + k * PASSO) {
-    yield { x: -mezzoL + CAB.d / 2, z, verso: Math.PI / 2 };
-    yield { x: mezzoL - CAB.d / 2, z, verso: -Math.PI / 2 };
-  }
+  const lati = [];
+  for (let k = 0, z = z0; z <= zMax + EPS; k++, z = z0 + k * PASSO)
+    lati.push({ x: -mezzoL + CAB.d / 2, z, verso: Math.PI / 2 }, { x: mezzoL - CAB.d / 2, z, verso: -Math.PI / 2 });
+  for (const q of lati.slice(0, 2)) yield q;
+  for (const k of fondo.slice(3)) yield sulFondo(k);
+  for (const q of lati.slice(2)) yield q;
   // 3. le isole: due file schiena contro schiena (A guarda il fondo, B la porta), da una parte e dall'altra del corridoio
   const colonne = Math.floor((mezzoL - INGRESSO) / PASSO) + 1;
   for (let i = 0; ; i++) {
@@ -100,3 +109,19 @@ export function postiCabinati(n, largo, profondo) {
 }
 // quanti cabinati entrano al massimo in una stanza di queste misure
 export const capienza = (largo, profondo) => postiCabinati(Infinity, largo, profondo).length;
+
+// Il testo dell'insegna luminosa di un cabinato: il nome del gioco in 1 o 2 righe, mai una parola spezzata.
+// Con una sola parola (o un nome corto) una riga; altrimenti si taglia fra due parole dove le righe vengono più pari.
+// → [] se il nome è vuoto (il modulo non è ancora carico: l'insegna resta spenta, senza scritte).
+export function righeInsegna(nome) {
+  const parole = String(nome == null ? "" : nome).trim().split(/\s+/).filter(Boolean);
+  if (!parole.length) return [];
+  if (parole.length === 1) return [parole[0]];
+  let meglio = null;
+  for (let i = 1; i < parole.length; i++) {
+    const r = [parole.slice(0, i).join(" "), parole.slice(i).join(" ")], peso = Math.max(r[0].length, r[1].length);
+    if (!meglio || peso < meglio.peso) meglio = { r, peso };
+  }
+  const intero = parole.join(" ");
+  return intero.length <= 10 ? [intero] : meglio.r;
+}
