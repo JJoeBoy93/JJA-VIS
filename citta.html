@@ -394,6 +394,7 @@ body.con-nova #joy,body.con-nova #entra,body.con-nova #vai{opacity:0;pointer-eve
 import * as THREE from "./lib/three.module.min.js";
 import { GLTFLoader } from "./lib/addons/loaders/GLTFLoader.js";
 import * as SkeletonUtils from "./lib/addons/utils/SkeletonUtils.js";
+import { tettoPunti, assegnaPremio, primoConPunti, testoPremio } from "./giochi/fine.js";   // la fine partita, uguale per tutti i giochi (puro, provato in node)
 import { postiCabinati, postoDavanti, ingombro, macchinetta } from "./giochi/sala.js";   // dove stanno i cabinati della Sala giochi (puro, provato in node)
 
 // ══ LA CITTÀ DI JJA-VIS ══ — nata il 2 ottobre 2026 (Athena), su richiesta di JJ:
@@ -1143,12 +1144,22 @@ async function classificaTesto(gioco="acchiappa"){
   if(!r.classifica.length) return "Ancora nessuno in classifica: il primo posto è libero.";
   return r.classifica.slice(0,10).map((x,i)=>`${["🥇","🥈","🥉"][i]||(i+1)+"."} ${x.n} · ${x.punti}`).join("\n")+`\n\nIl tuo record: ${recordDi(gioco)}`;
 }
-async function mostraClassifica(campo, punti, gioco="acchiappa"){
+// a fine partita, sotto l'esito e la classifica: «Gioca di nuovo» (ripeti) ed «Esci» (esci). Uguale per ogni gioco.
+function tastiFinePartita(ripeti,esci){
+  const t=(testo,f,primario)=>{ const b=el("button",{type:"button",class:"pulsante",testo,style:"flex:1;min-height:56px;font-size:19px;font-weight:700"+(primario?";background:var(--oro);color:#111":"")}); b.addEventListener("click",f); return b; };
+  return el("div",{id:"gioco-fine-tasti",style:"display:flex;gap:12px;max-width:420px;margin:12px auto 24px;padding:0 16px"},t("Gioca di nuovo",ripeti,true),t("Esci",esci));
+}
+// `partita` è lo stato della partita (st): il premio del record si segna lì e si dà una volta sola
+async function mostraClassifica(campo, punti, gioco="acchiappa", partita={}, tasti=null){
   const box=el("div",{id:"gioco-classifica",style:"max-width:420px;margin:16px auto;padding:0 16px;font:500 16px/1.5 var(--f-testo)"});
-  box.append(el("p",{testo:"Classifica in arrivo…",style:"text-align:center"})); campo.append(box);
-  const prima=recordDi(gioco); if(punti>prima) segnaRecord(gioco,punti);
-  let r=conto?await chiamaConto("/conto/partita",{gioco,punti:Math.min(punti,200)}):await chiamaConto("/conto/classifica?gioco="+encodeURIComponent(gioco),null,"GET");
+  box.append(el("p",{testo:"Classifica in arrivo…",style:"text-align:center"})); campo.append(box); if(tasti) campo.append(tasti);
+  const strato=campo.closest("#strato-gioco"), prima=recordDi(gioco); if(punti>prima) segnaRecord(gioco,punti);
+  let r=conto?await chiamaConto("/conto/partita",{gioco,punti:Math.min(punti,tettoPunti(gioco))}):await chiamaConto("/conto/classifica?gioco="+encodeURIComponent(gioco),null,"GET");
   box.textContent="";
+  // il premio: record personale +5; primo in classifica (con l'account) +25 — una volta per partita, anche se la classifica arriva tardi
+  const mio=conto&&(conto.soprannome||citta.soprannome), battuto=punti>prima||!!(conto&&r.nuovoRecord);
+  const premio=assegnaPremio(partita,{punti,recordPrima:battuto?Math.min(prima,punti-1):prima,primoInClassifica:primoConPunti(r.classifica,mio,punti)},guadagna);
+  const esito=strato&&strato.querySelector("#gioco-esito"); if(premio&&esito) esito.textContent+=" "+testoPremio(premio);
   const record=conto&&Number.isInteger(r.record)?r.record:recordDi(gioco);
   box.append(el("p",{style:"text-align:center;font-weight:700;font-size:18px",testo:(conto&&r.nuovoRecord)||(!conto&&punti>prima&&punti>0)?`🎉 Nuovo record: ${record}!`:`Il tuo record: ${record}`}));
   if(!Array.isArray(r.classifica)){ box.append(el("p",{style:"text-align:center;opacity:.8",testo:"La classifica adesso non risponde: riprova alla prossima partita."})); return; }
@@ -1183,10 +1194,11 @@ function giocaAcchiappa(){
   const giro=()=>{ if(st.finito) return; metti(); st.t1=setTimeout(giro, ora()<st.turboFino?350:700); };
   const fine=()=>{ if(st.finito) return; st.finito=true; clearTimeout(st.t1); clearInterval(st.t2); const vinti=Math.min(st.punti,GIOCO.massimo); guadagna(vinti);
     $("gioco-esito").textContent=`Fine! Hai preso ${st.punti} gettoni: ne vinci ${vinti}. Ora ne hai ${citta.gettoni}.`; campo.textContent="";
-    mostraClassifica(campo, st.punti); };
+    mostraClassifica(campo, st.punti, "acchiappa", st, tastiFinePartita(giocaAcchiappa,esci)); };
+  const esci=()=>{ fine(); L.remove(); document.body.classList.remove("con-twitch"); ridisegnaCarta(); };
   st.fine2=fine; st.turbo=()=>ora()<st.turboFino; st.x2=()=>ora()<st.x2Fino;
   giro(); st.t2=setInterval(()=>{ const s=Math.max(0,Math.ceil((st.fine-ora())/1000)); $("gioco-tempo").textContent=s; buff(); if(s<=0) fine(); },250);
-  $("gioco-esci").addEventListener("click",()=>{ fine(); L.remove(); document.body.classList.remove("con-twitch"); ridisegnaCarta(); });
+  $("gioco-esci").addEventListener("click",esci);
 }
 
 // ══ LA CORNICE DEI GIOCHI ══ — dopo Acchiappa, ogni gioco della Sala giochi è un file suo: giochi/<id>.js, in giochi/elenco.js.
@@ -1228,9 +1240,10 @@ async function giocaSala(id){
     const p=Math.max(0,Math.floor(Number(punti)||0)); st.punti=p; scrivi("#gioco-punti",p);
     const vinti=Math.max(0,Math.min(Math.floor(Number(g.gettoni?g.gettoni(p):p))||0,g.massimo)); guadagna(vinti);
     scrivi("#gioco-esito",`Fine! Hai fatto ${p} punti: ne vinci ${vinti} gettoni. Ora ne hai ${citta.gettoni}.`); campo.textContent="";
-    mostraClassifica(campo,p,id); };
+    mostraClassifica(campo,p,id,st,tastiFinePartita(()=>giocaSala(id),esci)); };
   st.fine2=()=>fine(st.punti);
-  L.querySelector("#gioco-esci").addEventListener("click",()=>{ fine(st.punti); L.remove(); document.body.classList.remove("con-twitch"); ridisegnaCarta(); });
+  const esci=()=>{ fine(st.punti); L.remove(); document.body.classList.remove("con-twitch"); ridisegnaCarta(); };
+  L.querySelector("#gioco-esci").addEventListener("click",esci);
   const api={punti:n=>{ if(st.finito) return; st.punti=Math.max(0,Math.floor(Number(n)||0)); scrivi("#gioco-punti",st.punti); },
     tempo:t=>{ if(!st.finito) scrivi("#gioco-tempo",t); }, esito:t=>{ if(!st.finito) scrivi("#gioco-esito",t); },
     fine:p=>fine(p===undefined?st.punti:p), ora:()=>Date.now()};
