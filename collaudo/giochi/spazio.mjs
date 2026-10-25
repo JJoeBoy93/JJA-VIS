@@ -67,6 +67,72 @@ export default async function (prova, { logica: L, gioco }) {
   prova("il bonus preso dà lo scudo per 5 secondi, non uno di più", regolaScudo(L));
   prova("con lo scudo gli spari nemici non tolgono vite", (() => { const s = L.avanza(scena({ scudoFino: 5, spari: [{ x: nv.x, y: nv.y - 12, vx: 0, vy: 240 }] }), F, rnd); return s.vite === 3; })());
 
+  // i potenziamenti delle armi
+  const N = nv.x;
+  const POT = { cadenza: (liv, fino = 99) => ({ cadenza: { liv, fino } }), multiplo: (liv, fino = 99) => ({ multiplo: { liv, fino } }), sparo: (tipo, liv, fino = 99) => ({ sparo: { tipo, liv, fino } }) };
+  const conPot = (...p) => ({ cadenza: { liv: 0, fino: 0 }, multiplo: { liv: 0, fino: 0 }, sparo: { tipo: "base", liv: 0, fino: 0 }, ...Object.assign({}, ...p) });
+  const raffiche = (A, pot, secondi) => { let s = A.avanza(scena({ ricarica: 0, pot }), F, rnd); const n0 = s.raffiche;
+    for (let i = 0; i < secondi * 60 - 1; i++) s = A.avanza(s, F, rnd); return s.raffiche - n0 + 1; };
+  // una raffica sola: avanza di un fotogramma con la navicella carica, poi la rimette a riposo
+  const raffica = (A, pot, extra = {}) => { const s = A.avanza(scena({ ricarica: 0, pot, ...extra }), F, fisso(0.99)); return { ...s, ricarica: 1e9 }; };
+  prova("CADENZA: in 5 secondi escono più colpi che senza, e più sale il livello più ne escono", (() => {
+    const r = [0, 1, 2, 3].map(l => raffiche(L, conPot(POT.cadenza(l)), 5)); return r[0] < r[1] && r[1] < r[2] && r[2] < r[3] && r[3] > r[0] * 1.8; })());
+  const regolaMultiplo = A => { const n = l => { const s = raffica(A, conPot(POT.multiplo(l))); return { n: s.colpi.length, dir: new Set(s.colpi.map(c => c.vx.toFixed(3))).size }; };
+    const r = [n(0), n(1), n(2), n(3)]; return r.map(o => o.n).join() === "1,2,3,5" && r.map(o => o.dir).join() === "1,2,3,5"; };
+  prova("MULTIPLO: 1 → 2 → 3 → 5 colpi per raffica, tutti con direzioni diverse a ventaglio (livello 3: cinque)", regolaMultiplo(L));
+  prova("MULTIPLO: i colpi del ventaglio si aprono davvero salendo", (() => { let s = raffica(L, conPot(POT.multiplo(3))); for (let i = 0; i < 30; i++) s = L.avanza(s, F, rnd);
+    const xs = s.colpi.map(c => c.x).sort((a, b) => a - b); return xs.length === 5 && xs[4] - xs[0] > 60; })());
+
+  // ogni tipo di sparo fa la sua cosa
+  const laser = L.avanza(scena({ ricarica: 0, pot: conPot(POT.sparo("laser", 1)), nemici: [nemico("lento", N, 400), nemico("zigzag", N, 200), nemico("lento", N + 150, 300)] }), F, fisso(0.99));
+  prova("RAGGIO LASER: colpisce nello stesso istante tutti i nemici nella colonna (2), non quello a lato", laser.nemici.length === 1 && laser.nemici[0].x === N + 150 && laser.punti === 30 && laser.colpi.length === 1 && laser.colpi[0].tipo === "laser");
+  prova("RAGGIO LASER: dura un attimo e poi si spegne", (() => { let s = laser; for (let i = 0; i < 40; i++) s = L.avanza({ ...s, ricarica: 1e9 }, F, rnd); return s.colpi.length === 0; })());
+  prova("RAGGIO LASER: ferisce il capo a piccoli tratti, non tutta la vita in un colpo", (() => { let s = raffica(L, conPot(POT.sparo("laser", 1)), { capo: { ...capo(40), x: N } });
+    for (let i = 0; i < 20; i++) s = L.avanza({ ...s, ricarica: 1e9 }, F, rnd); return s.capo && s.capo.vita < 40 && s.capo.vita > 30; })());
+  const missile = (extra = {}) => raffica(L, conPot(POT.sparo("missile", 1)), { nemici: [nemico("lento", N + 110, 300)], ...extra });
+  prova("MISSILE: parte dritto, poi cambia direzione verso il nemico e lo abbatte", (() => { let s = missile(); const vx0 = s.colpi[0].vx, tipo = s.colpi[0].tipo; let virato = false;
+    for (let i = 0; i < 150 && s.punti === 0; i++){ s = L.avanza({ ...s, ricarica: 1e9 }, F, rnd); if (s.colpi[0] && s.colpi[0].vx > 100) virato = true; }
+    return tipo === "missile" && Math.abs(vx0) < 40 && virato && s.punti === 10 && s.nemici.length === 0; })());
+  prova("MISSILE: va verso il nemico più vicino, anche se è dall'altra parte", (() => { let s = missile({ nemici: [nemico("lento", N - 90, 400), nemico("lento", N + 200, 200)] });
+    for (let i = 0; i < 6; i++) s = L.avanza({ ...s, ricarica: 1e9 }, F, rnd); return s.colpi[0].vx < 0; })());
+  prova("MISSILE: dal livello 2 scoppia e abbatte anche il vicino; al livello 1 solo il colpito", (() => {
+    const g = liv => { let s = raffica(L, conPot(POT.sparo("missile", liv)), { nemici: [nemico("lento", N, 450), nemico("lento", N + 30, 450)] });
+      for (let i = 0; i < 60 && s.colpi.length; i++) s = L.avanza({ ...s, ricarica: 1e9 }, F, rnd); return s.punti; };
+    return g(1) === 10 && g(2) === 20; })());
+  const plasma = liv => { let s = raffica(L, conPot(POT.sparo("plasma", liv)), { nemici: [nemico("lento", N, 450), nemico("lento", N, 380), nemico("lento", N, 310), nemico("lento", N, 240), nemico("lento", N, 170)] });
+    for (let i = 0; i < 90 && s.colpi.length; i++) s = L.avanza({ ...s, ricarica: 1e9 }, F, fisso(0.99)); return s; };
+  prova("PLASMA: attraversa e abbatte 2 nemici in fila (livello 1), poi si spegne; salendo ne attraversa di più", plasma(1).punti === 20 && plasma(1).nemici.length === 3 && plasma(2).punti === 30 && plasma(3).punti === 40);
+  prova("PLASMA: ferisce il capo e si ferma contro di lui", (() => { let s = raffica(L, conPot(POT.sparo("plasma", 1)), { capo: { ...capo(10), x: N, dir: 0 } }); for (let i = 0; i < 90; i++) s = L.avanza({ ...s, ricarica: 1e9 }, F, rnd); return s.capo.vita === 7 && s.colpi.length === 0; })());
+  prova("i tre tipi di sparo sono davvero diversi: colpi, cadenza e disegno", (() => { const t = ["base", "laser", "missile", "plasma"].map(k => { const p = k === "base" ? conPot() : conPot(POT.sparo(k, 1)); return { k, cad: L.cadenzaDi({ ...s0, pot: p }), tipo: raffica(L, p).colpi[0].tipo || "base" }; });
+    return new Set(t.map(o => o.tipo)).size === 4 && new Set(t.map(o => o.cad)).size === 4 && t.slice(1).every(o => o.cad > L.CADENZA); })());
+
+  // bonus: si prendono, salgono di livello fino al massimo, scadono, si perdono con una vita
+  const prendi = (s, tipo) => L.avanza({ ...s, bonus: [{ x: nv.x, y: nv.y, tipo }] }, F, rnd);
+  prova("i bonus cadono di tutti i tipi e raramente (caso basso sì, alto no); la probabilità è bassa", (() => { const tipi = new Set(); for (let i = 0; i < 100; i++){ const c = i / 100;
+      let k = 0; const s = L.avanza(scena({ nemici: [nemico("lento", 200, 300)], colpi: [{ x: 200, y: 312 }] }), F, () => (k++ ? c : 0)); if (s.bonus.length) tipi.add(s.bonus[0].tipo); }
+    return tipi.size === 6 && L.PROB_BONUS <= 0.08 && L.PROB_BONUS >= 0.04; })());
+  prova("prendere un bonus potenzia, e riprenderlo sale di livello (cadenza e multiplo)", (() => { let s = scena(); const liv = [];
+    for (let i = 0; i < 3; i++){ s = prendi(s, "multiplo"); liv.push(L.potenziamenti(s).multiplo); } s = prendi(s, "cadenza"); return liv.join() === "1,2,3" && L.potenziamenti(s).cadenza === 1 && s.bonus.length === 0; })());
+  prova("il livello massimo è il 3: riprendere ancora non sale più (tutti i bonus)", (() => { let s = scena(); for (let i = 0; i < 6; i++) for (const t of ["cadenza", "multiplo", "laser"]) s = prendi(s, t);
+    const p = L.potenziamenti(s); return L.MAX_LIV === 3 && p.cadenza === 3 && p.multiplo === 3 && p.sparo.tipo === "laser" && p.sparo.liv === 3; })());
+  prova("un tipo di sparo diverso sostituisce il precedente e riparte dal livello 1", (() => { let s = prendi(prendi(scena(), "plasma"), "plasma"); const a = L.potenziamenti(s).sparo; s = prendi(s, "missile"); const b = L.potenziamenti(s).sparo;
+    return a.tipo === "plasma" && a.liv === 2 && b.tipo === "missile" && b.liv === 1; })());
+  const regolaScadenza = A => { let s = A.avanza(scena({ bonus: [{ x: nv.x, y: nv.y, tipo: "multiplo" }] }), F, rnd); const preso = A.potenziamenti(s).multiplo === 1;
+    for (let i = 0; i < 119; i++) s = A.avanza({ ...s, nemici: [], coda: ["lento"] }, 0.1, rnd); const ancora = A.potenziamenti(s).multiplo === 1;
+    s = A.avanza(s, 0.2, rnd); return preso && ancora && A.potenziamenti(s).multiplo === 0 && A.POT_DURATA === 12; };
+  prova("un potenziamento dura 12 secondi, non uno di più, poi torna tutto come prima", regolaScadenza(L));
+  prova("riprendere il bonus rinnova il tempo", (() => { let s = prendi(scena(), "cadenza"); for (let i = 0; i < 100; i++) s = A_avanti(s, 0.1); s = prendi(s, "cadenza"); for (let i = 0; i < 100; i++) s = A_avanti(s, 0.1); return L.potenziamenti(s).cadenza === 2; })());
+  function A_avanti(s, dt){ return L.avanza({ ...s, nemici: [], coda: ["lento"], spari: [] }, dt, rnd); }
+  const regolaPerdita = A => { const s = scena({ pot: conPot(POT.cadenza(3), POT.multiplo(2), POT.sparo("plasma", 1)) }), a = A.colpito(s), p = A.potenziamenti(a), b = A.colpito({ ...a, t: a.t + A.INVULN + 0.1 }), q = A.potenziamenti(b);
+    return p.cadenza === 2 && p.multiplo === 1 && p.sparo.liv === 0 && p.sparo.tipo === "base" && q.cadenza === 1 && q.multiplo === 0; };
+  prova("perdere una vita: ogni potenziamento scende di un livello (a zero si torna al colpo base)", regolaPerdita(L));
+  prova("colpito con lo scudo: i potenziamenti restano", L.potenziamenti(L.colpito(scena({ scudoFino: 5, pot: conPot(POT.cadenza(3)) }))).cadenza === 3);
+  prova("col potenziamento scaduto la raffica torna quella di base", (() => { const s = raffica(L, conPot(POT.multiplo(3, 0.01), POT.sparo("laser", 3, 0.01)), { t: 5 }); return s.colpi.length === 1 && !s.colpi[0].tipo; })());
+
+  // equilibrio
+  prova("i punti per nemico, il tetto dei gettoni e il prezzo del gettone non cambiano", L.PER_GETTONE === 40 && gioco.massimo === 25 && L.PUNTI.lento === 10 && L.PUNTI.zigzag === 20 && L.PUNTI.sparo === 30 && L.PUNTI.capo === 200);
+  prova("le ondate sono le stesse con o senza potenziamenti (la difficoltà non dipende da loro)", JSON.stringify(O(7)) === JSON.stringify(L.prossimaOndata(7)) && O(5).nemici.length === 15);
+
   // ondate che si susseguono
   const vuota = { coda: [], nemici: [], capo: null, capoDaFare: false };
   prova("ondata finita (nessuno in coda né in campo): parte la prossima", (() => { const s = L.avanza(scena({ ...vuota }), F, rnd); return s.ondata === 2 && s.coda.length === O(2).nemici.length; })());
@@ -87,15 +153,27 @@ export default async function (prova, { logica: L, gioco }) {
       s = L.avanza(s, F, rnd);
       if (!Number.isFinite(s.punti) || !Number.isFinite(s.nave.x) || [...s.nemici, ...s.spari, ...s.colpi].some(o => !Number.isFinite(o.x) || !Number.isFinite(o.y))) { sano = false; break; } }
     return { s, sano }; };
+  const MASSIMI = s => ({ ...s, pot: { cadenza: { liv: 3, fino: s.t + 99 }, multiplo: { liv: 3, fino: s.t + 99 }, sparo: { tipo: ["laser", "missile", "plasma"][Math.floor(s.t / 20) % 3], liv: 3, fino: s.t + 99 } } });
+  const gioca2 = () => { seme = 3; let s = MASSIMI(L.nuovaPartita(390, 700)), passi = 0, sano = true;
+    while (!s.finito && s.t < 900 && passi++ < 60000){
+      const bersaglio = s.capo || s.nemici.reduce((m, n) => (!m || n.y > m.y ? n : m), null); if (bersaglio) s = L.muovi(s, s.nave.x + Math.sign(bersaglio.x - s.nave.x) * Math.min(6, Math.abs(bersaglio.x - s.nave.x)));
+      s = L.avanza(MASSIMI(s), F, rnd);
+      if (!Number.isFinite(s.punti) || [...s.nemici, ...s.colpi].some(o => !Number.isFinite(o.x) || !Number.isFinite(o.y))){ sano = false; break; } }
+    return { s, sano }; };
   const p = gioca();
   prova("una partita intera gira senza intoppi (niente NaN), passa più ondate e finisce", p.sano && p.s.ondata >= 3 && p.s.finito && p.s.punti % 10 === 0 && p.s.vite === 0,
     { ondata: p.s.ondata, punti: p.s.punti, t: Math.round(p.s.t), vite: p.s.vite });
+  const m = gioca2();
+  prova("partita lunga con tutti i potenziamenti al massimo: niente NaN e gettoni sempre al massimo 25", m.sano && m.s.punti >= 1000 && gioco.gettoni(m.s.punti) === 25 && gioco.gettoni(m.s.punti) <= gioco.massimo, { punti: m.s.punti, t: Math.round(m.s.t), ondata: m.s.ondata });
   const q = gioca(true);
   prova("chi sta fermo prima o poi perde: la partita finisce", q.sano && q.s.finito, { t: Math.round(q.s.t), ondata: q.s.ondata });
 
   // controprove: le stesse regole su una logica rotta apposta devono diventare rosse
   prova("controprova: se abbattere un nemico non desse punti, la prova del punteggio sarebbe rossa", !regolaPunti({ ...L, avanza: (s, dt, c) => ({ ...L.avanza(s, dt, c), punti: s.punti }) }));
   prova("controprova: se un colpo non togliesse vite, la prova delle vite sarebbe rossa", !regolaVite({ ...L, colpito: s => s }));
+  prova("controprova: con un MULTIPLO finto che spara sempre un colpo solo, la prova del ventaglio sarebbe rossa", !regolaMultiplo({ ...L, avanza: (s, dt, c) => L.avanza({ ...s, pot: { ...s.pot, multiplo: { liv: 0, fino: 0 } } }, dt, c) }));
+  prova("controprova: se il potenziamento non scadesse mai, la prova della scadenza sarebbe rossa", !regolaScadenza({ ...L, potenziamenti: s => ({ ...L.potenziamenti({ ...s, t: 0 }) }) }));
+  prova("controprova: se perdere una vita non togliesse potenza, la prova della perdita sarebbe rossa", !regolaPerdita({ ...L, colpito: s => ({ ...L.colpito(s), pot: s.pot }) }));
   prova("controprova: se lo scudo non scadesse mai, la prova dello scudo sarebbe rossa", !regolaScudo({ ...L, scudo: () => true }));
   prova("controprova: se i nemici non accelerassero, la prova della difficoltà sarebbe rossa", !regolaDifficolta({ ...L, spinta: () => 1, avanza: (s, dt, c) => L.avanza({ ...s, ondata: 1, t: 0 }, dt, c) }));
 }
