@@ -33,6 +33,10 @@ for (const id of Array.isArray(GIOCHI) ? GIOCHI : []) {
   try { const p = await import(pathToFileURL(file).href); await p.default((nome, ok, d) => prova(`${id}: ${nome}`, ok, d), m); }
   catch (e) { prova(`${id}: le prove girano fino in fondo`, false, String(e && e.stack || e)); }
 }
+// la fine partita, uguale per tutti i giochi (giochi/fine.js)
+console.log("\n── fine partita (tetto punti, premio del record)");
+try { const p = await import(url("collaudo", "giochi", "fine-partita.mjs")); await p.default((nome, ok, d) => prova(`fine partita: ${nome}`, ok, d)); }
+catch (e) { prova("fine partita: le prove girano fino in fondo", false, String(e && e.stack || e)); }
 // la stanza: dove stanno i cabinati (giochi/sala.js), non è un gioco
 console.log("\n── sala (la stanza, i posti dei cabinati)");
 try { const p = await import(url("collaudo", "giochi", "sala.mjs")); await p.default((nome, ok, d) => prova(`sala: ${nome}`, ok, d)); }
