@@ -1399,7 +1399,7 @@ $("conv-nuova").addEventListener("click", nuovaConv);
 $("menu-schede").addEventListener("click", e=>{ const b=e.target.closest(".menu-scheda"); if(!b) return;
   const k=b.dataset.vai; chiudiConv(); if(k==="inizia"){ allaChat(); return; }
   if(location.hash!=="#"+k) history.pushState(null,"","#"+k); vaiA(k); });
-$("menu-calendario").addEventListener("click", ()=>{ chiudiPannelli(); if(location.hash!=="#calendario") history.pushState(null,"","#calendario"); if(schedaAttiva==="calendario") caricaCalendario(); else vaiA("calendario"); });
+$("menu-calendario").addEventListener("click", ()=>{ chiudiConv(); if(location.hash!=="#calendario") history.pushState(null,"","#calendario"); if(schedaAttiva==="calendario") caricaCalendario(); else vaiA("calendario"); });
 $("menu-citta").addEventListener("click", chiudiConv);
 document.addEventListener("keydown", e=>{ if(e.key!=="Escape") return;
   if($("conversazioni").classList.contains("aperta")) chiudiConv(); });
