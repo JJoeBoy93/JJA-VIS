@@ -361,33 +361,87 @@ body.chat-sola:not(.resto-aperto) .barra-chat{flex:0 0 auto;
 .menu-scheda svg{flex:0 0 auto;width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
 .menu-voce span{flex:0 0 22px;text-align:center}
 .menu-piede{display:block;padding:12px 16px;border-top:1px solid var(--bordo);font-size:15px}
-/* 26/10, il calendario: gli impegni e le scadenze, chiusi con un tocco */
-.cal-giorno{margin:18px 0 6px;font:700 15px/1.2 var(--f-testo);color:var(--tenue)}
-.cal-giorno.indietro{color:var(--arancio,#e8833a)}
+/* 26/10, il calendario vero: il mese, l'agenda del giorno, i fogli dal basso (JJ: «come Google Calendar sul telefono») */
+#p-calendario .etichetta{padding:14px 10px 100px}
+#p-calendario h2{padding:0 6px}
+#cal-stato{padding:0 6px}
+.cal-testa{display:flex;align-items:center;gap:6px;margin:6px 0 8px}
+.cal-testa h3{flex:1 1 auto;min-width:0;margin:0 0 0 4px;font:700 19px/1.2 var(--f-titoli);overflow-wrap:anywhere}
+.cal-nav,.cal-oggi-btn{flex:0 0 auto;min-width:44px;min-height:44px;border:1px solid var(--bordo);border-radius:12px;background:transparent;color:var(--testo);font:700 22px/1 var(--f-testo);cursor:pointer}
+.cal-oggi-btn{padding:0 12px;font-size:15px;font-weight:600;color:var(--accento);border-color:var(--accento)}
+.cal-sett,.cal-griglia{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:2px}
+.cal-sett span{text-align:center;font:600 12px/1.8 var(--f-mono);color:var(--tenue)}
+.cal-cella{min-width:0;min-height:64px;padding:3px 1px;border:1px solid transparent;border-radius:8px;background:transparent;color:var(--testo);font:inherit;cursor:pointer;
+  display:flex;flex-direction:column;align-items:stretch;gap:2px;overflow:hidden}
+.cal-cella.altro{opacity:.45}
+.cal-cella[aria-pressed="true"]{border-color:var(--accento);background:color-mix(in srgb,var(--accento) 14%,transparent)}
+.cal-num{align-self:center;box-sizing:border-box;min-width:26px;height:26px;padding:0 3px;border:2px solid transparent;border-radius:13px;font:600 14px/22px var(--f-testo);text-align:center}
+.cal-cella.oggi .cal-num{border-color:var(--accento);color:var(--accento);font-weight:800}
+.cal-et{display:block;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 3px;border-radius:4px;text-align:left;font:600 10px/14px var(--f-testo);color:var(--testo)}
+.cal-et.imp{background:color-mix(in srgb,var(--accento) 28%,transparent)}
+.cal-et.sca{background:color-mix(in srgb,var(--oro) 30%,transparent)}
+.cal-piu-n{padding:0 3px;text-align:left;font:600 10px/12px var(--f-testo);color:var(--tenue)}
+.cal-agenda{margin-top:18px;padding:0 6px}
+.cal-agenda-testa{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;margin-bottom:4px}
+.cal-agenda-testa h3{flex:1 1 140px;min-width:0;margin:0;font:700 18px/1.3 var(--f-testo);overflow-wrap:anywhere}
+.cal-aggiungi{min-height:44px;padding:0 14px;border-radius:12px;border:1px solid var(--accento);background:transparent;color:var(--accento);font:600 16px/1 var(--f-testo);cursor:pointer}
+.cal-vuoto{margin:10px 0;color:var(--tenue)}
 .cal-elenco{list-style:none;margin:0;padding:0}
-.cal-riga{display:flex;align-items:center;gap:12px;padding:10px 0;border-top:1px solid var(--bordo);overflow:hidden;max-height:120px;
-  transition:opacity .3s,transform .3s,max-height .3s .15s,padding .3s .15s}
-.cal-riga.fatta{opacity:0;transform:translateX(40px);max-height:0;padding-top:0;padding-bottom:0}
-.cal-riga.fatta .cal-cosa{text-decoration:line-through}
-.cal-ora{flex:0 0 52px;font:600 15px/1.2 var(--f-testo);color:var(--tenue)}
+.cal-riga{display:flex;align-items:center;gap:8px;padding:4px 0;border-top:1px solid var(--bordo)}
+.cal-apri{flex:1 1 auto;min-width:0;display:flex;align-items:flex-start;gap:12px;min-height:48px;padding:8px 4px;border:0;background:none;color:var(--testo);font:inherit;text-align:left;cursor:pointer}
+.cal-ora{flex:0 0 64px;font:600 13px/1.4 var(--f-testo);color:var(--tenue);overflow-wrap:break-word}
 .cal-cosa{flex:1 1 auto;min-width:0;font-size:17px;line-height:1.3;overflow-wrap:anywhere}
-.cal-cosa small{display:block;color:var(--tenue);font-size:13px}
+.cal-cosa small{display:block;color:var(--tenue);font-size:13px;margin-top:2px}
 .cal-fatto,.cal-riprova,.cal-annulla-btn{min-height:48px;padding:0 16px;border-radius:12px;border:1px solid var(--accento);background:transparent;color:var(--accento);font:600 16px/1 var(--f-testo);cursor:pointer}
 .cal-fatto{flex:0 0 auto;background:color-mix(in srgb,var(--accento) 14%,transparent)}
 .cal-fatto:disabled{opacity:.5}
 .cal-avviso{margin:14px 0;padding:12px 14px;border:1px solid var(--bordo);border-radius:12px;line-height:1.4}
 .cal-avviso.errore{border-color:var(--arancio,#e8833a)}
 .cal-avviso button{margin-top:10px}
-#cal-fatti{margin-top:26px}
-#cal-fatti summary{cursor:pointer;min-height:44px;display:flex;align-items:center;font-weight:600}
+#cal-indietro,#cal-fatti{margin:22px 6px 0}
+#cal-indietro summary,#cal-fatti summary{cursor:pointer;min-height:44px;display:flex;align-items:center;font-weight:600}
+#cal-indietro summary{color:var(--arancio,#e8833a)}
 .cal-fatta-riga{display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--bordo);color:var(--tenue)}
 .cal-fatta-riga .cal-cosa{font-size:15px}
 .cal-fatta-riga button{min-height:44px;padding:0 12px;border-radius:10px;border:1px solid var(--bordo);background:transparent;color:var(--testo);cursor:pointer}
-#cal-annulla{position:fixed;left:12px;right:12px;bottom:calc(14px + env(safe-area-inset-bottom));z-index:40;display:flex;align-items:center;gap:12px;
+#cal-annulla{position:fixed;left:12px;right:12px;bottom:calc(14px + env(safe-area-inset-bottom));z-index:60;display:flex;align-items:center;gap:12px;
   padding:10px 12px 10px 16px;border-radius:14px;background:var(--panel);border:1px solid var(--accento);box-shadow:0 6px 24px #0007}
 #cal-annulla[hidden]{display:none}
 #cal-annulla span{flex:1;min-width:0}
-@media (prefers-reduced-motion:reduce){.cal-riga{transition:none}}
+/* il «＋» tondo in basso a destra, come in Google Calendar: c'è solo nella scheda del calendario */
+#cal-piu{display:none;position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom));z-index:25;width:56px;height:56px;padding:0;border:0;border-radius:50%;
+  background:var(--accento);color:var(--bg);font:400 34px/1 var(--f-testo);box-shadow:0 4px 16px #0009;cursor:pointer;align-items:center;justify-content:center}
+body[data-scheda="calendario"] #cal-piu:not([hidden]){display:flex}
+/* il foglio dal basso: aggiungere e aprire per esteso */
+#cal-velo{position:fixed;inset:0;z-index:50;display:flex;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.55)}
+#cal-velo[hidden]{display:none}
+body.cal-foglio-aperto{overflow:hidden}
+.cal-foglio{width:100%;max-width:560px;max-height:92vh;max-height:92dvh;overflow-y:auto;overscroll-behavior:contain;padding:16px 16px calc(18px + env(safe-area-inset-bottom));
+  background:var(--panel);color:var(--testo);border:1px solid var(--bordo);border-bottom:0;border-radius:18px 18px 0 0;animation:calSu .22s ease-out}
+@keyframes calSu{from{transform:translateY(40px);opacity:0}}
+.cal-foglio h3{margin:0 0 8px;font:700 20px/1.3 var(--f-testo);overflow-wrap:anywhere}
+.cal-foglio p{margin:6px 0;overflow-wrap:anywhere}
+.cal-foglio label{display:block;margin:12px 0 4px;font-weight:600;color:var(--tenue)}
+.cal-foglio input[type=text],.cal-foglio input[type=date],.cal-foglio input[type=time],.cal-foglio textarea{display:block;width:100%;max-width:100%;min-width:0;min-height:48px;
+  font:500 18px/1.4 var(--f-testo);padding:10px 12px;border:1px solid var(--bordo);border-radius:10px;background:var(--input);color:var(--testo)}
+.cal-foglio textarea{min-height:84px;resize:vertical}
+.cal-tipi{display:flex;gap:8px}
+.cal-tipi .scelta{flex:1 1 0;min-height:48px;border-radius:10px}
+.cal-spunta{display:flex;align-items:center;gap:10px;min-height:48px;margin:8px 0 0;color:var(--testo)}
+.cal-spunta input{width:22px;height:22px;margin:0;accent-color:var(--accento)}
+.cal-azioni{display:flex;flex-direction:column;gap:10px;margin-top:16px}
+.cal-btn{display:flex;align-items:center;justify-content:center;min-height:48px;padding:10px 16px;border-radius:12px;border:1px solid var(--accento);background:transparent;color:var(--accento);
+  font:600 17px/1.25 var(--f-testo);text-align:center;text-decoration:none;cursor:pointer}
+.cal-btn.primario{background:color-mix(in srgb,var(--accento) 18%,transparent);color:var(--testo)}
+.cal-btn.pericolo{border-color:var(--rosso);color:var(--rosso)}
+.cal-btn.lieve{border-color:var(--bordo);color:var(--testo)}
+.cal-btn:disabled{opacity:.5}
+.cal-link{align-self:center;min-height:44px;padding:0 8px;border:0;background:none;color:var(--accento);font:500 14px/1.3 var(--f-testo);text-decoration:underline;cursor:pointer}
+.cal-dett-quando{font-weight:600}
+.cal-dett-nota{white-space:pre-wrap;padding:10px 12px;border:1px solid var(--bordo);border-radius:10px}
+.cal-errore{margin:10px 0 0;color:var(--arancio,#e8833a);font-weight:600}
+.cal-conferma{display:flex;flex-direction:column;gap:10px;padding:12px;border:1px solid var(--rosso);border-radius:12px}
+@media (prefers-reduced-motion:reduce){.cal-foglio{animation:none}}
 :root[data-tema="calmo"] .prova-chat,:root[data-tema="naturale"] .prova-chat,:root[data-tema="calmo"] .conv-nuova,:root[data-tema="naturale"] .conv-nuova{border-radius:12px}
 .numeri{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
 .numeri div{border:1px solid var(--bordo);padding:10px 12px}
@@ -1025,8 +1079,10 @@ html.di-casa #o1{display:none}
   <section class="etichetta" aria-labelledby="tcal">
     <h2 id="tcal" style="font-size:30px;margin:0 0 8px">📅 Calendario</h2>
     <div id="cal-stato" role="status" aria-live="polite"></div>
-    <div id="cal-lista"></div>
-    <details id="cal-fatti" hidden><summary>Fatti negli ultimi 30 giorni</summary><div id="cal-fatti-elenco"></div></details>
+    <div id="cal-mese-casa"></div>
+    <div id="cal-giorno-casa" class="cal-agenda"></div>
+    <details id="cal-indietro" hidden open><summary id="cal-indietro-titolo">⚠️ Rimasti indietro (0)</summary><div id="cal-indietro-elenco"></div></details>
+    <details id="cal-fatti" hidden><summary>✓ Fatti negli ultimi 30 giorni</summary><div id="cal-fatti-elenco"></div></details>
   </section>
 </div>
 <div id="cal-annulla" role="status" hidden><span id="cal-annulla-testo"></span><button type="button" class="cal-annulla-btn" id="cal-annulla-btn">Annulla</button></div>
@@ -1048,6 +1104,8 @@ html.di-casa #o1{display:none}
 </div>
 
 </main>
+<button type="button" id="cal-piu" aria-label="Aggiungi al calendario" hidden>＋</button>
+<div id="cal-velo" hidden><div class="cal-foglio" id="cal-foglio" role="dialog" aria-modal="true"></div></div>
 
 <script>
 // Dove vanno le risposte. Vuoto = anteprima: non si invia niente, e si dice.
@@ -1402,6 +1460,7 @@ $("menu-schede").addEventListener("click", e=>{ const b=e.target.closest(".menu-
 $("menu-calendario").addEventListener("click", ()=>{ chiudiConv(); if(location.hash!=="#calendario") history.pushState(null,"","#calendario"); if(schedaAttiva==="calendario") caricaCalendario(); else vaiA("calendario"); });
 $("menu-citta").addEventListener("click", chiudiConv);
 document.addEventListener("keydown", e=>{ if(e.key!=="Escape") return;
+  if(!$("cal-velo").hidden){ calChiudiFoglio(); return; }
   if($("conversazioni").classList.contains("aperta")) chiudiConv(); });
 // il benvenuto e le domande del giorno: dietro un collegamento, non sopra la chat
 function apriResto(){ if(!document.body.classList.contains("chat-sola")) return; chiudiConv(); document.body.classList.add("resto-aperto"); window.scrollTo(0,0); }
@@ -2153,17 +2212,47 @@ window.addEventListener("pageshow", e=>{ if(e.persisted && inAttesa()) guardaRis
 prossimoGiro();
 
 // ══ IL CALENDARIO ══ 26 ottobre, JJ: «puoi andare tu diretto sull'attività e premere fatta, così eviti la pappardella di dover dire ogni
-// volta se hai fatto o meno una cosa». Gli impegni e le scadenze aperti, dalla porta (GET /assistente/calendario, col token dell'account);
-// un tocco li chiude (POST /assistente/fatto), «Annulla» li rimette (POST /assistente/annulla). Se la porta non risponde si dice perché:
-// mai una scheda vuota che sembra «non hai niente».
+// volta se hai fatto o meno una cosa»; poi: «il vero e proprio calendario con i giorni, che poi selezioni il giorno e hai l'agenda del
+// giorno… e poter aggiungere in quel calendario l'appuntamento manualmente, e che si possa riaprire per vedere l'impegno per esteso».
+// I dati vengono dalla porta (GET /assistente/calendario, col token dell'account): impegni e scadenze aperti. Un tocco li chiude (POST
+// /assistente/fatto), «Annulla» li rimette (POST /assistente/annulla); si aggiunge a mano (POST /assistente/aggiungi), si elimina
+// (POST /assistente/elimina), si mette nel calendario del telefono (link di Google Calendar, o l'invito .ics di GET /assistente/ics).
+// Se la porta non risponde si dice perché: mai una scheda vuota che sembra «non hai niente».
+// Le funzioni calDisegna… (mese, giorno, dettaglio, modulo) ricevono i dati e le azioni come argomenti e non chiamano la rete: l'app
+// Android potrà dar loro anche gli eventi del calendario del telefono.
 const CAL_URL=v=>INVIO.replace("/risposta","/assistente/"+v);
+const cal={dati:null, anno:0, mese:0, scelto:"", indietroAperto:true};
 let calCarico=0, calAnnullaTimer=0;
 const calOggi=()=>{ const d=new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); };
+const calSomma=(g,n)=>new Date(Date.UTC(+g.slice(0,4),+g.slice(5,7)-1,+g.slice(8,10)+n)).toISOString().slice(0,10);
+const calFmt=(g,o)=>new Date(g+"T12:00:00Z").toLocaleDateString("it-IT",{...o,timeZone:"UTC"});
 function calGiorno(g){
-  const o=calOggi(), d=new Date(g+"T12:00:00"), dom=new Date(); dom.setDate(dom.getDate()+1);
-  const domani=dom.getFullYear()+"-"+String(dom.getMonth()+1).padStart(2,"0")+"-"+String(dom.getDate()).padStart(2,"0");
-  if(g===o) return "Oggi"; if(g===domani) return "Domani";
-  return d.toLocaleDateString("it-IT",{weekday:"long",day:"numeric",month:"long"});
+  if(g===calOggi()) return "Oggi"; if(g===calSomma(calOggi(),1)) return "Domani";
+  return calFmt(g,{weekday:"long",day:"numeric",month:"long"});
+}
+const calVoci=d=>[...(d.impegni||[]).map(x=>({...x,tipo:"impegno"})),...(d.scadenze||[]).map(x=>({...x,tipo:"scadenza"}))];
+// in un giorno: prima le cose senza ora (tutto il giorno, le scadenze), poi per ora
+const calChiave=x=>x.ora?"1"+x.ora:"0"+(x.tipo==="scadenza"?"1":"0");
+const calOrdina=(a,b)=>calChiave(a).localeCompare(calChiave(b));
+// le ore di Roma sono ore di Roma anche se il telefono è altrove (stessa regola della porta, daRoma)
+function calDaRoma(g,ora){
+  const [Y,M,D]=g.split("-").map(Number), [h,m]=ora.split(":").map(Number), prova=Date.UTC(Y,M-1,D,h,m);
+  const p=new Intl.DateTimeFormat("en-US",{timeZone:"Europe/Rome",hourCycle:"h23",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit"}).formatToParts(new Date(prova));
+  const v=t=>+p.find(x=>x.type===t).value;
+  return new Date(prova-Math.round((Date.UTC(v("year"),v("month")-1,v("day"),v("hour"),v("minute"))-Math.floor(prova/60000)*60000)/60000)*60000);
+}
+// il link che apre «nuovo evento» di Google Calendar già compilato (su Android apre l'app Calendar). Forma presa dalla pagina di Google
+// for Developers «Invite users to an event»: calendar.google.com/calendar/r/eventedit?action=TEMPLATE&text&dates&details. Con l'ora: 30
+// minuti (come l'invito .ics), in UTC con la Z, così l'ora giusta non dipende dal fuso del telefono; senza ora: tutto il giorno
+// (date senza ora, la fine è il giorno dopo)
+function calLinkGoogle(x){
+  const z=d=>d.toISOString().replace(/[-:]/g,"").replace(/\.\d{3}/,"");
+  const dates=x.ora ? z(calDaRoma(x.giorno,x.ora))+"/"+z(new Date(calDaRoma(x.giorno,x.ora).getTime()+30*60000))
+    : x.giorno.replace(/-/g,"")+"/"+calSomma(x.giorno,1).replace(/-/g,"");
+  const dettagli=[x.tipo==="scadenza"&&x.importo?"Importo: "+x.importo:"", x.nota||""].filter(Boolean).join("\n");
+  const q=new URLSearchParams({action:"TEMPLATE",text:x.tipo==="scadenza"&&x.importo?x.cosa+" · "+x.importo:x.cosa,dates});
+  if(dettagli) q.set("details",dettagli);
+  return "https://calendar.google.com/calendar/r/eventedit?"+q.toString();
 }
 function calAvviso(testo, errore, riprova){
   const st=$("cal-stato"); st.textContent="";
@@ -2180,54 +2269,173 @@ async function calChiama(via, metodo, corpo){
   if(r.status===401) return {errore:"La tua sessione è scaduta: rientra col tuo account."};
   return {errore:(j&&j.errore)?`Il servizio dice: ${j.errore}.`:`Il servizio non risponde come dovrebbe (errore ${r.status}).`};
 }
-async function caricaCalendario(silenzioso){
-  const n=++calCarico;
-  if(!contoToken()||!INVIO){ $("cal-lista").textContent=""; $("cal-fatti").hidden=true; calAvviso("Per vedere il tuo calendario entra col tuo account.",false,false); return; }
-  if(!silenzioso && !$("cal-lista").children.length) calAvviso("Sto leggendo il tuo calendario…",false,false);
-  const j=await calChiama("calendario","GET");
-  if(n!==calCarico) return;
-  if(!j.ok){ if(silenzioso) return; $("cal-lista").textContent=""; $("cal-fatti").hidden=true; calAvviso(j.errore,true,true); return; }
-  calAvviso("",false,false); disegnaCalendario(j);
-}
-function disegnaCalendario(j){
-  const casa=$("cal-lista"); casa.textContent="";
-  const oggi=calOggi(), voci=[...(j.impegni||[]).map(x=>({...x,tipo:"impegno"})),...(j.scadenze||[]).map(x=>({...x,tipo:"scadenza"}))]
-    .sort((a,b)=>(a.giorno+(a.ora||(a.tipo==="scadenza"?"99:99":""))).localeCompare(b.giorno+(b.ora||(b.tipo==="scadenza"?"99:99":""))));
-  if(!voci.length){
-    const d=document.createElement("div"); d.className="cal-avviso"; const p=document.createElement("p"); p.style.margin="0";
-    p.textContent=`Niente in programma. Per segnare una cosa dillo a ${io.nome||"il tuo assistente"}.`; d.appendChild(p);
-    const b=document.createElement("button"); b.type="button"; b.className="cal-riprova"; b.id="cal-alla-chat"; b.textContent=`Parla con ${io.nome||"il tuo assistente"}`; b.addEventListener("click",allaChat); d.appendChild(b); casa.appendChild(d);
-  } else {
-    const gruppi=[]; const indietro=voci.filter(x=>x.giorno<oggi);
-    if(indietro.length) gruppi.push({titolo:"Rimasti indietro",indietro:true,voci:indietro});
-    voci.filter(x=>x.giorno>=oggi).forEach(x=>{ let g=gruppi[gruppi.length-1]; if(!g||g.giorno!==x.giorno){ g={titolo:calGiorno(x.giorno),giorno:x.giorno,voci:[]}; gruppi.push(g); } g.voci.push(x); });
-    const t=document.createElement("h3"); t.className="cal-giorno"; t.style.fontSize="19px"; t.style.color="var(--testo)"; t.textContent="Da fare"; casa.appendChild(t);
-    gruppi.forEach(g=>{ const h=document.createElement("h4"); h.className="cal-giorno"+(g.indietro?" indietro":""); h.textContent=g.titolo; casa.appendChild(h);
-      const ul=document.createElement("ul"); ul.className="cal-elenco";
-      g.voci.forEach(x=>{ const li=document.createElement("li"); li.className="cal-riga"; li.dataset.id=x.id;
-        const o=document.createElement("span"); o.className="cal-ora"; o.textContent=x.ora||(x.tipo==="scadenza"?"💶":"—");
-        const c=document.createElement("span"); c.className="cal-cosa"; c.textContent=x.cosa;
-        if(g.indietro||x.importo||x.ogni_mese){ const s=document.createElement("small"); s.textContent=[g.indietro?calGiorno(x.giorno):"",x.tipo==="scadenza"&&x.importo?x.importo:"",x.ogni_mese?"ogni mese":""].filter(Boolean).join(" · "); if(s.textContent) c.appendChild(s); }
-        const b=document.createElement("button"); b.type="button"; b.className="cal-fatto"; b.textContent=x.tipo==="scadenza"?"✓ Pagata":"✓ Fatto";
-        b.setAttribute("aria-label",(x.tipo==="scadenza"?"Pagata: ":"Fatto: ")+x.cosa);
-        b.addEventListener("click",()=>calFatto(x,li,b)); li.append(o,c,b); ul.appendChild(li); });
-      casa.appendChild(ul); });
+const calEl=(tag,cl,testo)=>{ const e=document.createElement(tag); if(cl) e.className=cl; if(testo!==undefined) e.textContent=testo; return e; };
+const calBtn=(cl,testo,fn,id)=>{ const b=calEl("button",cl,testo); b.type="button"; if(id) b.id=id; if(fn) b.addEventListener("click",fn); return b; };
+
+// ── il mese: st={anno, mese (0-11), oggi, scelto, voci}, az={scegli(giorno), avanti(), indietro(), oggi()}
+function calDisegnaMese(casa, st, az){
+  const f=document.activeElement, tenuto=f&&casa.contains(f)?(f.dataset.giorno?'[data-giorno="'+f.dataset.giorno+'"]':f.dataset.az?'[data-az="'+f.dataset.az+'"]':""):"";
+  casa.textContent="";
+  const primo=st.anno+"-"+String(st.mese+1).padStart(2,"0")+"-01";
+  const testa=calEl("div","cal-testa"), h=calEl("h3",""); h.id="cal-mese-titolo"; h.textContent=calFmt(primo,{month:"long",year:"numeric"});
+  const nav=(cl,t,lab,fn,k)=>{ const b=calBtn(cl,t,fn); b.setAttribute("aria-label",lab); b.dataset.az=k; return b; };
+  testa.append(h, nav("cal-oggi-btn","Oggi","Vai a oggi",az.oggi,"oggi"), nav("cal-nav","‹","Mese precedente",az.indietro,"indietro"), nav("cal-nav","›","Mese successivo",az.avanti,"avanti"));
+  const sett=calEl("div","cal-sett"); sett.setAttribute("aria-hidden","true");
+  ["lun","mar","mer","gio","ven","sab","dom"].forEach(n=>sett.appendChild(calEl("span","",n)));
+  const gr=calEl("div","cal-griglia"); gr.setAttribute("role","group"); gr.setAttribute("aria-labelledby","cal-mese-titolo");
+  const inizio=calSomma(primo,-((new Date(primo+"T12:00:00Z").getUTCDay()+6)%7));   // la settimana comincia di lunedì: 6 righe da 7
+  const perGiorno={}; st.voci.forEach(x=>{ (perGiorno[x.giorno]=perGiorno[x.giorno]||[]).push(x); });
+  for(let i=0;i<42;i++){
+    const g=calSomma(inizio,i), lista=(perGiorno[g]||[]).slice().sort(calOrdina);
+    const c=calEl("button","cal-cella"+(g.slice(0,7)!==primo.slice(0,7)?" altro":"")+(g===st.oggi?" oggi":"")); c.type="button"; c.dataset.giorno=g;
+    c.setAttribute("aria-pressed",String(g===st.scelto)); if(g===st.oggi) c.setAttribute("aria-current","date");
+    c.setAttribute("aria-label",calFmt(g,{weekday:"long",day:"numeric",month:"long"})+(lista.length?", "+lista.length+(lista.length===1?" cosa":" cose"):""));
+    c.appendChild(calEl("span","cal-num",String(+g.slice(8))));
+    lista.slice(0,2).forEach(x=>c.appendChild(calEl("span","cal-et "+(x.tipo==="scadenza"?"sca":"imp"),(x.tipo==="scadenza"?"€ ":"")+x.cosa)));
+    if(lista.length>2) c.appendChild(calEl("span","cal-piu-n","+"+(lista.length-2)));
+    c.addEventListener("click",()=>az.scegli(g)); gr.appendChild(c);
   }
+  const zona=calEl("div","cal-mese"); zona.append(sett,gr); casa.append(testa,zona);
+  if(tenuto){ const n=casa.querySelector(tenuto); if(n) n.focus(); }
+}
+// ── una riga dell'agenda: tocco sulla riga = si apre per esteso; «✓ Fatto» a parte
+function calRiga(x, conData, az){
+  const li=calEl("li","cal-riga"); li.dataset.id=x.id;
+  const a=calBtn("cal-apri","",()=>az.apri(x)), c=calEl("span","cal-cosa",x.cosa);
+  const s=[conData?calGiorno(x.giorno):"", x.tipo==="scadenza"&&x.importo?x.importo:"", x.ogni_mese?"ogni mese":""].filter(Boolean).join(" · ");
+  if(s) c.appendChild(calEl("small","",s));
+  a.append(calEl("span","cal-ora",x.ora||(x.tipo==="scadenza"?"scadenza":"tutto il giorno")), c);
+  const b=calBtn("cal-fatto",x.tipo==="scadenza"?"✓ Pagata":"✓ Fatto");
+  b.setAttribute("aria-label",(x.tipo==="scadenza"?"Pagata: ":"Fatto: ")+x.cosa);
+  b.addEventListener("click",()=>az.fatto(x,b)); li.append(a,b); return li;
+}
+// ── l'agenda del giorno: st={giorno, voci (di quel giorno, in ordine), vuoto (non c'è niente in tutto il calendario), nome}, az={apri, fatto, aggiungi, allaChat}
+function calDisegnaGiorno(casa, st, az){
+  casa.textContent="";
+  const testa=calEl("div","cal-agenda-testa"), h=calEl("h3","",calFmt(st.giorno,{weekday:"long",day:"numeric",month:"long"})); h.id="cal-giorno-titolo";
+  const piu=calBtn("cal-aggiungi","＋ Aggiungi",az.aggiungi,"cal-aggiungi-giorno"); testa.append(h,piu); casa.appendChild(testa);
+  if(!st.voci.length) casa.appendChild(calEl("p","cal-vuoto","Niente in questo giorno"));
+  else { const ul=calEl("ul","cal-elenco"); st.voci.forEach(x=>ul.appendChild(calRiga(x,false,az))); casa.appendChild(ul); }
+  if(st.vuoto){ const d=calEl("div","cal-avviso"); d.appendChild(calEl("p","",`Niente in programma. Per segnare una cosa dillo a ${st.nome||"il tuo assistente"}, o tocca ＋.`)); d.firstChild.style.margin="0";
+    d.appendChild(calBtn("cal-riprova",`Parla con ${st.nome||"il tuo assistente"}`,az.allaChat,"cal-alla-chat")); casa.appendChild(d); }
+}
+// ── il dettaglio: st={voce}, az={fatto(b), google non serve: il link è un <a>, scarica(b), elimina(b), chiudi()}; gli errori vanno in #cal-d-errore
+function calDisegnaDettaglio(casa, st, az){
+  const x=st.voce; casa.textContent="";
+  casa.appendChild(calEl("h3","",x.cosa));
+  const giorno=calFmt(x.giorno,{weekday:"long",day:"numeric",month:"long",year:"numeric"});
+  casa.appendChild(calEl("p","cal-dett-quando",x.tipo==="scadenza"?"Scade "+giorno:giorno+(x.ora?", alle "+x.ora:", tutto il giorno")));
+  if(x.tipo==="scadenza"&&x.importo) casa.appendChild(calEl("p","cal-dett-importo","Importo: "+x.importo));
+  if(x.ogni_mese) casa.appendChild(calEl("p","cal-dett-ogni","Si ripete ogni mese"));
+  if(x.nota) casa.appendChild(calEl("p","cal-dett-nota",x.nota));
+  const err=calEl("p","cal-errore"); err.id="cal-d-errore"; err.setAttribute("role","alert");
+  const az2=calEl("div","cal-azioni");
+  const fatto=calBtn("cal-btn primario",x.tipo==="scadenza"?"✓ Pagata":"✓ Fatto",()=>az.fatto(fatto),"cal-d-fatto");
+  const g=calEl("a","cal-btn","📅 Metti nel calendario del telefono"); g.id="cal-d-google"; g.href=calLinkGoogle(x); g.target="_blank"; g.rel="noopener noreferrer";
+  const ics=calBtn("cal-link","oppure scarica l'invito (.ics)",()=>az.scarica(ics),"cal-d-ics");
+  const el=calBtn("cal-btn pericolo","🗑 Elimina",()=>{
+    az2.hidden=true; const c=calEl("div","cal-conferma"); c.id="cal-d-conferma"; c.appendChild(calEl("p","",`Eliminare «${x.cosa}»? Non si può annullare.`));
+    const si=calBtn("cal-btn pericolo","Sì, elimina",()=>az.elimina(si),"cal-d-elimina-si"), no=calBtn("cal-btn lieve","No, lascia",()=>{ c.remove(); az2.hidden=false; el.focus(); },"cal-d-elimina-no");
+    c.append(si,no); az2.after(c); no.focus(); },"cal-d-elimina");
+  az2.append(fatto,g,ics,el,calBtn("cal-btn lieve","Chiudi",az.chiudi,"cal-d-chiudi")); casa.append(az2,err);
+}
+// ── il modulo «aggiungi»: st={giorno}, az={salva(corpo) → Promise<{ok}|{errore}>, chiudi()}; se la porta dice no, il foglio resta com'è
+function calDisegnaForm(casa, st, az){
+  casa.textContent=""; let tipo="impegno";
+  casa.appendChild(calEl("h3","","Aggiungi al calendario"));
+  const tipi=calEl("div","cal-tipi"); tipi.setAttribute("role","group"); tipi.setAttribute("aria-label","Che cos'è");
+  const bI=calBtn("scelta","Impegno",null,"cal-t-impegno"), bS=calBtn("scelta","Scadenza",null,"cal-t-scadenza"); tipi.append(bI,bS); casa.appendChild(tipi);
+  const campo=(id,et,el)=>{ const w=calEl("div",""); const l=calEl("label","",et); l.htmlFor=id; el.id=id; w.append(l,el); casa.appendChild(w); return w; };
+  const inp=(t,extra)=>{ const i=calEl("input"); i.type=t; Object.assign(i,extra||{}); return i; };
+  const cosa=inp("text",{maxLength:200,autocomplete:"off"}); campo("cal-f-cosa","Cosa",cosa);
+  const giorno=inp("date"); giorno.value=st.giorno; campo("cal-f-giorno","Giorno",giorno);
+  const ora=inp("time"); const wOra=campo("cal-f-ora","Ora (se non c'è, è per tutto il giorno)",ora);
+  const importo=inp("text",{maxLength:30,autocomplete:"off"}); importo.placeholder="per esempio € 64,10"; const wImp=campo("cal-f-importo","Importo (facoltativo)",importo);
+  const lOgni=calEl("label","cal-spunta"); const ogni=inp("checkbox"); ogni.id="cal-f-ogni"; lOgni.append(ogni,calEl("span","","ogni mese")); casa.appendChild(lOgni);
+  const nota=calEl("textarea"); nota.maxLength=500; campo("cal-f-nota","Nota (facoltativa)",nota);
+  const err=calEl("p","cal-errore"); err.id="cal-f-errore"; err.setAttribute("role","alert"); casa.appendChild(err);
+  const salva=calBtn("cal-btn primario","Salva",null,"cal-f-salva"), annulla=calBtn("cal-btn lieve","Annulla",az.chiudi,"cal-f-annulla");
+  const az2=calEl("div","cal-azioni"); az2.append(salva,annulla); casa.appendChild(az2);
+  const scegli=t=>{ tipo=t; bI.setAttribute("aria-pressed",String(t==="impegno")); bS.setAttribute("aria-pressed",String(t==="scadenza"));
+    wOra.hidden=t!=="impegno"; wImp.hidden=lOgni.hidden=t!=="scadenza"; };
+  bI.addEventListener("click",()=>scegli("impegno")); bS.addEventListener("click",()=>scegli("scadenza")); scegli("impegno");
+  salva.addEventListener("click",async()=>{
+    err.textContent="";
+    const c=cosa.value.trim(); if(!c){ err.textContent="Scrivi cosa c'è da fare."; cosa.focus(); return; }
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(giorno.value)){ err.textContent="Scegli il giorno."; giorno.focus(); return; }
+    const corpo={tipo,cosa:c,giorno:giorno.value};
+    if(tipo==="impegno") corpo.ora=ora.value||null; else { if(importo.value.trim()) corpo.importo=importo.value.trim(); corpo.ogni_mese=ogni.checked; }
+    if(nota.value.trim()) corpo.nota=nota.value.trim();
+    salva.disabled=true; const j=await az.salva(corpo); salva.disabled=false;
+    if(!j.ok){ err.textContent=j.errore||"Non sono riuscito a salvare."; }
+  });
+  return cosa;
+}
+// ── il foglio dal basso (uno solo: il modulo o il dettaglio)
+let calFuoco=null;
+function calApriFoglio(etichetta, riempi){
+  const velo=$("cal-velo"), f=$("cal-foglio"); calFuoco=document.activeElement; f.setAttribute("aria-label",etichetta);
+  const primo=riempi(f); velo.hidden=false; document.body.classList.add("cal-foglio-aperto"); f.scrollTop=0;
+  (primo||f.querySelector("button,a,input"))?.focus();
+}
+function calChiudiFoglio(){
+  $("cal-velo").hidden=true; $("cal-foglio").textContent=""; document.body.classList.remove("cal-foglio-aperto");
+  if(calFuoco&&calFuoco.isConnected) calFuoco.focus(); calFuoco=null;
+}
+$("cal-velo").addEventListener("click",e=>{ if(e.target===$("cal-velo")) calChiudiFoglio(); });
+$("cal-velo").addEventListener("keydown",e=>{ if(e.key!=="Tab") return;
+  const l=[...$("cal-foglio").querySelectorAll("button:not([disabled]),a[href],input,textarea")].filter(n=>n.offsetParent!==null); if(!l.length) return;
+  const p=l[0], u=l[l.length-1]; if(e.shiftKey&&document.activeElement===p){ e.preventDefault(); u.focus(); } else if(!e.shiftKey&&document.activeElement===u){ e.preventDefault(); p.focus(); } });
+
+// ── il filo fra la scheda e la porta
+function calNascondi(){ ["cal-mese-casa","cal-giorno-casa","cal-indietro-elenco","cal-fatti-elenco"].forEach(i=>$(i).textContent=""); $("cal-indietro").hidden=true; $("cal-fatti").hidden=true; $("cal-piu").hidden=true; }
+function calVaiA(g){ cal.scelto=g; cal.anno=+g.slice(0,4); cal.mese=+g.slice(5,7)-1; }
+function calRidisegna(){
+  if(!cal.dati) return;
+  const oggi=calOggi(), voci=calVoci(cal.dati), j=cal.dati;
+  $("cal-piu").hidden=false; $("cal-piu").style.bottom="calc("+(document.querySelector(".schede").offsetHeight+16)+"px + env(safe-area-inset-bottom))";
+  calDisegnaMese($("cal-mese-casa"),{anno:cal.anno,mese:cal.mese,oggi,scelto:cal.scelto,voci},{scegli:calScegli,avanti:()=>calMuovi(1),indietro:()=>calMuovi(-1),oggi:()=>{ calVaiA(oggi); calRidisegna(); }});
+  const az={apri:calApri,fatto:calFattoRiga,aggiungi:()=>calApriAggiungi(cal.scelto),allaChat};
+  calDisegnaGiorno($("cal-giorno-casa"),{giorno:cal.scelto,voci:voci.filter(x=>x.giorno===cal.scelto).sort(calOrdina),vuoto:!voci.length,nome:io.nome},az);
+  // a parte, sempre dentro la scheda: le cose rimaste indietro (aperta se ce ne sono) e i fatti degli ultimi 30 giorni (chiusi)
+  const indietro=voci.filter(x=>x.giorno<oggi).sort((a,b)=>a.giorno.localeCompare(b.giorno)||calOrdina(a,b)), det=$("cal-indietro"), ie=$("cal-indietro-elenco"); ie.textContent="";
+  det.hidden=!indietro.length; $("cal-indietro-titolo").textContent=`⚠️ Rimasti indietro (${indietro.length})`; det.open=cal.indietroAperto&&indietro.length>0;
+  if(indietro.length){ const ul=calEl("ul","cal-elenco"); indietro.forEach(x=>ul.appendChild(calRiga(x,true,az))); ie.appendChild(ul); }
   const fe=$("cal-fatti-elenco"); fe.textContent=""; const fatti=j.fatti||[];
   $("cal-fatti").hidden=!fatti.length;
-  fatti.forEach(x=>{ const r=document.createElement("div"); r.className="cal-fatta-riga";
-    const c=document.createElement("span"); c.className="cal-cosa"; c.textContent="✓ "+x.cosa;
-    const s=document.createElement("small"); s.textContent=[calGiorno(x.giorno),x.importo||""].filter(Boolean).join(" · "); c.appendChild(s);
-    const b=document.createElement("button"); b.type="button"; b.textContent="Annulla"; b.setAttribute("aria-label","Annulla: "+x.cosa); b.addEventListener("click",()=>calAnnulla(x.id,b));
+  fatti.forEach(x=>{ const r=calEl("div","cal-fatta-riga"), c=calEl("span","cal-cosa","✓ "+x.cosa);
+    c.appendChild(calEl("small","",[calGiorno(x.giorno),x.importo||""].filter(Boolean).join(" · ")));
+    const b=calBtn("","Annulla",()=>calAnnulla(x.id,b)); b.setAttribute("aria-label","Annulla: "+x.cosa);
     r.append(c,b); fe.appendChild(r); });
 }
-async function calFatto(x,li,b){
-  b.disabled=true; calAvviso("",false,false);
+function calScegli(g){ calVaiA(g); calRidisegna(); }
+function calMuovi(n){
+  let m=cal.mese+n, a=cal.anno; if(m<0){ m=11; a--; } else if(m>11){ m=0; a++; }
+  const oggi=calOggi(), primo=a+"-"+String(m+1).padStart(2,"0")+"-01"; calVaiA(oggi.slice(0,7)===primo.slice(0,7)?oggi:primo); calRidisegna();
+}
+async function caricaCalendario(silenzioso){
+  const n=++calCarico;
+  if(!contoToken()||!INVIO){ cal.dati=null; calNascondi(); calAvviso("Per vedere il tuo calendario entra col tuo account.",false,false); return; }
+  if(!silenzioso){ cal.dati=null; calNascondi(); calAvviso("Sto leggendo il tuo calendario…",false,false); }   // di un altro account non resta niente sullo schermo
+  const j=await calChiama("calendario","GET");
+  if(n!==calCarico) return;
+  if(!j.ok){ if(silenzioso) return; cal.dati=null; calNascondi(); calAvviso(j.errore,true,true); return; }
+  calAvviso("",false,false);
+  if(!cal.scelto||!silenzioso) calVaiA(calOggi());   // all'apertura: il mese di oggi, con oggi scelto
+  cal.dati=j; calRidisegna();
+}
+// toglie dal calendario che si vede quello che la porta ha già tolto (poi la lettura silenziosa rimette le cose a posto)
+function calTogli(id){ cal.dati.impegni=(cal.dati.impegni||[]).filter(x=>x.id!==id); cal.dati.scadenze=(cal.dati.scadenze||[]).filter(x=>x.id!==id); }
+async function calFatto(x){
   const j=await calChiama("fatto","POST",{id:x.id});
-  if(!j.ok){ b.disabled=false; calAvviso(`Non sono riuscito a segnarla: ${j.errore}`,true,false); return; }
-  li.classList.add("fatta");
-  calMostraAnnulla(j.id||x.id, x.cosa);
-  setTimeout(()=>{ li.remove(); caricaCalendario(true); }, 500);
+  if(!j.ok) return j;
+  calTogli(x.id); (cal.dati.fatti=cal.dati.fatti||[]).unshift({id:j.id||x.id,tipo:x.tipo,cosa:x.cosa,giorno:x.giorno,ora:x.ora||null,importo:x.importo||null,quando_fatto:new Date().toISOString()});
+  calRidisegna(); calMostraAnnulla(j.id||x.id, x.cosa); caricaCalendario(true); return j;
+}
+async function calFattoRiga(x,b){
+  b.disabled=true; calAvviso("",false,false);
+  const j=await calFatto(x);
+  if(!j.ok){ b.disabled=false; calAvviso(`Non sono riuscito a segnarla: ${j.errore}`,true,false); }
 }
 function calMostraAnnulla(id,cosa){
   clearTimeout(calAnnullaTimer); const bar=$("cal-annulla"); bar.dataset.id=id;
@@ -2241,6 +2449,38 @@ async function calAnnulla(id,b){
   calAvviso("",false,false); caricaCalendario(true);
 }
 $("cal-annulla-btn").addEventListener("click",()=>calAnnulla($("cal-annulla").dataset.id,null));
+// aggiungere a mano
+function calApriAggiungi(giorno){
+  calApriFoglio("Aggiungi al calendario",f=>calDisegnaForm(f,{giorno},{chiudi:calChiudiFoglio,salva:async corpo=>{
+    const j=await calChiama("aggiungi","POST",corpo);
+    if(!j.ok) return j;
+    const {ok,tipo,...riga}=j, k=corpo.tipo==="impegno"?"impegni":"scadenze"; (cal.dati[k]=cal.dati[k]||[]).push(riga);
+    calVaiA(corpo.giorno); calRidisegna(); calChiudiFoglio(); caricaCalendario(true); return j; }}));
+}
+// aprire per esteso
+function calApri(x){
+  const errore=t=>{ $("cal-d-errore").textContent=t; };
+  calApriFoglio("Dettaglio",f=>{ calDisegnaDettaglio(f,{voce:x},{chiudi:calChiudiFoglio,
+    fatto:async b=>{ b.disabled=true; errore(""); const j=await calFatto(x); if(j.ok) calChiudiFoglio(); else { b.disabled=false; errore(`Non sono riuscito a segnarla: ${j.errore}`); } },
+    elimina:async b=>{ b.disabled=true; errore(""); const j=await calChiama("elimina","POST",{id:x.id});
+      if(j.ok){ calTogli(x.id); calRidisegna(); calChiudiFoglio(); caricaCalendario(true); } else { b.disabled=false; errore(`Non sono riuscito a eliminarla: ${j.errore}`); } },
+    scarica:async b=>{ b.disabled=true; errore("");
+      try{ const r=await fetch(CAL_URL("ics")+"?id="+encodeURIComponent(x.id),{headers:{Authorization:"Bearer "+contoToken()}});
+        if(!r.ok) throw new Error(r.status===401?"La tua sessione è scaduta: rientra col tuo account.":"errore "+r.status);
+        const u=URL.createObjectURL(await r.blob()), a=document.createElement("a"); a.href=u; a.download="impegno.ics"; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(u),4000);
+      }catch(e){ errore("Non sono riuscito a scaricare l'invito: "+((e&&e.message)||"riprova")+"."); }
+      b.disabled=false; }});
+    return f.querySelector("#cal-d-fatto"); });
+}
+$("cal-piu").addEventListener("click",()=>calApriAggiungi(cal.scelto||calOggi()));
+$("cal-indietro").addEventListener("toggle",()=>{ cal.indietroAperto=$("cal-indietro").open; });
+// il dito sul mese: a sinistra il mese dopo, a destra quello prima (la scheda non cambia: il mese è fuori dal gesto delle schede)
+(function(){
+  const z=$("cal-mese-casa"); let x0=0,y0=0,t0=0,vale=false;
+  z.addEventListener("touchstart",e=>{ vale=e.touches.length===1; x0=e.touches[0].clientX; y0=e.touches[0].clientY; t0=Date.now(); },{passive:true});
+  z.addEventListener("touchend",e=>{ if(!vale) return; vale=false; const t=e.changedTouches[0], dx=t.clientX-x0, dy=t.clientY-y0;
+    if(Math.abs(dx)<50||Math.abs(dx)<Math.abs(dy)*1.5||Date.now()-t0>700) return; calMuovi(dx<0?1:-1); },{passive:true});
+})();
 
 // ══ LE SCHEDE ══ 26 settembre, JJ: «dinamico, scorri tra sezioni
 // dedicate». Cinque pannelli, uno alla volta; la barra in basso e il dito
@@ -2261,6 +2501,7 @@ function vaiA(nome, verso, bersaglio){
     const pn=$("p-"+nome); void pn.offsetWidth; pn.classList.add(v>0?"da-destra":"da-sinistra"); }
   centraScheda(nome, !!prima);
   schedaAttiva=nome; document.body.dataset.scheda=nome;
+  if(nome!=="calendario" && !$("cal-velo").hidden) calChiudiFoglio();   // un foglio del calendario non resta sopra un'altra scheda
   if(nome!=="inizia"){ chiudiConv(); document.body.classList.remove("resto-aperto"); }   // si torna sempre sulla chat
   if(nome==="inizia"){ $("s-inizia").classList.remove("nuovo"); $("apri-conv").classList.remove("nuovo"); aggiornaChat(); requestAnimationFrame(scorriChat); requestAnimationFrame(segnaLette); }
   aggiornaProfilo();
@@ -2314,7 +2555,7 @@ window.addEventListener("popstate", daIndirizzo);
   let x0=0,y0=0,t0=0,vale=false;
   const zona=document.querySelector("main");
   zona.addEventListener("touchstart", e=>{ if(e.touches.length!==1){ vale=false; return; }
-    vale=!e.target.closest("input,textarea,select,iframe,video,.chat,.chat-area,#conversazioni,.video-elenco,.cursore");
+    vale=!e.target.closest("input,textarea,select,iframe,video,.chat,.chat-area,#conversazioni,.video-elenco,.cursore,#cal-mese-casa");
     x0=e.touches[0].clientX; y0=e.touches[0].clientY; t0=Date.now(); }, {passive:true});
   zona.addEventListener("touchend", e=>{ if(!vale) return; vale=false;
     const t=e.changedTouches[0], dx=t.clientX-x0, dy=t.clientY-y0;

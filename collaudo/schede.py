@@ -14,7 +14,7 @@ PAGINA=open(sys.argv[1],encoding="utf-8").read()
 PORTA="https://jjavis-porta.19-jjardito93.workers.dev"
 BASE="https://jjoeboy93.github.io/JJA-VIS/"
 inviati=[]
-CAL={"impegni":[],"scadenze":[],"fatti":[],"giu":False}   # il calendario della porta finta (26/10)
+CAL={"impegni":[],"scadenze":[],"fatti":[],"giu":False,"n":0,"ics":[]}   # il calendario della porta finta (26/10)
 conta_risposte=[]
 risposte_di={}   # quante volte ha chiesto /risposte ogni pagina: altre pagine aperte nello stesso browser chiedono per conto loro
 async def instrada(route):
@@ -39,10 +39,31 @@ async def instrada(route):
                         if x["id"]==i:
                             CAL["fatti"].remove(x); CAL["scadenze" if x["tipo"]=="scadenza" else "impegni"].append({k:v for k,v in x.items() if k not in ("tipo","quando_fatto")})
                 return await route.fulfill(status=200, body=json.dumps({"ok":True,"id":i}), content_type="application/json", headers=CORS)
+            if u.endswith("/assistente/aggiungi") or u.endswith("/assistente/elimina"):
+                # 26/10, il calendario vero: aggiungere a mano e eliminare (la porta vera controlla di più: qui basta il rifiuto su richiesta)
+                CORS={"Access-Control-Allow-Origin":"https://jjoeboy93.github.io"}
+                if CAL["giu"]: return await route.fulfill(status=502, body='{"errore":"non riesco a salvare: riprova tra poco"}', content_type="application/json", headers=CORS)
+                if u.endswith("/aggiungi"):
+                    if CAL.get("rifiuta"): return await route.fulfill(status=400, body=json.dumps({"errore":CAL["rifiuta"]}), content_type="application/json", headers=CORS)
+                    k="impegni" if corpo["tipo"]=="impegno" else "scadenze"; CAL["n"]+=1
+                    riga={"id":("n%d"%CAL["n"]) if k=="impegni" else ("sn%d"%CAL["n"]),"cosa":corpo["cosa"],"giorno":corpo["giorno"]}
+                    if k=="impegni": riga["ora"]=corpo.get("ora")
+                    else: riga.update(importo=corpo.get("importo"), ogni_mese=bool(corpo.get("ogni_mese")))
+                    if corpo.get("nota"): riga["nota"]=corpo["nota"]
+                    CAL[k].append(riga)
+                    return await route.fulfill(status=201, body=json.dumps({"ok":True,"tipo":corpo["tipo"],**riga}), content_type="application/json", headers=CORS)
+                for k in ("impegni","scadenze"):
+                    for x in list(CAL[k]):
+                        if x["id"]==corpo["id"]: CAL[k].remove(x); return await route.fulfill(status=200, body=json.dumps({"ok":True,"id":corpo["id"]}), content_type="application/json", headers=CORS)
+                return await route.fulfill(status=404, body='{"errore":"non è tuo, o non esiste"}', content_type="application/json", headers=CORS)
             if NOVA["acceso"] and u.endswith("/parla") and corpo.get("da_dove")=="chat":
                 sub={"id":"abc12345-n","testo":"Posso prepararti uno strumento per le interrogazioni.","azione":{"servizio":"commissione","tipo":"Strumento web","bozza":"Uno strumento per preparare le interrogazioni"},"passa":False}
                 return await route.fulfill(status=201, body=json.dumps({"ok":True,"id":"abc12345","subito":sub}), content_type="application/json", headers={"Access-Control-Allow-Origin":"https://jjoeboy93.github.io"})
             return await route.fulfill(status=201, body='{"ok":true,"id":"abc12345"}', content_type="application/json", headers={"Access-Control-Allow-Origin":"https://jjoeboy93.github.io"})
+        if "/assistente/ics?id=" in u:
+            CAL["ics"].append((u.split("id=")[1], route.request.headers.get("authorization")))
+            return await route.fulfill(body="BEGIN:VCALENDAR\r\nBEGIN:VEVENT\r\nSUMMARY:finto\r\nEND:VEVENT\r\nEND:VCALENDAR\r\n", content_type="text/calendar; charset=utf-8",
+                                       headers={"Access-Control-Allow-Origin":"https://jjoeboy93.github.io","Content-Disposition":'attachment; filename="impegno.ics"'})
         if u.endswith("/assistente/calendario"):
             CORS={"Access-Control-Allow-Origin":"https://jjoeboy93.github.io"}
             if CAL["giu"]: return await route.abort()
@@ -71,7 +92,7 @@ def ok(c,m):
     if not c: ok.errori+=1
 ok.errori=0
 async def main():
-    global SOST
+    global SOST, PAGINA
     async with async_playwright() as p:
         b=await p.chromium.launch(executable_path=os.environ.get("CHROMIUM") or None)
         ctx=await b.new_context(viewport={"width":390,"height":844}, has_touch=True, is_mobile=True)
@@ -505,13 +526,50 @@ async def main():
         v=await visto(p5)
         ok(not any(x["ing"] for x in v) and not any(x["o1"] for x in v) and await p5.is_visible("#benvenuto"), "con l'account e nome e tema: né l'ingresso né «Come vuoi chiamarmi?», nemmeno per un attimo; si va al saluto")
         await c5.close()
-        print("── il calendario (26 ottobre)")
-        from datetime import date, timedelta
+        print("── il calendario vero (26 ottobre): il mese, l'agenda del giorno, aggiungere, aprire")
+        # 26/10, il calendario diventa un calendario vero. Le prove di prima presupponevano UN elenco unico («Da fare» con i gruppi «Rimasti indietro»,
+        # «Oggi», «Domani» una riga dopo l'altra, `.cal-giorno`): ora c'è la griglia del mese, sotto l'agenda del giorno scelto e, a parte, «⚠️ Rimasti
+        # indietro»; le righe e il «✓ Fatto» sono gli stessi, ma si cercano nell'agenda del giorno, non in un elenco di tutto il calendario. Cambiano
+        # quindi: «Da fare/Rimasti indietro/Oggi/Domani nell'ordine» (ora: griglia + agenda), «tre righe con tre bottoni» (ora: le righe del giorno scelto),
+        # «i giorni passati di un altro colore» (ora: la sezione «Rimasti indietro»), e il «vuoto» (che dice anche «Niente in questo giorno»).
+        from datetime import date, timedelta, datetime, timezone
+        from zoneinfo import ZoneInfo
+        from urllib.parse import urlparse, parse_qs
         iso=lambda d: d.isoformat()
-        oggi_=date.today()
-        CAL.update(giu=False, fatti=[], impegni=[{"id":"i-ieri","cosa":"il dentista","giorno":iso(oggi_-timedelta(days=1)),"ora":"10:00"},
-                                                 {"id":"i-oggi","cosa":"chiamare il commercialista","giorno":iso(oggi_),"ora":"15:30"}],
-                   scadenze=[{"id":"s-bollo","cosa":"bollo auto","giorno":iso(oggi_+timedelta(days=1)),"importo":"€ 180","ogni_mese":False}])
+        MESI=["gennaio","febbraio","marzo","aprile","maggio","giugno","luglio","agosto","settembre","ottobre","novembre","dicembre"]
+        GIORNI=["lunedì","martedì","mercoledì","giovedì","venerdì","sabato","domenica"]
+        bello=lambda d,anno=False: f"{GIORNI[d.weekday()]} {d.day} {MESI[d.month-1]}"+(f" {d.year}" if anno else "")
+        def utc(d,ora=None):
+            """le date di Google Calendar: ora di Roma → UTC (con l'ora, mezz'ora) o il giorno intero (fine = il giorno dopo)"""
+            if not ora: return d.strftime("%Y%m%d")+"/"+(d+timedelta(days=1)).strftime("%Y%m%d")
+            a=datetime(d.year,d.month,d.day,int(ora[:2]),int(ora[3:]),tzinfo=ZoneInfo("Europe/Rome")).astimezone(timezone.utc)
+            return a.strftime("%Y%m%dT%H%M%SZ")+"/"+(a+timedelta(minutes=30)).strftime("%Y%m%dT%H%M%SZ")
+        oggi_=date.today(); ieri_=oggi_-timedelta(days=1); domani_=oggi_+timedelta(days=1); dopo_=oggi_+timedelta(days=2)
+        CAL.update(giu=False, rifiuta=None, n=0, ics=[], fatti=[], impegni=[
+            {"id":"i-ieri","cosa":"l'oculista","giorno":iso(ieri_),"ora":"10:00"},
+            {"id":"i-oggi","cosa":"chiamare il commercialista","giorno":iso(oggi_),"ora":"15:30","nota":"porta il badge\nsecondo piano"},
+            {"id":"i-dopo","cosa":"la revisione","giorno":iso(dopo_),"ora":"09:00"}],
+          scadenze=[{"id":"s-bollo","cosa":"bollo auto","giorno":iso(domani_),"importo":"€ 180","ogni_mese":False}])
+        async def calendario_aperto(larg=390, alt=844, **kw):
+            """un telefono con l'account, il calendario aperto dal menù ☰"""
+            c=await b.new_context(viewport={"width":larg,"height":alt}, has_touch=True, is_mobile=True, **kw); await c.route("**/*", instrada)
+            await c.add_init_script("localStorage.setItem('jjavis-conto','t'.repeat(64));localStorage.setItem('jjavis-io', JSON.stringify({id:'e1b2c3d4e5f60718',nome:'Nova',tema:'tech',tuo:'Jacopo',inviato:true,mestiere:'Ufficio',tempo:'Altro lavoro ripetitivo'}))")
+            p=await c.new_page(); p.on("pageerror", lambda e: errori.append(str(e)))
+            await p.goto(BASE); await p.wait_for_timeout(1200)
+            await p.click("#apri-conv"); await p.wait_for_timeout(450); await p.click("#menu-calendario"); await p.wait_for_timeout(700)
+            return c,p
+        async def riapri(p):
+            await p.click("#apri-conv"); await p.wait_for_timeout(450); await p.click("#menu-calendario"); await p.wait_for_timeout(700)
+        async def a_mese(p, anno, mese):
+            """clicca ‹ o › (da «Oggi») fino a quel mese"""
+            await p.click('[data-az="oggi"]'); n=(anno*12+mese)-(oggi_.year*12+oggi_.month)
+            for _ in range(abs(n)): await p.click('[data-az="avanti"]' if n>0 else '[data-az="indietro"]')
+            await p.wait_for_timeout(100)
+        async def posto_del_primo_novembre(p):
+            """in che colonna cade il 1° novembre 2026 (una domenica): per chi comincia di lunedì è l'ultima, la settima, indice 6"""
+            await a_mese(p, 2026, 11)
+            return await p.evaluate("[...document.querySelectorAll('.cal-cella')].findIndex(c=>c.dataset.giorno==='2026-11-01')")
+        cella=lambda g: f'.cal-cella[data-giorno="{iso(g)}"]'
         c11=await b.new_context(viewport={"width":390,"height":844}, has_touch=True, is_mobile=True); await c11.route("**/*", instrada)
         await c11.add_init_script("localStorage.setItem('jjavis-conto','t'.repeat(64));localStorage.setItem('jjavis-io', JSON.stringify({id:'e1b2c3d4e5f60718',nome:'Nova',tema:'tech',tuo:'Jacopo',inviato:true,mestiere:'Ufficio',tempo:'Altro lavoro ripetitivo'}))")
         pg11=await c11.new_page(); pg11.on("pageerror", lambda e: errori.append(str(e)))
@@ -520,48 +578,240 @@ async def main():
         ok(await pg11.evaluate("!!(document.getElementById('menu-calendario').compareDocumentPosition(document.getElementById('menu-citta')) & Node.DOCUMENT_POSITION_FOLLOWING) && !!(document.getElementById('conv-elenco').compareDocumentPosition(document.getElementById('menu-calendario')) & Node.DOCUMENT_POSITION_FOLLOWING)"), "nel menù ☰: «📅 Calendario» dopo le conversazioni e prima della Città")
         await pg11.click("#menu-calendario"); await pg11.wait_for_timeout(500)
         ok(await pg11.evaluate("document.body.dataset.scheda")=="calendario" and await pg11.is_visible("#p-calendario") and "Calendario" in await pg11.inner_text("#tcal"), "dal ☰ si apre la scheda «📅 Calendario»")
-        testo_=await pg11.inner_text("#cal-lista")
-        ok("Da fare" in testo_ and "Rimasti indietro" in testo_ and "Oggi" in testo_ and "Domani" in testo_, "«Da fare», «Rimasti indietro», «Oggi» e «Domani»")
-        ok(await pg11.locator(".cal-giorno.indietro").count()==1 and "il dentista" in await pg11.inner_text(".cal-giorno.indietro + .cal-elenco"), "«Rimasti indietro» c'è, col primo impegno (quello di ieri)")
-        ok(testo_.index("Rimasti indietro")<testo_.index("Oggi")<testo_.index("Domani"), "in ordine: indietro, oggi, domani")
-        ok(await pg11.locator(".cal-riga").count()==3 and await pg11.locator(".cal-fatto").count()==3 and "15:30" in testo_, "tre righe, ognuna col suo bottone, con l'ora")
-        ok("✓ Pagata" in await pg11.inner_text('.cal-riga[data-id="s-bollo"]') and "€ 180" in await pg11.inner_text('.cal-riga[data-id="s-bollo"]'), "la scadenza: «✓ Pagata» e l'importo")
-        ok((await pg11.evaluate("document.querySelector('.cal-fatto').getBoundingClientRect().height"))>=44, "il bottone è grande")
-        ok(await pg11.evaluate("getComputedStyle(document.querySelector('.cal-giorno.indietro')).color")!=await pg11.evaluate("getComputedStyle(document.querySelector('.cal-giorno:not(.indietro)')).color"), "i giorni passati sono di un altro colore")
-        ok(await pg11.is_hidden("#cal-fatti"), "nessun fatto: «Fatti negli ultimi 30 giorni» non c'è")
+        # il mese
+        ok(await pg11.locator(".cal-cella").count()==42, "all'apertura la griglia del mese ha 42 caselle (6 righe da 7)")
+        ok(await pg11.inner_text("#cal-mese-titolo")==f"{MESI[oggi_.month-1]} {oggi_.year}", f"l'intestazione è il mese corrente («{MESI[oggi_.month-1]} {oggi_.year}»)")
+        ok(await pg11.locator(".cal-cella.oggi").count()==1 and await pg11.get_attribute(".cal-cella.oggi","data-giorno")==iso(oggi_) and await pg11.get_attribute(".cal-cella.oggi","aria-pressed")=="true", "oggi è evidenziato e selezionato")
+        ok(await pg11.evaluate("getComputedStyle(document.querySelector('.cal-cella.oggi .cal-num')).borderTopColor")==await pg11.evaluate("(()=>{const e=document.createElement('i');e.style.color='var(--accento)';document.body.appendChild(e);const c=getComputedStyle(e).color;e.remove();return c})()"), "oggi è cerchiato col colore d'accento del tema")
+        ok(date.fromisoformat(await pg11.get_attribute(".cal-cella >> nth=0","data-giorno")).weekday()==0 and await pg11.inner_text(".cal-sett")=="lun\nmar\nmer\ngio\nven\nsab\ndom", "si comincia di lunedì: lun–dom")
+        ok(await pg11.locator(".cal-cella.altro").count()>0 and await pg11.evaluate("getComputedStyle(document.querySelector('.cal-cella.altro')).opacity")<"1" and await pg11.evaluate("getComputedStyle(document.querySelector('.cal-cella:not(.altro)')).opacity")=="1", "i giorni degli altri mesi sono tenui")
+        ok(await pg11.inner_text("#cal-giorno-titolo")==bello(oggi_), f"sotto, l'agenda di oggi: «{bello(oggi_)}»")
+        ok("chiamare il commercialista" in await pg11.inner_text("#cal-giorno-casa") and "15:30" in await pg11.inner_text("#cal-giorno-casa") and await pg11.locator("#cal-giorno-casa .cal-riga").count()==1, "nell'agenda di oggi c'è l'impegno, con l'ora")
+        ok((await pg11.evaluate("document.querySelector('.cal-cella').getBoundingClientRect().height"))>=44, "le caselle sono alte almeno 44 px")
+        ok("chiamare" in await pg11.inner_text(cella(oggi_)+" .cal-et.imp"), "oggi nella griglia ha l'etichetta dell'impegno")
+        ok(await pg11.evaluate("getComputedStyle(document.querySelector('.cal-et')).textOverflow")=="ellipsis", "le etichette si troncano con «…»")
+        ok(await pg11.evaluate("getComputedStyle(document.querySelector('.cal-et.imp')).backgroundColor")!=await pg11.evaluate("(()=>{const e=document.querySelector('.cal-et.sca');return e?getComputedStyle(e).backgroundColor:''})()"), "impegni e scadenze hanno colori diversi")
+        # i mesi: ‹ e ›
+        await pg11.click('[data-az="avanti"]'); await pg11.wait_for_timeout(100)
+        mese_dopo=date(oggi_.year+(oggi_.month==12), oggi_.month%12+1, 1)
+        ok(await pg11.inner_text("#cal-mese-titolo")==f"{MESI[mese_dopo.month-1]} {mese_dopo.year}" and await pg11.locator(".cal-cella").count()==42, "› va al mese dopo")
+        ok(await pg11.get_attribute(".cal-cella[aria-pressed='true']","data-giorno")==iso(mese_dopo) and await pg11.inner_text("#cal-giorno-titolo")==bello(mese_dopo), "…e ne sceglie il primo giorno, con la sua agenda")
+        await pg11.click('[data-az="indietro"]'); await pg11.wait_for_timeout(100)
+        ok(await pg11.inner_text("#cal-mese-titolo")==f"{MESI[oggi_.month-1]} {oggi_.year}", "‹ torna indietro")
+        idx=await posto_del_primo_novembre(pg11)
+        ok(await pg11.inner_text("#cal-mese-titolo")=="novembre 2026" and idx==6, f"novembre 2026: l'1 è domenica, ultima colonna (casella n. {idx+1} su 42: la settima)")
+        await pg11.click('[data-az="oggi"]'); await pg11.wait_for_timeout(100)
+        ok(await pg11.inner_text("#cal-mese-titolo")==f"{MESI[oggi_.month-1]} {oggi_.year}" and await pg11.get_attribute(".cal-cella[aria-pressed='true']","data-giorno")==iso(oggi_), "«Oggi» riporta al mese di oggi, con oggi scelto")
+        async def scorri_mese(dx):
+            await pg11.evaluate("""dx=>{const z=document.querySelector('.cal-griglia');const T=(x,y)=>new Touch({identifier:1,target:z,clientX:x,clientY:y});
+              z.dispatchEvent(new TouchEvent('touchstart',{touches:[T(300,400)],changedTouches:[T(300,400)],bubbles:true}));
+              z.dispatchEvent(new TouchEvent('touchend',{touches:[],changedTouches:[T(300+dx,408)],bubbles:true}));}""", dx)
+            await pg11.wait_for_timeout(150)
+        await scorri_mese(-150)
+        ok(await pg11.inner_text("#cal-mese-titolo")==f"{MESI[mese_dopo.month-1]} {mese_dopo.year}" and await pg11.evaluate("document.body.dataset.scheda")=="calendario", "il dito a sinistra sul mese: il mese dopo (e la scheda non cambia)")
+        await scorri_mese(150)
+        ok(await pg11.inner_text("#cal-mese-titolo")==f"{MESI[oggi_.month-1]} {oggi_.year}", "il dito a destra: il mese prima")
+        await scorri_mese(-20)
+        ok(await pg11.inner_text("#cal-mese-titolo")==f"{MESI[oggi_.month-1]} {oggi_.year}", "un tocco corto del dito non cambia mese")
+        # un impegno di dopodomani, toccato il giorno, «✓ Fatto»
+        ok("la revisione" in await pg11.inner_text(cella(dopo_)), "un impegno di dopodomani ha la sua etichetta nella griglia")
+        await pg11.click(cella(dopo_)); await pg11.wait_for_timeout(100)
+        ok(await pg11.get_attribute(cella(dopo_),"aria-pressed")=="true" and await pg11.get_attribute(cella(oggi_),"aria-pressed")=="false" and await pg11.inner_text("#cal-giorno-titolo")==bello(dopo_), "toccato il giorno: si evidenzia e sotto c'è l'agenda di quel giorno")
+        r_=pg11.locator('#cal-giorno-casa .cal-riga[data-id="i-dopo"]')
+        ok("la revisione" in await r_.inner_text() and "09:00" in await r_.inner_text() and "✓ Fatto" in await r_.inner_text(), "nell'agenda c'è «la revisione», con l'ora e «✓ Fatto»")
+        ok((await pg11.evaluate("document.querySelector('#cal-giorno-casa .cal-fatto').getBoundingClientRect().height"))>=44, "il bottone è grande")
         prima_=len(inviati)
-        await pg11.click('.cal-riga[data-id="i-oggi"] .cal-fatto'); await pg11.wait_for_timeout(250)
-        ok(await pg11.evaluate("document.querySelector('.cal-riga[data-id=\"i-oggi\"]')?.classList.contains('fatta') ?? true"), "toccato: la riga si barra")
-        await pg11.wait_for_timeout(900)
+        await r_.locator(".cal-fatto").click(); await pg11.wait_for_timeout(900)
         fatti_=[d for (r,d) in inviati[prima_:] if r=="fatto"]
-        ok(len(fatti_)==1 and fatti_[0]=={"id":"i-oggi"} and len([1 for (r,d) in inviati[prima_:] if r in ("fatto","annulla")])==1, "UNA POST /assistente/fatto, con il suo id")
-        ok(await pg11.locator('.cal-riga[data-id="i-oggi"]').count()==0 and await pg11.locator(".cal-riga").count()==2, "la riga è sparita")
-        ok(await pg11.is_visible("#cal-annulla") and "chiamare il commercialista" in await pg11.inner_text("#cal-annulla"), "in basso compare «Annulla»")
-        ok(await pg11.is_visible("#cal-fatti") and not await pg11.evaluate("document.getElementById('cal-fatti').open"), "i fatti ci sono, ma chiusi")
+        ok(len(fatti_)==1 and fatti_[0]=={"id":"i-dopo"} and len([1 for (r,d) in inviati[prima_:] if r in ("fatto","annulla")])==1, "UNA POST /assistente/fatto, con il suo id")
+        ok("la revisione" not in await pg11.inner_text(cella(dopo_)) and "Niente in questo giorno" in await pg11.inner_text("#cal-giorno-casa"), "l'etichetta sparisce dalla griglia e il giorno è vuoto: «Niente in questo giorno»")
+        ok(await pg11.is_visible("#cal-annulla") and "la revisione" in await pg11.inner_text("#cal-annulla"), "in basso compare «Annulla»")
+        ok(await pg11.is_visible("#cal-fatti") and not await pg11.evaluate("document.getElementById('cal-fatti').open") and "Fatti negli ultimi 30 giorni" in await pg11.inner_text("#cal-fatti summary"), "«✓ Fatti negli ultimi 30 giorni» c'è, ma chiusa")
         await pg11.click("#cal-annulla-btn"); await pg11.wait_for_timeout(700)
         ann_=[d for (r,d) in inviati[prima_:] if r=="annulla"]
-        ok(len(ann_)==1 and ann_[0]=={"id":"i-oggi"}, "«Annulla» manda POST /assistente/annulla con lo stesso id")
-        ok(await pg11.locator('.cal-riga[data-id="i-oggi"]').count()==1 and await pg11.is_hidden("#cal-annulla"), "la riga torna, la barra se ne va")
-        await pg11.click('.cal-riga[data-id="s-bollo"] .cal-fatto'); await pg11.wait_for_timeout(900)
-        ok(await pg11.is_visible("#cal-annulla"), "dopo un altro tocco la barra «Annulla» è lì")
+        ok(len(ann_)==1 and ann_[0]=={"id":"i-dopo"} and "la revisione" in await pg11.inner_text(cella(dopo_)) and await pg11.is_hidden("#cal-annulla"), "«Annulla»: UNA POST /assistente/annulla, l'etichetta torna, la barra se ne va")
+        await pg11.click(cella(domani_)); await pg11.wait_for_timeout(100)
+        ok("✓ Pagata" in await pg11.inner_text('#cal-giorno-casa .cal-riga[data-id="s-bollo"]') and "€ 180" in await pg11.inner_text('#cal-giorno-casa .cal-riga[data-id="s-bollo"]') and "€ bollo" in await pg11.inner_text(cella(domani_)), "una scadenza: «✓ Pagata», l'importo, e un'etichetta con «€» in griglia")
+        await pg11.click('#cal-giorno-casa .cal-riga[data-id="s-bollo"] .cal-fatto'); await pg11.wait_for_timeout(900)
+        ok(await pg11.is_visible("#cal-annulla"), "dopo «Pagata» la barra «Annulla» è lì")
         await pg11.wait_for_timeout(5300)
         ok(await pg11.is_hidden("#cal-annulla"), "e dopo 5 secondi se ne va")
         await pg11.click("#cal-fatti summary"); await pg11.wait_for_timeout(200)
         ok("bollo auto" in await pg11.inner_text("#cal-fatti-elenco"), "fra i fatti c'è la scadenza pagata")
         await pg11.click("#cal-fatti-elenco button"); await pg11.wait_for_timeout(700)
-        ok(await pg11.locator('.cal-riga[data-id="s-bollo"]').count()==1, "…e da lì si può annullare")
+        ok(await pg11.locator('#cal-giorno-casa .cal-riga[data-id="s-bollo"]').count()==1, "…e da lì si può annullare")
+        # rimasti indietro
+        ok(await pg11.is_visible("#cal-indietro") and await pg11.inner_text("#cal-indietro-titolo")=="⚠️ Rimasti indietro (1)" and await pg11.evaluate("document.getElementById('cal-indietro').open"), "«⚠️ Rimasti indietro (1)»: c'è, aperta")
+        ok("l'oculista" in await pg11.inner_text("#cal-indietro-elenco") and "✓ Fatto" in await pg11.inner_text("#cal-indietro-elenco"), "dentro c'è l'impegno di ieri, col suo «✓ Fatto»")
+        ok(await pg11.is_hidden("#cal-fatti"), "e senza fatti la sezione «✓ Fatti negli ultimi 30 giorni» non c'è")
+        await pg11.click("#cal-indietro summary"); await pg11.wait_for_timeout(1000)
+        ok(not await pg11.evaluate("document.getElementById('cal-indietro').open"), "si può chiudere…")
+        await pg11.click(cella(dopo_)); await pg11.wait_for_timeout(100)
+        ok(not await pg11.evaluate("document.getElementById('cal-indietro').open"), "…e restare chiusa quando si cambia giorno")
+        await pg11.click("#cal-indietro summary"); await pg11.wait_for_timeout(100)
+        ok(await pg11.locator("#cal-indietro .cal-fatto").count()==1 and (await pg11.evaluate("document.querySelector('#cal-indietro summary').getBoundingClientRect().height"))>=44, "riaperta; il suo tasto è grande")
+
+        print("── il calendario: aggiungere a mano")
+        ok(await pg11.is_visible("#cal-piu") and (await pg11.evaluate("(()=>{const r=document.getElementById('cal-piu').getBoundingClientRect();return [r.width,r.height,innerWidth-r.right,innerHeight-r.bottom]})()"))[0]>=44, "il «＋» tondo c'è, in basso a destra")
+        pos=await pg11.evaluate("(()=>{const r=document.getElementById('cal-piu').getBoundingClientRect();return [r.right>innerWidth-40, r.bottom>innerHeight-130, getComputedStyle(document.getElementById('cal-piu')).borderRadius]})()")
+        ok(pos[0] and pos[1] and pos[2]=="50%", "…proprio in basso a destra e tondo")
+        ok(await pg11.is_hidden("#cal-velo"), "il foglio è chiuso")
+        await pg11.click(cella(domani_)); await pg11.wait_for_timeout(100)
+        await pg11.click("#cal-piu"); await pg11.wait_for_timeout(300)
+        ok(await pg11.is_visible("#cal-velo") and await pg11.is_visible("#cal-f-cosa"), "«＋»: si apre il foglio dal basso")
+        ok(await pg11.input_value("#cal-f-giorno")==iso(domani_), "il giorno è già quello scelto")
+        ok(await pg11.get_attribute("#cal-t-impegno","aria-pressed")=="true" and await pg11.is_visible("#cal-f-ora") and not await pg11.is_visible("#cal-f-importo") and not await pg11.is_visible("#cal-f-ogni"), "«Impegno»: c'è l'ora; importo e «ogni mese» no")
+        await pg11.click("#cal-t-scadenza")
+        ok(await pg11.is_visible("#cal-f-importo") and await pg11.is_visible("#cal-f-ogni") and not await pg11.is_visible("#cal-f-ora"), "«Scadenza»: importo e «ogni mese», niente ora")
+        await pg11.click("#cal-t-impegno")
+        ok(await pg11.evaluate("document.activeElement.id")!="" and await pg11.is_visible("#cal-f-nota") and await pg11.is_visible("#cal-f-salva"), "c'è anche la nota, e «Salva»")
+        await pg11.keyboard.press("Escape"); await pg11.wait_for_timeout(200)
+        ok(await pg11.is_hidden("#cal-velo"), "Esc chiude il foglio")
+        # errori della porta: il foglio resta com'è
+        await pg11.click("#cal-aggiungi-giorno"); await pg11.wait_for_timeout(300)
+        ok(await pg11.input_value("#cal-f-giorno")==iso(domani_), "anche «＋ Aggiungi» nell'agenda del giorno apre il foglio, col giorno scelto")
+        prima_=len(inviati); CAL["rifiuta"]="la data non è valida"
+        await pg11.fill("#cal-f-cosa","pratica"); await pg11.fill("#cal-f-nota","portare la ricevuta"); await pg11.click("#cal-f-salva"); await pg11.wait_for_timeout(500)
+        ok(await pg11.is_visible("#cal-velo") and "la data non è valida" in await pg11.inner_text("#cal-f-errore"), "la porta dice no: l'errore è nel foglio")
+        ok(await pg11.input_value("#cal-f-cosa")=="pratica" and await pg11.input_value("#cal-f-nota")=="portare la ricevuta" and not await pg11.is_disabled("#cal-f-salva"), "…e quello che si era scritto c'è ancora")
+        CAL["rifiuta"]=None
+        await pg11.fill("#cal-f-cosa",""); await pg11.click("#cal-f-salva")
+        ok("Scrivi cosa" in await pg11.inner_text("#cal-f-errore") and len([1 for (r,d) in inviati[prima_:] if r=="aggiungi"])==1, "cosa vuota: lo dice il foglio, senza chiamare la porta")
+        await pg11.keyboard.press("Escape"); await pg11.wait_for_timeout(200)
+        # «dentista», domani, 10:00
+        prima_=len(inviati)
+        await pg11.click("#cal-piu"); await pg11.wait_for_timeout(300)
+        await pg11.fill("#cal-f-cosa","dentista"); await pg11.fill("#cal-f-giorno",iso(domani_)); await pg11.fill("#cal-f-ora","10:00")
+        await pg11.click("#cal-f-salva"); await pg11.wait_for_timeout(900)
+        nuovi_=[d for (r,d) in inviati[prima_:] if r=="aggiungi"]
+        ok(len(nuovi_)==1 and nuovi_[0]=={"tipo":"impegno","cosa":"dentista","giorno":iso(domani_),"ora":"10:00"}, f"UNA POST /assistente/aggiungi con quei dati ({nuovi_})")
+        ok(await pg11.is_hidden("#cal-velo"), "il foglio si chiude")
+        ok("dentista" in await pg11.inner_text(cella(domani_)+" .cal-et.imp") and "dentista" in await pg11.inner_text("#cal-giorno-casa"), "la cosa compare subito sulla griglia (domani) e nell'agenda")
+        idn=await pg11.get_attribute('#cal-giorno-casa .cal-riga:has-text("dentista")',"data-id")
+        # una scadenza, dal «＋ Aggiungi»
+        prima_=len(inviati)
+        await pg11.click("#cal-aggiungi-giorno"); await pg11.wait_for_timeout(300); await pg11.click("#cal-t-scadenza")
+        await pg11.fill("#cal-f-cosa","luce"); await pg11.fill("#cal-f-importo","€ 64,10"); await pg11.check("#cal-f-ogni"); await pg11.fill("#cal-f-nota","bolletta di ottobre")
+        await pg11.click("#cal-f-salva"); await pg11.wait_for_timeout(900)
+        nuovi_=[d for (r,d) in inviati[prima_:] if r=="aggiungi"]
+        ok(len(nuovi_)==1 and nuovi_[0]=={"tipo":"scadenza","cosa":"luce","giorno":iso(domani_),"importo":"€ 64,10","ogni_mese":True,"nota":"bolletta di ottobre"}, f"una scadenza: UNA POST con importo, «ogni mese» e nota ({nuovi_})")
+        ok("luce" in await pg11.inner_text("#cal-giorno-casa") and "€ 64,10" in await pg11.inner_text("#cal-giorno-casa") and "ogni mese" in await pg11.inner_text("#cal-giorno-casa"), "la scadenza è nell'agenda, con l'importo e «ogni mese»")
+        # un altro giorno (scelto nel foglio): il calendario ci va
+        await pg11.click("#cal-piu"); await pg11.wait_for_timeout(300)
+        await pg11.fill("#cal-f-cosa","corso"); await pg11.fill("#cal-f-giorno",iso(dopo_)); await pg11.click("#cal-f-salva"); await pg11.wait_for_timeout(900)
+        ok(await pg11.inner_text("#cal-giorno-titolo")==bello(dopo_) and "corso" in await pg11.inner_text("#cal-giorno-casa") and "tutto il giorno" in await pg11.inner_text("#cal-giorno-casa"), "giorno diverso: il calendario lo mostra; senza ora è «tutto il giorno»")
+        ok(await pg11.evaluate("(()=>{const t=[...document.querySelectorAll('#cal-giorno-casa .cal-ora')].map(e=>e.textContent);return t[0]==='tutto il giorno' && t[t.length-1]==='09:00'})()"), "e «tutto il giorno» sta in cima, prima di quello delle 09:00")
+
+        print("── il calendario: aprire per esteso")
+        await pg11.click(cella(domani_)); await pg11.wait_for_timeout(100)
+        await pg11.click(f'#cal-giorno-casa .cal-riga[data-id="{idn}"] .cal-apri'); await pg11.wait_for_timeout(300)
+        t_=await pg11.inner_text("#cal-foglio")
+        ok(await pg11.is_visible("#cal-velo") and "dentista" in t_ and f"{bello(domani_,True)}, alle 10:00" in t_, f"toccata la riga: il dettaglio, «dentista» e «{bello(domani_,True)}, alle 10:00»")
+        ok(all(x in t_ for x in ["✓ Fatto","📅 Metti nel calendario del telefono","oppure scarica l'invito (.ics)","🗑 Elimina","Chiudi"]), "i bottoni: «✓ Fatto», «📅 Metti nel calendario del telefono», il link .ics, «🗑 Elimina», «Chiudi»")
+        ok(await pg11.locator(".cal-foglio .cal-btn").count()>=4 and (await pg11.evaluate("[...document.querySelectorAll('.cal-foglio .cal-btn')].every(b=>b.getBoundingClientRect().height>=44)")), "i tasti del foglio sono alti almeno 44 px")
+        href=await pg11.get_attribute("#cal-d-google","href"); u_=urlparse(href); q_=parse_qs(u_.query)
+        ok(u_.netloc=="calendar.google.com" and q_.get("action")==["TEMPLATE"] and q_.get("text")==["dentista"], f"il link di Google Calendar: action=TEMPLATE, text=dentista ({href})")
+        ok(q_.get("dates")==[utc(domani_,"10:00")], f"le date sono domani alle 10 di Roma, in UTC, per mezz'ora ({q_.get('dates')} ≟ {utc(domani_,'10:00')})")
+        ok(await pg11.get_attribute("#cal-d-google","target")=="_blank" and "noopener" in await pg11.get_attribute("#cal-d-google","rel"), "il link si apre fuori dalla pagina, senza portarsi dietro la finestra")
+        prima_=len(CAL["ics"])
+        async with pg11.expect_download() as dl: await pg11.click("#cal-d-ics")
+        scarico=await dl.value
+        ok(scarico.suggested_filename=="impegno.ics" and len(CAL["ics"])==prima_+1 and CAL["ics"][-1][0]==idn and CAL["ics"][-1][1]=="Bearer "+"t"*64, "«oppure scarica l'invito (.ics)»: scarica «impegno.ics» da GET /assistente/ics?id=… col token")
+        prima_=len(inviati)
+        await pg11.click("#cal-d-elimina"); await pg11.wait_for_timeout(200)
+        ok(await pg11.is_visible("#cal-d-conferma") and not [1 for (r,d) in inviati[prima_:] if r=="elimina"], "«🗑 Elimina» chiede conferma, e non ha ancora eliminato niente")
+        await pg11.click("#cal-d-elimina-no"); await pg11.wait_for_timeout(100)
+        ok(await pg11.is_visible("#cal-d-elimina") and not await pg11.is_visible("#cal-d-conferma") and not [1 for (r,d) in inviati[prima_:] if r=="elimina"], "«No, lascia»: tutto com'era")
+        await pg11.click("#cal-d-elimina"); await pg11.click("#cal-d-elimina-si"); await pg11.wait_for_timeout(900)
+        el_=[d for (r,d) in inviati[prima_:] if r=="elimina"]
+        ok(len(el_)==1 and el_[0]=={"id":idn}, "conferma → UNA POST /assistente/elimina con il suo id")
+        ok(await pg11.is_hidden("#cal-velo") and "dentista" not in await pg11.inner_text(cella(domani_)) and "dentista" not in await pg11.inner_text("#cal-giorno-casa"), "il foglio si chiude e la cosa non c'è più, né in griglia né nell'agenda")
+        # una scadenza, senza ora: evento di tutto il giorno; la nota; «Chiudi»; «✓ Pagata» dal dettaglio
+        await pg11.click(f'#cal-giorno-casa .cal-riga[data-id="s-bollo"] .cal-apri'); await pg11.wait_for_timeout(300)
+        t_=await pg11.inner_text("#cal-foglio"); q_=parse_qs(urlparse(await pg11.get_attribute("#cal-d-google","href")).query)
+        ok("bollo auto" in t_ and f"Scade {bello(domani_,True)}" in t_ and "€ 180" in t_ and "✓ Pagata" in t_, "scadenza: la cosa, «Scade …» per esteso, l'importo, «✓ Pagata»")
+        ok(q_.get("dates")==[utc(domani_)] and "bollo auto" in q_.get("text")[0], f"senza ora: evento di tutto il giorno ({q_.get('dates')} ≟ {utc(domani_)})")
+        await pg11.click("#cal-d-chiudi"); await pg11.wait_for_timeout(200)
+        ok(await pg11.is_hidden("#cal-velo"), "«Chiudi» chiude il foglio")
+        await pg11.click(cella(oggi_)); await pg11.wait_for_timeout(100); await pg11.click('#cal-giorno-casa .cal-riga[data-id="i-oggi"] .cal-apri'); await pg11.wait_for_timeout(300)
+        ok("porta il badge" in await pg11.inner_text("#cal-foglio") and await pg11.evaluate("document.querySelector('.cal-dett-nota').innerText.includes('\\n')"), "la nota c'è per intero, anche a capo")
+        prima_=len(inviati); await pg11.click("#cal-d-fatto"); await pg11.wait_for_timeout(900)
+        ok(len([1 for (r,d) in inviati[prima_:] if r=="fatto"])==1 and await pg11.is_hidden("#cal-velo") and await pg11.locator('#cal-giorno-casa .cal-riga[data-id="i-oggi"]').count()==0, "«✓ Fatto» dal dettaglio: UNA POST /assistente/fatto, il foglio si chiude, la riga non c'è più")
+        await pg11.click("#cal-annulla-btn"); await pg11.wait_for_timeout(700)
+
+        print("── il calendario: testi lunghi")
+        lungo="Lunghissimo"+"a"*109
+        CAL["impegni"].append({"id":"i-lungo","cosa":lungo,"giorno":iso(oggi_),"ora":"08:00","nota":"n"*120})
+        CAL["scadenze"].append({"id":"s-lunga","cosa":"Bolletta "+"b"*111,"giorno":iso(oggi_),"importo":"€ 1.234,56","ogni_mese":True})
+        await riapri(pg11)
+        ok(len(lungo)==120, "una cosa di 120 caratteri")
+        dentro="""sel=>{const sec=document.querySelector('#p-calendario .etichetta').getBoundingClientRect(), r=document.querySelector(sel), rr=r.getBoundingClientRect(), c=r.querySelector('.cal-cosa'), cr=c.getBoundingClientRect(), s=c.querySelector('small');
+          return {dentro: rr.left>=sec.left-1 && rr.right<=sec.right+1 && cr.right<=sec.right+1, tagliata: r.scrollHeight>r.clientHeight+1 || c.scrollWidth>c.clientWidth+1,
+                  piccolo: s? (s.getBoundingClientRect().right<=sec.right+1 && s.getBoundingClientRect().height>0):null, pagina: document.documentElement.scrollWidth<=window.innerWidth}}"""
+        v=await pg11.evaluate(dentro,'#cal-giorno-casa .cal-riga[data-id="i-lungo"]')
+        ok(v["dentro"] and not v["tagliata"] and v["pagina"], f"la riga lunga va a capo dentro la scheda, senza tagli né scorrimento ({v})")
+        v=await pg11.evaluate(dentro,'#cal-giorno-casa .cal-riga[data-id="s-lunga"]')
+        ok(v["dentro"] and not v["tagliata"] and v["piccolo"] and "€ 1.234,56" in await pg11.inner_text('#cal-giorno-casa .cal-riga[data-id="s-lunga"]'), f"la scadenza lunga: l'importo resta leggibile, dentro la scheda ({v})")
+        await pg11.click('#cal-giorno-casa .cal-riga[data-id="i-lungo"] .cal-apri'); await pg11.wait_for_timeout(300)
+        v=await pg11.evaluate("""(()=>{const f=document.getElementById('cal-foglio'), fr=f.getBoundingClientRect(), h=f.querySelector('h3'), hr=h.getBoundingClientRect(), n=document.querySelector('.cal-dett-nota').getBoundingClientRect();
+          return {intero:h.textContent.length===120, dentro:hr.left>=fr.left-1&&hr.right<=fr.right+1&&n.right<=fr.right+1, senzaScorrere:f.scrollWidth<=f.clientWidth+1, pagina:document.documentElement.scrollWidth<=innerWidth}})()""")
+        ok(all(v.values()), f"il dettaglio della cosa lunga: per intero e dentro il foglio ({v})")
+        await pg11.keyboard.press("Escape")
+        ok(await pg11.evaluate("getComputedStyle(document.querySelector('#p-calendario .etichetta')).height")!="" and await pg11.evaluate("['#cal-giorno-casa','#p-calendario .etichetta','.cal-riga'].every(s=>{const m=getComputedStyle(document.querySelector(s)).maxHeight;return m==='none'})"), "la scheda non ha altezza fissa (né massima)")
+
+        print("── il calendario: il tema, e il «＋» solo nel calendario")
+        await pg11.evaluate("document.documentElement.dataset.tema='deciso'")
+        ok(await pg11.evaluate("getComputedStyle(document.querySelector('.cal-cella.oggi .cal-num')).borderTopColor")=="rgb(255, 90, 31)" and await pg11.evaluate("getComputedStyle(document.getElementById('cal-piu')).backgroundColor")=="rgb(255, 90, 31)", "il tema della pagina arriva al calendario (deciso: arancio)")
+        await pg11.evaluate("document.documentElement.dataset.tema='tech'")
+        await pg11.click("#cal-piu"); await pg11.wait_for_timeout(300)
+        await pg11.evaluate("location.hash='#profilo'"); await pg11.wait_for_timeout(500)
+        ok(await pg11.evaluate("document.body.dataset.scheda")=="profilo" and await pg11.is_hidden("#cal-velo") and not await pg11.evaluate("document.body.classList.contains('cal-foglio-aperto')"), "cambiando scheda con il foglio aperto, il foglio si chiude")
+        ok(not await pg11.is_visible("#cal-piu"), "fuori dal calendario il «＋» non c'è")
+
+        print("── il calendario, a 360 px")
+        c360,p360=await calendario_aperto(360,740)
+        v=await p360.evaluate("({pagina:document.documentElement.scrollWidth<=360, corpo:document.body.scrollWidth<=360, celle:[...document.querySelectorAll('.cal-cella')].every(c=>c.scrollWidth<=c.clientWidth+1), larghe:Math.min(...[...document.querySelectorAll('.cal-cella')].map(c=>c.getBoundingClientRect().width))})")
+        ok(v["pagina"] and v["corpo"] and v["celle"] and v["larghe"]>=40, f"360 px: niente scorrimento di lato, le caselle stanno nella griglia (la più stretta {round(v['larghe'])} px)")
+        for n_ in range(4): CAL["impegni"].append({"id":f"i-p{n_}","cosa":f"cosa {n_}","giorno":iso(oggi_),"ora":f"1{n_}:00"})
+        await riapri(p360)
+        ok("+" in await p360.inner_text(cella(oggi_)+" .cal-piu-n") and await p360.locator(cella(oggi_)+" .cal-et").count()==2, "più di due cose in un giorno: due etichette e «+N»")
+        v=await p360.evaluate("({pagina:document.documentElement.scrollWidth<=360, riga:(()=>{const sec=document.querySelector('#p-calendario .etichetta').getBoundingClientRect(), r=document.querySelector('#cal-giorno-casa .cal-riga[data-id=\"i-lungo\"]').getBoundingClientRect();return r.right<=sec.right+1})()})")
+        ok(v["pagina"] and v["riga"], "con la cosa lunga, sempre a 360 px: nessuno scorrimento e la riga dentro")
+        await p360.click("#cal-piu"); await p360.wait_for_timeout(300)
+        v=await p360.evaluate("({pagina:document.documentElement.scrollWidth<=360, foglio:(()=>{const f=document.getElementById('cal-foglio');return f.scrollWidth<=f.clientWidth+1 && [...f.querySelectorAll('input,textarea')].every(i=>i.getBoundingClientRect().right<=f.getBoundingClientRect().right)})()})")
+        ok(v["pagina"] and v["foglio"], "il foglio «aggiungi» a 360 px sta dentro, senza scorrere di lato")
+        await c360.close()
+        # il telefono è in Nuova Zelanda e vuole il movimento ridotto: le ore del link sono comunque ore di Roma (d'inverno +1, d'estate +2 sull'UTC)
+        cr_,pr_=await calendario_aperto(390,844,reduced_motion="reduce",timezone_id="Pacific/Auckland")
+        await pr_.click("#cal-piu"); await pr_.wait_for_timeout(100)
+        ok(await pr_.evaluate("getComputedStyle(document.getElementById('cal-foglio')).animationName")=="none", "con il movimento ridotto il foglio non si anima")
+        for g_,z_ in (("2027-01-15","20270115T090000Z/20270115T093000Z"),("2027-07-15","20270715T080000Z/20270715T083000Z")):
+            d_=await pr_.evaluate("g=>new URL(calLinkGoogle({tipo:'impegno',cosa:'x',giorno:g,ora:'10:00'})).searchParams.get('dates')", g_)
+            ok(d_==z_, f"{g_} alle 10 di Roma = {z_.split('/')[0][9:13]} UTC, anche con il telefono dall'altra parte del mondo ({d_})")
+        await cr_.close()
+
+        print("── il calendario, CONTROPROVA: con la griglia che parte dalla domenica, la prova di novembre è rossa")
+        buona=PAGINA; riga_buona='-((new Date(primo+"T12:00:00Z").getUTCDay()+6)%7)'
+        ok(riga_buona in buona, "(la riga della griglia è dove la controprova se l'aspetta)")
+        PAGINA=buona.replace(riga_buona,'-(new Date(primo+"T12:00:00Z").getUTCDay())')
+        cd_,pd_=await calendario_aperto()
+        idx_d=await posto_del_primo_novembre(pd_)
+        ok(not (await pd_.inner_text("#cal-mese-titolo")=="novembre 2026" and idx_d==6), f"da domenica l'1 novembre finisce in prima colonna (casella n. {idx_d+1}): «ultima colonna» non regge, la prova è rossa")
+        await cd_.close(); PAGINA=buona
+
         print("── il calendario, porta giù")
         CAL["giu"]=True
         await pg11.click("#apri-conv"); await pg11.wait_for_timeout(450); await pg11.click("#menu-calendario"); await pg11.wait_for_timeout(700)
         t_=await pg11.inner_text("#p-calendario")
-        ok("Non riesco a raggiungere" in t_ and await pg11.locator(".cal-riprova").count()==1 and "Niente in programma" not in t_ and await pg11.locator(".cal-riga").count()==0, "senza rete: il motivo in chiaro e «Riprova», mai «niente in programma»")
+        ok("Non riesco a raggiungere" in t_ and await pg11.locator(".cal-riprova").count()==1 and "Niente in programma" not in t_ and await pg11.locator(".cal-riga").count()==0 and await pg11.locator(".cal-cella").count()==0 and not await pg11.is_visible("#cal-piu"), "senza rete: il motivo in chiaro e «Riprova», mai «niente in programma»; né griglia né «＋»")
         CAL["giu"]=False; await pg11.click(".cal-riprova"); await pg11.wait_for_timeout(700)
-        ok(await pg11.locator(".cal-riga").count()==3 and await pg11.locator(".cal-avviso").count()==0, "«Riprova» con la porta tornata: le righe sono di nuovo lì")
+        ok(await pg11.locator(".cal-cella").count()==42 and await pg11.locator(".cal-avviso").count()==0 and await pg11.is_visible("#cal-piu"), "«Riprova» con la porta tornata: il calendario è di nuovo lì")
         print("── il calendario, vuoto")
         CAL.update(impegni=[], scadenze=[], fatti=[])
         await pg11.click("#apri-conv"); await pg11.wait_for_timeout(450); await pg11.click("#menu-calendario"); await pg11.wait_for_timeout(700)
-        t_=await pg11.inner_text("#cal-lista")
-        ok("Niente in programma. Per segnare una cosa dillo a Nova" in t_, "vuoto: «Niente in programma. Per segnare una cosa dillo a Nova»")
+        t_=await pg11.inner_text("#cal-giorno-casa")
+        ok(await pg11.locator(".cal-cella").count()==42 and "Niente in questo giorno" in t_ and "Niente in programma. Per segnare una cosa dillo a Nova" in t_, "vuoto: la griglia c'è, «Niente in questo giorno» e «Niente in programma. Per segnare una cosa dillo a Nova»")
+        ok(await pg11.is_hidden("#cal-indietro") and await pg11.is_hidden("#cal-fatti"), "senza arretrati né fatti: le due sezioni non ci sono")
         await pg11.click("#cal-alla-chat"); await pg11.wait_for_timeout(500)
         ok(await pg11.evaluate("document.body.dataset.scheda")=="inizia", "il tasto porta alla chat")
         await c11.close()
