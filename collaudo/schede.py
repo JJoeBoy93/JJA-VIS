@@ -15,6 +15,7 @@ PORTA="https://jjavis-porta.19-jjardito93.workers.dev"
 BASE="https://jjoeboy93.github.io/JJA-VIS/"
 inviati=[]
 conta_risposte=[]
+risposte_di={}   # quante volte ha chiesto /risposte ogni pagina: altre pagine aperte nello stesso browser chiedono per conto loro
 async def instrada(route):
     u=route.request.url
     if u.startswith(BASE) and (u==BASE or "#" in u or u.endswith("index.html")):
@@ -31,7 +32,7 @@ async def instrada(route):
         if u.endswith("/nova"): return await route.fulfill(body=json.dumps({"acceso":NOVA["acceso"]}), content_type="application/json")
         if u.endswith("/vetrina"): return await route.fulfill(body='{"canzoni":5747,"attrezzi":41}', content_type="application/json")
         if "/risposte" in u:
-            conta_risposte.append(1)
+            conta_risposte.append(1); risposte_di[route.request.frame.page]=risposte_di.get(route.request.frame.page,0)+1
             return await route.fulfill(body=json.dumps({"risposte":RISPOSTE}), content_type="application/json")
         return await route.fulfill(body='[]', content_type="application/json")
     await route.fulfill(status=404, body="")
@@ -173,19 +174,20 @@ async def main():
         await pg4.add_init_script("localStorage.setItem('jjavis-io', JSON.stringify({id:'a1b2c3d4e5f60718',nome:'Nova',inviato:true,mestiere:'Ufficio'}))")
         await pg4.goto(BASE+"#parla"); await pg4.wait_for_timeout(300)
         await pg4.fill("#scrivi","Mi faresti il sito della mia azienda?"); await pg4.click("#manda-chat"); await pg4.wait_for_timeout(300)
-        prima=len(conta_risposte)
+        prima=risposte_di.get(pg4,0)
         await vai_a(pg4, "chi-sono")   # 26/10: dal menù ☰, la barra delle schede non c'è più
         RISPOSTE.append({"id":"abc12345","domanda":"Mi faresti il sito della mia azienda?","risposta":"Sì, si può fare: lasciami la mail.","quando":"2026-09-26T10:00:00Z"})
         await pg4.clock.fast_forward(21000); await pg4.wait_for_timeout(400)
-        ok(len(conta_risposte)>prima, "dopo 20 secondi chiede da sola")
+        ok(risposte_di.get(pg4,0)>prima, "dopo 20 secondi chiede da sola")
         ok("si può fare" in await pg4.inner_text("#chat"), "la risposta è nella chat senza ricaricare")
         ok(await pg4.evaluate("document.getElementById('apri-conv').classList.contains('nuovo')"), "il puntino sul «☰», perché sei altrove")
         await pg4.click("#apri-conv"); await pg4.wait_for_timeout(450)
         ok(await pg4.evaluate("document.querySelector('#menu-schede .menu-scheda[data-vai=inizia]').classList.contains('nuovo')"), "e anche sulla voce «Chat» del menù")
         await pg4.click('#menu-schede .menu-scheda[data-vai="inizia"]'); await pg4.wait_for_timeout(300)
         ok(not await pg4.evaluate("document.getElementById('apri-conv').classList.contains('nuovo')"), "tornando alla chat, il puntino si spegne")
-        dopo=len(conta_risposte); await pg4.clock.fast_forward(180000); await pg4.wait_for_timeout(300)
-        ok(len(conta_risposte)==dopo, "niente più in attesa: smette di chiedere")
+        # (solo le richieste di QUESTA pagina: le altre aperte nello stesso browser aspettano risposte loro e chiedono ogni 20 secondi)
+        dopo=risposte_di.get(pg4,0); await pg4.clock.fast_forward(180000); await pg4.wait_for_timeout(300)
+        ok(risposte_di.get(pg4,0)==dopo, "niente più in attesa: smette di chiedere")
         RISPOSTE.clear(); await pg4.close()
         print("── Clio, per le guide")
         pg5=await ctx.new_page(); pg5.on("pageerror", lambda e: errori.append(str(e)))
