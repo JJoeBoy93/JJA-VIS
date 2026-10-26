@@ -290,7 +290,7 @@ body.con-nome[data-scheda="inizia"] #conosci-domanda{font-size:20px!important;ma
    menù di tutto (conversazioni, Città, le schede). Il benvenuto e le domande del giorno si aprono dal menù (body.resto-aperto).
    L'altezza segue la tastiera: lo script mette in --vv-top e --vv-h quello che si vede davvero (visualViewport) e in
    --alto-testa quanto è alta la testata, così la casella non finisce mai sotto; senza, vale 100dvh. */
-#torna-chat,#chat-vuota,#lettura-conv,.testa-tasti{display:none}
+#torna-chat,#chat-vuota,.testa-tasti{display:none}
 body.chat-sola .testa-tasti{display:flex;align-items:center;gap:2px;margin-left:auto;flex:0 0 auto}
 body.chat-sola .in-citta,body.chat-sola .schede{display:none}   /* la Città e le schede stanno nel menù ☰ */
 body.chat-sola main{padding-bottom:28px}
@@ -361,13 +361,6 @@ body.chat-sola:not(.resto-aperto) .barra-chat{flex:0 0 auto;
 .menu-scheda svg{flex:0 0 auto;width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
 .menu-voce span{flex:0 0 22px;text-align:center}
 .menu-piede{display:block;padding:12px 16px;border-top:1px solid var(--bordo);font-size:15px}
-/* una conversazione vecchia, a tutto schermo e in sola lettura */
-body.chat-sola #lettura-conv{display:flex;position:fixed;inset:0;z-index:32;flex-direction:column;background:var(--bg)}
-.lettura-barra{display:flex;align-items:center;gap:6px;flex:0 0 auto;min-height:52px;padding:calc(env(safe-area-inset-top,0px) + 4px) 8px 4px;border-bottom:1px solid var(--bordo)}
-.lettura-barra .chat-tasto{flex-direction:row;font-size:17px}
-.lettura-barra h3{flex:1;min-width:0;margin:0;font:700 18px/1.2 var(--f-titoli);text-align:center;padding-right:48px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.lettura-corpo{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:12px max(16px,calc((100% - 560px)/2 + 16px))}
-.lettura-corpo .chat{margin:0;max-height:none;overflow:visible}
 :root[data-tema="calmo"] .prova-chat,:root[data-tema="naturale"] .prova-chat,:root[data-tema="calmo"] .conv-nuova,:root[data-tema="naturale"] .conv-nuova{border-radius:12px}
 .numeri{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
 .numeri div{border:1px solid var(--bordo);padding:10px 12px}
@@ -479,6 +472,7 @@ html.di-casa #o1{display:none}
   <div class="conv-testa"><h3 id="conv-titolo">Menù</h3><button type="button" id="chiudi-conv" class="chat-tasto">✕ Chiudi</button></div>
   <div class="conv-scorri">
     <button type="button" id="conv-nuova" class="conv-nuova"><span>＋ Nuova conversazione</span><small id="conv-nuova-aspetto" hidden>aspetto la risposta</small></button>
+    <p class="piccolo conv-vuoto" id="conv-aspetto" role="status" hidden>aspetto la risposta, poi puoi cambiare</p>
     <ul id="conv-elenco" class="conv-elenco"></ul>
     <p class="piccolo conv-vuoto" id="conv-vuoto">Qui compaiono le conversazioni finite.</p>
     <a class="menu-voce" id="menu-citta" href="citta.html"><span aria-hidden="true">🏙</span> Città</a>
@@ -486,10 +480,6 @@ html.di-casa #o1{display:none}
     <a class="menu-piede" id="conv-resto" href="#benvenuto">Il benvenuto e le domande del giorno</a>
   </div>
 </aside>
-<div id="lettura-conv" role="dialog" aria-modal="true" aria-labelledby="lettura-titolo" hidden>
-  <div class="lettura-barra"><button type="button" id="lettura-indietro" class="chat-tasto">← Indietro</button><h3 id="lettura-titolo"></h3></div>
-  <div class="lettura-corpo" id="lettura-corpo"><div class="chat" id="lettura-chat"></div></div>
-</div>
 <nav class="schede" role="tablist" aria-label="Sezioni">
   <button role="tab" id="s-inizia" data-scheda="inizia" aria-controls="p-inizia" aria-selected="false"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M4.5 9.5h15M4.5 14.5h15M12 4c2.5 2.3 2.5 13.7 0 16M12 4c-2.5 2.3-2.5 13.7 0 16"/></svg><span class="et" id="et-inizia">Inizia</span></button>
   <button role="tab" id="s-chi-sono" data-scheda="chi-sono" aria-controls="p-chi-sono" aria-selected="false"><svg viewBox="0 0 24 24"><path d="M12 3l2.4 5.2 5.6.6-4.2 3.8 1.2 5.6L12 15.4 7 18.2l1.2-5.6L4 8.8l5.6-.6z"/></svg><span class="et">Chi sono</span></button>
@@ -1206,6 +1196,28 @@ $("senza").addEventListener("click", ()=>manda(false));
 // 2/10, JJ: le risposte «che portano al secondo fine del servizio bottega».
 // Una risposta di Nova puo' portare un'azione: il pulsante apre la Bottega al
 // punto giusto, con la richiesta gia' scritta (che la persona puo' cambiare).
+// I tre tasti della chat vuota (26/10, JJ: «quando premi il suggerimento deve già rispondere subito, senza aspettare che pensa»):
+// la risposta è fissa e compare subito, senza chiamare la porta. «{nome}» è il nome della persona (io.tuo; senza, sparisce anche
+// la virgola). «contesto» non si vede: sta davanti al messaggio che la persona scrive dopo, perché l'assistente sappia a cosa risponde.
+const TASTI_CHAT={
+  "⏰ Ricordami una cosa":{risposta:"Certo, {nome}. Dimmi cosa devo ricordarti e per quando: il giorno e, se ce l'hai, anche l'ora.",
+    contesto:"ha toccato «Ricordami una cosa» e gli hai chiesto cosa e quando"},
+  "💶 Segnami una scadenza":{risposta:"Va bene, {nome}. Cosa scade, quando, e se vuoi l'importo: te la ricordo io prima della scadenza.",
+    contesto:"ha toccato «Segnami una scadenza» e gli hai chiesto cosa scade, quando e l'importo"},
+  "🎒 Cosa porto quando esco":{risposta:"Dimmi le cose che ti porti sempre dietro quando esci (chiavi, portafoglio, badge…): te le ricordo io.",
+    contesto:"ha toccato «Cosa porto quando esco» e gli hai chiesto le cose che si porta sempre dietro quando esce"}
+};
+function tastoChat(t){
+  const k=TASTI_CHAT[t]; if(!k) return;
+  const nome=(io.tuo||"").trim(), risposta=nome?k.risposta.replace("{nome}",()=>nome):k.risposta.replace(/,\s*\{nome\}/g,"");
+  io.chat=io.chat||[]; io.chat.push({ruolo:"tu",testo:t},{ruolo:"io",testo:risposta,contesto:k.contesto});
+  io.chat=io.chat.slice(-20); salva(); ridisegnaChat(); $("scrivi").focus({preventScroll:true});
+}
+// il contesto di un tasto toccato va davanti al messaggio che segue (solo a chi risponde, mai nella bolla della persona)
+function conContesto(testo, vocale){
+  const m=(io.chat||[]).filter(x=>x!==vocale).slice(-1)[0];
+  return m && m.ruolo==="io" && m.contesto ? `[${m.contesto}] ${testo}` : testo;
+}
 const AZIONI={commissione:"Te lo costruisco: chiedi un preventivo →", sopralluogo:"Fammi fare un sopralluogo →", clio:"Scopri Clio →"};
 function apriBottega(a){
   vaiA("bottega");
@@ -1287,14 +1299,6 @@ function quandoConv(ts){
   if(dif===0) return "oggi"; if(dif===1) return "ieri";
   return d.toLocaleDateString("it-IT",{day:"numeric",month:"long",...(d.getFullYear()!==o.getFullYear()?{year:"numeric"}:{})});
 }
-// una bolla di una conversazione chiusa (con la foto e il pulsante verso la Bottega, come nella chat)
-function bollaFissa(m){
-  const b=document.createElement("div"); b.className="bolla "+m.ruolo; if(m.voce){ riempiVoce(b,m,false); return b; } b.textContent=m.testo;
-  if(m.foto){ const i=document.createElement("img"); i.className="foto-bolla"; i.alt=""; i.src=m.foto; b.prepend(i); }
-  if(m.azione && AZIONI[m.azione.servizio]){ const x=document.createElement("button"); x.className="salto azione"; x.type="button";
-    x.textContent=AZIONI[m.azione.servizio]; x.addEventListener("click", ()=>apriBottega(m.azione)); b.append(document.createElement("br"), x); }
-  return b;
-}
 function disegnaConversazioni(){
   const t=io.thread||[], el=$("conv-elenco"); el.textContent="";
   $("conv-vuoto").hidden=!!t.length;
@@ -1303,7 +1307,7 @@ function disegnaConversazioni(){
     const ap=document.createElement("button"); ap.type="button"; ap.className="riga-apri";
     const ti=document.createElement("span"); ti.className="riga-titolo"; ti.textContent=titoloConv(c);
     const q=document.createElement("small"); q.className="riga-quando"; q.textContent=quandoConv(c.quando);
-    ap.append(ti,q); ap.addEventListener("click",()=>leggiConv(c));
+    ap.append(ti,q); ap.addEventListener("click",()=>riprendiConv(c));
     // ✕ per cancellare una conversazione vecchia (JJ, 20/10)
     const via=document.createElement("button"); via.type="button"; via.className="via"; via.textContent="✕"; via.setAttribute("aria-label","Cancella questa conversazione");
     via.addEventListener("click",()=>{ if(!confirm("Cancello questa conversazione?")) return; io.viste=[...new Set([...(io.viste||[]), ...(c.messaggi||[]).filter(m=>m.id).map(m=>m.id)])].slice(-300); io.thread=(io.thread||[]).filter(x=>x!==c); salva(); potaVoci(); disegnaConversazioni(); });
@@ -1321,26 +1325,31 @@ function disegnaSchede(){
     casa.appendChild(b); });
 }
 // il menù di tutto
-function apriConv(){ disegnaConversazioni(); disegnaSchede(); aggiornaChat(); $("conv-velo").classList.add("aperta"); $("conversazioni").classList.add("aperta"); $("apri-conv").setAttribute("aria-expanded","true");
+function apriConv(){ $("conv-aspetto").hidden=true; disegnaConversazioni(); disegnaSchede(); aggiornaChat(); $("conv-velo").classList.add("aperta"); $("conversazioni").classList.add("aperta"); $("apri-conv").setAttribute("aria-expanded","true");
   $("chiudi-conv").focus({preventScroll:true}); }
 function chiudiConv(){ const era=$("conversazioni").classList.contains("aperta"); $("conv-velo").classList.remove("aperta"); $("conversazioni").classList.remove("aperta"); $("apri-conv").setAttribute("aria-expanded","false");
   if(era && $("conversazioni").contains(document.activeElement)) $("apri-conv").focus({preventScroll:true}); }
-// una conversazione vecchia, a tutto schermo e in sola lettura; «← Indietro» torna alla chat
-function leggiConv(c){
-  const ch=$("lettura-chat"); ch.textContent=""; (c.messaggi||[]).forEach(m=>ch.appendChild(bollaFissa(m)));
-  $("lettura-titolo").textContent=quandoConv(c.quando); $("lettura-conv").hidden=false; $("lettura-corpo").scrollTop=0; $("lettura-indietro").focus({preventScroll:true});
-}
-function chiudiLettura(){ $("lettura-conv").hidden=true; $("lettura-chat").textContent=""; }
-function chiudiPannelli(){ chiudiLettura(); chiudiConv(); }
 // torna sulla chat, da qualunque scheda (il menù si apre ovunque)
-function allaChat(){ chiudiPannelli(); chiudiResto(); if(schedaAttiva!=="inizia"){ if(location.hash!=="#inizia") history.pushState(null,"","#inizia"); vaiA("inizia"); }
+function allaChat(){ chiudiConv(); chiudiResto(); if(schedaAttiva!=="inizia"){ if(location.hash!=="#inizia") history.pushState(null,"","#inizia"); vaiA("inizia"); }
   $("apri-conv").focus({preventScroll:true}); requestAnimationFrame(scorriChat); }
-function tornaDallaLettura(){ allaChat(); }
 // «＋»: la conversazione in corso va nelle precedenti e la chat riparte vuota. Con una risposta ancora in attesa non si può:
 // la risposta arriverebbe in una conversazione che non è più quella
 function nuovaConv(){
   if(rispostaInAttesa()) return;
   if((io.chat||[]).length) archiviaChat();
+  ridisegnaChat(); disegnaConversazioni(); allaChat();
+}
+// Una riga del menù: quella conversazione diventa LA conversazione in corso (come su Claude e WhatsApp), e si continua in fondo.
+// Quella che era in corso, se ha messaggi, passa alle precedenti. Con una risposta in attesa non si cambia: la risposta
+// arriverebbe in una conversazione che non è più quella. Gli audio dei vocali stanno in IndexedDB sotto l'id del vocale,
+// non sotto la posizione: cambiare conversazione non li sposta.
+function riprendiConv(c){
+  if(rispostaInAttesa()){ $("conv-aspetto").hidden=false; return; }
+  const era=io.chat||[];
+  io.thread=(io.thread||[]).filter(x=>x!==c);
+  if(era.length) io.thread.unshift({quando:io.chatDa||Date.now(), messaggi:era});
+  io.thread=io.thread.slice(0,20);
+  io.chat=c.messaggi||[]; io.chatDa=c.quando; salva();
   ridisegnaChat(); disegnaConversazioni(); allaChat();
 }
 $("apri-conv").addEventListener("click", apriConv);
@@ -1350,14 +1359,13 @@ $("nuova-conv").addEventListener("click", nuovaConv);
 $("conv-nuova").addEventListener("click", nuovaConv);
 // una voce per scheda: il menù si chiude e si apre quella scheda
 $("menu-schede").addEventListener("click", e=>{ const b=e.target.closest(".menu-scheda"); if(!b) return;
-  const k=b.dataset.vai; chiudiPannelli(); if(k==="inizia"){ allaChat(); return; }
+  const k=b.dataset.vai; chiudiConv(); if(k==="inizia"){ allaChat(); return; }
   if(location.hash!=="#"+k) history.pushState(null,"","#"+k); vaiA(k); });
 $("menu-citta").addEventListener("click", chiudiConv);
-$("lettura-indietro").addEventListener("click", tornaDallaLettura);
 document.addEventListener("keydown", e=>{ if(e.key!=="Escape") return;
-  if(!$("lettura-conv").hidden) tornaDallaLettura(); else if($("conversazioni").classList.contains("aperta")) chiudiConv(); });
+  if($("conversazioni").classList.contains("aperta")) chiudiConv(); });
 // il benvenuto e le domande del giorno: dietro un collegamento, non sopra la chat
-function apriResto(){ if(!document.body.classList.contains("chat-sola")) return; chiudiPannelli(); document.body.classList.add("resto-aperto"); window.scrollTo(0,0); }
+function apriResto(){ if(!document.body.classList.contains("chat-sola")) return; chiudiConv(); document.body.classList.add("resto-aperto"); window.scrollTo(0,0); }
 function chiudiResto(){ if(!document.body.classList.contains("resto-aperto")) return; document.body.classList.remove("resto-aperto"); window.scrollTo(0,0); requestAnimationFrame(()=>{ scorriChat(); segnaLette(); }); }
 $("torna-chat").addEventListener("click", chiudiResto);
 // la tastiera: la chat occupa quello che si vede davvero, e la casella non finisce mai sotto
@@ -1437,7 +1445,7 @@ async function parlaAssistente(testo, daVoce){
   parlando=true; $("manda-chat").disabled=true; invio=testo; invioVoce=daVoce||null; ridisegnaChat();
   try{
     const r=await fetch(INVIO.replace("/risposta","/assistente"),{method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+contoToken()},
-      body:JSON.stringify({testo,nome_assistente:io.nome||"",tuo:io.tuo||""})});
+      body:JSON.stringify({testo:conContesto(testo,daVoce),nome_assistente:io.nome||"",tuo:io.tuo||""})});
     const d=await r.json().catch(()=>({}));
     if(!r.ok||!d.risposta) throw new Error(d.errore||("errore "+r.status));
     invio=null; invioVoce=null; io.chat=io.chat||[]; if(daVoce) daVoce.voce.mandato=true; else io.chat.push({ruolo:"tu",testo}); io.chat.push({ruolo:"io",testo:d.risposta,...(d.documenti&&d.documenti.length?{documenti:d.documenti}:{})});
@@ -1563,7 +1571,7 @@ async function suonaVoce(v,g,riga){
   a.play().catch(()=>{ if(suona===s) fermaSuono(); });
 }
 // il contenuto di una bolla-vocale: ▶︎, barra, durata; sotto la trascrizione («▸ testo») o il motivo con «riprova»
-function riempiVoce(b,m,viva){
+function riempiVoce(b,m){
   const v=m.voce; b.classList.add("voce");
   const riga=document.createElement("div"); riga.className="voce-riga";
   const g=document.createElement("button"); g.type="button"; g.className="voce-gioca"; g.textContent="▶︎"; g.setAttribute("aria-label","Riascolta il vocale"); g.dataset.voce=v.id;
@@ -1573,7 +1581,7 @@ function riempiVoce(b,m,viva){
   g.addEventListener("click",()=>suonaVoce(v,g,riga));
   if(suona&&suona.id===v.id){ Object.assign(suona,{g,barra:barra.firstChild,dur}); g.textContent="❚❚"; }   // la chat si è ridisegnata mentre suonava
   const nota=(t,err)=>{ const n=document.createElement("small"); n.className="voce-nota"+(err?" errore":""); n.textContent=t; b.appendChild(n); };
-  const riprova=()=>{ if(!viva) return; const r=document.createElement("button"); r.type="button"; r.className="voce-riprova"; r.textContent="riprova"; r.addEventListener("click",()=>riprovaVoce(m)); b.appendChild(r); };
+  const riprova=()=>{ const r=document.createElement("button"); r.type="button"; r.className="voce-riprova"; r.textContent="riprova"; r.addEventListener("click",()=>riprovaVoce(m)); b.appendChild(r); };
   if(!m.testo){
     if(vociInCorso.has(v.id)) nota("trascrivo…");
     else { nota("non ho capito il vocale: "+(v.errore||"non l'ho trascritto"),true); riprova(); }
@@ -1587,7 +1595,7 @@ function riempiVoce(b,m,viva){
   b.append(ap,tx);
   if(!v.mandato && invioVoce!==m){ nota("non è partito",true); riprova(); }
 }
-function bollaVoce(m){ const b=bolla(m.ruolo,""); riempiVoce(b,m,true); scorriChat(); return b; }
+function bollaVoce(m){ const b=bolla(m.ruolo,""); riempiVoce(b,m); scorriChat(); return b; }
 // ══ IL PRIMO INCONTRO ══ 22/10, JJ: «quando viene usato per la prima volta è proprio quando deve colpire per la sua
 // utilità… non ha neanche proposto niente, deve farlo». Finito il sondaggio (o alla prima apertura dopo, per chi l'aveva già
 // fatto), l'assistente vero prende quello che hai scritto e risponde subito: cosa fa per te da oggi, e il primo passo.
@@ -1619,7 +1627,7 @@ async function parla(testo, daDove){
   try{
     const r=await fetch(INVIO.replace("/risposta","/parla"),{method:"POST",headers:{"Content-Type":"application/json"},
       body:JSON.stringify({chi:io.id, nome_assistente:io.nome||"", tema:io.tema||"tech", tuo:io.tuo||"", da_dove:daDove||"chat",
-        profilo:{mestiere:io.mestiere||"", tempo:io.tempo||"", conosciute:io.conosciute||{}}, testo,
+        profilo:{mestiere:io.mestiere||"", tempo:io.tempo||"", conosciute:io.conosciute||{}}, testo:conContesto(testo),
         // io.mail c'e' solo se l'ha data con la spunta: la risposta va anche li'
         ...(io.mail ? {contatto:{nome:io.tuo||"", societa:"", mail:io.mail, consenso:true}} : {})})});
     const d=await r.json().catch(()=>({}));
@@ -1663,8 +1671,8 @@ async function controllaRisposte(){
   }catch(_){ return 0; }
 }
 $("manda-chat").addEventListener("click", ()=>{ if($("manda-chat").dataset.modo==="mic") return; const t=$("scrivi").value; $("scrivi").value=""; aggiornaBarra(); parla(t,"chat"); });
-// i tre tasti della chat vuota (26/10): mandano subito all'assistente, come se la persona l'avesse scritto
-document.querySelectorAll("#prove-chat .prova-chat").forEach(b=>b.addEventListener("click", ()=>parla(b.textContent.trim(),"chat")));
+// i tre tasti della chat vuota: la risposta è subito lì (TASTI_CHAT), niente chiamata
+document.querySelectorAll("#prove-chat .prova-chat").forEach(b=>b.addEventListener("click", ()=>tastoChat(b.textContent.trim())));
 // Con Nova accesa la frase «non rispondo in automatico» sarebbe falsa: si chiede alla porta come stanno le cose, e si dice
 // quella vera (senza account; con l'account la frase giusta c'è già, più sotto).
 if(INVIO) fetch(INVIO.replace("/risposta","/nova")).then(r=>r.ok?r.json():{}).then(d=>{ if(!d.acceso||localStorage.getItem("jjavis-conto")) return;
@@ -2124,7 +2132,7 @@ function vaiA(nome, verso, bersaglio){
     const pn=$("p-"+nome); void pn.offsetWidth; pn.classList.add(v>0?"da-destra":"da-sinistra"); }
   centraScheda(nome, !!prima);
   schedaAttiva=nome; document.body.dataset.scheda=nome;
-  if(nome!=="inizia"){ chiudiPannelli(); document.body.classList.remove("resto-aperto"); }   // si torna sempre sulla chat
+  if(nome!=="inizia"){ chiudiConv(); document.body.classList.remove("resto-aperto"); }   // si torna sempre sulla chat
   if(nome==="inizia"){ $("s-inizia").classList.remove("nuovo"); $("apri-conv").classList.remove("nuovo"); aggiornaChat(); requestAnimationFrame(scorriChat); requestAnimationFrame(segnaLette); }
   aggiornaProfilo();
   if(bersaglio) requestAnimationFrame(()=>bersaglio.scrollIntoView({block:"start"}));
@@ -2149,7 +2157,7 @@ barra.addEventListener("scroll", bordiBarra, {passive:true});
 window.addEventListener("resize", ()=>{ bordiBarra(); if(schedaAttiva) centraScheda(schedaAttiva,false); });
 function daIndirizzo(){
   const h=decodeURIComponent(location.hash.slice(1));
-  chiudiPannelli();
+  chiudiConv();
   if(!h){ if(document.body.classList.contains("chat-sola")){ chiudiResto(); vaiA("inizia"); } else vaiA(schedaAttiva||"inizia"); return; }
   if(SCHEDE.includes(h)){ if(h==="inizia") chiudiResto(); vaiA(h); return; }
   const el=document.getElementById(h); const pn=el&&el.closest(".pannello");
@@ -2176,7 +2184,7 @@ window.addEventListener("popstate", daIndirizzo);
   let x0=0,y0=0,t0=0,vale=false;
   const zona=document.querySelector("main");
   zona.addEventListener("touchstart", e=>{ if(e.touches.length!==1){ vale=false; return; }
-    vale=!e.target.closest("input,textarea,select,iframe,video,.chat,.chat-area,#conversazioni,#lettura-conv,.video-elenco,.cursore");
+    vale=!e.target.closest("input,textarea,select,iframe,video,.chat,.chat-area,#conversazioni,.video-elenco,.cursore");
     x0=e.touches[0].clientX; y0=e.touches[0].clientY; t0=Date.now(); }, {passive:true});
   zona.addEventListener("touchend", e=>{ if(!vale) return; vale=false;
     const t=e.changedTouches[0], dx=t.clientX-x0, dy=t.clientY-y0;
