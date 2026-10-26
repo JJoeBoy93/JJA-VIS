@@ -248,32 +248,33 @@ body.con-nome[data-scheda="inizia"] #conosci-domanda{font-size:20px!important;ma
 .doc-chat{display:block;margin:4px 0 10px auto;padding:8px 12px;border:1px solid var(--accento,#00B4D8);background:transparent;color:inherit;font:inherit;cursor:pointer;border-radius:8px}
 .foto-chat{flex:none;min-width:48px;font-size:22px;background:transparent;border:1px solid var(--linea,#3a3a3a);color:inherit;cursor:pointer}
 /* ══ LA CHAT È LA PAGINA — 26 ottobre ══ JJ: «quando apro, non c'è il papiro sopra; se voglio vedere una sessione vecchia ho la
-   scheda con le chat». Chi è di casa (body.chat-sola) apre sulla chat a tutto schermo: in alto una barra sottile (☰ · nome · ＋),
-   sotto la conversazione, in basso la casella. Il resto della scheda (benvenuto, domande del giorno) non sta sopra la chat:
-   si raggiunge dal pannello ☰ (body.resto-aperto). L'altezza segue la tastiera: lo script mette in --vv-top e --vv-h quello
-   che si vede davvero (visualViewport), così la casella non finisce mai sotto; senza, vale 100dvh. */
-.chat-barra,#chat-vuota,#lettura-conv,#torna-chat{display:none}
-body.chat-sola[data-scheda="inizia"]:not(.resto-aperto) .testa{display:none}
+   scheda con le chat». Chi è di casa (body.chat-sola) apre sulla chat a tutto schermo, sotto la testata di sempre (globo e nome a
+   sinistra; a destra «＋» e «☰»): la conversazione e, in basso, la casella. La barra delle schede non c'è più: il «☰» apre il
+   menù di tutto (conversazioni, Città, le schede). Il benvenuto e le domande del giorno si aprono dal menù (body.resto-aperto).
+   L'altezza segue la tastiera: lo script mette in --vv-top e --vv-h quello che si vede davvero (visualViewport) e in
+   --alto-testa quanto è alta la testata, così la casella non finisce mai sotto; senza, vale 100dvh. */
+#torna-chat,#chat-vuota,#lettura-conv,.testa-tasti{display:none}
+body.chat-sola .testa-tasti{display:flex;align-items:center;gap:2px;margin-left:auto;flex:0 0 auto}
+body.chat-sola .in-citta,body.chat-sola .schede{display:none}   /* la Città e le schede stanno nel menù ☰ */
+body.chat-sola main{padding-bottom:28px}
 body.chat-sola[data-scheda="inizia"]:not(.resto-aperto) main{padding:0}
 body.chat-sola:not(.resto-aperto) #p-inizia{animation:none}   /* un pannello che si muove porterebbe con sé la chat fissa */
 body.chat-sola:not(.resto-aperto) #p-inizia>:not(#resto),body.chat-sola:not(.resto-aperto) #resto>:not(#parla){display:none}
 body.chat-sola.resto-aperto #parla{display:none}
 body.resto-aperto #torna-chat{display:inline-block;margin:4px 0 10px;background:none;border:0;border-bottom:1px solid var(--accento);padding:0 0 3px;cursor:pointer}
-body.chat-sola:not(.resto-aperto) #parla{position:fixed;left:0;right:0;z-index:18;top:var(--vv-top,0px);
-  height:calc(var(--vv-h,100dvh) - var(--sotto-chat,var(--alto-schede,72px)));
+body.chat-sola:not(.resto-aperto) #parla{position:fixed;left:0;right:0;bottom:0;z-index:18;
+  top:calc(var(--vv-top,0px) + var(--testa-su,var(--alto-testa,72px)));
+  height:calc(var(--vv-h,100dvh) - var(--testa-su,var(--alto-testa,72px)));
   display:flex;flex-direction:column;margin:0;padding:0;border:0;border-radius:0;background:transparent}
-html.tastiera{--sotto-chat:0px}   /* con la tastiera aperta le schede stanno sotto di lei: lo spazio è tutto della chat */
+html.tastiera{--testa-su:0px}   /* con la tastiera aperta la testata si toglie: lo spazio è tutto della chat */
+html.tastiera body.chat-sola[data-scheda="inizia"]:not(.resto-aperto) .testa{display:none}
 body.chat-sola #parla::before,body.chat-sola #parla::after{display:none}
-body.chat-sola:not(.resto-aperto) .chat-barra{display:flex;align-items:center;gap:6px;flex:0 0 auto;min-height:52px;
-  padding:calc(env(safe-area-inset-top,0px) + 4px) max(8px,calc((100% - 560px)/2 + 8px)) 4px;
-  background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-bottom:1px solid var(--bordo)}
-.chat-nome{flex:1;min-width:0;margin:0;text-align:center;font:700 21px/1.2 var(--f-titoli);letter-spacing:.06em;
-  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-shadow:0 0 14px color-mix(in srgb,var(--accento) 45%,transparent)}
-.chat-tasto{flex:0 0 auto;min-width:48px;height:44px;padding:0 10px;display:inline-flex;align-items:center;justify-content:center;gap:6px;
-  background:transparent;border:1px solid transparent;color:var(--testo);font:700 24px/1 var(--f-testo);cursor:pointer}
+.chat-tasto{flex:0 0 auto;min-width:48px;height:44px;padding:0 10px;display:inline-flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;
+  position:relative;background:transparent;border:1px solid transparent;color:var(--testo);font:700 24px/1 var(--f-testo);cursor:pointer}
 .chat-tasto:hover,.chat-tasto:active{border-color:var(--accento);background:color-mix(in srgb,var(--accento) 12%,transparent)}
-.chat-tasto small{font:600 12px/1.1 var(--f-testo);color:var(--tenue);max-width:78px;text-align:right}
+.chat-tasto small{font:600 11px/1.05 var(--f-testo);color:var(--tenue);max-width:74px;text-align:center}
 .chat-tasto.grigio,.conv-nuova.grigio{opacity:.5;cursor:not-allowed;border-color:transparent;background:transparent}
+.chat-tasto.nuovo::before,.menu-scheda.nuovo::after{content:"";position:absolute;top:6px;right:6px;width:9px;height:9px;border-radius:50%;background:var(--oro);box-shadow:0 0 8px var(--oro)}
 .chat-area{display:none}
 body.chat-sola:not(.resto-aperto) .chat-area{display:flex;flex-direction:column;flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;
   -webkit-overflow-scrolling:touch;padding:12px max(16px,calc((100% - 560px)/2 + 16px)) 8px}
@@ -290,39 +291,45 @@ body.chat-sola:not(.resto-aperto) #parla>.anteprima-foto{flex:0 0 auto;margin:6p
 body.chat-sola:not(.resto-aperto) #esito-chat{flex:0 0 auto;margin:0;padding:4px max(16px,calc((100% - 560px)/2 + 16px)) 0;font-size:14px}
 body.chat-sola #esito-chat:empty{display:none}
 body.chat-sola:not(.resto-aperto) .barra-chat{flex:0 0 auto;display:flex;gap:8px;align-items:flex-end;
-  padding:8px max(16px,calc((100% - 560px)/2 + 16px));
+  padding:8px max(16px,calc((100% - 560px)/2 + 16px)) calc(8px + env(safe-area-inset-bottom,0px));
   background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-top:1px solid var(--bordo)}
 body.chat-sola .barra-chat textarea{flex:1;min-height:48px;max-height:120px;margin:0;resize:none;font-size:16px}
 body.chat-sola .barra-chat .invia{width:auto;margin:0;padding:0 18px;height:48px;font-size:15px}
-/* la scheda delle conversazioni: scorre da sinistra, sopra la chat (e lascia in vista le schede in basso) */
-#conv-velo,#conversazioni{position:absolute;visibility:hidden}
-#conv-velo{inset:0;z-index:5;background:rgba(0,0,0,.5);opacity:0;transition:opacity .22s ease-out,visibility 0s .22s}
-#conversazioni{top:0;bottom:0;left:0;z-index:6;width:min(88%,360px);display:flex;flex-direction:column;background:var(--panel);
+/* il menù di tutto (☰): scorre da sinistra sopra la pagina, da qualunque scheda */
+#conv-velo,#conversazioni{position:fixed;visibility:hidden}
+#conv-velo{inset:0;z-index:30;background:rgba(0,0,0,.5);opacity:0;transition:opacity .22s ease-out,visibility 0s .22s}
+#conversazioni{top:0;bottom:0;left:0;z-index:31;width:min(88%,380px);display:flex;flex-direction:column;background:var(--panel);
   border-right:1px solid var(--accento);transform:translateX(-102%);transition:transform .22s ease-out,visibility 0s .22s}
 #conv-velo.aperta,#conversazioni.aperta{visibility:visible;transition-delay:0s}
 #conv-velo.aperta{opacity:1}
 #conversazioni.aperta{transform:none}
 @media (prefers-reduced-motion:reduce){#conv-velo,#conversazioni{transition:none}}
-.conv-testa{display:flex;align-items:center;gap:8px;padding:calc(env(safe-area-inset-top,0px) + 8px) 8px 8px 16px;border-bottom:1px solid var(--bordo)}
+.conv-testa{display:flex;align-items:center;gap:8px;flex:0 0 auto;padding:calc(env(safe-area-inset-top,0px) + 8px) 8px 8px 16px;border-bottom:1px solid var(--bordo)}
 .conv-testa h3{flex:1;margin:0;font:700 20px/1.2 var(--f-titoli)}
+.conv-testa .chat-tasto{flex-direction:row;font-size:16px}
+.conv-scorri{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding-bottom:calc(12px + env(safe-area-inset-bottom,0px))}
 .conv-nuova{display:flex;align-items:center;justify-content:space-between;gap:8px;width:calc(100% - 24px);margin:12px;padding:13px 14px;text-align:left;
   font:700 17px/1.2 var(--f-testo);color:var(--testo);cursor:pointer;background:color-mix(in srgb,var(--accento) 14%,transparent);border:1px solid var(--accento)}
 .conv-nuova small{font:600 12px/1.1 var(--f-testo);color:var(--tenue)}
-.conv-elenco{list-style:none;margin:0;padding:0;flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain}
+.conv-elenco{list-style:none;margin:0;padding:0}
 .riga-conv{display:flex;align-items:stretch;border-top:1px solid var(--bordo)}
 .riga-apri{flex:1;min-width:0;display:block;text-align:left;padding:11px 8px 11px 16px;background:none;border:0;color:var(--testo);font:500 16px/1.3 var(--f-testo);cursor:pointer}
 .riga-apri:hover,.riga-apri:active{background:color-mix(in srgb,var(--accento) 10%,transparent)}
 .riga-titolo{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .riga-quando{display:block;margin-top:2px;font-size:13px;color:var(--tenue)}
 .riga-conv .via{flex:0 0 auto;min-width:48px;background:transparent;border:0;color:var(--tenue);cursor:pointer;font-size:16px}
-.conv-vuoto{margin:14px 16px}
-.conv-piedi{display:flex;flex-direction:column;gap:4px;padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--bordo);font-size:15px}
-.conv-piedi a{padding:6px 0}
+.conv-vuoto{margin:0 16px 12px}
+.menu-voce,.menu-scheda{display:flex;align-items:center;gap:14px;position:relative;width:100%;padding:13px 16px;border:0;border-top:1px solid var(--bordo);
+  background:none;color:var(--testo);font:600 17px/1.2 var(--f-testo);text-align:left;text-decoration:none;cursor:pointer}
+.menu-voce:hover,.menu-scheda:hover,.menu-voce:active,.menu-scheda:active{background:color-mix(in srgb,var(--accento) 10%,transparent)}
+.menu-scheda[aria-current="true"]{color:var(--accento)}
+.menu-scheda svg{flex:0 0 auto;width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.menu-voce span{flex:0 0 22px;text-align:center}
+.menu-piede{display:block;padding:12px 16px;border-top:1px solid var(--bordo);font-size:15px}
 /* una conversazione vecchia, a tutto schermo e in sola lettura */
-body.chat-sola:not(.resto-aperto) #lettura-conv{display:flex;position:absolute;inset:0;z-index:7;flex-direction:column;background:var(--bg)}
-#lettura-conv[hidden]{display:none}
+body.chat-sola #lettura-conv{display:flex;position:fixed;inset:0;z-index:32;flex-direction:column;background:var(--bg)}
 .lettura-barra{display:flex;align-items:center;gap:6px;flex:0 0 auto;min-height:52px;padding:calc(env(safe-area-inset-top,0px) + 4px) 8px 4px;border-bottom:1px solid var(--bordo)}
-.lettura-barra .chat-tasto{font-size:17px}
+.lettura-barra .chat-tasto{flex-direction:row;font-size:17px}
 .lettura-barra h3{flex:1;min-width:0;margin:0;font:700 18px/1.2 var(--f-titoli);text-align:center;padding-right:48px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .lettura-corpo{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:12px max(16px,calc((100% - 560px)/2 + 16px))}
 .lettura-corpo .chat{margin:0;max-height:none;overflow:visible}
@@ -431,6 +438,23 @@ html.di-casa #o1{display:none}
     </div>
   </div>
 </section>
+<!-- 26/10, JJ: il «☰» apre il menù di tutto: le conversazioni, la Città e una voce per ogni scheda (la barra in basso non c'è più) -->
+<div id="conv-velo"></div>
+<aside id="conversazioni" role="dialog" aria-modal="true" aria-labelledby="conv-titolo">
+  <div class="conv-testa"><h3 id="conv-titolo">Menù</h3><button type="button" id="chiudi-conv" class="chat-tasto">✕ Chiudi</button></div>
+  <div class="conv-scorri">
+    <button type="button" id="conv-nuova" class="conv-nuova"><span>＋ Nuova conversazione</span><small id="conv-nuova-aspetto" hidden>aspetto la risposta</small></button>
+    <ul id="conv-elenco" class="conv-elenco"></ul>
+    <p class="piccolo conv-vuoto" id="conv-vuoto">Qui compaiono le conversazioni finite.</p>
+    <a class="menu-voce" id="menu-citta" href="citta.html"><span aria-hidden="true">🏙</span> Città</a>
+    <div id="menu-schede"></div>
+    <a class="menu-piede" id="conv-resto" href="#benvenuto">Il benvenuto e le domande del giorno</a>
+  </div>
+</aside>
+<div id="lettura-conv" role="dialog" aria-modal="true" aria-labelledby="lettura-titolo" hidden>
+  <div class="lettura-barra"><button type="button" id="lettura-indietro" class="chat-tasto">← Indietro</button><h3 id="lettura-titolo"></h3></div>
+  <div class="lettura-corpo" id="lettura-corpo"><div class="chat" id="lettura-chat"></div></div>
+</div>
 <nav class="schede" role="tablist" aria-label="Sezioni">
   <button role="tab" id="s-inizia" data-scheda="inizia" aria-controls="p-inizia" aria-selected="false"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M4.5 9.5h15M4.5 14.5h15M12 4c2.5 2.3 2.5 13.7 0 16M12 4c-2.5 2.3-2.5 13.7 0 16"/></svg><span class="et" id="et-inizia">Inizia</span></button>
   <button role="tab" id="s-chi-sono" data-scheda="chi-sono" aria-controls="p-chi-sono" aria-selected="false"><svg viewBox="0 0 24 24"><path d="M12 3l2.4 5.2 5.6.6-4.2 3.8 1.2 5.6L12 15.4 7 18.2l1.2-5.6L4 8.8l5.6-.6z"/></svg><span class="et">Chi sono</span></button>
@@ -448,6 +472,11 @@ html.di-casa #o1{display:none}
     <canvas id="globo" width="400" height="400" aria-hidden="true"></canvas>
     <div class="nome"><span id="nome-testata">JJA-VIS</span><small id="sotto-testata">il tuo nuovo assistente personale</small></div>
     <a class="in-citta" href="citta.html" aria-label="Entra nella città di JJA-VIS">🏙 Città</a>
+    <!-- 26/10, JJ: «a destra il ☰, e accanto, alla sua sinistra, il ＋». Per chi è di casa (body.chat-sola) -->
+    <div class="testa-tasti">
+      <button type="button" id="nuova-conv" class="chat-tasto" aria-label="Nuova conversazione"><span aria-hidden="true">＋</span><small id="nuova-aspetto" hidden>aspetto la risposta</small></button>
+      <button type="button" id="apri-conv" class="chat-tasto" aria-label="Il menù" aria-haspopup="dialog" aria-controls="conversazioni" aria-expanded="false">☰</button>
+    </div>
   </header>
 
 <div class="pannello" id="p-inizia" role="tabpanel" aria-labelledby="s-inizia">
@@ -591,12 +620,7 @@ html.di-casa #o1{display:none}
 
 
   <section class="etichetta" id="parla" aria-labelledby="tp">
-    <!-- 26/10, JJ: «come la chat di Claude in un progetto». Barra sottile: le conversazioni, il nome, una nuova -->
-    <div class="chat-barra" id="chat-barra">
-      <button type="button" id="apri-conv" class="chat-tasto" aria-label="Le conversazioni" aria-haspopup="dialog" aria-controls="conversazioni" aria-expanded="false">☰</button>
-      <h2 id="tp" class="chat-nome"><span class="chi">JJA-VIS</span></h2>
-      <button type="button" id="nuova-conv" class="chat-tasto" aria-label="Nuova conversazione"><small id="nuova-aspetto" hidden>aspetto la risposta</small><span aria-hidden="true">＋</span></button>
-    </div>
+    <h2 id="tp" class="nascosto">Chat con <span class="chi">JJA-VIS</span></h2>
     <div class="chat-area" id="chat-area">
       <div id="chat-vuota" hidden>
         <p class="saluto-vuoto" id="saluto-vuoto">Ciao<span id="vuoto-tuo"></span>, sono <span class="chi">JJA-VIS</span>. Cosa facciamo oggi?</p>
@@ -618,19 +642,6 @@ html.di-casa #o1{display:none}
       <input type="file" id="foto-file" accept="image/*,application/pdf" hidden>
       <textarea id="scrivi" maxlength="800" placeholder="Scrivimi…"></textarea>
       <button class="invia" id="manda-chat">Manda</button>
-    </div>
-    <!-- le conversazioni: una scheda che scorre da sinistra sopra la chat; toccata una riga, si legge a tutto schermo -->
-    <div id="conv-velo"></div>
-    <aside id="conversazioni" role="dialog" aria-modal="true" aria-labelledby="conv-titolo">
-      <div class="conv-testa"><h3 id="conv-titolo">Conversazioni</h3><button type="button" id="chiudi-conv" class="chat-tasto" aria-label="Chiudi">✕</button></div>
-      <button type="button" id="conv-nuova" class="conv-nuova"><span>＋ Nuova conversazione</span><small id="conv-nuova-aspetto" hidden>aspetto la risposta</small></button>
-      <ul id="conv-elenco" class="conv-elenco"></ul>
-      <p class="piccolo conv-vuoto" id="conv-vuoto">Qui compaiono le conversazioni finite.</p>
-      <div class="conv-piedi"><a href="#benvenuto" id="conv-resto">Il benvenuto e le domande del giorno</a><a href="citta.html">🏙 Entra nella città</a></div>
-    </aside>
-    <div id="lettura-conv" role="dialog" aria-modal="true" aria-labelledby="lettura-titolo" hidden>
-      <div class="lettura-barra"><button type="button" id="lettura-indietro" class="chat-tasto">← Indietro</button><h3 id="lettura-titolo"></h3></div>
-      <div class="lettura-corpo" id="lettura-corpo"><div class="chat" id="lettura-chat"></div></div>
     </div>
   </section>
 
@@ -1252,8 +1263,19 @@ function disegnaConversazioni(){
     via.addEventListener("click",()=>{ if(!confirm("Cancello questa conversazione?")) return; io.viste=[...new Set([...(io.viste||[]), ...(c.messaggi||[]).filter(m=>m.id).map(m=>m.id)])].slice(-300); io.thread=(io.thread||[]).filter(x=>x!==c); salva(); disegnaConversazioni(); });
     li.append(ap,via); el.appendChild(li); });
 }
-// la scheda delle conversazioni
-function apriConv(){ disegnaConversazioni(); aggiornaChat(); $("conv-velo").classList.add("aperta"); $("conversazioni").classList.add("aperta"); $("apri-conv").setAttribute("aria-expanded","true");
+// le voci delle schede: una per ognuna della barra (stessa icona), «Chat» al posto del nome dell'assistente
+function disegnaSchede(){
+  const casa=$("menu-schede"); casa.textContent="";
+  document.querySelectorAll(".schede button[data-scheda]").forEach(t=>{ const k=t.dataset.scheda;
+    const b=document.createElement("button"); b.type="button"; b.className="menu-scheda"; b.dataset.vai=k;
+    const ic=t.querySelector("svg"); if(ic) b.appendChild(ic.cloneNode(true));
+    const et=document.createElement("span"); et.textContent=k==="inizia"?"Chat":t.querySelector(".et").textContent; b.appendChild(et);
+    if(k===schedaAttiva) b.setAttribute("aria-current","true");
+    if(k==="inizia" && $("s-inizia").classList.contains("nuovo")) b.classList.add("nuovo");
+    casa.appendChild(b); });
+}
+// il menù di tutto
+function apriConv(){ disegnaConversazioni(); disegnaSchede(); aggiornaChat(); $("conv-velo").classList.add("aperta"); $("conversazioni").classList.add("aperta"); $("apri-conv").setAttribute("aria-expanded","true");
   $("chiudi-conv").focus({preventScroll:true}); }
 function chiudiConv(){ const era=$("conversazioni").classList.contains("aperta"); $("conv-velo").classList.remove("aperta"); $("conversazioni").classList.remove("aperta"); $("apri-conv").setAttribute("aria-expanded","false");
   if(era && $("conversazioni").contains(document.activeElement)) $("apri-conv").focus({preventScroll:true}); }
@@ -1264,19 +1286,27 @@ function leggiConv(c){
 }
 function chiudiLettura(){ $("lettura-conv").hidden=true; $("lettura-chat").textContent=""; }
 function chiudiPannelli(){ chiudiLettura(); chiudiConv(); }
-function tornaDallaLettura(){ chiudiPannelli(); $("apri-conv").focus({preventScroll:true}); requestAnimationFrame(scorriChat); }
+// torna sulla chat, da qualunque scheda (il menù si apre ovunque)
+function allaChat(){ chiudiPannelli(); chiudiResto(); if(schedaAttiva!=="inizia"){ if(location.hash!=="#inizia") history.pushState(null,"","#inizia"); vaiA("inizia"); }
+  $("apri-conv").focus({preventScroll:true}); requestAnimationFrame(scorriChat); }
+function tornaDallaLettura(){ allaChat(); }
 // «＋»: la conversazione in corso va nelle precedenti e la chat riparte vuota. Con una risposta ancora in attesa non si può:
 // la risposta arriverebbe in una conversazione che non è più quella
 function nuovaConv(){
   if(rispostaInAttesa()) return;
   if((io.chat||[]).length) archiviaChat();
-  chiudiPannelli(); ridisegnaChat(); disegnaConversazioni(); requestAnimationFrame(scorriChat);
+  ridisegnaChat(); disegnaConversazioni(); allaChat();
 }
 $("apri-conv").addEventListener("click", apriConv);
 $("chiudi-conv").addEventListener("click", ()=>{ chiudiConv(); });
 $("conv-velo").addEventListener("click", chiudiConv);
 $("nuova-conv").addEventListener("click", nuovaConv);
 $("conv-nuova").addEventListener("click", nuovaConv);
+// una voce per scheda: il menù si chiude e si apre quella scheda
+$("menu-schede").addEventListener("click", e=>{ const b=e.target.closest(".menu-scheda"); if(!b) return;
+  const k=b.dataset.vai; chiudiPannelli(); if(k==="inizia"){ allaChat(); return; }
+  if(location.hash!=="#"+k) history.pushState(null,"","#"+k); vaiA(k); });
+$("menu-citta").addEventListener("click", chiudiConv);
 $("lettura-indietro").addEventListener("click", tornaDallaLettura);
 document.addEventListener("keydown", e=>{ if(e.key!=="Escape") return;
   if(!$("lettura-conv").hidden) tornaDallaLettura(); else if($("conversazioni").classList.contains("aperta")) chiudiConv(); });
@@ -1286,7 +1316,12 @@ function chiudiResto(){ if(!document.body.classList.contains("resto-aperto")) re
 $("torna-chat").addEventListener("click", chiudiResto);
 // la tastiera: la chat occupa quello che si vede davvero, e la casella non finisce mai sotto
 (function(){
-  const v=window.visualViewport, r=document.documentElement; if(!v) return;
+  const r=document.documentElement, testa=document.querySelector(".testa");
+  const misuraTesta=()=>{ const h=testa.offsetHeight; if(h>0) r.style.setProperty("--alto-testa", h+"px"); };
+  misuraTesta(); window.addEventListener("resize", misuraTesta);
+  if(window.ResizeObserver) new ResizeObserver(misuraTesta).observe(testa);
+  if(document.fonts&&document.fonts.ready) document.fonts.ready.then(misuraTesta);
+  const v=window.visualViewport; if(!v) return;
   let era=false;
   const misura=()=>{ if(v.scale>1.02){ r.style.removeProperty("--vv-h"); r.style.removeProperty("--vv-top"); r.classList.remove("tastiera"); era=false; return; }   // un pizzico di zoom: vale lo schermo intero
     r.style.setProperty("--vv-h", v.height+"px"); r.style.setProperty("--vv-top", v.offsetTop+"px");
@@ -1867,7 +1902,7 @@ const inAttesa=()=>(io.chat||[]).some(m=>m.attesa);
 function avvisaRisposta(n){
   if(!n) return;
   $("esito-chat").className="avviso"; $("esito-chat").textContent = n>1 ? `Ti ho risposto a ${n} messaggi.` : "Ti ho risposto.";
-  if(schedaAttiva!=="inizia") $("s-inizia").classList.add("nuovo");
+  if(schedaAttiva!=="inizia"){ $("s-inizia").classList.add("nuovo"); $("apri-conv").classList.add("nuovo"); }
 }
 async function guardaRisposte(){ const n=await controllaRisposte(); avvisaRisposta(n); return n; }
 function prossimoGiro(){
@@ -1900,7 +1935,7 @@ function vaiA(nome, verso, bersaglio){
   centraScheda(nome, !!prima);
   schedaAttiva=nome; document.body.dataset.scheda=nome;
   if(nome!=="inizia"){ chiudiPannelli(); document.body.classList.remove("resto-aperto"); }   // si torna sempre sulla chat
-  if(nome==="inizia"){ $("s-inizia").classList.remove("nuovo"); aggiornaChat(); requestAnimationFrame(scorriChat); requestAnimationFrame(segnaLette); }
+  if(nome==="inizia"){ $("s-inizia").classList.remove("nuovo"); $("apri-conv").classList.remove("nuovo"); aggiornaChat(); requestAnimationFrame(scorriChat); requestAnimationFrame(segnaLette); }
   aggiornaProfilo();
   if(bersaglio) requestAnimationFrame(()=>bersaglio.scrollIntoView({block:"start"}));
   else if(nome==="inizia" && document.body.classList.contains("chat-sola")){ window.scrollTo(0,0); requestAnimationFrame(scorriChat); }
@@ -1924,7 +1959,8 @@ barra.addEventListener("scroll", bordiBarra, {passive:true});
 window.addEventListener("resize", ()=>{ bordiBarra(); if(schedaAttiva) centraScheda(schedaAttiva,false); });
 function daIndirizzo(){
   const h=decodeURIComponent(location.hash.slice(1));
-  if(!h){ vaiA(schedaAttiva||"inizia"); return; }
+  chiudiPannelli();
+  if(!h){ if(document.body.classList.contains("chat-sola")){ chiudiResto(); vaiA("inizia"); } else vaiA(schedaAttiva||"inizia"); return; }
   if(SCHEDE.includes(h)){ if(h==="inizia") chiudiResto(); vaiA(h); return; }
   const el=document.getElementById(h); const pn=el&&el.closest(".pannello");
   // nella scheda Inizia, per chi è di casa, la chat è la pagina: #parla la mostra, il resto (benvenuto, domande) si apre da qui

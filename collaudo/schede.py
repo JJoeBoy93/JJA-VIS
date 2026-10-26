@@ -35,6 +35,10 @@ async def instrada(route):
             return await route.fulfill(body=json.dumps({"risposte":RISPOSTE}), content_type="application/json")
         return await route.fulfill(body='[]', content_type="application/json")
     await route.fulfill(status=404, body="")
+async def vai_a(pg, k):
+    """26/10: per chi è di casa la barra delle schede in basso non c'è più: le schede si raggiungono dal menù ☰ («Chat» è la prima)."""
+    await pg.click("#apri-conv"); await pg.wait_for_timeout(450)
+    await pg.click(f'#menu-schede .menu-scheda[data-vai="{k}"]'); await pg.wait_for_timeout(350)
 async def apri_resto(pg):
     """26/10: chi è di casa apre sulla chat; il benvenuto e le domande del giorno stanno dietro il collegamento nel pannello ☰."""
     await pg.click("#apri-conv"); await pg.wait_for_timeout(400)
@@ -170,14 +174,16 @@ async def main():
         await pg4.goto(BASE+"#parla"); await pg4.wait_for_timeout(300)
         await pg4.fill("#scrivi","Mi faresti il sito della mia azienda?"); await pg4.click("#manda-chat"); await pg4.wait_for_timeout(300)
         prima=len(conta_risposte)
-        await pg4.click("#s-chi-sono")
+        await vai_a(pg4, "chi-sono")   # 26/10: dal menù ☰, la barra delle schede non c'è più
         RISPOSTE.append({"id":"abc12345","domanda":"Mi faresti il sito della mia azienda?","risposta":"Sì, si può fare: lasciami la mail.","quando":"2026-09-26T10:00:00Z"})
         await pg4.clock.fast_forward(21000); await pg4.wait_for_timeout(400)
         ok(len(conta_risposte)>prima, "dopo 20 secondi chiede da sola")
         ok("si può fare" in await pg4.inner_text("#chat"), "la risposta è nella chat senza ricaricare")
-        ok(await pg4.evaluate("document.getElementById('s-inizia').classList.contains('nuovo')"), "il puntino sulla prima scheda, perché sei altrove")
-        await pg4.click("#s-inizia"); await pg4.wait_for_timeout(200)
-        ok(not await pg4.evaluate("document.getElementById('s-inizia').classList.contains('nuovo')"), "tornando, il puntino si spegne")
+        ok(await pg4.evaluate("document.getElementById('apri-conv').classList.contains('nuovo')"), "il puntino sul «☰», perché sei altrove")
+        await pg4.click("#apri-conv"); await pg4.wait_for_timeout(450)
+        ok(await pg4.evaluate("document.querySelector('#menu-schede .menu-scheda[data-vai=inizia]').classList.contains('nuovo')"), "e anche sulla voce «Chat» del menù")
+        await pg4.click('#menu-schede .menu-scheda[data-vai="inizia"]'); await pg4.wait_for_timeout(300)
+        ok(not await pg4.evaluate("document.getElementById('apri-conv').classList.contains('nuovo')"), "tornando alla chat, il puntino si spegne")
         dopo=len(conta_risposte); await pg4.clock.fast_forward(180000); await pg4.wait_for_timeout(300)
         ok(len(conta_risposte)==dopo, "niente più in attesa: smette di chiedere")
         RISPOSTE.clear(); await pg4.close()
@@ -251,7 +257,7 @@ async def main():
         print("── la barra scorre")
         pg7=await b.new_page(viewport={"width":320,"height":700}, has_touch=True, is_mobile=True)
         await pg7.route("**/*", instrada); pg7.on("pageerror", lambda e: errori.append(str(e)))
-        await pg7.add_init_script("localStorage.setItem('jjavis-io', JSON.stringify({id:'c1b2c3d4e5f60718',nome:'Nova',inviato:true}))")
+        await pg7.add_init_script("localStorage.setItem('jjavis-io', JSON.stringify({id:'c1b2c3d4e5f60718',nome:'Nova'}))")   # senza il sondaggio mandato: la barra delle schede c'è ancora (26/10: per chi è di casa la sostituisce il menù ☰)
         await pg7.goto(BASE+"#inizia"); await pg7.wait_for_timeout(300)
         m=await pg7.evaluate("(()=>{const c=document.querySelector('.schede');return {sw:c.scrollWidth,cw:c.clientWidth,min:Math.min(...[...c.children].map(b=>b.getBoundingClientRect().width)),tagliate:[...document.querySelectorAll('.schede .et')].filter(e=>e.scrollWidth>e.clientWidth+1).length,pagina:document.documentElement.scrollWidth}})()")
         ok(m["sw"]>m["cw"], f"a 320 px la barra scorre ({m['sw']} su {m['cw']} px)")
@@ -289,11 +295,16 @@ async def main():
         await pg2.goto(BASE+"#inizia"); await pg2.reload(); await pg2.wait_for_timeout(700)
         c=await pg2.evaluate("""(()=>{const b=document.querySelector('#barra-chat').getBoundingClientRect(), n=document.querySelector('.schede').getBoundingClientRect();
           const bolle=[...document.querySelectorAll('#chat .bolla')], u=bolle[bolle.length-1].getBoundingClientRect();
-          return {pos:getComputedStyle(document.querySelector('#parla')).position, sopra:Math.abs(b.bottom-n.top)<=1,
-            titolo:document.querySelector('#tp').innerText, ultima:u.bottom<=b.top+1 && u.top>=0,
+          return {pos:getComputedStyle(document.querySelector('#parla')).position, sopra:Math.abs(b.bottom-innerHeight)<=1,
+            titolo:document.querySelector('#nome-testata').innerText, globo:document.querySelector('#globo').getBoundingClientRect().width>=40, nav:n.height>0, ultima:u.bottom<=b.top+1 && u.top>=0,
             spiega:getComputedStyle(document.querySelector('.spiega-chat')).display!=='none'}})()""")
-        ok(c["pos"]=="fixed" and c["sopra"], "la chat è a tutto schermo e la casella sta in basso, appoggiata sopra le schede")
-        ok("Parla con" not in c["titolo"] and c["titolo"].strip()=="Nova", "in alto c'è il nome dell'assistente, non il titolo «Parla con»: la chat è la pagina")
+        ok(c["pos"]=="fixed" and c["sopra"] and not c["nav"], "la chat è a tutto schermo e la casella sta in fondo allo schermo: la barra delle schede non c'è più")
+        ok(c["globo"] and c["titolo"].strip()=="Nova", "in alto la testata: il globo e il nome dell'assistente, non il titolo «Parla con»: la chat è la pagina")
+        nav_=await pg2.evaluate("[...document.querySelectorAll('.schede button[data-scheda]')].map(b=>b.dataset.scheda)")
+        await pg2.click("#apri-conv"); await pg2.wait_for_timeout(450)
+        voci=await pg2.evaluate("[...document.querySelectorAll('#menu-schede .menu-scheda')].map(b=>b.dataset.vai)")
+        ok(voci==nav_ and len(voci)>=7, f"il menù ☰ ha una voce per ogni scheda della barra ({len(voci)})")
+        await pg2.click("#chiudi-conv"); await pg2.wait_for_timeout(450)
         ok(c["ultima"], "aprendo Nova si vede l'ultimo messaggio, sopra la casella")
         ok(c["spiega"] and "Non rispondo in automatico" in await pg2.inner_text("#spiega-chat"), "sotto la chat c'è la frase vera: senza account non rispondo in automatico")
         await apri_resto(pg2)
@@ -320,7 +331,7 @@ async def main():
         await pg2.reload(); await pg2.wait_for_timeout(500)
         # 2/10, JJ: letta e rientrato, la chat è pulita; la conversazione va nelle precedenti, col suo pulsante
         # (26/10: le precedenti stanno nella scheda ☰, e toccata una riga si legge a tutto schermo)
-        await pg2.click("#s-inizia"); await pg2.click("#apri-conv"); await pg2.wait_for_timeout(400)
+        await vai_a(pg2, "inizia"); await pg2.click("#apri-conv"); await pg2.wait_for_timeout(450)
         await pg2.click("#conv-elenco .riga-apri >> nth=0"); await pg2.wait_for_timeout(200)
         ok(await pg2.evaluate("document.querySelectorAll('#chat .bolla').length")==0 and await pg2.evaluate("document.querySelectorAll('#lettura-chat .azione').length")==1,
            "ricaricando, la chat è pulita e la risposta col pulsante è nelle conversazioni precedenti")

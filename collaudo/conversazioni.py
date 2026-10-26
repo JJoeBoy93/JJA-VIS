@@ -10,10 +10,11 @@ La porta finta rimanda SEMPRE tutte le risposte, come quella vera.
 
 26 ottobre 2026, JJ: «quando apro, non c'è il papiro sopra; se voglio vedere una sessione vecchia ho la scheda con le chat; ed è
 così che deve apparire». La chat è la pagina (come la chat di Claude in un progetto): chi è di casa apre sulla chat a tutto
-schermo, con ☰ (le conversazioni), il nome, ＋ (nuova); la chat vuota ha il saluto e tre tasti di prima prova; le vecchie stanno
-in una scheda che scorre da sinistra, non più in una fisarmonica sopra la chat. Le scene 1-3 sono quelle di ottobre (aggiornate
-al nuovo elenco); le scene 4-8 sono del 26/10, e la 4 ha la sua CONTROPROVA: rimettendo la chat sotto #benvenuto (com'era),
-la prima prova diventa rossa.
+schermo sotto la testata di sempre (il globo e il nome a sinistra, «＋» e «☰» a destra); la chat vuota ha il saluto e tre tasti di
+prima prova; il «☰» apre il menù di tutto (le conversazioni, la Città, una voce per ogni scheda: la barra delle schede in basso non
+c'è più), non più una fisarmonica sopra la chat. Le scene 1-3 sono quelle di ottobre (aggiornate al nuovo elenco); le scene 4-9
+sono del 26/10, e la 4 ha due CONTROPROVE: rimettendo la chat sotto #benvenuto (com'era) la prima prova diventa rossa, e col
+globo nascosto la prova della testata diventa rossa.
 """
 import asyncio, json, os, re, sys
 from playwright.async_api import async_playwright
@@ -45,14 +46,26 @@ async def instrada(route):
     return await route.abort()
 
 async def casa_in_vista(p):
-    """La casella per scrivere si vede senza scorrere (sopra le schede), e il benvenuto non c'è sopra la chat."""
+    """La casella per scrivere si vede senza scorrere (in fondo allo schermo), e il benvenuto non c'è sopra la chat."""
     d = await p.evaluate("""(()=>{
         const vis = e => !!e && e.getClientRects().length>0 && getComputedStyle(e).visibility!=="hidden";
-        const c = document.getElementById("scrivi"), m = document.getElementById("manda-chat"), n = document.querySelector(".schede").getBoundingClientRect();
+        const c = document.getElementById("scrivi"), m = document.getElementById("manda-chat");
         const rc = c.getBoundingClientRect(), rm = m.getBoundingClientRect();
-        return {scroll: window.scrollY, casella: vis(c) && rc.top >= 0 && rc.bottom <= n.top + 1 && rm.bottom <= n.top + 1,
-                benvenuto: vis(document.getElementById("benvenuto")), casella_giu: Math.round(rc.bottom), schede_su: Math.round(n.top)}})()""")
+        return {scroll: window.scrollY, casella: vis(c) && rc.top >= 0 && rc.bottom <= innerHeight + 1 && rm.bottom <= innerHeight + 1,
+                benvenuto: vis(document.getElementById("benvenuto")), casella_giu: Math.round(rc.bottom), schermo: innerHeight}})()""")
     return d["scroll"] == 0 and d["casella"] and not d["benvenuto"], d
+
+async def testata_ok(p):
+    """La testata di sempre: il globo a sinistra e accanto il nome (con la riga piccola); «＋» e «☰» a destra, il «☰» più a destra."""
+    d = await p.evaluate("""(()=>{
+        const vis = e => !!e && e.getClientRects().length>0 && getComputedStyle(e).visibility!=="hidden";
+        const r = id => document.getElementById(id).getBoundingClientRect(), g = r("globo"), n = document.querySelector(".nome").getBoundingClientRect(), pi = r("nuova-conv"), me = r("apri-conv");
+        return {globo: vis(document.getElementById("globo")) && g.width >= 40 && g.height >= 40, globo_a_sinistra: g.left < 40, nome_dopo_globo: n.left >= g.right - 1,
+                nome: document.getElementById("nome-testata").innerText.trim(), sotto: document.getElementById("sotto-testata").innerText.trim(),
+                piu_a_destra: vis(document.getElementById("nuova-conv")) && pi.left >= n.right - 1, menu_piu_a_destra: vis(document.getElementById("apri-conv")) && me.left >= pi.right - 1 && innerWidth - me.right < 24,
+                in_alto: document.querySelector(".testa").getBoundingClientRect().top <= 1, schede_in_basso: vis(document.querySelector(".schede"))}})()""")
+    return (d["globo"] and d["globo_a_sinistra"] and d["nome_dopo_globo"] and d["piu_a_destra"] and d["menu_piu_a_destra"] and d["in_alto"]
+            and not d["schede_in_basso"] and d["nome"] == "Rebecca" and d["sotto"] == "il tuo JJA-VIS"), d
 
 async def main():
     global PAGINA
@@ -111,10 +124,12 @@ async def main():
         await metti(CASA); await entra()
         ok_, d = await casa_in_vista(p)
         prova("4. chi è di casa: la casella per scrivere è visibile senza scorrere, e #benvenuto non è sopra la chat", ok_, d)
-        barra = await p.evaluate("""(()=>{ const r = id => document.getElementById(id).getBoundingClientRect(), b = r("chat-barra"), a = r("apri-conv"), t = r("tp"), n = r("nuova-conv");
-            return {su: b.top <= 1, sottile: b.height <= 64, sx: a.right <= t.left + 1, dx: n.left >= t.right - 1, nome: document.getElementById("tp").innerText.trim(), larga: b.width}})()""")
-        prova("4. in alto una barra sottile: ☰ a sinistra, il nome dell'assistente in mezzo, ＋ a destra",
-              barra["su"] and barra["sottile"] and barra["sx"] and barra["dx"] and barra["nome"] == "Rebecca", barra)
+        ok_t, d = await testata_ok(p)
+        prova("4. in alto la testata di JARVIS: il globo a sinistra e il nome accanto, «＋» e «☰» a destra (il «☰» più a destra); niente barra delle schede in basso", ok_t, d)
+        prova("4. una sola testata: niente seconda barra sottile", await p.evaluate("!document.querySelector('.chat-barra') && document.querySelectorAll('header, .testa').length === 1"))
+        await p.add_style_tag(content="#globo{display:none!important}")
+        ok_senza, d = await testata_ok(p)
+        prova("4. CONTROPROVA: con #globo nascosto la prova della testata diventa rossa", not ok_senza, d)
         # CONTROPROVA: la chat rimessa sotto #benvenuto (com'era, senza la chat a tutto schermo) fa diventare rossa la prima prova
         vera = PAGINA
         segno = 'document.body.classList.toggle("chat-sola", diCasa())'
@@ -247,6 +262,48 @@ async def main():
         mov = await q.evaluate("(()=>{const c=getComputedStyle(document.getElementById('conversazioni')); return {t: c.transitionDuration, v: getComputedStyle(document.getElementById('conv-velo')).transitionDuration}})()")
         prova("8. con le animazioni ridotte la scheda delle conversazioni non scorre: compare e basta", mov["t"] == "0s" and mov["v"] == "0s", mov)
         await ctx2.close()
+
+
+        # 9. il menù di tutto: conversazioni, Città, una voce per ogni scheda (la barra in basso non c'è più)
+        print("── 9. il menù ☰ porta a tutto")
+        await metti({**CASA, "thread": THREAD[:2], "chat": []}); await entra()
+        schede = await p.evaluate("[...document.querySelectorAll('.schede button[data-scheda]')].map(b=>b.dataset.scheda)")
+        prova("9. la barra delle schede in basso non si vede più (ma le schede ci sono: otto)", not await p.is_visible(".schede") and len(schede) >= 7, schede)
+        await p.click("#apri-conv"); await p.wait_for_timeout(450)
+        menu = await p.evaluate("""(()=>{ const y = e => e.getBoundingClientRect().top, q = s => document.querySelector(s);
+            const voci = [...document.querySelectorAll("#menu-schede .menu-scheda")];
+            return {chiudi: q("#chiudi-conv").innerText.trim(), citta: q("#menu-citta").getAttribute("href"), cittaTesto: q("#menu-citta").innerText.trim(),
+                    ordine: y(q("#conv-nuova")) < y(q("#conv-elenco .riga-conv")) && y(q("#conv-elenco .riga-conv:last-child")) < y(q("#menu-citta")) && y(q("#menu-citta")) < y(voci[0]),
+                    voci: voci.map(v => v.dataset.vai), icone: voci.every(v => !!v.querySelector("svg")), etichette: voci.map(v => v.innerText.trim()), righe: document.querySelectorAll("#conv-elenco .riga-conv").length}})()""")
+        prova("9. il menù ha «✕ Chiudi»", menu["chiudi"] == "✕ Chiudi", menu)
+        prova("9. dentro, in ordine: «＋ Nuova conversazione» e l'elenco, poi «🏙 Città», poi le schede", menu["ordine"] and menu["righe"] == 2, menu)
+        prova("9. «🏙 Città» apre citta.html", menu["citta"] == "citta.html" and "🏙" in menu["cittaTesto"] and "Città" in menu["cittaTesto"], menu)
+        prova("9. un pulsante per ogni scheda della barra, nello stesso ordine e con la loro icona", menu["voci"] == schede and menu["icone"], (menu["voci"], schede))
+        prova("9. la scheda della chat si chiama «Chat»", menu["etichette"][0] == "Chat" and menu["voci"][0] == "inizia", menu["etichette"])
+        await p.click("#chiudi-conv"); await p.wait_for_timeout(450)
+        prova("9. «✕ Chiudi» chiude il menù", not await p.is_visible("#conversazioni"))
+        async def dal_menu(k):
+            await p.click("#apri-conv"); await p.wait_for_timeout(450)
+            await p.click(f'#menu-schede .menu-scheda[data-vai="{k}"]'); await p.wait_for_timeout(350)
+        for k in [x for x in schede if x != "inizia"]:
+            await dal_menu(k)
+            aperta = await p.evaluate("document.body.dataset.scheda"); chiuso = not await p.is_visible("#conversazioni")
+            prova(f"9. toccato «{k}» nel menù: il menù si chiude e si apre quella scheda", aperta == k and chiuso and await p.is_visible(f"#p-{k}"), (aperta, chiuso))
+        # da una scheda il menù c'è ancora, e «Chat» riporta alla chat
+        prova("9. da ogni scheda in alto ci sono «＋» e «☰»", await p.is_visible("#apri-conv") and await p.is_visible("#nuova-conv"))
+        await dal_menu("inizia")
+        ok_, d = await casa_in_vista(p)
+        prova("9. dal menù «Chat» si torna alla chat, con la casella in vista", await p.evaluate("document.body.dataset.scheda") == "inizia" and ok_, d)
+        # il tasto indietro del telefono
+        await dal_menu("chi-sono"); await p.go_back(); await p.wait_for_timeout(500)
+        ok_, d = await casa_in_vista(p)
+        prova("9. il tasto indietro del telefono torna alla chat", await p.evaluate("document.body.dataset.scheda") == "inizia" and ok_, d)
+        # ＋ da un'altra scheda: la nuova conversazione si apre sulla chat
+        await metti({**CASA, "thread": [], "chat": DA_LEGGERE}); await entra()
+        await dal_menu("profilo"); await p.click("#nuova-conv"); await p.wait_for_timeout(500)
+        s = await stato()
+        prova("9. «＋» da un'altra scheda: la conversazione va in io.thread e si torna alla chat vuota", await p.evaluate("document.body.dataset.scheda") == "inizia"
+              and not s.get("chat") and len(s.get("thread", [])) == 1 and await p.locator("#prove-chat .prova-chat:visible").count() == 3, s)
 
         prova("nessun errore JavaScript", not errori, errori[:3])
         await b.close()
