@@ -246,7 +246,44 @@ body.con-nome[data-scheda="inizia"] #conosci-domanda{font-size:20px!important;ma
 .bolla img.foto-bolla{display:block;max-width:220px;max-height:220px;border-radius:8px;margin-bottom:6px}
 .cancella-chat{display:block;margin:4px 0 8px auto;background:transparent;border:0;color:var(--tenue,#9a9a9a);font:inherit;font-size:13px;cursor:pointer}
 .doc-chat{display:block;margin:4px 0 10px auto;padding:8px 12px;border:1px solid var(--accento,#00B4D8);background:transparent;color:inherit;font:inherit;cursor:pointer;border-radius:8px}
-.foto-chat{flex:none;min-width:48px;font-size:22px;background:transparent;border:1px solid var(--linea,#3a3a3a);color:inherit;cursor:pointer}
+/* la barra come quella di WhatsApp (JJ, 26/10): una casella tonda con dentro il testo e, a destra, la foto; accanto UN bottone
+   rotondo che è il microfono (a pressione) quando la casella è vuota e la freccia di invio appena c'è qualcosa da mandare */
+.barra-chat{display:flex;gap:8px;align-items:flex-end}
+.casella-chat{flex:1;min-width:0;display:flex;align-items:flex-end;gap:2px;min-height:48px;padding:0 4px 0 16px;border:1px solid var(--bordo);border-radius:24px;background:var(--input)}
+.casella-chat:focus-within{border-color:var(--accento);box-shadow:0 0 0 1px var(--accento)}
+.barra-chat .casella-chat textarea{flex:1;min-width:0;width:auto;height:48px;min-height:0;max-height:136px;margin:0;padding:13px 0;border:0;border-radius:0;background:transparent;box-shadow:none;
+  resize:none;overflow-y:auto;font:500 16px/22px var(--f-testo)}
+.foto-chat{flex:none;width:44px;height:44px;margin:2px 0;padding:0;display:inline-flex;align-items:center;justify-content:center;background:transparent;border:0;border-radius:50%;color:var(--tenue);cursor:pointer}
+.foto-chat:hover:not(:disabled){color:var(--accento)}
+.foto-chat:disabled{opacity:.4;cursor:not-allowed}
+.barra-chat .invia{flex:none;display:inline-flex;align-items:center;justify-content:center;width:48px;height:48px;margin:0;padding:0;border-radius:50%;border-color:var(--accento);
+  background:var(--accento);color:var(--bg);touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;transition:transform .12s}
+.barra-chat .invia:hover:not(:disabled){background:color-mix(in srgb,var(--accento) 85%,#fff);box-shadow:none}
+.barra-chat .invia .ic-mic,.barra-chat .invia[data-modo="mic"] .ic-invia{display:none}
+.barra-chat .invia[data-modo="mic"] .ic-mic{display:block}
+.barra-chat .invia.registra{transform:scale(1.25);background:var(--rosso);border-color:var(--rosso)}
+.rec-info{display:none;flex:1;min-width:0;align-items:center;gap:10px;min-height:48px;font:600 17px/1 var(--f-testo)}
+.casella-chat.registra .rec-info{display:flex}
+.casella-chat.registra textarea,.casella-chat.registra .foto-chat{display:none}
+.rec-pallino{flex:none;width:12px;height:12px;border-radius:50%;background:var(--rosso);animation:rec-lampo 1s ease-in-out infinite}
+.rec-tempo{font-variant-numeric:tabular-nums}
+.rec-annulla{margin-left:auto;padding-right:10px;color:var(--tenue);font-size:15px;font-weight:500;white-space:nowrap}
+@keyframes rec-lampo{50%{opacity:.25}}
+@media (prefers-reduced-motion:reduce){.rec-pallino{animation:none}.barra-chat .invia{transition:none}}
+/* il vocale nella chat: una bolla audio (▶︎, barra, durata); la trascrizione sta sotto, piccola, dietro «▸ testo» */
+.bolla.voce{min-width:min(240px,86%)}
+.voce-riga{display:flex;align-items:center;gap:10px}
+.voce-gioca{flex:none;width:40px;height:40px;padding:0;border:0;border-radius:50%;background:var(--accento);color:var(--bg);font:700 16px/1 var(--f-testo);cursor:pointer}
+.voce-gioca:disabled{opacity:.4;cursor:not-allowed}
+.voce-barra{flex:1;height:4px;border-radius:2px;background:color-mix(in srgb,var(--accento) 25%,transparent);overflow:hidden}
+.voce-barra i{display:block;height:100%;width:0;background:var(--accento)}
+.voce-durata{flex:none;font-size:14px;color:var(--tenue);font-variant-numeric:tabular-nums}
+.voce-nota{display:block;margin-top:6px;font-size:13px;color:var(--tenue);font-style:italic}
+.voce-nota.errore{color:var(--rosso);font-style:normal}
+.voce-apri{display:block;margin-top:6px;padding:0;border:0;background:none;color:var(--tenue);font:inherit;font-size:13px;cursor:pointer}
+.voce-testo[hidden]{display:none}
+.voce-testo{display:block;margin-top:4px;font-size:14px;line-height:1.35;color:var(--tenue)}
+.voce-riprova{margin:6px 0 0;padding:4px 12px;border:1px solid var(--accento);border-radius:14px;background:transparent;color:var(--testo);font:inherit;font-size:14px;cursor:pointer}
 /* ══ LA CHAT È LA PAGINA — 26 ottobre ══ JJ: «quando apro, non c'è il papiro sopra; se voglio vedere una sessione vecchia ho la
    scheda con le chat». Chi è di casa (body.chat-sola) apre sulla chat a tutto schermo, sotto la testata di sempre (globo e nome a
    sinistra; a destra «＋» e «☰»): la conversazione e, in basso, la casella. La barra delle schede non c'è più: il «☰» apre il
@@ -290,11 +327,9 @@ body.chat-sola #chat-vuota .saluto-vuoto{font:600 24px/1.3 var(--f-titoli);margi
 body.chat-sola:not(.resto-aperto) #parla>.anteprima-foto{flex:0 0 auto;margin:6px max(16px,calc((100% - 560px)/2 + 16px)) 0}
 body.chat-sola:not(.resto-aperto) #esito-chat{flex:0 0 auto;margin:0;padding:4px max(16px,calc((100% - 560px)/2 + 16px)) 0;font-size:14px}
 body.chat-sola #esito-chat:empty{display:none}
-body.chat-sola:not(.resto-aperto) .barra-chat{flex:0 0 auto;display:flex;gap:8px;align-items:flex-end;
+body.chat-sola:not(.resto-aperto) .barra-chat{flex:0 0 auto;
   padding:8px max(16px,calc((100% - 560px)/2 + 16px)) calc(8px + env(safe-area-inset-bottom,0px));
   background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-top:1px solid var(--bordo)}
-body.chat-sola .barra-chat textarea{flex:1;min-height:48px;max-height:120px;margin:0;resize:none;font-size:16px}
-body.chat-sola .barra-chat .invia{width:auto;margin:0;padding:0 18px;height:48px;font-size:15px}
 /* il menù di tutto (☰): scorre da sinistra sopra la pagina, da qualunque scheda */
 #conv-velo,#conversazioni{position:fixed;visibility:hidden}
 #conv-velo{inset:0;z-index:30;background:rgba(0,0,0,.5);opacity:0;transition:opacity .22s ease-out,visibility 0s .22s}
@@ -638,10 +673,19 @@ html.di-casa #o1{display:none}
     <p class="avviso" id="esito-chat" role="status"></p>
     <div class="barra-chat" id="barra-chat">
       <label for="scrivi" class="nascosto">Scrivimi</label>
-      <button type="button" id="foto-chat" class="foto-chat" aria-label="Manda una foto o un PDF" title="Una foto o una bolletta">📷</button>
+      <div class="casella-chat" id="casella-chat">
+        <textarea id="scrivi" rows="1" maxlength="800" placeholder="Scrivimi…"></textarea>
+        <div class="rec-info" id="rec-info">
+          <span class="rec-pallino" id="rec-pallino" aria-hidden="true"></span><span class="rec-tempo" id="rec-tempo">0:00</span>
+          <span class="rec-annulla" id="rec-annulla">‹ scorri per annullare</span>
+        </div>
+        <button type="button" id="foto-chat" class="foto-chat" aria-label="Manda una foto o un PDF" title="Una foto o una bolletta"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l1.6-2.4h6.8L17 8h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13.5" r="3.6"/></svg></button>
+      </div>
       <input type="file" id="foto-file" accept="image/*,application/pdf" hidden>
-      <textarea id="scrivi" maxlength="800" placeholder="Scrivimi…"></textarea>
-      <button class="invia" id="manda-chat">Manda</button>
+      <button type="button" class="invia" id="manda-chat" data-modo="invia" aria-label="Manda">
+        <svg class="ic-invia" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12h14M13 5.5l6.5 6.5-6.5 6.5"/></svg>
+        <svg class="ic-mic" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3"/></svg>
+      </button>
     </div>
   </section>
 
@@ -1183,13 +1227,14 @@ function bolla(chi, testo, attesa, azione){ const b=document.createElement("div"
   scorriChat(); requestAnimationFrame(scorriChat); aggiornaChat();
   return b; }
 const scorriChat=()=>{ const a=$("chat-area"); if(a) a.scrollTop=a.scrollHeight; };
-function ridisegnaChat(){ $("chat").innerHTML=""; $("cancella-chat").hidden=!(io.chat||[]).length; (io.chat||[]).forEach(m=>{ bolla(m.ruolo, m.testo, m.ruolo==="tu" && m.attesa, m.azione);
+function ridisegnaChat(){ $("chat").innerHTML=""; $("cancella-chat").hidden=!(io.chat||[]).length; (io.chat||[]).forEach(m=>{ if(m.voce){ bollaVoce(m); return; }
+    bolla(m.ruolo, m.testo, m.ruolo==="tu" && m.attesa, m.azione);
     if(m.foto){ const i=document.createElement("img"); i.className="foto-bolla"; i.alt="la foto che hai mandato"; i.src=m.foto; $("chat").lastElementChild.prepend(i); }
     // i documenti chiesti in chat (20/10): un tasto per ognuno, che lo scarica con la tua sessione e lo apre
     (m.documenti||[]).forEach(dc=>{ const b=document.createElement("button"); b.type="button"; b.className="doc-chat"; b.textContent="📎 "+dc.titolo;
       b.addEventListener("click",()=>apriDocumento(dc.id,b)); $("chat").appendChild(b); }); });
   // il messaggio che sta partendo si vede subito, con «…» al posto della risposta (non è ancora nella conversazione)
-  if(invio!==null){ bolla("tu", invio); bolla("io pensa", "…"); }
+  if(invio!==null){ if(!invioVoce) bolla("tu", invio); bolla("io pensa", "…"); }
   if((io.chat||[]).length && !io.chatDa){ io.chatDa=Date.now(); salva(); }
   aggiornaChat(); segnaLette(); }
 // «Letta» vuol dire mostrata: pagina davanti agli occhi, scheda della chat, nome dato.
@@ -1202,7 +1247,7 @@ const daLeggere=()=>(io.chat||[]).some(m=>m.attesa||m.nuovo);
 function archiviaChat(){
   io.thread=io.thread||[];
   io.thread.unshift({quando:io.chatDa||Date.now(), messaggi:io.chat}); io.thread=io.thread.slice(0,20);
-  io.chat=[]; delete io.chatDa; salva();
+  io.chat=[]; delete io.chatDa; salva(); potaVoci();
 }
 // All'apertura: se non resta niente da leggere, la conversazione va nelle precedenti e la chat riparte pulita.
 function apertura(){
@@ -1222,13 +1267,14 @@ function aggiornaChat(){
   if(!$("chat-vuota")) return;
   $("chat-vuota").hidden=!!$("chat").children.length;
   $("vuoto-tuo").textContent=io.tuo?" "+io.tuo:"";
+  aggiornaBarra();
   const att=rispostaInAttesa();
   [["nuova-conv","nuova-aspetto"],["conv-nuova","conv-nuova-aspetto"]].forEach(([b,t])=>{ $(b).classList.toggle("grigio",att); $(b).setAttribute("aria-disabled",String(att)); $(t).hidden=!att; });
 }
 // il titolo di una riga: il primo messaggio della persona, al massimo 40 caratteri, senza tagliare a metà parola
 function titoloConv(c){
   const m=c.messaggi||[], tx=x=>String(x.testo||"").replace(/\s+/g," ").trim();
-  const t=tx(m.find(x=>x.ruolo==="tu"&&tx(x))||m.find(tx)||{})||(m.some(x=>x.foto)?"Una foto":"Conversazione");
+  const t=tx(m.find(x=>x.ruolo==="tu"&&tx(x))||m.find(tx)||{})||(m.some(x=>x.foto)?"Una foto":m.some(x=>x.voce)?"Un vocale":"Conversazione");
   if(t.length<=40) return t;
   let r=t.slice(0,39);
   if(!/\s/.test(t[39])){ const i=r.lastIndexOf(" "); if(i>0) r=r.slice(0,i); }
@@ -1243,7 +1289,7 @@ function quandoConv(ts){
 }
 // una bolla di una conversazione chiusa (con la foto e il pulsante verso la Bottega, come nella chat)
 function bollaFissa(m){
-  const b=document.createElement("div"); b.className="bolla "+m.ruolo; b.textContent=m.testo;
+  const b=document.createElement("div"); b.className="bolla "+m.ruolo; if(m.voce){ riempiVoce(b,m,false); return b; } b.textContent=m.testo;
   if(m.foto){ const i=document.createElement("img"); i.className="foto-bolla"; i.alt=""; i.src=m.foto; b.prepend(i); }
   if(m.azione && AZIONI[m.azione.servizio]){ const x=document.createElement("button"); x.className="salto azione"; x.type="button";
     x.textContent=AZIONI[m.azione.servizio]; x.addEventListener("click", ()=>apriBottega(m.azione)); b.append(document.createElement("br"), x); }
@@ -1260,7 +1306,7 @@ function disegnaConversazioni(){
     ap.append(ti,q); ap.addEventListener("click",()=>leggiConv(c));
     // ✕ per cancellare una conversazione vecchia (JJ, 20/10)
     const via=document.createElement("button"); via.type="button"; via.className="via"; via.textContent="✕"; via.setAttribute("aria-label","Cancella questa conversazione");
-    via.addEventListener("click",()=>{ if(!confirm("Cancello questa conversazione?")) return; io.viste=[...new Set([...(io.viste||[]), ...(c.messaggi||[]).filter(m=>m.id).map(m=>m.id)])].slice(-300); io.thread=(io.thread||[]).filter(x=>x!==c); salva(); disegnaConversazioni(); });
+    via.addEventListener("click",()=>{ if(!confirm("Cancello questa conversazione?")) return; io.viste=[...new Set([...(io.viste||[]), ...(c.messaggi||[]).filter(m=>m.id).map(m=>m.id)])].slice(-300); io.thread=(io.thread||[]).filter(x=>x!==c); salva(); potaVoci(); disegnaConversazioni(); });
     li.append(ap,via); el.appendChild(li); });
 }
 // le voci delle schede: una per ognuna della barra (stessa icona), «Chat» al posto del nome dell'assistente
@@ -1330,6 +1376,8 @@ $("torna-chat").addEventListener("click", chiudiResto);
   v.addEventListener("resize", misura); v.addEventListener("scroll", misura); misura();
 })();
 let parlando=false, invio=null;   // invio: il messaggio che sta partendo, mostrato prima della risposta
+let invioVoce=null;               // se quel messaggio è un vocale: il suo messaggio nella chat (la bolla c'è già, non si rifà)
+const vociInCorso=new Set(), vociAperte=new Set();   // vocali che si stanno trascrivendo; trascrizioni aperte col «▸ testo»
 // 📷 nella chat (JJ, 20/10: «si possono mandare immagini da dentro la pagina ... non è il massimo della comodità dover fare le
 // cose via mail»). Una foto si rimpicciolisce nel telefono (1600 px, JPEG): bollette leggibili, poco da mandare. Va alla porta
 // con la sessione dell'account: una bolletta si archivia cifrata e diventa scadenza, un'altra foto riceve una risposta.
@@ -1351,9 +1399,9 @@ async function preparaFoto(file){
   if(!file) return; const e=$("esito-chat"); e.className="avviso"; e.textContent="";
   try{ fotoPronta={dati:await fotoInBase64(file), mini:await miniatura(file)}; }catch(err){ e.classList.add("errore"); e.textContent=err.message; return; }
   $("anteprima-img").src=fotoPronta.mini||""; $("anteprima-img").alt=fotoPronta.mini?"La foto che stai per mandare":"📄 "+(file.name||"PDF");
-  $("anteprima-foto").hidden=false; $("scrivi").placeholder="Scrivi cosa vuoi sapere (o premi Manda)"; $("scrivi").focus();
+  $("anteprima-foto").hidden=false; $("scrivi").placeholder="Scrivi cosa vuoi sapere (o premi Manda)"; $("scrivi").focus(); aggiornaBarra();
 }
-function togliFoto(){ fotoPronta=null; $("anteprima-foto").hidden=true; $("foto-file").value=""; $("scrivi").placeholder="Scrivimi…"; }
+function togliFoto(){ fotoPronta=null; $("anteprima-foto").hidden=true; $("foto-file").value=""; $("scrivi").placeholder="Scrivimi…"; aggiornaBarra(); }
 async function mandaFoto(file, testoDato){
   const e=$("esito-chat"); e.className="avviso"; if(!file||parlando) return;
   if(!contoToken()){ e.classList.add("errore"); e.textContent="Per mandarmi foto e documenti entra col tuo account."; return; }
@@ -1374,7 +1422,7 @@ $("foto-chat").addEventListener("click",()=>$("foto-file").click());
 $("foto-file").addEventListener("change",ev=>preparaFoto(ev.target.files&&ev.target.files[0]));
 $("anteprima-via").addEventListener("click",togliFoto);
 $("cancella-chat").addEventListener("click",()=>{ if(!confirm("Cancello questa conversazione? Gli impegni, le scadenze e i documenti restano.")) return;
-  io.viste=[...new Set([...(io.viste||[]), ...(io.chat||[]).filter(m=>m.id).map(m=>m.id)])].slice(-300); io.chat=[]; delete io.chatDa; salva(); ridisegnaChat(); });
+  io.viste=[...new Set([...(io.viste||[]), ...(io.chat||[]).filter(m=>m.id).map(m=>m.id)])].slice(-300); io.chat=[]; delete io.chatDa; salva(); ridisegnaChat(); potaVoci(); });
 async function apriDocumento(id,b){
   const prima=b.textContent; b.textContent="📎 apro…";
   try{ const r=await fetch(INVIO.replace("/risposta","/doc")+"?id="+encodeURIComponent(id),{headers:{Authorization:"Bearer "+contoToken()}});
@@ -1384,20 +1432,162 @@ async function apriDocumento(id,b){
 }
 // con l'account la chat parla con l'assistente vero (20/10, JJ: «direi di farle tutte»): lo stesso della posta, con gli
 // impegni, le scadenze, i documenti e la memoria della conversazione; può cercare sul web. Senza account resta Nova.
-async function parlaAssistente(testo){
+async function parlaAssistente(testo, daVoce){
   const e=$("esito-chat"); e.className="avviso"; e.textContent="Ci penso…";
-  parlando=true; $("manda-chat").disabled=true; invio=testo; ridisegnaChat();
+  parlando=true; $("manda-chat").disabled=true; invio=testo; invioVoce=daVoce||null; ridisegnaChat();
   try{
     const r=await fetch(INVIO.replace("/risposta","/assistente"),{method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+contoToken()},
       body:JSON.stringify({testo,nome_assistente:io.nome||"",tuo:io.tuo||""})});
     const d=await r.json().catch(()=>({}));
     if(!r.ok||!d.risposta) throw new Error(d.errore||("errore "+r.status));
-    invio=null; io.chat=io.chat||[]; io.chat.push({ruolo:"tu",testo}); io.chat.push({ruolo:"io",testo:d.risposta,...(d.documenti&&d.documenti.length?{documenti:d.documenti}:{})});
+    invio=null; invioVoce=null; io.chat=io.chat||[]; if(daVoce) daVoce.voce.mandato=true; else io.chat.push({ruolo:"tu",testo}); io.chat.push({ruolo:"io",testo:d.risposta,...(d.documenti&&d.documenti.length?{documenti:d.documenti}:{})});
     io.chat=io.chat.slice(-20); salva(); ridisegnaChat(); e.textContent=""; return true;
-  }catch(err){ invio=null; if(!$("scrivi").value) $("scrivi").value=testo; ridisegnaChat();
+  }catch(err){ invio=null; invioVoce=null; if(!daVoce && !$("scrivi").value) $("scrivi").value=testo; ridisegnaChat();
     e.classList.add("errore"); e.textContent="Non è partito: "+err.message+". Riprova tra poco."; return false; }
   finally{ parlando=false; $("manda-chat").disabled=false; aggiornaChat(); }
 }
+// ══ LA BARRA E IL VOCALE ══ 26/10, JJ: «la barra di digitazione deve incorporare i bottoni di invio e foto, e aggiungere un
+// microfono a pressione come WhatsApp». Un solo bottone tondo: microfono con la casella vuota, freccia appena c'è da mandare
+// qualcosa; senza account il microfono non c'è. Si tiene premuto: registra; si lascia: manda; si scivola a sinistra: si butta.
+// Il vocale resta una registrazione che si riascolta (bolla con ▶︎ e durata): sta solo nel telefono (IndexedDB) e va alla porta
+// una volta sola, per essere trascritto; la trascrizione sta sotto, piccola, dietro «▸ testo», e il testo parte all'assistente
+// come se l'avessi scritto. Se la trascrizione non riesce: il motivo e «riprova».
+const VOCE_TIPI=["audio/webm;codecs=opus","audio/mp4","audio/ogg"], VOCE_MAX_S=60, VOCE_SCIVOLA_PX=80, VOCE_RIGHE_MAX_PX=136;
+const tipoVoce=()=>{ if(typeof MediaRecorder==="undefined") return ""; return VOCE_TIPI.find(t=>{ try{ return MediaRecorder.isTypeSupported(t); }catch(_){ return false; } })||""; };
+const voceDisponibile=()=>!!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia && tipoVoce());
+const mmss=s=>Math.floor(s/60)+":"+String(Math.floor(s%60)).padStart(2,"0");
+// la casella cresce con le righe (fino a 5, poi scorre) e il bottone cambia faccia
+function aggiornaBarra(){
+  const t=$("scrivi"), b=$("manda-chat"); if(!t||!b) return;
+  if(!t.value) t.style.height=""; else if(t.getClientRects().length){ t.style.height="auto"; t.style.height=Math.min(t.scrollHeight,VOCE_RIGHE_MAX_PX)+"px"; }
+  const modo=(contoToken() && INVIO && voceDisponibile() && !t.value.trim() && !fotoPronta)?"mic":"invia";
+  if(b.dataset.modo!==modo){ b.dataset.modo=modo; b.setAttribute("aria-label", modo==="mic"?"Tieni premuto per registrare un vocale":"Manda"); }
+}
+$("scrivi").addEventListener("input", aggiornaBarra);
+function avvisaVoce(testo, errore){ const e=$("esito-chat"); e.className="avviso"+(errore?" errore":""); e.textContent=testo;
+  clearTimeout(avvisaVoce.t); avvisaVoce.t=setTimeout(()=>{ if(e.textContent===testo) e.textContent=""; },3500); }
+// ── la registrazione a pressione
+let voce=null, micChiaro=false;   // voce: la registrazione in corso; micChiaro: il guaio del microfono è già stato detto
+function mostraRec(si){ $("casella-chat").classList.toggle("registra",si); $("manda-chat").classList.toggle("registra",si); }
+async function iniziaVoce(ev){
+  const b=$("manda-chat");
+  if(b.dataset.modo!=="mic" || b.disabled || voce || parlando || (ev.pointerType==="mouse" && ev.button!==0)) return;
+  ev.preventDefault();
+  const v=voce={x0:ev.clientX, pezzi:[], tipo:tipoVoce(), finito:false};
+  try{ b.setPointerCapture(ev.pointerId); }catch(_){}
+  $("esito-chat").textContent="";
+  let flusso;
+  try{ flusso=await navigator.mediaDevices.getUserMedia({audio:true}); }
+  catch(err){ if(voce===v) voce=null;
+    if(!micChiaro){ micChiaro=true; avvisaVoce(err&&/NotAllowed|Security/.test(err.name)?"Per mandarmi un vocale devo poter usare il microfono: consentilo nelle impostazioni del browser.":"Non riesco a usare il microfono.", true); }
+    aggiornaBarra(); return; }
+  if(v.finito){ flusso.getTracks().forEach(t=>t.stop()); avvisaVoce("Tieni premuto per registrare"); return; }   // l'hai lasciato prima che partisse
+  try{ v.rec=new MediaRecorder(flusso,{mimeType:v.tipo}); }
+  catch(_){ flusso.getTracks().forEach(t=>t.stop()); voce=null; avvisaVoce("Il registratore non parte su questo telefono.",true); return; }
+  v.flusso=flusso; v.rec.ondataavailable=e=>{ if(e.data&&e.data.size) v.pezzi.push(e.data); };
+  v.rec.start(); v.t0=Date.now(); $("rec-tempo").textContent="0:00"; $("rec-annulla").style.opacity="1"; mostraRec(true);
+  v.tick=setInterval(()=>{ const s=(Date.now()-v.t0)/1000; $("rec-tempo").textContent=mmss(s); if(s>=VOCE_MAX_S) finisciVoce(true); },250);   // a 60 secondi manda da solo
+}
+function muoviVoce(ev){ const v=voce; if(!v||!v.rec) return; const dx=ev.clientX-v.x0;
+  $("rec-annulla").style.opacity=String(Math.max(.25,1-Math.max(0,-dx)/VOCE_SCIVOLA_PX));
+  if(dx<-VOCE_SCIVOLA_PX){ finisciVoce(false); avvisaVoce("Vocale buttato."); } }
+function finisciVoce(manda){
+  const v=voce; if(!v) return; voce=null;
+  if(!v.rec){ v.finito=true; return; }
+  clearInterval(v.tick); mostraRec(false);
+  const durata=Date.now()-v.t0;
+  const troppoCorto=durata<1000;
+  if(manda && troppoCorto){ manda=false; avvisaVoce("Tieni premuto per registrare"); }
+  v.rec.onstop=()=>{ v.flusso.getTracks().forEach(t=>t.stop()); if(!manda) return;
+    const blob=new Blob(v.pezzi,{type:(v.rec.mimeType||v.tipo)});
+    if(!blob.size){ avvisaVoce("Non ho sentito niente: riprova.",true); return; }
+    mandaVoce(blob, v.tipo, Math.round(durata/1000)); };
+  if(v.rec.state!=="inactive") v.rec.stop(); else v.rec.onstop();
+}
+{ const bm=$("manda-chat");
+  bm.addEventListener("pointerdown", iniziaVoce); bm.addEventListener("pointermove", muoviVoce);
+  bm.addEventListener("pointerup", ()=>finisciVoce(true)); bm.addEventListener("pointercancel", ()=>finisciVoce(false));
+  bm.addEventListener("contextmenu", ev=>{ if(bm.dataset.modo==="mic") ev.preventDefault(); });
+  document.addEventListener("visibilitychange", ()=>{ if(document.hidden) finisciVoce(false); }); }
+// ── la registrazione resta nel telefono: IndexedDB (se non c'è, in memoria finché la pagina è aperta)
+const vociMem=new Map();
+const dbVoci=()=>new Promise((ok,no)=>{ try{ const r=indexedDB.open("jjavis-voci",1); r.onupgradeneeded=()=>r.result.createObjectStore("voci"); r.onsuccess=()=>ok(r.result); r.onerror=()=>no(r.error); r.onblocked=()=>no(new Error("bloccato")); }catch(e){ no(e); } });
+const richiestaDb=(modo,fa)=>dbVoci().then(db=>new Promise((ok,no)=>{ const t=db.transaction("voci",modo), r=fa(t.objectStore("voci")); t.oncomplete=()=>{ db.close(); ok(r&&r.result); }; t.onerror=t.onabort=()=>{ db.close(); no(t.error); }; }));
+async function salvaVoce(id,blob){ vociMem.set(id,blob); try{ await richiestaDb("readwrite",s=>s.put(blob,id)); vociMem.delete(id); }catch(_){} }
+async function leggiVoce(id){ if(vociMem.has(id)) return vociMem.get(id); try{ return (await richiestaDb("readonly",s=>s.get(id)))||null; }catch(_){ return null; } }
+// via le registrazioni che nessun messaggio ricorda più (conversazione cancellata o scivolata fuori dalle ultime)
+async function potaVoci(){ try{ const usati=new Set(), vede=m=>{ if(m&&m.voce) usati.add(m.voce.id); };
+    (io.chat||[]).forEach(vede); (io.thread||[]).forEach(c=>(c.messaggi||[]).forEach(vede));
+    const chiavi=await richiestaDb("readonly",s=>s.getAllKeys()), via=(chiavi||[]).filter(k=>!usati.has(k)&&!vociInCorso.has(k));
+    if(via.length) await richiestaDb("readwrite",s=>{ via.forEach(k=>s.delete(k)); }); }catch(_){} }
+setTimeout(potaVoci,3000);
+// ── mandare il vocale: la registrazione va nella chat subito (si può riascoltare), poi alla porta per la trascrizione
+const blobInBase64=b=>new Promise((ok,no)=>{ const fr=new FileReader(); fr.onload=()=>ok(String(fr.result).split(",")[1]||""); fr.onerror=()=>no(new Error("non riesco a leggere la registrazione")); fr.readAsDataURL(b); });
+async function mandaVoce(blob, tipo, durata){
+  const id="v"+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+  await salvaVoce(id,blob);
+  const m={ruolo:"tu", testo:"", voce:{id,durata,tipo}};
+  io.chat=io.chat||[]; io.chat.push(m); io.chat=io.chat.slice(-20); salva();
+  return trascriviVoce(m);
+}
+async function trascriviVoce(m){
+  const v=m.voce; $("esito-chat").className="avviso"; $("esito-chat").textContent="";
+  parlando=true; $("manda-chat").disabled=true; vociInCorso.add(v.id); delete v.errore; ridisegnaChat();
+  let testo="";
+  try{
+    const blob=await leggiVoce(v.id); if(!blob) throw new Error("la registrazione non c'è più su questo telefono");
+    const r=await fetch(INVIO.replace("/risposta","/assistente/voce"),{method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+contoToken()},
+      body:JSON.stringify({audio:await blobInBase64(blob),tipo:v.tipo})});
+    const d=await r.json().catch(()=>({}));
+    if(!r.ok||d.errore||!String(d.testo||"").trim()) throw new Error(d.errore||(r.ok?"non si sente niente":"errore "+r.status));
+    testo=String(d.testo).trim();
+  }catch(err){
+    v.errore=err.name==="TypeError"?"la rete non c'è":err.message; vociInCorso.delete(v.id); parlando=false; $("manda-chat").disabled=false; salva(); ridisegnaChat(); return false; }
+  vociInCorso.delete(v.id); m.testo=testo; salva();
+  return parlaAssistente(testo,m);   // da qui in poi è un messaggio scritto
+}
+const riprovaVoce=m=>{ if(parlando) return false; return m.testo?parlaAssistente(m.testo,m):trascriviVoce(m); };
+// ── la bolla audio
+let suona=null;   // {id,a,url,g,barra,dur,totale}: il vocale che sta suonando
+function fermaSuono(){ const s=suona; if(!s) return; suona=null; try{ s.a.pause(); }catch(_){} URL.revokeObjectURL(s.url);
+  if(s.g&&s.g.isConnected){ s.g.textContent="▶︎"; if(s.barra) s.barra.style.width="0"; if(s.dur) s.dur.textContent=mmss(s.totale); } }
+async function suonaVoce(v,g,riga){
+  if(suona&&suona.id===v.id){ fermaSuono(); return; }
+  fermaSuono();
+  const blob=await leggiVoce(v.id);
+  if(!blob){ g.disabled=true; const n=document.createElement("small"); n.className="voce-nota"; n.textContent="La registrazione non è su questo telefono."; g.closest(".bolla").appendChild(n); return; }
+  const url=URL.createObjectURL(blob), a=new Audio(url), s=suona={id:v.id,a,url,g,barra:riga.querySelector("i"),dur:riga.querySelector(".voce-durata"),totale:v.durata||0};
+  g.textContent="❚❚";
+  a.ontimeupdate=()=>{ if(suona!==s) return; const t=a.currentTime; if(s.dur&&s.dur.isConnected) s.dur.textContent=mmss(t); if(s.barra&&s.totale) s.barra.style.width=Math.min(100,t/s.totale*100)+"%"; };
+  a.onended=a.onerror=()=>{ if(suona===s) fermaSuono(); };
+  a.play().catch(()=>{ if(suona===s) fermaSuono(); });
+}
+// il contenuto di una bolla-vocale: ▶︎, barra, durata; sotto la trascrizione («▸ testo») o il motivo con «riprova»
+function riempiVoce(b,m,viva){
+  const v=m.voce; b.classList.add("voce");
+  const riga=document.createElement("div"); riga.className="voce-riga";
+  const g=document.createElement("button"); g.type="button"; g.className="voce-gioca"; g.textContent="▶︎"; g.setAttribute("aria-label","Riascolta il vocale"); g.dataset.voce=v.id;
+  const barra=document.createElement("span"); barra.className="voce-barra"; barra.appendChild(document.createElement("i"));
+  const dur=document.createElement("span"); dur.className="voce-durata"; dur.textContent=mmss(v.durata||0);
+  riga.append(g,barra,dur); b.appendChild(riga);
+  g.addEventListener("click",()=>suonaVoce(v,g,riga));
+  if(suona&&suona.id===v.id){ Object.assign(suona,{g,barra:barra.firstChild,dur}); g.textContent="❚❚"; }   // la chat si è ridisegnata mentre suonava
+  const nota=(t,err)=>{ const n=document.createElement("small"); n.className="voce-nota"+(err?" errore":""); n.textContent=t; b.appendChild(n); };
+  const riprova=()=>{ if(!viva) return; const r=document.createElement("button"); r.type="button"; r.className="voce-riprova"; r.textContent="riprova"; r.addEventListener("click",()=>riprovaVoce(m)); b.appendChild(r); };
+  if(!m.testo){
+    if(vociInCorso.has(v.id)) nota("trascrivo…");
+    else { nota("non ho capito il vocale: "+(v.errore||"non l'ho trascritto"),true); riprova(); }
+    return;
+  }
+  const ap=document.createElement("button"); ap.type="button"; ap.className="voce-apri";
+  const tx=document.createElement("small"); tx.className="voce-testo"; tx.textContent=m.testo;
+  const mostra=si=>{ tx.hidden=!si; ap.textContent=(si?"▾":"▸")+" testo"; ap.setAttribute("aria-expanded",String(si)); };
+  mostra(vociAperte.has(v.id));
+  ap.addEventListener("click",()=>{ const si=tx.hidden; if(si) vociAperte.add(v.id); else vociAperte.delete(v.id); mostra(si); });
+  b.append(ap,tx);
+  if(!v.mandato && invioVoce!==m){ nota("non è partito",true); riprova(); }
+}
+function bollaVoce(m){ const b=bolla(m.ruolo,""); riempiVoce(b,m,true); scorriChat(); return b; }
 // ══ IL PRIMO INCONTRO ══ 22/10, JJ: «quando viene usato per la prima volta è proprio quando deve colpire per la sua
 // utilità… non ha neanche proposto niente, deve farlo». Finito il sondaggio (o alla prima apertura dopo, per chi l'aveva già
 // fatto), l'assistente vero prende quello che hai scritto e risponde subito: cosa fa per te da oggi, e il primo passo.
@@ -1472,7 +1662,7 @@ async function controllaRisposte(){
     return nuove;
   }catch(_){ return 0; }
 }
-$("manda-chat").addEventListener("click", ()=>{ const t=$("scrivi").value; $("scrivi").value=""; parla(t,"chat"); });
+$("manda-chat").addEventListener("click", ()=>{ if($("manda-chat").dataset.modo==="mic") return; const t=$("scrivi").value; $("scrivi").value=""; aggiornaBarra(); parla(t,"chat"); });
 // i tre tasti della chat vuota (26/10): mandano subito all'assistente, come se la persona l'avesse scritto
 document.querySelectorAll("#prove-chat .prova-chat").forEach(b=>b.addEventListener("click", ()=>parla(b.textContent.trim(),"chat")));
 // Con Nova accesa la frase «non rispondo in automatico» sarebbe falsa: si chiede alla porta come stanno le cose, e si dice
