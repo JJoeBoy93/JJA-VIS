@@ -1475,11 +1475,8 @@ async function controllaRisposte(){
 $("manda-chat").addEventListener("click", ()=>{ const t=$("scrivi").value; $("scrivi").value=""; parla(t,"chat"); });
 // i tre tasti della chat vuota (26/10): mandano subito all'assistente, come se la persona l'avesse scritto
 document.querySelectorAll("#prove-chat .prova-chat").forEach(b=>b.addEventListener("click", ()=>parla(b.textContent.trim(),"chat")));
-// «Non rispondo in automatico» è vero solo senza account (26/10): con l'account, che per entrare è obbligatorio, l'assistente
-// risponde da solo (parlaAssistente) e il testo di partenza è già quello giusto. Senza account (la porta dei conti che non
-// risponde, o il link personale della mail) la risposta la sceglie chi mi costruisce, e la frase torna quella di prima.
-// Con Nova accesa sarebbe falsa anche lì: si chiede alla porta come stanno le cose, e si dice quella vera.
-if(!contoToken()) $("spiega-chat").innerHTML='Chiedimi quello che vuoi, sul tuo lavoro o su di me. Non rispondo in automatico: ogni risposta la scelgo con chi mi costruisce, e compare qui da sola. Se mi lasci la mail nel <a href="#profilo-mail">Profilo</a>, quando serve arriva anche lì.';
+// Con Nova accesa la frase «non rispondo in automatico» sarebbe falsa: si chiede alla porta come stanno le cose, e si dice
+// quella vera (senza account; con l'account la frase giusta c'è già, più sotto).
 if(INVIO) fetch(INVIO.replace("/risposta","/nova")).then(r=>r.ok?r.json():{}).then(d=>{ if(!d.acceso||localStorage.getItem("jjavis-conto")) return;
   $("spiega-chat").innerHTML='Ti rispondo subito: quando una cosa non la so, o mi chiedi un prezzo o una data, la passo a chi mi costruisce e la sua risposta compare qui da sola. Se mi lasci la mail nel <a href="#profilo">Profilo</a>, arriva anche lì.';
 }).catch(()=>{});
@@ -1881,7 +1878,10 @@ $("avanti-o3").addEventListener("click", ()=>{ io.tuo=$("tuo-nome").value.trim()
 $("salta-o3").addEventListener("click", ()=>{ io.tuo=""; salva(); benvenuto(false); apri("benvenuto"); nasce(); });
 // la chat si ridisegna qui, dopo che «io» e' stato letto dal telefono:
 // prima, «io» non esiste ancora e lo script si fermerebbe.
-// Con l'account la chat è l'assistente vero (22/10): la frase di partenza (nel codice HTML) lo dice già
+// Con l'account la chat è l'assistente vero (22/10): la frase di partenza (nel codice HTML) lo dice già. «Non rispondo in
+// automatico» è vero solo senza account (26/10): la porta dei conti che non risponde, o il link personale della mail, e allora
+// la risposta la sceglie chi mi costruisce.
+if(!contoToken()) $("spiega-chat").innerHTML='Chiedimi quello che vuoi, sul tuo lavoro o su di me. Non rispondo in automatico: ogni risposta la scelgo con chi mi costruisce, e compare qui da sola. Se mi lasci la mail nel <a href="#profilo-mail">Profilo</a>, quando serve arriva anche lì.';
 apertura();
 ridisegnaChat();
 // chi aveva già finito il sondaggio prima del 22/10 e non ha mai avuto la proposta: la riceve alla prima apertura
