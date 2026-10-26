@@ -332,12 +332,12 @@ async def main():
            "il pulsante apre la Bottega su «Costruiscimi qualcosa», col tipo scelto e la richiesta già scritta")
         await pg2.reload(); await pg2.wait_for_timeout(500)
         # 2/10, JJ: letta e rientrato, la chat è pulita; la conversazione va nelle precedenti, col suo pulsante
-        # (26/10: le precedenti stanno nella scheda ☰, e toccata una riga si legge a tutto schermo)
+        # (26/10: le precedenti stanno nella scheda ☰, e toccata una riga diventa la conversazione in corso)
         await vai_a(pg2, "inizia"); await pg2.click("#apri-conv"); await pg2.wait_for_timeout(450)
-        await pg2.click("#conv-elenco .riga-apri >> nth=0"); await pg2.wait_for_timeout(200)
-        ok(await pg2.evaluate("document.querySelectorAll('#chat .bolla').length")==0 and await pg2.evaluate("document.querySelectorAll('#lettura-chat .azione').length")==1,
-           "ricaricando, la chat è pulita e la risposta col pulsante è nelle conversazioni precedenti")
-        await pg2.click("#lettura-indietro"); await pg2.wait_for_timeout(300)
+        ok(await pg2.evaluate("document.querySelectorAll('#chat .bolla').length")==0, "ricaricando, la chat è pulita")
+        await pg2.click("#conv-elenco .riga-apri >> nth=0"); await pg2.wait_for_timeout(300)
+        ok(await pg2.evaluate("document.querySelectorAll('#chat .azione').length")==1,
+           "toccata la conversazione precedente, si riapre nella chat, con la risposta e il suo pulsante")
         NOVA["acceso"]=False
         await pg2.goto(BASE+"#inizia"); await pg2.reload(); await pg2.wait_for_timeout(500)
         ok("Non rispondo in automatico" in await pg2.inner_text("#spiega-chat"), "con Nova spenta resta la frase di prima")

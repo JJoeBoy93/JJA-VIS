@@ -23,6 +23,13 @@ registra, si lascia e manda, si scivola a sinistra e si butta, meno di un second
 (▶︎, durata, si riascolta, resta solo nel telefono in IndexedDB); la trascrizione sta sotto in «▸ testo»; se fallisce, il motivo e
 «riprova». Il microfono si finge con --use-fake-ui-for-media-stream e --use-fake-device-for-media-stream; la porta è finta.
 La CONTROPROVA: tolto il controllo «meno di 1 secondo», la prova dei 0,5 secondi diventa rossa.
+
+La scena 11 è del 26/10 notte, JJ dopo averla provata: «non si può continuare sulla stessa conversazione se la riprendi» e «quando
+premi il suggerimento deve già rispondere subito, senza aspettare che pensa». Toccata una conversazione nel ☰ non si apre più in sola
+lettura: diventa LA conversazione in corso (quella di prima, se ha messaggi, va in io.thread); con una risposta in attesa non si cambia.
+I tre tasti della chat vuota rispondono con una frase fissa, subito e senza chiamare la porta; il messaggio dopo parte all'assistente
+col contesto del tasto davanti (che nella bolla non si vede). La CONTROPROVA: se il tasto chiama ancora /assistente, la prima prova
+della scena 11 diventa rossa.
 """
 import asyncio, base64, json, os, re, struct, sys, zlib
 from playwright.async_api import async_playwright
@@ -174,10 +181,9 @@ async def main():
         tasti = await p.evaluate("[...document.querySelectorAll('#prove-chat .prova-chat')].filter(b=>b.getClientRects().length).map(b=>({t:b.textContent.trim(), h:b.getBoundingClientRect().height, w:b.getBoundingClientRect().width}))")
         prova("5. tre tasti di prima prova, grandi, con le tre frasi",
               [t["t"] for t in tasti] == ["⏰ Ricordami una cosa", "💶 Segnami una scadenza", "🎒 Cosa porto quando esco"] and all(t["h"] >= 56 and t["w"] >= 240 for t in tasti), tasti)
-        await p.click("#prove-chat .prova-chat >> nth=0"); await p.wait_for_timeout(500)
-        manda = [c for (r, c) in INVIATI if r == "parla"]
-        prova("5. toccato «⏰ Ricordami una cosa», parte proprio quel messaggio alla porta, come se l'avesse scritto la persona",
-              len(manda) == 1 and manda[0].get("testo") == "⏰ Ricordami una cosa" and manda[0].get("da_dove") == "chat", INVIATI)
+        await p.click("#prove-chat .prova-chat >> nth=0"); await p.wait_for_timeout(300)
+        prova("5. toccato «⏰ Ricordami una cosa», entro 300 ms c'è la bolla della persona e la risposta fissa, e alla porta non va niente",
+              await bolle() == ["⏰ Ricordami una cosa", "Certo, Annamaria. Dimmi cosa devo ricordarti e per quando: il giorno e, se ce l'hai, anche l'ora."] and INVIATI == [], (await bolle(), INVIATI))
         prova("5. e i tasti spariscono: c'è già il primo messaggio", not await p.is_visible("#prove-chat") and "⏰ Ricordami una cosa" in "".join(await bolle()), await bolle())
         prova("5. con un messaggio nella conversazione il saluto della chat vuota non c'è più", not await p.is_visible("#saluto-vuoto"))
 
@@ -207,28 +213,26 @@ async def main():
                   and re.match(r"^\d{1,2}\s[a-zà-ù]+(\s\d{4})?$", righe[2]["quando"]) is not None, righe)
         su = await p.evaluate("(()=>{const y=id=>document.getElementById(id).getBoundingClientRect().top; return y('conv-nuova') < document.querySelector('#conv-elenco .riga-conv').getBoundingClientRect().top})()")
         prova("6. in cima «＋ Nuova conversazione»", su and "Nuova conversazione" in await p.inner_text("#conv-nuova"))
-        await p.click("#conv-elenco .riga-conv >> nth=1 >> .riga-apri"); await p.wait_for_timeout(300)
-        lettura = await p.evaluate("""(()=>{ const l = document.getElementById("lettura-conv"), c = document.getElementById("scrivi").getBoundingClientRect();
-            const sopra = document.elementFromPoint(c.left + c.width/2, c.top + c.height/2);
-            return {visibile: !l.hidden && l.getClientRects().length > 0, testo: l.innerText, scrive: l.querySelectorAll("textarea,input").length, copre: !!sopra && l.contains(sopra),
-                    tutto: l.getBoundingClientRect().height >= innerHeight * 0.8}})()""")
-        prova("6. toccata una riga, la conversazione si apre a tutto schermo", lettura["visibile"] and lettura["tutto"] and "Quanto costa un sito?" in lettura["testo"] and "Dipende da cosa deve fare." in lettura["testo"], lettura)
-        prova("6. è in sola lettura: niente casella, e quella della chat è coperta", lettura["scrive"] == 0 and lettura["copre"], lettura)
-        prova("6. c'è «← Indietro»", "← Indietro" in await p.inner_text("#lettura-indietro"))
-        await p.click("#lettura-indietro"); await p.wait_for_timeout(450)
-        torna = await p.evaluate("""(()=>{ const c = document.getElementById("scrivi").getBoundingClientRect(), su = document.elementFromPoint(c.left + c.width/2, c.top + c.height/2);
-            return {lettura: !document.getElementById("lettura-conv").hidden, scheda: document.getElementById("conversazioni").classList.contains("aperta"), casella: su && su.id === "scrivi"}})()""")
-        prova("6. «← Indietro» torna alla chat", not torna["lettura"] and not torna["scheda"] and torna["casella"], torna)
+        await p.click("#conv-elenco .riga-conv >> nth=1 >> .riga-apri"); await p.wait_for_timeout(450)
+        ripresa = await p.evaluate("""(()=>{ const c = document.getElementById("scrivi").getBoundingClientRect(), sopra = document.elementFromPoint(c.left + c.width/2, c.top + c.height/2);
+            return {bolle: [...document.querySelectorAll("#chat .bolla")].map(b => b.textContent), casella: !!sopra && sopra.id === "scrivi", menu: document.getElementById("conversazioni").classList.contains("aperta"),
+                    lettura: !!document.getElementById("lettura-conv") || !!document.getElementById("lettura-indietro")}})()""")
+        prova("6. toccata una riga, quella conversazione è la chat in corso: i suoi messaggi, il menù si chiude, la casella per scrivere c'è",
+              ripresa["bolle"] == ["Ciao, come va?", "Quanto costa un sito?", "Dipende da cosa deve fare."] and ripresa["casella"] and not ripresa["menu"], ripresa)
+        prova("6. la lettura a tutto schermo non c'è più (né «← Indietro»)", not ripresa["lettura"], ripresa)
+        s = await stato()
+        prova("6. la riga ripresa esce da io.thread (restano le altre due, chat era vuota) e i messaggi sono in io.chat",
+              [m["id"] for m in s.get("chat", [])] == ["t2-n", "t2", "t2-r"] and len(s.get("thread", [])) == 2 and all("Quanto costa un sito?" not in json.dumps(c) for c in s["thread"]), s)
         # il ✕ per cancellarne una resta, con la conferma di oggi; la cancellata non torna
         await p.click("#apri-conv"); await p.wait_for_timeout(450)
         p.once("dialog", lambda dlg: asyncio.ensure_future(dlg.dismiss()))
         await p.click("#conv-elenco .riga-conv >> nth=0 >> .via"); await p.wait_for_timeout(200)
-        prova("6. ✕ chiede conferma: se si risponde no, la conversazione resta", len((await stato()).get("thread", [])) == 3 and await p.locator("#conv-elenco .riga-conv").count() == 3)
+        prova("6. ✕ chiede conferma: se si risponde no, la conversazione resta", len((await stato()).get("thread", [])) == 2 and await p.locator("#conv-elenco .riga-conv").count() == 2)
         p.once("dialog", lambda dlg: asyncio.ensure_future(dlg.accept()))
         await p.click("#conv-elenco .riga-conv >> nth=0 >> .via"); await p.wait_for_timeout(300)
         s = await stato()
         prova("6. se si risponde sì, la conversazione se ne va dall'elenco e da io.thread, e i suoi messaggi finiscono in io.viste",
-              await p.locator("#conv-elenco .riga-conv").count() == 2 and len(s.get("thread", [])) == 2 and {"t1", "t1-n"} <= set(s.get("viste", [])), s)
+              await p.locator("#conv-elenco .riga-conv").count() == 1 and len(s.get("thread", [])) == 1 and {"t1", "t1-n"} <= set(s.get("viste", [])), s)
 
         # 7. ＋: nuova conversazione
         print("── 7. ＋ nuova conversazione")
@@ -431,11 +435,17 @@ async def main():
         s = await stato()
         prova("10. riaperta la pagina, la conversazione è nelle precedenti col suo vocale", s.get("thread") and any(m.get("voce") for m in s["thread"][0]["messaggi"]), s.get("thread"))
         await p.click("#apri-conv"); await p.wait_for_timeout(450); await p.click("#conv-elenco .riga-conv >> nth=0 >> .riga-apri"); await p.wait_for_timeout(400)
-        vecchio = await p.evaluate("(()=>{ const g = document.querySelector('#lettura-chat .voce-gioca'); return {c: !!g, testo: document.querySelector('#lettura-chat .voce-apri') ? document.querySelector('#lettura-chat .voce-apri').textContent.trim() : null, riprova: !!document.querySelector('#lettura-chat .voce-riprova')} })()")
-        prova("10. nella conversazione vecchia il vocale si vede ancora, con «▸ testo» e senza «riprova»", vecchio["c"] and vecchio["testo"] == "▸ testo" and not vecchio["riprova"], vecchio)
-        await p.click("#lettura-chat .voce-gioca"); await p.wait_for_timeout(500)
-        prova("10. e si riascolta anche dopo aver chiuso e riaperto la pagina", await p.evaluate("document.querySelector('#lettura-chat .voce-gioca').textContent.trim()") == "❚❚")
-        await p.click("#lettura-indietro"); await p.wait_for_timeout(300)
+        vecchio = await p.evaluate("(()=>{ const g = document.querySelector('#chat .voce-gioca'); return {c: !!g, testo: document.querySelector('#chat .voce-apri') ? document.querySelector('#chat .voce-apri').textContent.trim() : null, riprova: !!document.querySelector('#chat .voce-riprova')} })()")
+        prova("10. nella conversazione ripresa il vocale si vede ancora, con «▸ testo» e senza «riprova»", vecchio["c"] and vecchio["testo"] == "▸ testo" and not vecchio["riprova"], vecchio)
+        await p.click("#chat .voce-gioca"); await p.wait_for_timeout(500)
+        prova("10. e si riascolta anche dopo aver chiuso e riaperto la pagina e ripreso la conversazione", await p.evaluate("document.querySelector('#chat .voce-gioca').textContent.trim()") == "❚❚")
+        # avanti e indietro: la conversazione col vocale va nelle precedenti (＋) e si riprende ancora; l'audio non dipende da dove sta
+        await p.click("#chat .voce-gioca"); await p.wait_for_timeout(200)   # lo fermo (toccato di nuovo, smette)
+        await p.click("#nuova-conv"); await p.wait_for_timeout(300)
+        prova("10. ＋: il vocale va in io.thread con la sua conversazione", not (await stato()).get("chat") and any(m.get("voce") for m in (await stato())["thread"][0]["messaggi"]), await stato())
+        await p.click("#apri-conv"); await p.wait_for_timeout(450); await p.click("#conv-elenco .riga-conv >> nth=0 >> .riga-apri"); await p.wait_for_timeout(400)
+        await p.click("#chat .voce-gioca"); await p.wait_for_timeout(500)
+        prova("10. ripresa una seconda volta, il ▶︎ suona ancora (l'audio si ritrova dall'id del vocale)", await p.evaluate("document.querySelector('#chat .voce-gioca').textContent.trim()") == "❚❚")
 
         # meno di un secondo: non manda niente
         async def mezzo_secondo():
@@ -531,6 +541,95 @@ async def main():
         senza = await mezzo_secondo()
         prova("10. CONTROPROVA: tolto il controllo «meno di 1 secondo», i 0,5 secondi mandano la richiesta e la prova diventa rossa",
               not (senza["voce"] == 0 and senza["assistente"] == 0 and senza["bolle"] == 0 and "Tieni premuto per registrare" in senza["messaggio"]), senza)
+        PAGINA = vera
+        await entra()
+
+        # 11. 26/10 notte, JJ: «non si può continuare sulla stessa conversazione se la riprendi» e «quando premi il suggerimento deve già
+        # rispondere subito, senza aspettare che pensa». I tre tasti rispondono con una frase fissa, senza chiamare la porta; il messaggio
+        # dopo parte all'assistente col contesto del tasto davanti (invisibile). Una riga del menù è LA conversazione in corso.
+        print("── 11. i tasti rispondono subito; una conversazione si riprende e si continua")
+        FRASI = ["Certo, Annamaria. Dimmi cosa devo ricordarti e per quando: il giorno e, se ce l'hai, anche l'ora.",
+                 "Va bene, Annamaria. Cosa scade, quando, e se vuoi l'importo: te la ricordo io prima della scadenza.",
+                 "Dimmi le cose che ti porti sempre dietro quando esci (chiavi, portafoglio, badge…): te le ricordo io."]
+        async def tasto_subito():
+            """Col token: tocco il primo tasto; dopo 300 ms c'è la risposta fissa e alla porta non è andato niente."""
+            await rientra({"chat": [], "thread": []}); INVIATI.clear(); PORTA.clear(); PORTA["assistente"] = (200, {"risposta": "Segnato, ti ricordo il dentista."})
+            await p.click("#prove-chat .prova-chat >> nth=0"); await p.wait_for_timeout(300)
+            return {"bolle": await bolle(), "porta": [r for (r, c) in INVIATI]}
+        r = await tasto_subito()
+        prova("11. tocco «⏰ Ricordami una cosa»: entro 300 ms la bolla della persona e «Certo, …», e NESSUNA richiesta a /assistente",
+              r["bolle"] == ["⏰ Ricordami una cosa", FRASI[0]] and r["porta"] == [], r)
+        await p.fill("#scrivi", "dentista domani alle 10"); await p.click("#manda-chat"); await p.wait_for_timeout(800)
+        ass = richieste("assistente")
+        prova("11. scrivo «dentista domani alle 10»: UNA richiesta a /assistente, col contesto del tasto davanti e il testo in fondo",
+              len(ass) == 1 and ass[0]["testo"].startswith("[ha toccato «Ricordami una cosa»") and ass[0]["testo"].endswith("] dentista domani alle 10"), ass)
+        bb = await bolle()
+        prova("11. nella bolla della persona c'è solo «dentista domani alle 10»: il contesto non si vede, in nessuna bolla",
+              bb == ["⏰ Ricordami una cosa", FRASI[0], "dentista domani alle 10", "Segnato, ti ricordo il dentista."] and not any("ha toccato" in x for x in bb), bb)
+        await p.fill("#scrivi", "e poi?"); await p.click("#manda-chat"); await p.wait_for_timeout(800)
+        prova("11. il contesto vale per il messaggio che segue il tasto, non per i successivi", len(richieste("assistente")) == 2 and richieste("assistente")[1]["testo"] == "e poi?", richieste("assistente"))
+        # tutti e tre i tasti, con e senza nome
+        for nome, attesa in (("Annamaria", FRASI), (None, ["Certo. Dimmi cosa devo ricordarti e per quando: il giorno e, se ce l'hai, anche l'ora.",
+                                                          "Va bene. Cosa scade, quando, e se vuoi l'importo: te la ricordo io prima della scadenza.", FRASI[2]])):
+            dati = []
+            for n in range(3):
+                await metti({**{k: v for k, v in CASA.items() if k != "tuo"}, **({"tuo": nome} if nome else {}), "primo": True, "chat": [], "thread": []}); await entra()
+                INVIATI.clear(); await p.click(f"#prove-chat .prova-chat >> nth={n}"); await p.wait_for_timeout(300)
+                dati.append(((await bolle())[1:], [r_ for (r_, c) in INVIATI]))
+            prova(f"11. {'col nome' if nome else 'senza io.tuo'}: le tre risposte fisse sono giuste, senza «undefined» né virgole sbagliate, e nessuna richiesta",
+                  [d[0] for d in dati] == [[x] for x in attesa] and all(d[1] == [] for d in dati) and not any("undefined" in x or ",." in x or ", ." in x for d in dati for x in d[0]), dati)
+        for n, chiave in enumerate(("Segnami una scadenza", "Cosa porto quando esco")):
+            await rientra({"chat": [], "thread": []}); INVIATI.clear(); PORTA["assistente"] = (200, {"risposta": "Ok."})
+            await p.click(f"#prove-chat .prova-chat >> nth={n + 1}"); await p.wait_for_timeout(300)
+            await p.fill("#scrivi", "il mio testo"); await p.click("#manda-chat"); await p.wait_for_timeout(700)
+            a_ = richieste("assistente")
+            prova(f"11. il tasto «{chiave}» porta il suo contesto davanti al messaggio dopo", len(a_) == 1 and a_[0]["testo"].startswith(f"[ha toccato «{chiave}»") and a_[0]["testo"].endswith("] il mio testo"), a_)
+
+        # riprendere: 2 conversazioni in io.thread e una in corso → tocco la seconda
+        COPIA = lambda: json.loads(json.dumps(THREAD[:2]))
+        await rientra({"chat": DA_LEGGERE, "thread": COPIA()}); INVIATI.clear(); PORTA.clear(); PORTA["assistente"] = (200, {"risposta": "Perché dipende dal sito."})
+        await p.click("#apri-conv"); await p.wait_for_timeout(450)
+        await p.click("#conv-elenco .riga-conv >> nth=1 >> .riga-apri"); await p.wait_for_timeout(450)
+        s = await stato()
+        prova("11. con 2 conversazioni in io.thread e una in corso: tocco la seconda → la chat mostra i suoi messaggi",
+              await bolle() == ["Ciao, come va?", "Quanto costa un sito?", "Dipende da cosa deve fare."], await bolle())
+        ok_, d = await casa_in_vista(p)
+        prova("11. la casella per scrivere c'è, in vista, e il menù si è chiuso", ok_ and not await p.is_visible("#conversazioni"), d)
+        prova("11. quella che era in corso è finita in io.thread, che ha sempre 2 conversazioni, e la ripresa non c'è più lì",
+              len(s["thread"]) == 2 and [m["id"] for m in s["thread"][0]["messaggi"]] == ["y0", "y0-n"] and [m["id"] for m in s["chat"]] == ["t2-n", "t2", "t2-r"]
+              and not any("t2" in json.dumps(c) for c in s["thread"]), s)
+        await p.fill("#scrivi", "e poi?"); await p.click("#manda-chat"); await p.wait_for_timeout(800)
+        s = await stato()
+        prova("11. scrivo «e poi?»: parte a /assistente e la risposta arriva in QUELLA conversazione (non nelle altre)",
+              [x["testo"] for x in richieste("assistente")] == ["e poi?"] and [m["testo"] for m in s["chat"]][-2:] == ["e poi?", "Perché dipende dal sito."]
+              and len(s["thread"]) == 2 and not any("Perché dipende" in json.dumps(c) for c in s["thread"]), (richieste("assistente"), s))
+        # ripresa e rimessa: andata e ritorno senza perdere né raddoppiare niente
+        await p.click("#apri-conv"); await p.wait_for_timeout(450)
+        await p.click("#conv-elenco .riga-conv >> nth=0 >> .riga-apri"); await p.wait_for_timeout(450)
+        s = await stato()
+        prova("11. andata e ritorno: riprendo l'altra, le due conversazioni si scambiano e io.thread ne ha ancora 2",
+              len(s["thread"]) == 2 and [m["id"] for m in s["chat"]] == ["y0", "y0-n"] and any(m.get("testo") == "e poi?" for m in s["thread"][0]["messaggi"]), s)
+
+        # con una risposta in attesa non si cambia
+        await metti({**CASA, "primo": True, "thread": COPIA(), "chat": [{"ruolo": "tu", "testo": "Quanto costa un sito?", "id": "w1", "attesa": True}]}); await entra()
+        await p.click("#apri-conv"); await p.wait_for_timeout(450)
+        prima_ = await stato()
+        await p.click("#conv-elenco .riga-conv >> nth=0 >> .riga-apri"); await p.wait_for_timeout(300)
+        s = await stato()
+        prova("11. con una risposta in attesa: toccare un'altra conversazione non cambia niente", s.get("chat") == prima_.get("chat") and s.get("thread") == prima_.get("thread")
+              and len(await bolle()) == 1 and (await bolle())[0].startswith("Quanto costa un sito?"), ({"prima": prima_.get("chat"), "dopo": s.get("chat")}, await bolle()))
+        prova("11. e compare «aspetto la risposta…», vicino all'elenco", await p.is_visible("#conv-aspetto") and "aspetto la risposta" in await p.inner_text("#conv-aspetto"), await p.inner_text("#conversazioni"))
+        await p.click("#chiudi-conv"); await p.wait_for_timeout(300); await p.click("#apri-conv"); await p.wait_for_timeout(450)
+        prova("11. riaperto il menù, l'avviso non c'è più (finché non si tocca di nuovo)", not await p.is_visible("#conv-aspetto"))
+        await p.click("#chiudi-conv"); await p.wait_for_timeout(300)
+
+        # CONTROPROVA: se il tasto chiama ancora /assistente invece della risposta fissa, la prima prova diventa rossa
+        vera = PAGINA; segno = 'b.addEventListener("click", ()=>tastoChat(b.textContent.trim()))'
+        prova("11. (controprova) il punto da spegnere c'è nella pagina", segno in PAGINA)
+        PAGINA = PAGINA.replace(segno, 'b.addEventListener("click", ()=>parla(b.textContent.trim(),"chat"))')
+        r = await tasto_subito()
+        prova("11. CONTROPROVA: se il tasto chiama ancora /assistente, la prova «risposta subito, nessuna richiesta» diventa rossa",
+              not (r["bolle"] == ["⏰ Ricordami una cosa", FRASI[0]] and r["porta"] == []), r)
         PAGINA = vera
         await entra()
 
