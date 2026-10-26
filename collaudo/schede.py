@@ -14,6 +14,7 @@ PAGINA=open(sys.argv[1],encoding="utf-8").read()
 PORTA="https://jjavis-porta.19-jjardito93.workers.dev"
 BASE="https://jjoeboy93.github.io/JJA-VIS/"
 inviati=[]
+CAL={"impegni":[],"scadenze":[],"fatti":[],"giu":False}   # il calendario della porta finta (26/10)
 conta_risposte=[]
 risposte_di={}   # quante volte ha chiesto /risposte ogni pagina: altre pagine aperte nello stesso browser chiedono per conto loro
 async def instrada(route):
@@ -25,10 +26,28 @@ async def instrada(route):
     if u.startswith(PORTA):
         if route.request.method=="POST":
             corpo=json.loads(route.request.post_data); inviati.append((u.split("/")[-1], corpo))
+            if u.endswith("/assistente/fatto") or u.endswith("/assistente/annulla"):
+                CORS={"Access-Control-Allow-Origin":"https://jjoeboy93.github.io"}
+                if CAL["giu"]: return await route.fulfill(status=502, body='{"errore":"non riesco a salvare: riprova tra poco"}', content_type="application/json", headers=CORS)
+                i=corpo["id"]
+                if u.endswith("/fatto"):
+                    for k in ("impegni","scadenze"):
+                        for x in list(CAL[k]):
+                            if x["id"]==i: CAL[k].remove(x); CAL["fatti"].append({**x,"id":i,"tipo":"impegno" if k=="impegni" else "scadenza","quando_fatto":"2026-10-26T10:00:00Z"})
+                else:
+                    for x in list(CAL["fatti"]):
+                        if x["id"]==i:
+                            CAL["fatti"].remove(x); CAL["scadenze" if x["tipo"]=="scadenza" else "impegni"].append({k:v for k,v in x.items() if k not in ("tipo","quando_fatto")})
+                return await route.fulfill(status=200, body=json.dumps({"ok":True,"id":i}), content_type="application/json", headers=CORS)
             if NOVA["acceso"] and u.endswith("/parla") and corpo.get("da_dove")=="chat":
                 sub={"id":"abc12345-n","testo":"Posso prepararti uno strumento per le interrogazioni.","azione":{"servizio":"commissione","tipo":"Strumento web","bozza":"Uno strumento per preparare le interrogazioni"},"passa":False}
                 return await route.fulfill(status=201, body=json.dumps({"ok":True,"id":"abc12345","subito":sub}), content_type="application/json", headers={"Access-Control-Allow-Origin":"https://jjoeboy93.github.io"})
             return await route.fulfill(status=201, body='{"ok":true,"id":"abc12345"}', content_type="application/json", headers={"Access-Control-Allow-Origin":"https://jjoeboy93.github.io"})
+        if u.endswith("/assistente/calendario"):
+            CORS={"Access-Control-Allow-Origin":"https://jjoeboy93.github.io"}
+            if CAL["giu"]: return await route.abort()
+            ordina=lambda l: sorted(l,key=lambda x:(x["giorno"],x.get("ora") or ""))
+            return await route.fulfill(body=json.dumps({"impegni":ordina(CAL["impegni"]),"scadenze":ordina(CAL["scadenze"]),"fatti":CAL["fatti"]}), content_type="application/json", headers=CORS)
         if u.endswith("/nova"): return await route.fulfill(body=json.dumps({"acceso":NOVA["acceso"]}), content_type="application/json")
         if u.endswith("/vetrina"): return await route.fulfill(body='{"canzoni":5747,"attrezzi":41}', content_type="application/json")
         if "/risposte" in u:
@@ -486,6 +505,66 @@ async def main():
         v=await visto(p5)
         ok(not any(x["ing"] for x in v) and not any(x["o1"] for x in v) and await p5.is_visible("#benvenuto"), "con l'account e nome e tema: né l'ingresso né «Come vuoi chiamarmi?», nemmeno per un attimo; si va al saluto")
         await c5.close()
+        print("── il calendario (26 ottobre)")
+        from datetime import date, timedelta
+        iso=lambda d: d.isoformat()
+        oggi_=date.today()
+        CAL.update(giu=False, fatti=[], impegni=[{"id":"i-ieri","cosa":"il dentista","giorno":iso(oggi_-timedelta(days=1)),"ora":"10:00"},
+                                                 {"id":"i-oggi","cosa":"chiamare il commercialista","giorno":iso(oggi_),"ora":"15:30"}],
+                   scadenze=[{"id":"s-bollo","cosa":"bollo auto","giorno":iso(oggi_+timedelta(days=1)),"importo":"€ 180","ogni_mese":False}])
+        c11=await b.new_context(viewport={"width":390,"height":844}, has_touch=True, is_mobile=True); await c11.route("**/*", instrada)
+        await c11.add_init_script("localStorage.setItem('jjavis-conto','t'.repeat(64));localStorage.setItem('jjavis-io', JSON.stringify({id:'e1b2c3d4e5f60718',nome:'Nova',tema:'tech',tuo:'Jacopo',inviato:true,mestiere:'Ufficio',tempo:'Altro lavoro ripetitivo'}))")
+        pg11=await c11.new_page(); pg11.on("pageerror", lambda e: errori.append(str(e)))
+        await pg11.goto(BASE); await pg11.wait_for_timeout(1200)
+        await pg11.click("#apri-conv"); await pg11.wait_for_timeout(450)
+        ok(await pg11.evaluate("!!(document.getElementById('menu-calendario').compareDocumentPosition(document.getElementById('menu-citta')) & Node.DOCUMENT_POSITION_FOLLOWING) && !!(document.getElementById('conv-elenco').compareDocumentPosition(document.getElementById('menu-calendario')) & Node.DOCUMENT_POSITION_FOLLOWING)"), "nel menù ☰: «📅 Calendario» dopo le conversazioni e prima della Città")
+        await pg11.click("#menu-calendario"); await pg11.wait_for_timeout(500)
+        ok(await pg11.evaluate("document.body.dataset.scheda")=="calendario" and await pg11.is_visible("#p-calendario") and "Calendario" in await pg11.inner_text("#tcal"), "dal ☰ si apre la scheda «📅 Calendario»")
+        testo_=await pg11.inner_text("#cal-lista")
+        ok("Da fare" in testo_ and "Rimasti indietro" in testo_ and "Oggi" in testo_ and "Domani" in testo_, "«Da fare», «Rimasti indietro», «Oggi» e «Domani»")
+        ok(await pg11.locator(".cal-giorno.indietro").count()==1 and "il dentista" in await pg11.inner_text(".cal-giorno.indietro + .cal-elenco"), "«Rimasti indietro» c'è, col primo impegno (quello di ieri)")
+        ok(testo_.index("Rimasti indietro")<testo_.index("Oggi")<testo_.index("Domani"), "in ordine: indietro, oggi, domani")
+        ok(await pg11.locator(".cal-riga").count()==3 and await pg11.locator(".cal-fatto").count()==3 and "15:30" in testo_, "tre righe, ognuna col suo bottone, con l'ora")
+        ok("✓ Pagata" in await pg11.inner_text('.cal-riga[data-id="s-bollo"]') and "€ 180" in await pg11.inner_text('.cal-riga[data-id="s-bollo"]'), "la scadenza: «✓ Pagata» e l'importo")
+        ok((await pg11.evaluate("document.querySelector('.cal-fatto').getBoundingClientRect().height"))>=44, "il bottone è grande")
+        ok(await pg11.evaluate("getComputedStyle(document.querySelector('.cal-giorno.indietro')).color")!=await pg11.evaluate("getComputedStyle(document.querySelector('.cal-giorno:not(.indietro)')).color"), "i giorni passati sono di un altro colore")
+        ok(await pg11.is_hidden("#cal-fatti"), "nessun fatto: «Fatti negli ultimi 30 giorni» non c'è")
+        prima_=len(inviati)
+        await pg11.click('.cal-riga[data-id="i-oggi"] .cal-fatto'); await pg11.wait_for_timeout(250)
+        ok(await pg11.evaluate("document.querySelector('.cal-riga[data-id=\"i-oggi\"]')?.classList.contains('fatta') ?? true"), "toccato: la riga si barra")
+        await pg11.wait_for_timeout(900)
+        fatti_=[d for (r,d) in inviati[prima_:] if r=="fatto"]
+        ok(len(fatti_)==1 and fatti_[0]=={"id":"i-oggi"} and len([1 for (r,d) in inviati[prima_:] if r in ("fatto","annulla")])==1, "UNA POST /assistente/fatto, con il suo id")
+        ok(await pg11.locator('.cal-riga[data-id="i-oggi"]').count()==0 and await pg11.locator(".cal-riga").count()==2, "la riga è sparita")
+        ok(await pg11.is_visible("#cal-annulla") and "chiamare il commercialista" in await pg11.inner_text("#cal-annulla"), "in basso compare «Annulla»")
+        ok(await pg11.is_visible("#cal-fatti") and not await pg11.evaluate("document.getElementById('cal-fatti').open"), "i fatti ci sono, ma chiusi")
+        await pg11.click("#cal-annulla-btn"); await pg11.wait_for_timeout(700)
+        ann_=[d for (r,d) in inviati[prima_:] if r=="annulla"]
+        ok(len(ann_)==1 and ann_[0]=={"id":"i-oggi"}, "«Annulla» manda POST /assistente/annulla con lo stesso id")
+        ok(await pg11.locator('.cal-riga[data-id="i-oggi"]').count()==1 and await pg11.is_hidden("#cal-annulla"), "la riga torna, la barra se ne va")
+        await pg11.click('.cal-riga[data-id="s-bollo"] .cal-fatto'); await pg11.wait_for_timeout(900)
+        ok(await pg11.is_visible("#cal-annulla"), "dopo un altro tocco la barra «Annulla» è lì")
+        await pg11.wait_for_timeout(5300)
+        ok(await pg11.is_hidden("#cal-annulla"), "e dopo 5 secondi se ne va")
+        await pg11.click("#cal-fatti summary"); await pg11.wait_for_timeout(200)
+        ok("bollo auto" in await pg11.inner_text("#cal-fatti-elenco"), "fra i fatti c'è la scadenza pagata")
+        await pg11.click("#cal-fatti-elenco button"); await pg11.wait_for_timeout(700)
+        ok(await pg11.locator('.cal-riga[data-id="s-bollo"]').count()==1, "…e da lì si può annullare")
+        print("── il calendario, porta giù")
+        CAL["giu"]=True
+        await pg11.click("#apri-conv"); await pg11.wait_for_timeout(450); await pg11.click("#menu-calendario"); await pg11.wait_for_timeout(700)
+        t_=await pg11.inner_text("#p-calendario")
+        ok("Non riesco a raggiungere" in t_ and await pg11.locator(".cal-riprova").count()==1 and "Niente in programma" not in t_ and await pg11.locator(".cal-riga").count()==0, "senza rete: il motivo in chiaro e «Riprova», mai «niente in programma»")
+        CAL["giu"]=False; await pg11.click(".cal-riprova"); await pg11.wait_for_timeout(700)
+        ok(await pg11.locator(".cal-riga").count()==3 and await pg11.locator(".cal-avviso").count()==0, "«Riprova» con la porta tornata: le righe sono di nuovo lì")
+        print("── il calendario, vuoto")
+        CAL.update(impegni=[], scadenze=[], fatti=[])
+        await pg11.click("#apri-conv"); await pg11.wait_for_timeout(450); await pg11.click("#menu-calendario"); await pg11.wait_for_timeout(700)
+        t_=await pg11.inner_text("#cal-lista")
+        ok("Niente in programma. Per segnare una cosa dillo a Nova" in t_, "vuoto: «Niente in programma. Per segnare una cosa dillo a Nova»")
+        await pg11.click("#cal-alla-chat"); await pg11.wait_for_timeout(500)
+        ok(await pg11.evaluate("document.body.dataset.scheda")=="inizia", "il tasto porta alla chat")
+        await c11.close()
         print("── errori JavaScript:", errori or "nessuno")
         ok(not errori, "zero errori in tutta la prova")
         await b.close()
