@@ -151,20 +151,9 @@ footer b{color:var(--testo)}
 .bolla.tu{align-self:flex-end;background:var(--utente);border-color:var(--accento)}
 .bolla .azione{background:none;border:0;border-bottom:1px solid var(--accento);padding:0 0 3px;margin-top:10px;cursor:pointer;font-size:14px;text-align:left;white-space:normal}
 .bolla.pensa{opacity:.7;font-style:italic}
-/* ══ LE CONVERSAZIONI PRECEDENTI — 2 ottobre ══ JJ: «quando apro è pulita col nuovo saluto,
-   ma c'è una parte dove restano i thread precedenti». La chat si riapre pulita se tutto è
-   stato letto; se c'è una risposta da leggere o una domanda in attesa, si riapre com'era. */
-.vecchie{margin:10px 0 0;border:1px solid var(--bordo)}
-.vecchie[hidden]{display:none}
-.vecchie>summary{cursor:pointer;padding:10px 12px;font-size:15px;color:var(--tenue);list-style:none}
-.vecchie>summary::-webkit-details-marker{display:none}
-.vecchie>summary::before{content:"▸ ";color:var(--accento)}
-.vecchie[open]>summary::before{content:"▾ "}
-.vecchia{border-top:1px solid var(--bordo)}
-.vecchia>summary{cursor:pointer;padding:9px 12px;font-size:15px;list-style:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.vecchia>summary::-webkit-details-marker{display:none}
-.vecchia>summary small{color:var(--tenue);margin-right:6px}
-.vecchia .chat{max-height:none;overflow:visible;padding:0 10px 10px;margin:4px 0 0}
+/* ══ LE CONVERSAZIONI — 2 ottobre, rifatte il 26/10 ══ JJ: «quando apro è pulita col nuovo saluto». La chat si riapre
+   pulita se tutto è stato letto; se c'è una risposta da leggere o una domanda in attesa, si riapre com'era. Le vecchie stanno
+   nella scheda ☰ (sotto, «LA CHAT È LA PAGINA»), non più in una fisarmonica sopra la chat. */
 .bolla .attesa{display:block;font-size:13px;color:var(--tenue);margin-top:4px;font-style:italic}
 /* ══ LE SCHEDE ══ 26 settembre, JJ: «dinamico, scorri tra sezioni dedicate».
    Una barra in basso come un'app, e il dito che scorre a destra e a sinistra. */
@@ -243,38 +232,101 @@ body:not(.con-nome) .tema b{font-size:16px}
 body:not(.con-nome) .tema small{font-size:13px;line-height:1.3}
 body:not(.con-nome) #o1 .invia,body:not(.con-nome) #o2 .invia,body:not(.con-nome) #o3 .invia{margin-top:12px;padding:12px}
 
-/* ══ NOVA È UNA CHAT, COME JARVIS — 29 settembre ══ JJ: «la pagina iniziale
-   dove ci parli deve avere la chat come Jarvis». Sulla scheda del nome, a nome
-   scelto: il saluto è il primo messaggio di Nova, i pannelli spariscono, la
-   casella sta in basso sopra le schede. Resta, piccola, la frase onesta: le
-   risposte non sono automatiche. */
+/* ══ NOVA È UNA CHAT, COME JARVIS — 29 settembre ══ JJ: «la pagina iniziale dove ci parli deve avere la chat come Jarvis».
+   Dal 26/10 chi è di casa apre direttamente sulla chat (sotto, «LA CHAT È LA PAGINA»); qui restano il benvenuto e il resto
+   della scheda, come li vede chi ci arriva dal collegamento nel pannello ☰. */
 [data-scheda="inizia"] #benvenuto{max-width:88%;padding:12px 14px;border:1px solid var(--bordo);
   background:color-mix(in srgb,var(--accento) 8%,var(--panel));margin:4px 0 12px}
-[data-scheda="inizia"] #benvenuto::before,[data-scheda="inizia"] #benvenuto::after,
-body.con-nome[data-scheda="inizia"] #parla::before,body.con-nome[data-scheda="inizia"] #parla::after{display:none}
+[data-scheda="inizia"] #benvenuto::before,[data-scheda="inizia"] #benvenuto::after{display:none}
 [data-scheda="inizia"] #benvenuto .dice{font-size:17px;line-height:1.4}
 [data-scheda="inizia"] #salto-parla{display:none}
 body.con-nome[data-scheda="inizia"] #conosci-domanda{font-size:20px!important;margin:10px 0!important}
-body.con-nome[data-scheda="inizia"] #parla{background:none;border:0;padding:0;margin:0}
-body.con-nome[data-scheda="inizia"] #tp{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
-body.con-nome[data-scheda="inizia"] .spiega-chat{font-size:13px;text-align:center;color:var(--tenue);margin:8px 12px 4px;opacity:.85}
-body.con-nome[data-scheda="inizia"] .chat{max-height:none;overflow:visible}
 .anteprima-foto{position:relative;display:inline-block;margin:6px 0}.anteprima-foto img{max-height:120px;max-width:60vw;border-radius:8px;display:block}
 .anteprima-foto button{position:absolute;top:-8px;right:-8px;width:28px;height:28px;border-radius:50%;border:0;background:#000c;color:#fff;font-size:15px;cursor:pointer}
 .bolla img.foto-bolla{display:block;max-width:220px;max-height:220px;border-radius:8px;margin-bottom:6px}
 .cancella-chat{display:block;margin:4px 0 8px auto;background:transparent;border:0;color:var(--tenue,#9a9a9a);font:inherit;font-size:13px;cursor:pointer}
-.vecchia .via{float:right;background:transparent;border:0;color:var(--tenue,#9a9a9a);cursor:pointer;font-size:15px}
 .doc-chat{display:block;margin:4px 0 10px auto;padding:8px 12px;border:1px solid var(--accento,#00B4D8);background:transparent;color:inherit;font:inherit;cursor:pointer;border-radius:8px}
 .foto-chat{flex:none;min-width:48px;font-size:22px;background:transparent;border:1px solid var(--linea,#3a3a3a);color:inherit;cursor:pointer}
-body.con-nome[data-scheda="inizia"] .barra-chat{position:fixed;left:0;right:0;bottom:var(--alto-schede,72px);z-index:19;
-  display:flex;gap:8px;align-items:flex-end;
+/* ══ LA CHAT È LA PAGINA — 26 ottobre ══ JJ: «quando apro, non c'è il papiro sopra; se voglio vedere una sessione vecchia ho la
+   scheda con le chat». Chi è di casa (body.chat-sola) apre sulla chat a tutto schermo: in alto una barra sottile (☰ · nome · ＋),
+   sotto la conversazione, in basso la casella. Il resto della scheda (benvenuto, domande del giorno) non sta sopra la chat:
+   si raggiunge dal pannello ☰ (body.resto-aperto). L'altezza segue la tastiera: lo script mette in --vv-top e --vv-h quello
+   che si vede davvero (visualViewport), così la casella non finisce mai sotto; senza, vale 100dvh. */
+.chat-barra,#chat-vuota,#lettura-conv,#torna-chat{display:none}
+body.chat-sola[data-scheda="inizia"]:not(.resto-aperto) .testa{display:none}
+body.chat-sola[data-scheda="inizia"]:not(.resto-aperto) main{padding:0}
+body.chat-sola:not(.resto-aperto) #p-inizia{animation:none}   /* un pannello che si muove porterebbe con sé la chat fissa */
+body.chat-sola:not(.resto-aperto) #p-inizia>:not(#resto),body.chat-sola:not(.resto-aperto) #resto>:not(#parla){display:none}
+body.chat-sola.resto-aperto #parla{display:none}
+body.resto-aperto #torna-chat{display:inline-block;margin:4px 0 10px;background:none;border:0;border-bottom:1px solid var(--accento);padding:0 0 3px;cursor:pointer}
+body.chat-sola:not(.resto-aperto) #parla{position:fixed;left:0;right:0;z-index:18;top:var(--vv-top,0px);
+  height:calc(var(--vv-h,100dvh) - var(--sotto-chat,var(--alto-schede,72px)));
+  display:flex;flex-direction:column;margin:0;padding:0;border:0;border-radius:0;background:transparent}
+html.tastiera{--sotto-chat:0px}   /* con la tastiera aperta le schede stanno sotto di lei: lo spazio è tutto della chat */
+body.chat-sola #parla::before,body.chat-sola #parla::after{display:none}
+body.chat-sola:not(.resto-aperto) .chat-barra{display:flex;align-items:center;gap:6px;flex:0 0 auto;min-height:52px;
+  padding:calc(env(safe-area-inset-top,0px) + 4px) max(8px,calc((100% - 560px)/2 + 8px)) 4px;
+  background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-bottom:1px solid var(--bordo)}
+.chat-nome{flex:1;min-width:0;margin:0;text-align:center;font:700 21px/1.2 var(--f-titoli);letter-spacing:.06em;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-shadow:0 0 14px color-mix(in srgb,var(--accento) 45%,transparent)}
+.chat-tasto{flex:0 0 auto;min-width:48px;height:44px;padding:0 10px;display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  background:transparent;border:1px solid transparent;color:var(--testo);font:700 24px/1 var(--f-testo);cursor:pointer}
+.chat-tasto:hover,.chat-tasto:active{border-color:var(--accento);background:color-mix(in srgb,var(--accento) 12%,transparent)}
+.chat-tasto small{font:600 12px/1.1 var(--f-testo);color:var(--tenue);max-width:78px;text-align:right}
+.chat-tasto.grigio,.conv-nuova.grigio{opacity:.5;cursor:not-allowed;border-color:transparent;background:transparent}
+.chat-area{display:none}
+body.chat-sola:not(.resto-aperto) .chat-area{display:flex;flex-direction:column;flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;
+  -webkit-overflow-scrolling:touch;padding:12px max(16px,calc((100% - 560px)/2 + 16px)) 8px}
+body.chat-sola .chat-area .chat{margin:0;max-height:none;overflow:visible}
+body.chat-sola .chat-area .cancella-chat{margin:8px 0 0 auto}
+body.chat-sola .chat-area .spiega-chat{font-size:13px;text-align:center;color:var(--tenue);margin:14px 4px 4px;opacity:.85}
+body.chat-sola #chat-vuota{display:block;margin:auto;width:100%;max-width:420px;text-align:center;padding:12px 0}
+body.chat-sola #chat-vuota .saluto-vuoto{font:600 24px/1.3 var(--f-titoli);margin:0 0 20px;color:var(--testo)}
+.prove-chat{display:flex;flex-direction:column;gap:10px}
+.prova-chat{display:block;width:100%;min-height:60px;padding:14px 16px;text-align:left;font:600 19px/1.25 var(--f-testo);color:var(--testo);cursor:pointer;
+  background:color-mix(in srgb,var(--accento) 8%,var(--panel));border:1px solid var(--bordo)}
+.prova-chat:hover,.prova-chat:active{border-color:var(--accento);box-shadow:0 0 12px color-mix(in srgb,var(--accento) 30%,transparent) inset}
+body.chat-sola:not(.resto-aperto) #parla>.anteprima-foto{flex:0 0 auto;margin:6px max(16px,calc((100% - 560px)/2 + 16px)) 0}
+body.chat-sola:not(.resto-aperto) #esito-chat{flex:0 0 auto;margin:0;padding:4px max(16px,calc((100% - 560px)/2 + 16px)) 0;font-size:14px}
+body.chat-sola #esito-chat:empty{display:none}
+body.chat-sola:not(.resto-aperto) .barra-chat{flex:0 0 auto;display:flex;gap:8px;align-items:flex-end;
   padding:8px max(16px,calc((100% - 560px)/2 + 16px));
-  background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
-  border-top:1px solid var(--bordo)}
-body.con-nome[data-scheda="inizia"] .barra-chat textarea{flex:1;min-height:48px;max-height:120px;margin:0;resize:none;font-size:16px}
-body.con-nome[data-scheda="inizia"] .barra-chat .invia{width:auto;margin:0;padding:0 18px;height:48px;font-size:15px}
-body.con-nome[data-scheda="inizia"] main{padding-bottom:calc(var(--alto-schede,72px) + 96px)}
-body.con-nome[data-scheda="inizia"] #esito-chat{margin:6px 0 0}
+  background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-top:1px solid var(--bordo)}
+body.chat-sola .barra-chat textarea{flex:1;min-height:48px;max-height:120px;margin:0;resize:none;font-size:16px}
+body.chat-sola .barra-chat .invia{width:auto;margin:0;padding:0 18px;height:48px;font-size:15px}
+/* la scheda delle conversazioni: scorre da sinistra, sopra la chat (e lascia in vista le schede in basso) */
+#conv-velo,#conversazioni{position:absolute;visibility:hidden}
+#conv-velo{inset:0;z-index:5;background:rgba(0,0,0,.5);opacity:0;transition:opacity .22s ease-out,visibility 0s .22s}
+#conversazioni{top:0;bottom:0;left:0;z-index:6;width:min(88%,360px);display:flex;flex-direction:column;background:var(--panel);
+  border-right:1px solid var(--accento);transform:translateX(-102%);transition:transform .22s ease-out,visibility 0s .22s}
+#conv-velo.aperta,#conversazioni.aperta{visibility:visible;transition-delay:0s}
+#conv-velo.aperta{opacity:1}
+#conversazioni.aperta{transform:none}
+@media (prefers-reduced-motion:reduce){#conv-velo,#conversazioni{transition:none}}
+.conv-testa{display:flex;align-items:center;gap:8px;padding:calc(env(safe-area-inset-top,0px) + 8px) 8px 8px 16px;border-bottom:1px solid var(--bordo)}
+.conv-testa h3{flex:1;margin:0;font:700 20px/1.2 var(--f-titoli)}
+.conv-nuova{display:flex;align-items:center;justify-content:space-between;gap:8px;width:calc(100% - 24px);margin:12px;padding:13px 14px;text-align:left;
+  font:700 17px/1.2 var(--f-testo);color:var(--testo);cursor:pointer;background:color-mix(in srgb,var(--accento) 14%,transparent);border:1px solid var(--accento)}
+.conv-nuova small{font:600 12px/1.1 var(--f-testo);color:var(--tenue)}
+.conv-elenco{list-style:none;margin:0;padding:0;flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain}
+.riga-conv{display:flex;align-items:stretch;border-top:1px solid var(--bordo)}
+.riga-apri{flex:1;min-width:0;display:block;text-align:left;padding:11px 8px 11px 16px;background:none;border:0;color:var(--testo);font:500 16px/1.3 var(--f-testo);cursor:pointer}
+.riga-apri:hover,.riga-apri:active{background:color-mix(in srgb,var(--accento) 10%,transparent)}
+.riga-titolo{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.riga-quando{display:block;margin-top:2px;font-size:13px;color:var(--tenue)}
+.riga-conv .via{flex:0 0 auto;min-width:48px;background:transparent;border:0;color:var(--tenue);cursor:pointer;font-size:16px}
+.conv-vuoto{margin:14px 16px}
+.conv-piedi{display:flex;flex-direction:column;gap:4px;padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--bordo);font-size:15px}
+.conv-piedi a{padding:6px 0}
+/* una conversazione vecchia, a tutto schermo e in sola lettura */
+body.chat-sola:not(.resto-aperto) #lettura-conv{display:flex;position:absolute;inset:0;z-index:7;flex-direction:column;background:var(--bg)}
+#lettura-conv[hidden]{display:none}
+.lettura-barra{display:flex;align-items:center;gap:6px;flex:0 0 auto;min-height:52px;padding:calc(env(safe-area-inset-top,0px) + 4px) 8px 4px;border-bottom:1px solid var(--bordo)}
+.lettura-barra .chat-tasto{font-size:17px}
+.lettura-barra h3{flex:1;min-width:0;margin:0;font:700 18px/1.2 var(--f-titoli);text-align:center;padding-right:48px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lettura-corpo{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:12px max(16px,calc((100% - 560px)/2 + 16px))}
+.lettura-corpo .chat{margin:0;max-height:none;overflow:visible}
+:root[data-tema="calmo"] .prova-chat,:root[data-tema="naturale"] .prova-chat,:root[data-tema="calmo"] .conv-nuova,:root[data-tema="naturale"] .conv-nuova{border-radius:12px}
 .numeri{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
 .numeri div{border:1px solid var(--bordo);padding:10px 12px}
 .numeri b{display:block;font:700 30px/1.05 var(--f-titoli);color:var(--oro)}
@@ -399,6 +451,7 @@ html.di-casa #o1{display:none}
   </header>
 
 <div class="pannello" id="p-inizia" role="tabpanel" aria-labelledby="s-inizia">
+  <button type="button" id="torna-chat" class="salto">← Torna alla chat</button>
   <section class="etichetta" id="o1" aria-labelledby="to1">
     <p class="dice">Ciao. Sono il tuo nuovo assistente personale.</p>
     <h2 id="to1" style="font-size:30px;margin:8px 0 6px">Come vuoi chiamarmi?</h2>
@@ -538,12 +591,27 @@ html.di-casa #o1{display:none}
 
 
   <section class="etichetta" id="parla" aria-labelledby="tp">
-    <h2 id="tp" style="font-size:28px">Parla con <span class="chi">JJA-VIS</span></h2>
-    <p class="piccolo spiega-chat" id="spiega-chat">Chiedimi quello che vuoi, sul tuo lavoro o su di me. Non rispondo in automatico: ogni risposta la scelgo con chi mi costruisce, e compare qui da sola. Se mi lasci la mail nel <a href="#profilo-mail">Profilo</a>, quando serve arriva anche lì.</p>
-    <details id="vecchie" class="vecchie" hidden><summary id="vecchie-titolo">Conversazioni precedenti</summary><div id="vecchie-elenco"></div></details>
-    <div id="chat" class="chat" aria-live="polite"></div>
-    <button type="button" id="cancella-chat" class="cancella-chat" hidden aria-label="Cancella questa conversazione">✕ Cancella la conversazione</button>
+    <!-- 26/10, JJ: «come la chat di Claude in un progetto». Barra sottile: le conversazioni, il nome, una nuova -->
+    <div class="chat-barra" id="chat-barra">
+      <button type="button" id="apri-conv" class="chat-tasto" aria-label="Le conversazioni" aria-haspopup="dialog" aria-controls="conversazioni" aria-expanded="false">☰</button>
+      <h2 id="tp" class="chat-nome"><span class="chi">JJA-VIS</span></h2>
+      <button type="button" id="nuova-conv" class="chat-tasto" aria-label="Nuova conversazione"><small id="nuova-aspetto" hidden>aspetto la risposta</small><span aria-hidden="true">＋</span></button>
+    </div>
+    <div class="chat-area" id="chat-area">
+      <div id="chat-vuota" hidden>
+        <p class="saluto-vuoto" id="saluto-vuoto">Ciao<span id="vuoto-tuo"></span>, sono <span class="chi">JJA-VIS</span>. Cosa facciamo oggi?</p>
+        <div class="prove-chat" id="prove-chat">
+          <button type="button" class="prova-chat">⏰ Ricordami una cosa</button>
+          <button type="button" class="prova-chat">💶 Segnami una scadenza</button>
+          <button type="button" class="prova-chat">🎒 Cosa porto quando esco</button>
+        </div>
+      </div>
+      <div id="chat" class="chat" aria-live="polite"></div>
+      <button type="button" id="cancella-chat" class="cancella-chat" hidden aria-label="Cancella questa conversazione">✕ Cancella la conversazione</button>
+      <p class="piccolo spiega-chat" id="spiega-chat">Ti rispondo subito. Gli impegni, le scadenze e le cose da portarti dietro te li ricordo io per mail; bollette e documenti mandameli col 📷.</p>
+    </div>
     <div id="anteprima-foto" class="anteprima-foto" hidden><img id="anteprima-img" alt="La foto che stai per mandare"><button type="button" id="anteprima-via" aria-label="Togli la foto">✕</button></div>
+    <p class="avviso" id="esito-chat" role="status"></p>
     <div class="barra-chat" id="barra-chat">
       <label for="scrivi" class="nascosto">Scrivimi</label>
       <button type="button" id="foto-chat" class="foto-chat" aria-label="Manda una foto o un PDF" title="Una foto o una bolletta">📷</button>
@@ -551,7 +619,19 @@ html.di-casa #o1{display:none}
       <textarea id="scrivi" maxlength="800" placeholder="Scrivimi…"></textarea>
       <button class="invia" id="manda-chat">Manda</button>
     </div>
-    <p class="avviso" id="esito-chat" role="status"></p>
+    <!-- le conversazioni: una scheda che scorre da sinistra sopra la chat; toccata una riga, si legge a tutto schermo -->
+    <div id="conv-velo"></div>
+    <aside id="conversazioni" role="dialog" aria-modal="true" aria-labelledby="conv-titolo">
+      <div class="conv-testa"><h3 id="conv-titolo">Conversazioni</h3><button type="button" id="chiudi-conv" class="chat-tasto" aria-label="Chiudi">✕</button></div>
+      <button type="button" id="conv-nuova" class="conv-nuova"><span>＋ Nuova conversazione</span><small id="conv-nuova-aspetto" hidden>aspetto la risposta</small></button>
+      <ul id="conv-elenco" class="conv-elenco"></ul>
+      <p class="piccolo conv-vuoto" id="conv-vuoto">Qui compaiono le conversazioni finite.</p>
+      <div class="conv-piedi"><a href="#benvenuto" id="conv-resto">Il benvenuto e le domande del giorno</a><a href="citta.html">🏙 Entra nella città</a></div>
+    </aside>
+    <div id="lettura-conv" role="dialog" aria-modal="true" aria-labelledby="lettura-titolo" hidden>
+      <div class="lettura-barra"><button type="button" id="lettura-indietro" class="chat-tasto">← Indietro</button><h3 id="lettura-titolo"></h3></div>
+      <div class="lettura-corpo" id="lettura-corpo"><div class="chat" id="lettura-chat"></div></div>
+    </div>
   </section>
 
   </div>
@@ -1056,7 +1136,7 @@ async function manda(conMail){
     // 22/10, JJ: «quando viene usato per la prima volta è proprio quando deve colpire per la sua utilità». Con l'account
     // quello che hai scritto va subito al tuo assistente, che ti dice cosa fa per te da oggi (primoIncontro); senza, come prima
     if(contoToken() && INVIO){ setTimeout(()=>primoIncontro(libero), 1300); }
-    else if(libero){ parla(libero,"sondaggio").then(ok=>{ if(ok){ esito.textContent += " A quello che mi hai scritto ti rispondo nella chat qui sotto, appena posso."; } }); }
+    else if(libero){ parla(libero,"sondaggio").then(ok=>{ if(ok){ esito.textContent += " A quello che mi hai scritto ti rispondo nella chat, appena posso."; } }); }
   }catch(err){
     $("manda").disabled=$("senza").disabled=false;
     esito.classList.add("errore"); esito.textContent="Non è arrivato (" + err.message + "). Riprova fra un minuto.";
@@ -1065,10 +1145,9 @@ async function manda(conMail){
 $("manda").addEventListener("click", ()=>manda(true));
 $("senza").addEventListener("click", ()=>manda(false));
 
-// ══ PARLAMI ══ la chat NON risponde in diretta (JJ: «pago se do io l'ok
-// perche' la domanda vale»). Il messaggio va alla porta (/parla), arriva a
-// chi mi costruisce, e la risposta approvata torna qui: la pagina la chiede
-// alla porta (/risposte) all'apertura e ogni 30 secondi per 10 minuti.
+// ══ PARLAMI ══ con l'account la chat parla con l'assistente vero (parlaAssistente, più sotto) e la risposta arriva subito.
+// Senza account (JJ: «pago se do io l'ok perche' la domanda vale») il messaggio va alla porta (/parla), arriva a chi mi
+// costruisce, e la risposta approvata torna qui: la pagina la chiede alla porta (/risposte) all'apertura e mentre aspetta.
 // 2/10, JJ: le risposte «che portano al secondo fine del servizio bottega».
 // Una risposta di Nova puo' portare un'azione: il pulsante apre la Bottega al
 // punto giusto, con la richiesta gia' scritta (che la persona puo' cambiare).
@@ -1090,51 +1169,132 @@ function bolla(chi, testo, attesa, azione){ const b=document.createElement("div"
     p.textContent=AZIONI[azione.servizio]; p.addEventListener("click", ()=>apriBottega(azione)); b.appendChild(document.createElement("br")); b.appendChild(p); }
   $("chat").appendChild(b); $("chat").scrollTop=$("chat").scrollHeight;
   // come JARVIS: l'ultimo messaggio resta in vista sopra la casella
-  if(document.body.classList.contains("con-nome") && document.body.dataset.scheda==="inizia") requestAnimationFrame(()=>window.scrollTo(0, document.body.scrollHeight));
+  scorriChat(); requestAnimationFrame(scorriChat); aggiornaChat();
   return b; }
+const scorriChat=()=>{ const a=$("chat-area"); if(a) a.scrollTop=a.scrollHeight; };
 function ridisegnaChat(){ $("chat").innerHTML=""; $("cancella-chat").hidden=!(io.chat||[]).length; (io.chat||[]).forEach(m=>{ bolla(m.ruolo, m.testo, m.ruolo==="tu" && m.attesa, m.azione);
     if(m.foto){ const i=document.createElement("img"); i.className="foto-bolla"; i.alt="la foto che hai mandato"; i.src=m.foto; $("chat").lastElementChild.prepend(i); }
     // i documenti chiesti in chat (20/10): un tasto per ognuno, che lo scarica con la tua sessione e lo apre
     (m.documenti||[]).forEach(dc=>{ const b=document.createElement("button"); b.type="button"; b.className="doc-chat"; b.textContent="📎 "+dc.titolo;
       b.addEventListener("click",()=>apriDocumento(dc.id,b)); $("chat").appendChild(b); }); });
+  // il messaggio che sta partendo si vede subito, con «…» al posto della risposta (non è ancora nella conversazione)
+  if(invio!==null){ bolla("tu", invio); bolla("io pensa", "…"); }
   if((io.chat||[]).length && !io.chatDa){ io.chatDa=Date.now(); salva(); }
-  segnaLette(); }
+  aggiornaChat(); segnaLette(); }
 // «Letta» vuol dire mostrata: pagina davanti agli occhi, scheda della chat, nome dato.
-const chatInVista=()=>!document.hidden && document.body.dataset.scheda==="inizia" && document.body.classList.contains("con-nome");
+const chatInVista=()=>!document.hidden && document.body.dataset.scheda==="inizia" && document.body.classList.contains("con-nome") && !document.body.classList.contains("resto-aperto");
 function segnaLette(){ if(!chatInVista()) return; let n=0; (io.chat||[]).forEach(m=>{ if(m.nuovo){ delete m.nuovo; n++; } }); if(n) salva(); }
 document.addEventListener("visibilitychange", segnaLette);
 const daLeggere=()=>(io.chat||[]).some(m=>m.attesa||m.nuovo);
+// La conversazione in corso passa alle precedenti (io.thread) e la chat riparte vuota. Lo fanno l'apertura, se non resta niente
+// da leggere, e il «＋».
+function archiviaChat(){
+  io.thread=io.thread||[];
+  io.thread.unshift({quando:io.chatDa||Date.now(), messaggi:io.chat}); io.thread=io.thread.slice(0,20);
+  io.chat=[]; delete io.chatDa; salva();
+}
 // All'apertura: se non resta niente da leggere, la conversazione va nelle precedenti e la chat riparte pulita.
 function apertura(){
   io.thread=io.thread||[];
-  if((io.chat||[]).length && !daLeggere()){
-    io.thread.unshift({quando:io.chatDa||Date.now(), messaggi:io.chat}); io.thread=io.thread.slice(0,20);
-    io.chat=[]; delete io.chatDa; salva();
-  }
-  disegnaVecchie();
+  if((io.chat||[]).length && !daLeggere()) archiviaChat();
+  disegnaConversazioni();
 }
-function disegnaVecchie(){
-  const t=io.thread||[], casa=$("vecchie-elenco"); casa.textContent="";
-  $("vecchie").hidden=!t.length; $("vecchie-titolo").textContent=`Conversazioni precedenti (${t.length})`;
-  t.forEach(c=>{ const d=document.createElement("details"); d.className="vecchia";
-    const sm=document.createElement("summary"), q=document.createElement("small");
-    q.textContent=new Date(c.quando).toLocaleDateString("it-IT",{day:"numeric",month:"long"});
-    const primo=(c.messaggi.find(m=>m.ruolo==="tu")||c.messaggi[0]||{}).testo||"";
-    sm.append(q, primo.slice(0,70)); d.appendChild(sm);
-    const ch=document.createElement("div"); ch.className="chat";
+// ══ LA CHAT È LA PAGINA ══ 26/10, JJ: «quando apro, non c'è il papiro sopra; se voglio vedere una sessione vecchia ho la
+// scheda con le chat; ed è così che deve apparire». Chi è di casa (nome dato, tre domande fatte, sondaggio mandato) apre sulla
+// chat a tutto schermo; il benvenuto e le domande del giorno stanno dietro un collegamento nel pannello ☰ (resto-aperto).
+// Si separa la vista, non la memoria: all'assistente arriva tutto come prima.
+const diCasa=()=>!!(io.nome && io.inviato && !io.inizio);
+function modoChat(){ document.body.classList.toggle("chat-sola", diCasa()); aggiornaChat(); }
+// una risposta in attesa: dalla porta (attesa), o una richiesta che sta ancora andando (parlando, invio)
+const rispostaInAttesa=()=>parlando || invio!==null || (io.chat||[]).some(m=>m.attesa);
+function aggiornaChat(){
+  if(!$("chat-vuota")) return;
+  $("chat-vuota").hidden=!!$("chat").children.length;
+  $("vuoto-tuo").textContent=io.tuo?" "+io.tuo:"";
+  const att=rispostaInAttesa();
+  [["nuova-conv","nuova-aspetto"],["conv-nuova","conv-nuova-aspetto"]].forEach(([b,t])=>{ $(b).classList.toggle("grigio",att); $(b).setAttribute("aria-disabled",String(att)); $(t).hidden=!att; });
+}
+// il titolo di una riga: il primo messaggio della persona, al massimo 40 caratteri, senza tagliare a metà parola
+function titoloConv(c){
+  const m=c.messaggi||[], tx=x=>String(x.testo||"").replace(/\s+/g," ").trim();
+  const t=tx(m.find(x=>x.ruolo==="tu"&&tx(x))||m.find(tx)||{})||(m.some(x=>x.foto)?"Una foto":"Conversazione");
+  if(t.length<=40) return t;
+  let r=t.slice(0,39);
+  if(!/\s/.test(t[39])){ const i=r.lastIndexOf(" "); if(i>0) r=r.slice(0,i); }
+  return r.replace(/[\s,;:.\-–—]+$/,"")+"…";
+}
+// «oggi», «ieri», «12 ottobre» (con l'anno solo se non è questo)
+function quandoConv(ts){
+  const d=new Date(ts), o=new Date(); if(isNaN(d)) return "";
+  const g=x=>new Date(x.getFullYear(),x.getMonth(),x.getDate()).getTime(), dif=Math.round((g(o)-g(d))/864e5);
+  if(dif===0) return "oggi"; if(dif===1) return "ieri";
+  return d.toLocaleDateString("it-IT",{day:"numeric",month:"long",...(d.getFullYear()!==o.getFullYear()?{year:"numeric"}:{})});
+}
+// una bolla di una conversazione chiusa (con la foto e il pulsante verso la Bottega, come nella chat)
+function bollaFissa(m){
+  const b=document.createElement("div"); b.className="bolla "+m.ruolo; b.textContent=m.testo;
+  if(m.foto){ const i=document.createElement("img"); i.className="foto-bolla"; i.alt=""; i.src=m.foto; b.prepend(i); }
+  if(m.azione && AZIONI[m.azione.servizio]){ const x=document.createElement("button"); x.className="salto azione"; x.type="button";
+    x.textContent=AZIONI[m.azione.servizio]; x.addEventListener("click", ()=>apriBottega(m.azione)); b.append(document.createElement("br"), x); }
+  return b;
+}
+function disegnaConversazioni(){
+  const t=io.thread||[], el=$("conv-elenco"); el.textContent="";
+  $("conv-vuoto").hidden=!!t.length;
+  $("apri-conv").setAttribute("aria-label", t.length?`Le conversazioni (${t.length})`:"Le conversazioni");
+  t.forEach(c=>{ const li=document.createElement("li"); li.className="riga-conv";
+    const ap=document.createElement("button"); ap.type="button"; ap.className="riga-apri";
+    const ti=document.createElement("span"); ti.className="riga-titolo"; ti.textContent=titoloConv(c);
+    const q=document.createElement("small"); q.className="riga-quando"; q.textContent=quandoConv(c.quando);
+    ap.append(ti,q); ap.addEventListener("click",()=>leggiConv(c));
     // ✕ per cancellare una conversazione vecchia (JJ, 20/10)
     const via=document.createElement("button"); via.type="button"; via.className="via"; via.textContent="✕"; via.setAttribute("aria-label","Cancella questa conversazione");
-    via.addEventListener("click",ev=>{ ev.preventDefault(); if(!confirm("Cancello questa conversazione?")) return; io.viste=[...new Set([...(io.viste||[]), ...(c.messaggi||[]).filter(m=>m.id).map(m=>m.id)])].slice(-300); io.thread=(io.thread||[]).filter(x=>x!==c); salva(); disegnaVecchie(); });
-    sm.appendChild(via);
-    c.messaggi.forEach(m=>{ const b=document.createElement("div"); b.className="bolla "+m.ruolo; b.textContent=m.testo;
-      if(m.foto){ const i=document.createElement("img"); i.className="foto-bolla"; i.alt=""; i.src=m.foto; b.prepend(i); }
-      // il pulsante verso la Bottega resta anche nelle conversazioni chiuse
-      if(m.azione && AZIONI[m.azione.servizio]){ const x=document.createElement("button"); x.className="salto azione"; x.type="button";
-        x.textContent=AZIONI[m.azione.servizio]; x.addEventListener("click", ()=>apriBottega(m.azione)); b.append(document.createElement("br"), x); }
-      ch.appendChild(b); });
-    d.appendChild(ch); casa.appendChild(d); });
+    via.addEventListener("click",()=>{ if(!confirm("Cancello questa conversazione?")) return; io.viste=[...new Set([...(io.viste||[]), ...(c.messaggi||[]).filter(m=>m.id).map(m=>m.id)])].slice(-300); io.thread=(io.thread||[]).filter(x=>x!==c); salva(); disegnaConversazioni(); });
+    li.append(ap,via); el.appendChild(li); });
 }
-let parlando=false;
+// la scheda delle conversazioni
+function apriConv(){ disegnaConversazioni(); aggiornaChat(); $("conv-velo").classList.add("aperta"); $("conversazioni").classList.add("aperta"); $("apri-conv").setAttribute("aria-expanded","true");
+  $("chiudi-conv").focus({preventScroll:true}); }
+function chiudiConv(){ const era=$("conversazioni").classList.contains("aperta"); $("conv-velo").classList.remove("aperta"); $("conversazioni").classList.remove("aperta"); $("apri-conv").setAttribute("aria-expanded","false");
+  if(era && $("conversazioni").contains(document.activeElement)) $("apri-conv").focus({preventScroll:true}); }
+// una conversazione vecchia, a tutto schermo e in sola lettura; «← Indietro» torna alla chat
+function leggiConv(c){
+  const ch=$("lettura-chat"); ch.textContent=""; (c.messaggi||[]).forEach(m=>ch.appendChild(bollaFissa(m)));
+  $("lettura-titolo").textContent=quandoConv(c.quando); $("lettura-conv").hidden=false; $("lettura-corpo").scrollTop=0; $("lettura-indietro").focus({preventScroll:true});
+}
+function chiudiLettura(){ $("lettura-conv").hidden=true; $("lettura-chat").textContent=""; }
+function chiudiPannelli(){ chiudiLettura(); chiudiConv(); }
+function tornaDallaLettura(){ chiudiPannelli(); $("apri-conv").focus({preventScroll:true}); requestAnimationFrame(scorriChat); }
+// «＋»: la conversazione in corso va nelle precedenti e la chat riparte vuota. Con una risposta ancora in attesa non si può:
+// la risposta arriverebbe in una conversazione che non è più quella
+function nuovaConv(){
+  if(rispostaInAttesa()) return;
+  if((io.chat||[]).length) archiviaChat();
+  chiudiPannelli(); ridisegnaChat(); disegnaConversazioni(); requestAnimationFrame(scorriChat);
+}
+$("apri-conv").addEventListener("click", apriConv);
+$("chiudi-conv").addEventListener("click", ()=>{ chiudiConv(); });
+$("conv-velo").addEventListener("click", chiudiConv);
+$("nuova-conv").addEventListener("click", nuovaConv);
+$("conv-nuova").addEventListener("click", nuovaConv);
+$("lettura-indietro").addEventListener("click", tornaDallaLettura);
+document.addEventListener("keydown", e=>{ if(e.key!=="Escape") return;
+  if(!$("lettura-conv").hidden) tornaDallaLettura(); else if($("conversazioni").classList.contains("aperta")) chiudiConv(); });
+// il benvenuto e le domande del giorno: dietro un collegamento, non sopra la chat
+function apriResto(){ if(!document.body.classList.contains("chat-sola")) return; chiudiPannelli(); document.body.classList.add("resto-aperto"); window.scrollTo(0,0); }
+function chiudiResto(){ if(!document.body.classList.contains("resto-aperto")) return; document.body.classList.remove("resto-aperto"); window.scrollTo(0,0); requestAnimationFrame(()=>{ scorriChat(); segnaLette(); }); }
+$("torna-chat").addEventListener("click", chiudiResto);
+// la tastiera: la chat occupa quello che si vede davvero, e la casella non finisce mai sotto
+(function(){
+  const v=window.visualViewport, r=document.documentElement; if(!v) return;
+  let era=false;
+  const misura=()=>{ if(v.scale>1.02){ r.style.removeProperty("--vv-h"); r.style.removeProperty("--vv-top"); r.classList.remove("tastiera"); era=false; return; }   // un pizzico di zoom: vale lo schermo intero
+    r.style.setProperty("--vv-h", v.height+"px"); r.style.setProperty("--vv-top", v.offsetTop+"px");
+    const su=innerHeight-v.height-v.offsetTop>120; r.classList.toggle("tastiera", su);
+    if(su!==era){ era=su; requestAnimationFrame(scorriChat); } };
+  v.addEventListener("resize", misura); v.addEventListener("scroll", misura); misura();
+})();
+let parlando=false, invio=null;   // invio: il messaggio che sta partendo, mostrato prima della risposta
 // 📷 nella chat (JJ, 20/10: «si possono mandare immagini da dentro la pagina ... non è il massimo della comodità dover fare le
 // cose via mail»). Una foto si rimpicciolisce nel telefono (1600 px, JPEG): bollette leggibili, poco da mandare. Va alla porta
 // con la sessione dell'account: una bolletta si archivia cifrata e diventa scadenza, un'altra foto riceve una risposta.
@@ -1173,7 +1333,7 @@ async function mandaFoto(file, testoDato){
     io.chat=io.chat||[]; io.chat.push({ruolo:"tu",testo:testo||(f.tipo==="application/pdf"?"📄 "+(f.nome||"un PDF"):""),...(pronta&&pronta.mini?{foto:pronta.mini}:{})}); io.chat.push({ruolo:"io",testo:d.risposta});
     io.chat=io.chat.slice(-20); salva(); ridisegnaChat(); $("scrivi").value=""; e.textContent="";
   }catch(err){ e.classList.add("errore"); e.textContent="Non è partita: "+err.message+"."; }
-  finally{ parlando=false; $("manda-chat").disabled=$("foto-chat").disabled=false; togliFoto(); }
+  finally{ parlando=false; $("manda-chat").disabled=$("foto-chat").disabled=false; togliFoto(); aggiornaChat(); }
 }
 $("foto-chat").addEventListener("click",()=>$("foto-file").click());
 $("foto-file").addEventListener("change",ev=>preparaFoto(ev.target.files&&ev.target.files[0]));
@@ -1191,16 +1351,17 @@ async function apriDocumento(id,b){
 // impegni, le scadenze, i documenti e la memoria della conversazione; può cercare sul web. Senza account resta Nova.
 async function parlaAssistente(testo){
   const e=$("esito-chat"); e.className="avviso"; e.textContent="Ci penso…";
-  parlando=true; $("manda-chat").disabled=true;
+  parlando=true; $("manda-chat").disabled=true; invio=testo; ridisegnaChat();
   try{
     const r=await fetch(INVIO.replace("/risposta","/assistente"),{method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+contoToken()},
       body:JSON.stringify({testo,nome_assistente:io.nome||"",tuo:io.tuo||""})});
     const d=await r.json().catch(()=>({}));
     if(!r.ok||!d.risposta) throw new Error(d.errore||("errore "+r.status));
-    io.chat=io.chat||[]; io.chat.push({ruolo:"tu",testo}); io.chat.push({ruolo:"io",testo:d.risposta,...(d.documenti&&d.documenti.length?{documenti:d.documenti}:{})});
+    invio=null; io.chat=io.chat||[]; io.chat.push({ruolo:"tu",testo}); io.chat.push({ruolo:"io",testo:d.risposta,...(d.documenti&&d.documenti.length?{documenti:d.documenti}:{})});
     io.chat=io.chat.slice(-20); salva(); ridisegnaChat(); e.textContent=""; return true;
-  }catch(err){ e.classList.add("errore"); e.textContent="Non è partito: "+err.message+". Riprova tra poco."; return false; }
-  finally{ parlando=false; $("manda-chat").disabled=false; }
+  }catch(err){ invio=null; if(!$("scrivi").value) $("scrivi").value=testo; ridisegnaChat();
+    e.classList.add("errore"); e.textContent="Non è partito: "+err.message+". Riprova tra poco."; return false; }
+  finally{ parlando=false; $("manda-chat").disabled=false; aggiornaChat(); }
 }
 // ══ IL PRIMO INCONTRO ══ 22/10, JJ: «quando viene usato per la prima volta è proprio quando deve colpire per la sua
 // utilità… non ha neanche proposto niente, deve farlo». Finito il sondaggio (o alla prima apertura dopo, per chi l'aveva già
@@ -1229,7 +1390,7 @@ async function parla(testo, daDove){
   if(contoToken() && (daDove||"chat")==="chat" && INVIO) return parlaAssistente(testo);
   const e=$("esito-chat"); e.className="avviso"; e.textContent="";
   if(!INVIO){ e.textContent="Anteprima: qui il messaggio partirebbe."; return false; }
-  parlando=true; $("manda-chat").disabled=true;
+  parlando=true; $("manda-chat").disabled=true; if((daDove||"chat")==="chat"){ invio=testo; ridisegnaChat(); }
   try{
     const r=await fetch(INVIO.replace("/risposta","/parla"),{method:"POST",headers:{"Content-Type":"application/json"},
       body:JSON.stringify({chi:io.id, nome_assistente:io.nome||"", tema:io.tema||"tech", tuo:io.tuo||"", da_dove:daDove||"chat",
@@ -1238,7 +1399,7 @@ async function parla(testo, daDove){
         ...(io.mail ? {contatto:{nome:io.tuo||"", societa:"", mail:io.mail, consenso:true}} : {})})});
     const d=await r.json().catch(()=>({}));
     if(!r.ok||!d.id) throw new Error(d.errore||("errore "+r.status));
-    io.chat=io.chat||[];
+    invio=null; io.chat=io.chat||[];
     const s=d.subito;   // Nova ha gia' risposto (2/10)
     io.chat.push({ruolo:"tu", testo, id:d.id, attesa:!s || !!s.passa});
     if(s) io.chat.push({ruolo:"io", testo:s.testo, id:s.id, ...(s.azione?{azione:s.azione}:{})});
@@ -1247,8 +1408,9 @@ async function parla(testo, daDove){
       : io.mail ? "Arrivato. Ti rispondo qui appena posso, e per mail quando serve." : "Arrivato. Ti rispondo qui, appena posso: la risposta compare da sola.";
     inizioAttesa();
     return true;
-  }catch(err){ e.classList.add("errore"); e.textContent="Non è partito: "+err.message+". Riprova tra poco."; return false; }
-  finally{ parlando=false; $("manda-chat").disabled=false; }
+  }catch(err){ const era=invio; invio=null; if(era && !$("scrivi").value) $("scrivi").value=era; ridisegnaChat();
+    e.classList.add("errore"); e.textContent="Non è partito: "+err.message+". Riprova tra poco."; return false; }
+  finally{ parlando=false; $("manda-chat").disabled=false; aggiornaChat(); }
 }
 async function controllaRisposte(){
   if(!INVIO||!io.id) return 0;
@@ -1276,8 +1438,13 @@ async function controllaRisposte(){
   }catch(_){ return 0; }
 }
 $("manda-chat").addEventListener("click", ()=>{ const t=$("scrivi").value; $("scrivi").value=""; parla(t,"chat"); });
-// Con Nova accesa la frase «non rispondo in automatico» sarebbe falsa: si
-// chiede alla porta come stanno le cose, e si dice quella vera.
+// i tre tasti della chat vuota (26/10): mandano subito all'assistente, come se la persona l'avesse scritto
+document.querySelectorAll("#prove-chat .prova-chat").forEach(b=>b.addEventListener("click", ()=>parla(b.textContent.trim(),"chat")));
+// «Non rispondo in automatico» è vero solo senza account (26/10): con l'account, che per entrare è obbligatorio, l'assistente
+// risponde da solo (parlaAssistente) e il testo di partenza è già quello giusto. Senza account (la porta dei conti che non
+// risponde, o il link personale della mail) la risposta la sceglie chi mi costruisce, e la frase torna quella di prima.
+// Con Nova accesa sarebbe falsa anche lì: si chiede alla porta come stanno le cose, e si dice quella vera.
+if(!contoToken()) $("spiega-chat").innerHTML='Chiedimi quello che vuoi, sul tuo lavoro o su di me. Non rispondo in automatico: ogni risposta la scelgo con chi mi costruisce, e compare qui da sola. Se mi lasci la mail nel <a href="#profilo-mail">Profilo</a>, quando serve arriva anche lì.';
 if(INVIO) fetch(INVIO.replace("/risposta","/nova")).then(r=>r.ok?r.json():{}).then(d=>{ if(!d.acceso||localStorage.getItem("jjavis-conto")) return;
   $("spiega-chat").innerHTML='Ti rispondo subito: quando una cosa non la so, o mi chiedi un prezzo o una data, la passo a chi mi costruisce e la sua risposta compare qui da sola. Se mi lasci la mail nel <a href="#profilo">Profilo</a>, arriva anche lì.';
 }).catch(()=>{});
@@ -1600,6 +1767,7 @@ function benvenuto(tornato){
   const tu=io.tuo?`, ${io.tuo}`:"";
   if(io.inizio){ delete io.inizio; salva(); }
   document.body.classList.add("con-nome");
+  modoChat();   // 26/10: chi è di casa apre sulla chat a tutto schermo
   // 29/9, JJ: «la chat per scrivere deve comparire alla fine, quando ho finito il
   // questionario, senó c'è sempre in mezzo il pulsante manda che confonde»
   $("parla").hidden = !io.inviato;
@@ -1678,8 +1846,7 @@ $("avanti-o3").addEventListener("click", ()=>{ io.tuo=$("tuo-nome").value.trim()
 $("salta-o3").addEventListener("click", ()=>{ io.tuo=""; salva(); benvenuto(false); apri("benvenuto"); nasce(); });
 // la chat si ridisegna qui, dopo che «io» e' stato letto dal telefono:
 // prima, «io» non esiste ancora e lo script si fermerebbe.
-// Con l'account la chat è l'assistente vero (22/10: la frase diceva «non rispondo in automatico» sopra la sua risposta)
-if(contoToken()) $("spiega-chat").textContent='Ti rispondo subito. Gli impegni, le scadenze e le cose da portarti dietro te li ricordo io per mail; bollette e documenti mandameli col 📷.';
+// Con l'account la chat è l'assistente vero (22/10): la frase di partenza (nel codice HTML) lo dice già
 apertura();
 ridisegnaChat();
 // chi aveva già finito il sondaggio prima del 22/10 e non ha mai avuto la proposta: la riceve alla prima apertura
@@ -1687,7 +1854,7 @@ if(io.inviato && !io.primo && contoToken()) setTimeout(()=>primoIncontro(""), 25
 // nome e tema fatti ma la nascita non è arrivata (porta giù, o chi c'era già prima del 22/10): riprova all'apertura
 if(io.nome && !io.nato && !io.inizio && contoToken()) setTimeout(nasce, 1500);
 controllaRisposte().then(n=>{ if(n && $("benvenuto").classList.contains("aperta")){
-  $("saluto2").textContent += n>1 ? ` Ti ho risposto a ${n} messaggi: li trovi nella chat qui sotto.` : " Ti ho risposto: lo trovi nella chat qui sotto."; } });
+  $("saluto2").textContent += n>1 ? ` Ti ho risposto a ${n} messaggi: li trovi nella chat.` : " Ti ho risposto: lo trovi nella chat."; } });
 // ══ LE RISPOSTE ARRIVANO DA SOLE ══ JJ, 26 settembre: «se uno fa una
 // domanda e lascia aperta la pagina e rispondo, la risposta non appare…
 // potrebbe stare lì in eterno». Prima si chiedeva per 10 minuti e poi
@@ -1732,10 +1899,11 @@ function vaiA(nome, verso, bersaglio){
     const pn=$("p-"+nome); void pn.offsetWidth; pn.classList.add(v>0?"da-destra":"da-sinistra"); }
   centraScheda(nome, !!prima);
   schedaAttiva=nome; document.body.dataset.scheda=nome;
-  if(nome==="inizia"){ $("s-inizia").classList.remove("nuovo"); requestAnimationFrame(segnaLette); }
+  if(nome!=="inizia"){ chiudiPannelli(); document.body.classList.remove("resto-aperto"); }   // si torna sempre sulla chat
+  if(nome==="inizia"){ $("s-inizia").classList.remove("nuovo"); aggiornaChat(); requestAnimationFrame(scorriChat); requestAnimationFrame(segnaLette); }
   aggiornaProfilo();
   if(bersaglio) requestAnimationFrame(()=>bersaglio.scrollIntoView({block:"start"}));
-  else if(nome==="inizia" && io.nome && (io.chat||[]).length) requestAnimationFrame(()=>window.scrollTo(0, document.body.scrollHeight));
+  else if(nome==="inizia" && document.body.classList.contains("chat-sola")){ window.scrollTo(0,0); requestAnimationFrame(scorriChat); }
   else window.scrollTo(0, prima ? (posizioni[nome]||0) : 0);
 }
 const barra=document.querySelector(".schede");
@@ -1757,12 +1925,14 @@ window.addEventListener("resize", ()=>{ bordiBarra(); if(schedaAttiva) centraSch
 function daIndirizzo(){
   const h=decodeURIComponent(location.hash.slice(1));
   if(!h){ vaiA(schedaAttiva||"inizia"); return; }
-  if(SCHEDE.includes(h)){ vaiA(h); return; }
+  if(SCHEDE.includes(h)){ if(h==="inizia") chiudiResto(); vaiA(h); return; }
   const el=document.getElementById(h); const pn=el&&el.closest(".pannello");
+  // nella scheda Inizia, per chi è di casa, la chat è la pagina: #parla la mostra, il resto (benvenuto, domande) si apre da qui
+  if(pn && pn.id==="p-inizia" && document.body.classList.contains("chat-sola")){ if(el.closest("#parla")) chiudiResto(); else apriResto(); }
   if(pn) vaiA(pn.id.slice(2), 0, el); else vaiA(schedaAttiva||"inizia");
 }
 document.querySelectorAll(".schede button").forEach(b=>b.addEventListener("click", ()=>{
-  const k=b.dataset.scheda; if(location.hash!=="#"+k) history.pushState(null,"","#"+k); vaiA(k); }));
+  const k=b.dataset.scheda; if(location.hash!=="#"+k) history.pushState(null,"","#"+k); if(k==="inizia") chiudiResto(); vaiA(k); }));
 document.querySelector(".schede").addEventListener("keydown", e=>{
   if(e.key!=="ArrowRight"&&e.key!=="ArrowLeft") return;
   const i=SCHEDE.indexOf(schedaAttiva)+(e.key==="ArrowRight"?1:-1); if(i<0||i>=SCHEDE.length) return;
@@ -1780,7 +1950,7 @@ window.addEventListener("popstate", daIndirizzo);
   let x0=0,y0=0,t0=0,vale=false;
   const zona=document.querySelector("main");
   zona.addEventListener("touchstart", e=>{ if(e.touches.length!==1){ vale=false; return; }
-    vale=!e.target.closest("input,textarea,select,iframe,video,.chat,.video-elenco,.cursore");
+    vale=!e.target.closest("input,textarea,select,iframe,video,.chat,.chat-area,#conversazioni,#lettura-conv,.video-elenco,.cursore");
     x0=e.touches[0].clientX; y0=e.touches[0].clientY; t0=Date.now(); }, {passive:true});
   zona.addEventListener("touchend", e=>{ if(!vale) return; vale=false;
     const t=e.changedTouches[0], dx=t.clientX-x0, dy=t.clientY-y0;

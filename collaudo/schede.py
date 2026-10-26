@@ -35,6 +35,10 @@ async def instrada(route):
             return await route.fulfill(body=json.dumps({"risposte":RISPOSTE}), content_type="application/json")
         return await route.fulfill(body='[]', content_type="application/json")
     await route.fulfill(status=404, body="")
+async def apri_resto(pg):
+    """26/10: chi è di casa apre sulla chat; il benvenuto e le domande del giorno stanno dietro il collegamento nel pannello ☰."""
+    await pg.click("#apri-conv"); await pg.wait_for_timeout(400)
+    await pg.click("#conv-resto"); await pg.wait_for_timeout(400)
 SOST={"pronto":False,"modi":[]}
 NOVA={"acceso":False}
 RISPOSTE=[]
@@ -150,6 +154,7 @@ async def main():
         pg3=await ctx.new_page(); pg3.on("pageerror", lambda e: errori.append(str(e)))
         await pg3.add_init_script("localStorage.setItem('jjavis-io', JSON.stringify({id:'a1b2c3d4e5f60718',nome:'Nova',tema:'deciso',tuo:'Jacopo',inviato:true,mestiere:'Corriere o autista',tempo:'Preventivi, conti, fatture'}))")
         await pg3.goto(BASE); await pg3.wait_for_timeout(300)
+        await apri_resto(pg3)   # 26/10: chi è di casa apre sulla chat; le domande del giorno stanno nel benvenuto, dietro ☰
         d1=await pg3.evaluate("document.getElementById('conosci-domanda').textContent"); ok("ora comincia" in d1, "prima domanda: "+d1)
         await pg3.click('#conosci-scelte .scelta:has-text("Cambia ogni giorno")'); await pg3.wait_for_timeout(1200)
         d2=await pg3.evaluate("document.getElementById('conosci-domanda').textContent"); ok(d2!=d1 and d2, "dopo un secondo, senza ricaricare: "+d2)
@@ -284,16 +289,19 @@ async def main():
         await pg2.goto(BASE+"#inizia"); await pg2.reload(); await pg2.wait_for_timeout(700)
         c=await pg2.evaluate("""(()=>{const b=document.querySelector('#barra-chat').getBoundingClientRect(), n=document.querySelector('.schede').getBoundingClientRect();
           const bolle=[...document.querySelectorAll('#chat .bolla')], u=bolle[bolle.length-1].getBoundingClientRect();
-          return {pos:getComputedStyle(document.querySelector('#barra-chat')).position, sopra:Math.abs(b.bottom-n.top)<=1,
-            titolo:document.querySelector('#tp').getBoundingClientRect().height>2, ultima:u.bottom<=b.top+1 && u.top>=0,
+          return {pos:getComputedStyle(document.querySelector('#parla')).position, sopra:Math.abs(b.bottom-n.top)<=1,
+            titolo:document.querySelector('#tp').innerText, ultima:u.bottom<=b.top+1 && u.top>=0,
             spiega:getComputedStyle(document.querySelector('.spiega-chat')).display!=='none'}})()""")
-        ok(c["pos"]=="fixed" and c["sopra"], "la casella è fissa in basso, appoggiata sopra le schede")
-        ok(not c["titolo"], "niente titolo «Parla con»: la chat è la pagina")
+        ok(c["pos"]=="fixed" and c["sopra"], "la chat è a tutto schermo e la casella sta in basso, appoggiata sopra le schede")
+        ok("Parla con" not in c["titolo"] and c["titolo"].strip()=="Nova", "in alto c'è il nome dell'assistente, non il titolo «Parla con»: la chat è la pagina")
+        ok(c["ultima"], "aprendo Nova si vede l'ultimo messaggio, sopra la casella")
+        ok(c["spiega"] and "Non rispondo in automatico" in await pg2.inner_text("#spiega-chat"), "sotto la chat c'è la frase vera: senza account non rispondo in automatico")
+        await apri_resto(pg2)
         ordine=await pg2.evaluate("""(()=>{const y=id=>document.getElementById(id).getBoundingClientRect().top;
           return y('saluto')<y('ricordo') && y('ricordo')<y('salto-cosa') && y('salto-cosa')<y('saluto2')})()""")
-        ok(ordine, "chi torna: saluto, poi «Mi ricordo di te», poi «Cosa so fare →», poi il resto")
-        ok(c["ultima"], "aprendo Nova si vede l'ultimo messaggio, sopra la casella")
-        ok(c["spiega"], "resta la frase onesta: le risposte non sono automatiche")
+        ok(ordine, "dietro il collegamento, chi torna: saluto, poi «Mi ricordo di te», poi «Cosa so fare →», poi il resto")
+        ok(not await pg2.is_visible("#barra-chat"), "col benvenuto in vista la chat non c'è: o l'una o l'altro, mai uno sopra l'altra")
+        await pg2.click("#torna-chat"); await pg2.wait_for_timeout(300)
         await pg2.goto(BASE+"#bottega"); await pg2.wait_for_timeout(300)
         ok(not await pg2.is_visible("#barra-chat"), "sulle altre schede la casella non c'è")
         vede_=lambda sel: pg2.is_visible(sel)
@@ -311,14 +319,19 @@ async def main():
            "il pulsante apre la Bottega su «Costruiscimi qualcosa», col tipo scelto e la richiesta già scritta")
         await pg2.reload(); await pg2.wait_for_timeout(500)
         # 2/10, JJ: letta e rientrato, la chat è pulita; la conversazione va nelle precedenti, col suo pulsante
-        ok(await pg2.evaluate("document.querySelectorAll('#chat .bolla').length")==0 and await pg2.evaluate("document.querySelectorAll('#vecchie-elenco .azione').length")==1,
+        # (26/10: le precedenti stanno nella scheda ☰, e toccata una riga si legge a tutto schermo)
+        await pg2.click("#s-inizia"); await pg2.click("#apri-conv"); await pg2.wait_for_timeout(400)
+        await pg2.click("#conv-elenco .riga-apri >> nth=0"); await pg2.wait_for_timeout(200)
+        ok(await pg2.evaluate("document.querySelectorAll('#chat .bolla').length")==0 and await pg2.evaluate("document.querySelectorAll('#lettura-chat .azione').length")==1,
            "ricaricando, la chat è pulita e la risposta col pulsante è nelle conversazioni precedenti")
+        await pg2.click("#lettura-indietro"); await pg2.wait_for_timeout(300)
         NOVA["acceso"]=False
         await pg2.goto(BASE+"#inizia"); await pg2.reload(); await pg2.wait_for_timeout(500)
         ok("Non rispondo in automatico" in await pg2.inner_text("#spiega-chat"), "con Nova spenta resta la frase di prima")
         print("── finite le domande del giorno, la frase se ne va (29 settembre)")
         await pg2.evaluate("(()=>{const c={};CONOSCERTI.slice(0,-1).forEach(q=>c[q.k]='x');localStorage.setItem(CHIAVE, JSON.stringify({nome:'Nova',tema:'tech',id:'x1',inviato:true,mestiere:'Creator o gamer',tempo:'Trovare idee per i contenuti',conosciute:c}))})()")
         await pg2.goto(BASE+"#inizia"); await pg2.reload(); await pg2.wait_for_timeout(600)
+        await apri_resto(pg2)   # 26/10: le domande del giorno stanno nel benvenuto, dietro ☰
         ok("Oggi voglio sapere una cosa in più" in await pg2.inner_text("#saluto2"), "con una domanda ancora da fare, Nova dice «Oggi voglio sapere una cosa in più»")
         await pg2.click("#conosci-scelte .scelta >> nth=0"); await pg2.wait_for_timeout(1300)
         ok("Oggi voglio sapere" not in await pg2.inner_text("#saluto2") and await vede_("#conosci-fine"), "risposta l'ultima, la frase sparisce subito, senza ricaricare")
