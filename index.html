@@ -297,12 +297,61 @@ body.con-nome[data-scheda="inizia"] #esito-chat{margin:6px 0 0}
 .bolla.errore{border-color:var(--rosso);color:var(--rosso)}
 :root[data-tema="calmo"] .bolla,:root[data-tema="naturale"] .bolla{border-radius:14px}
 </style>
+<style>
+#ingresso{position:fixed;inset:0;z-index:9999;background:rgba(2,11,24,.97);display:flex;align-items:center;justify-content:center;padding:20px;transition:opacity .4s ease}
+#ingresso[hidden]{display:none}
+.ingresso-scheda{width:100%;max-width:380px;color:#E8F7FF;font:500 16px/1.45 system-ui,sans-serif}
+.ingresso-scheda h1{font:800 26px/1.15 system-ui,sans-serif;margin:0 0 10px}
+.ingresso-scheda label{display:block;margin:14px 0 6px;font-weight:700}
+.ingresso-schede{display:flex;gap:8px;margin:6px 0 4px}.ingresso-schede button{margin:0!important;background:#0b2a40!important;color:#cfefff!important}.ingresso-schede button.su{background:#00B4D8!important;color:#02121f!important}
+.ingresso-o{text-align:center;opacity:.7;margin:16px 0 8px}#ing-google{display:flex;justify-content:center;min-height:44px}
+.ingresso-scheda input{width:100%;box-sizing:border-box;padding:12px;font-size:18px;border-radius:8px;border:1px solid #00B4D8;background:#071a2c;color:#fff}
+.ingresso-eta{font-weight:500!important;display:flex!important;gap:8px;align-items:center}
+.ingresso-scheda button{width:100%;margin-top:14px;padding:13px;font:800 17px system-ui,sans-serif;border:0;border-radius:8px;background:#00B4D8;color:#02121f;cursor:pointer}
+.ingresso-scheda button.ingresso-link{background:transparent;color:#7FDBFF;font-weight:600}
+#ingresso-esito{min-height:1.4em;color:#FFD60A}
+.ingresso-piccolo{font-size:13px;opacity:.75}.ingresso-piccolo a{color:#7FDBFF}
+/* 26/10, JJ: «prima l'ingresso, con l'icona; poi le tre domande». Chi non è entrato vede solo l'ingresso dal primo istante:
+   la classe «fuori» la mette lo script qui sotto, prima che arrivi la pagina, e la toglie la porta quando sa chi sei */
+html.fuori body>:not(#ingresso){visibility:hidden}
+html.fuori #ingresso[hidden]{display:flex}
+html.di-casa #o1{display:none}
+.ingresso-testa{text-align:center;margin:0 0 6px}
+.ingresso-icona{display:block;width:96px;height:96px;border-radius:22px;margin:0 auto 12px}
+.ingresso-scheda .ingresso-testa h1{margin:0 0 2px}
+.ingresso-motto{margin:0;color:#9FDCF0}
+/* accedi/registrati compaiono quando la porta ha risposto: a un guasto si vedono solo icona e nome, poi la pagina */
+.ingresso-corpo{transition:opacity .4s ease}
+#ingresso:not(.pronto) .ingresso-corpo{opacity:0;visibility:hidden}
+#ingresso.sfuma{opacity:0;pointer-events:none}
+.ingresso-scheda{transition:opacity .4s ease}
+#ingresso.velo .ingresso-scheda{opacity:0}
+@keyframes dissolvi{from{opacity:0}}
+#o1.appare,#o2.aperta,#o3.aperta,html.arrivo body{animation:dissolvi .4s ease-out}
+@media (prefers-reduced-motion:reduce){#ingresso,.ingresso-corpo,.ingresso-scheda{transition:none}#o1.appare,#o2.aperta,#o3.aperta,html.arrivo body{animation:none}}
+</style>
+<script>
+// 26/10, JJ: «prima l'ingresso». Si decide qui, prima che arrivi la pagina: senza account (e senza il link personale della
+// mail, che fa il suo giro) la pagina resta nascosta sotto l'ingresso finché la porta non ha detto chi sei.
+// «di-casa»: chi ha già dato il nome non vede «Come vuoi chiamarmi?» nemmeno per un attimo, prima che lo script lo nasconda
+(()=>{ const h=document.documentElement; let fuori=true;
+  try{ fuori=!localStorage.getItem("jjavis-conto"); if((JSON.parse(localStorage.getItem("jjavis-io")||"{}")||{}).nome) h.classList.add("di-casa"); }catch(_){}
+  try{ if(new URLSearchParams(location.search).get("chi")) fuori=false; }catch(_){}
+  if(fuori) h.classList.add("fuori");
+  // appena entrati da un altro telefono la pagina si ricarica dietro il velo dell'ingresso: qui riappare con la stessa dissolvenza
+  try{ if(sessionStorage.getItem("jjavis-dentro")){ sessionStorage.removeItem("jjavis-dentro"); h.classList.add("arrivo"); } }catch(_){} })();
+</script>
 </head>
 <body>
 <!-- 19/10, JJ: «prima di entrare devi fare l'account con la mail, così poi non ricominci mai da capo» -->
 <section id="ingresso" hidden role="dialog" aria-labelledby="ingresso-titolo">
   <div class="ingresso-scheda">
-    <h1 id="ingresso-titolo">JJA-VIS</h1>
+    <div class="ingresso-testa">
+      <img class="ingresso-icona" src="immagini/app/icona-512.png" alt="" width="96" height="96">
+      <h1 id="ingresso-titolo">JJA-VIS</h1>
+      <p class="ingresso-motto">Il tuo assistente personale</p>
+    </div>
+    <div class="ingresso-corpo">
     <div class="ingresso-schede" role="tablist"><button id="tab-accedi" type="button" role="tab" class="su">Accedi</button><button id="tab-registrati" type="button" role="tab">Registrati</button></div>
     <div id="ing-accedi">
       <label for="acc-chi">Mail o nome utente</label><input id="acc-chi" autocomplete="username">
@@ -327,23 +376,9 @@ body.con-nome[data-scheda="inizia"] #esito-chat{margin:6px 0 0}
     <div id="ing-google"></div>
     <p id="ingresso-esito" role="status"></p>
     <p class="ingresso-piccolo"><a href="privacy.html">Privacy</a> · <a href="regole.html">Regole</a></p>
+    </div>
   </div>
 </section>
-<style>
-#ingresso{position:fixed;inset:0;z-index:9999;background:rgba(2,11,24,.97);display:flex;align-items:center;justify-content:center;padding:20px}
-#ingresso[hidden]{display:none}
-.ingresso-scheda{width:100%;max-width:380px;color:#E8F7FF;font:500 16px/1.45 system-ui,sans-serif}
-.ingresso-scheda h1{font:800 26px/1.15 system-ui,sans-serif;margin:0 0 10px}
-.ingresso-scheda label{display:block;margin:14px 0 6px;font-weight:700}
-.ingresso-schede{display:flex;gap:8px;margin:6px 0 4px}.ingresso-schede button{margin:0!important;background:#0b2a40!important;color:#cfefff!important}.ingresso-schede button.su{background:#00B4D8!important;color:#02121f!important}
-.ingresso-o{text-align:center;opacity:.7;margin:16px 0 8px}#ing-google{display:flex;justify-content:center;min-height:44px}
-.ingresso-scheda input{width:100%;box-sizing:border-box;padding:12px;font-size:18px;border-radius:8px;border:1px solid #00B4D8;background:#071a2c;color:#fff}
-.ingresso-eta{font-weight:500!important;display:flex!important;gap:8px;align-items:center}
-.ingresso-scheda button{width:100%;margin-top:14px;padding:13px;font:800 17px system-ui,sans-serif;border:0;border-radius:8px;background:#00B4D8;color:#02121f;cursor:pointer}
-.ingresso-scheda button.ingresso-link{background:transparent;color:#7FDBFF;font-weight:600}
-#ingresso-esito{min-height:1.4em;color:#FFD60A}
-.ingresso-piccolo{font-size:13px;opacity:.75}.ingresso-piccolo a{color:#7FDBFF}
-</style>
 <nav class="schede" role="tablist" aria-label="Sezioni">
   <button role="tab" id="s-inizia" data-scheda="inizia" aria-controls="p-inizia" aria-selected="false"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M4.5 9.5h15M4.5 14.5h15M12 4c2.5 2.3 2.5 13.7 0 16M12 4c-2.5 2.3-2.5 13.7 0 16"/></svg><span class="et" id="et-inizia">Inizia</span></button>
   <button role="tab" id="s-chi-sono" data-scheda="chi-sono" aria-controls="p-chi-sono" aria-selected="false"><svg viewBox="0 0 24 24"><path d="M12 3l2.4 5.2 5.6.6-4.2 3.8 1.2 5.6L12 15.4 7 18.2l1.2-5.6L4 8.8l5.6-.6z"/></svg><span class="et">Chi sono</span></button>
@@ -1417,8 +1452,25 @@ const ponte=async()=>{ try{ const r=await fetch(INVIO.replace("/risposta","/io/d
 const piuForte=(a,b)=>{ a=a||{}; b=b||{}; if(!!a.inviato!==!!b.inviato) return a.inviato?[a,b]:[b,a];
   if(a.agg&&b.agg&&a.agg!==b.agg) return a.agg>b.agg?[a,b]:[b,a]; return pesoIo(a)>=pesoIo(b)?[a,b]:[b,a]; };
 const unisciIo=(a,b,mail)=>{ const [f,d]=piuForte(a,b); const u={...d,...f}; if(!u.mail&&mail) u.mail=mail; return u; };
+// 26/10, JJ: prima l'ingresso, poi le tre domande, con una dissolvenza e mai una pagina bianca in mezzo. La pagina sta
+// nascosta sotto l'ingresso (classe «fuori», messa nella testa) finché la porta non decide: ingresso o pagina.
+const pocoMoto=()=>matchMedia("(prefers-reduced-motion: reduce)").matches;
+let portaDecisa=false, giroIngresso=0;
+function mostraIngresso(){ portaDecisa=true; giroIngresso++; const g=document.getElementById("ingresso");
+  g.classList.remove("sfuma","velo"); g.hidden=false; document.documentElement.classList.add("fuori");
+  requestAnimationFrame(()=>g.classList.add("pronto")); }
+// la pagina esce da sotto l'ingresso: l'ingresso sfuma mentre #o1 (se è lì che si comincia) appare, nello stesso momento
+function rivela(){ portaDecisa=true; const h=document.documentElement, g=document.getElementById("ingresso"), o1=document.getElementById("o1");
+  if(!h.classList.contains("fuori")) return;
+  if(pocoMoto()){ g.hidden=true; h.classList.remove("fuori"); return; }
+  const giro=++giroIngresso; g.hidden=false; g.classList.add("sfuma"); h.classList.remove("fuori");
+  if(!o1.hidden){ o1.classList.remove("appare"); void o1.offsetWidth; o1.classList.add("appare"); }
+  setTimeout(()=>{ if(giro!==giroIngresso) return; g.hidden=true; g.classList.remove("sfuma","pronto"); },400); }
+// un server dei conti che non risponde mai non tiene chiusa la pagina (un guasto non chiude la porta)
+setTimeout(()=>{ if(!portaDecisa) rivela(); },8000);
 // la porta d'ingresso (JJ, 19/10): senza account non si entra. Entrati, se l'account ha già un profilo quello vince
 // (è chi sei, da un altro telefono); se non ce l'ha, ci va quello di questo telefono. Poi la pagina riparte pulita.
+// Risponde true se serve l'ingresso; altrimenti la pagina esce da sotto (rivela)
 (async()=>{ if(new URLSearchParams(location.search).get("chi")) return;   // il link della mail fa il suo giro, poi si torna qui
   if(contoToken()){ const r=await conto_("/conto",null,"GET");
     // l'account vince una volta per sessione (alla prima apertura): dopo, la pagina cambia il profilo e lo manda su.
@@ -1444,7 +1496,11 @@ const unisciIo=(a,b,mail)=>{ const [f,d]=piuForte(a,b); const u={...d,...f}; if(
   const dentro=async r=>{ try{ localStorage.setItem(CONTO_CHIAVE, r.token); sessionStorage.setItem("jjavis-io-preso","1"); }catch(_){}
     io=unisciIo(unisciIo(r.conto&&r.conto.io,io,r.conto&&r.conto.mail),await ponte(),r.conto&&r.conto.mail); try{ localStorage.setItem(CHIAVE, JSON.stringify(io)); }catch(_){}
     if(Object.keys(io).length) await conto_("/conto/io",{io});
-    location.reload(); };
+    // chi è nuovo resta su questa pagina: l'ingresso sfuma e appare «Come vuoi chiamarmi?». Chi porta con sé un profilo
+    // (nome o tema, anche da un altro telefono) va dove va oggi: la pagina si rifà, dietro un velo del colore dell'ingresso
+    if(!io.nome && !io.tema){ rivela(); return; }
+    try{ sessionStorage.setItem("jjavis-dentro","1"); }catch(_){}
+    $i("ingresso").classList.add("velo"); setTimeout(()=>location.reload(), pocoMoto()?0:400); };
   const vista=v=>{ for(const k of ["accedi","registrati","codice"]) $i("ing-"+k).hidden=k!==v;
     $i("tab-accedi").classList.toggle("su",v==="accedi"); $i("tab-registrati").classList.toggle("su",v==="registrati"); esito(""); };
   let attesa=null;   // cosa conferma il codice: la registrazione, o la password nuova
@@ -1465,8 +1521,8 @@ const unisciIo=(a,b,mail)=>{ const [f,d]=piuForte(a,b); const u={...d,...f}; if(
       if(r.token) dentro(r); else if(r.no==="eta"){ vista("registrati"); esito("Account nuovo: spunta «Ho almeno 14 anni» e ripremi Google."); } else esito("Google non ha funzionato: riprova."); }});
     google.accounts.id.renderButton($i("ing-google"),{theme:"filled_black",size:"large",text:"continue_with",shape:"pill",locale:"it"}); }catch(_){} };
   document.head.appendChild(g);
-  $i("ingresso").hidden=false;
-})();
+  mostraIngresso(); return true;
+})().then(serve=>{ if(!serve) rivela(); }, ()=>rivela());
 // Ritrovarsi da qualsiasi telefono (JJ, 19/10: Jessica «non si ricorda più chi è e gli richiede tutto da capo»): ogni mail
 // porta il link personale ?chi=…&k=…; qui si chiede alla porta chi sei, si rimette nel telefono e si riapre la pagina pulita.
 // Finché non ha risposto la pagina resta nascosta: niente «come vuoi chiamarmi?» a chi è già di casa.

@@ -51,6 +51,8 @@ async def main():
         pg=await ctx.new_page(); errori=[]
         pg.on("pageerror", lambda e: errori.append(str(e)))
         print("── primo arrivo")
+        # 26/10: l'ingresso ora viene prima di #o1, ma qui il server dei conti non c'è (insieme.json non è servito): un guasto
+        # non chiude la porta, l'ingresso fa solo un lampo di icona e la pagina esce da sotto. L'ingresso vero: in fondo
         await pg.goto(BASE); await pg.wait_for_timeout(400)
         ok(await pg.is_visible("#o1"), "si apre su Inizia, «Come vuoi chiamarmi?»")
         ok(await pg.inner_text("#et-inizia")=="Inizia", "la prima scheda si chiama Inizia")
@@ -388,6 +390,76 @@ async def main():
             await p3.click("#avanti-o2"); await p3.wait_for_timeout(300); a3=await in_vista("#salta-o3")
             ok(a1 and a2 and a3, f"{w}x{h}: «Salva», «Salva», «Piacere / Preferisco non dirlo» in vista senza scorrere, con la sfera sopra")
             await c3.close()
+        print("── prima l'ingresso, poi le tre domande (26 ottobre)")
+        # JJ, 26/10: chi arriva vedeva «Come vuoi chiamarmi?» e subito dopo gli si accendeva sopra l'ingresso. Qui il server dei
+        # conti c'è (finto): insieme.json dà l'indirizzo, la classifica risponde, «Accedi» dà il token. Un campionatore parte
+        # prima della pagina e segna ogni 5 ms (e a ogni fotogramma e a ogni cambio del DOM) chi si vede: l'ingresso con l'icona, #o1
+        CONTI="https://jjavis-citta.finta.workers.dev"
+        CASA_IO={"nome":"Nova","tema":"calmo","id":"casa0123456789ab","mail":"gino@prova.it","agg":1}
+        async def conti(route):
+            u=route.request.url; r=route.request
+            if u.startswith(BASE+"insieme.json"): return await route.fulfill(body=json.dumps({"indirizzo":CONTI.replace("https:","wss:")+"/entra"}), content_type="application/json")
+            if u.startswith(CONTI):
+                cors={"Access-Control-Allow-Origin":"*","Access-Control-Allow-Headers":"Content-Type, Authorization","Access-Control-Allow-Methods":"GET, POST"}
+                if r.method=="OPTIONS": return await route.fulfill(status=204, headers=cors)
+                via_=u[len(CONTI):].split("?")[0]
+                if via_=="/conto/classifica": d={"classifica":[]}
+                elif via_=="/conto/accedi": d={"token":"t"*64,"conto":{"mail":"gino@prova.it","io":{}}}
+                elif via_=="/conto": d={"conto":{"mail":"gino@prova.it","io":CASA_IO}} if r.headers.get("authorization") else {"no":"token"}
+                else: d={"fatto":True}
+                return await route.fulfill(body=json.dumps(d), content_type="application/json", headers=cors)
+            return await instrada(route)
+        CAMPIONA="""(()=>{ const v=id=>{ const e=document.getElementById(id); return !!e && e.getClientRects().length>0 && getComputedStyle(e).visibility!=="hidden"; };
+          const c=window.__visto=[]; const segna=()=>{ const ic=document.querySelector("#ingresso .ingresso-icona");
+            c.push({t:performance.now(), ing:v("ingresso"), icona:!!ic&&v("ingresso")&&ic.getClientRects().length>0, o1:v("o1")}); };
+          setInterval(segna,5); const f=()=>{ segna(); requestAnimationFrame(f); }; requestAnimationFrame(f); segna();
+          new MutationObserver(segna).observe(document,{childList:true,subtree:true,attributes:true}); })()"""
+        async def telefono(moto="no-preference", init=None):
+            c=await b.new_context(viewport={"width":390,"height":844}, is_mobile=True, has_touch=True, reduced_motion=moto)
+            await c.route("**/*", conti); await c.add_init_script(CAMPIONA)
+            if init: await c.add_init_script(init)
+            q=await c.new_page(); q.on("pageerror", lambda e: errori.append(str(e)))
+            return c, q
+        visto=lambda q: q.evaluate("window.__visto")
+        # da quando la pagina arriva (responseStart), non da quando Playwright la chiede
+        arrivo=lambda q: q.evaluate("performance.getEntriesByType('navigation')[0].responseStart")
+        def buco(v):   # il tratto più lungo, dopo il primo ingresso, in cui non si vedono né l'ingresso né #o1 (la schermata bianca)
+            peggio=0; da=None; visto_ing=False
+            for x in v:
+                visto_ing=visto_ing or x["ing"]
+                if not visto_ing: continue
+                if not x["ing"] and not x["o1"]: da=x["t"] if da is None else da; peggio=max(peggio,x["t"]-da)
+                else: da=None
+            return peggio
+        for moto in ("no-preference","reduce"):
+            dice="" if moto=="no-preference" else " (animazioni ridotte)"
+            c4,p4=await telefono(moto)
+            await p4.goto(BASE); await p4.wait_for_timeout(600)
+            v=await visto(p4); t0=await arrivo(p4)
+            primo=next((x["t"] for x in v if x["ing"] and x["icona"]), None)
+            # CONTROPROVA: senza la classe «fuori» messa nella testa, #o1 si vede finché la porta non ha risposto, e qui diventa rosso
+            ok(primo is not None and primo-t0<=100 and not any(x["o1"] for x in v), f"telefono nuovo{dice}: entro 100 ms c'è l'ingresso con l'icona, e #o1 mai ({None if primo is None else round(primo-t0)} ms)")
+            ok("Il tuo assistente personale" in await p4.inner_text("#ingresso") and await p4.is_visible("#acc-entra") and not await p4.is_visible(".testa"), f"in cima l'icona, «JJA-VIS» e «Il tuo assistente personale»; sotto accedi/registrati, la pagina no{dice}")
+            await p4.evaluate("window.__visto.length=0")
+            await p4.fill("#acc-chi","gino"); await p4.fill("#acc-pw","password1"); await p4.click("#acc-entra")
+            await p4.wait_for_selector("#o1", state="visible", timeout=5000); await p4.wait_for_timeout(700)
+            v=await visto(p4)
+            ok(buco(v)<=500 and await p4.is_visible("#o1") and not await p4.is_visible("#ingresso"), f"entrato{dice}: l'ingresso se ne va e c'è #o1, senza schermata bianca in mezzo (buco {round(buco(v))} ms)")
+            insieme=[x["t"] for x in v if x["ing"] and x["o1"]]
+            if moto=="reduce": ok(not insieme or insieme[-1]-insieme[0]<100, "animazioni ridotte: niente dissolvenza, l'ingresso sparisce subito")
+            else: ok(insieme and insieme[-1]-insieme[0]>=200, "l'ingresso sfuma mentre #o1 appare (una dissolvenza, non uno scatto)")
+            await p4.click("#nomi .scelta >> text=Nova"); await p4.click("#avanti-o1"); await p4.wait_for_timeout(100)
+            anim=await p4.evaluate("getComputedStyle(document.querySelector('#o2')).animationName")
+            ok(await p4.is_visible("#o2") and anim==("none" if moto=="reduce" else "dissolvi"), f"da #o1 a #o2 con la stessa dissolvenza{dice} ({anim})")
+            await p4.click("#avanti-o2"); await p4.wait_for_timeout(100)
+            ok(await p4.is_visible("#o3") and not await p4.is_visible("#o2"), f"poi #o3, «E tu come ti chiami?»{dice}")
+            await c4.close()
+        print("── chi è già di casa non ripassa dall'ingresso")
+        c5,p5=await telefono(init="if(!sessionStorage.getItem('gia')){sessionStorage.setItem('gia','1');localStorage.setItem('jjavis-conto','t'.repeat(64));localStorage.setItem('jjavis-io',JSON.stringify("+json.dumps(CASA_IO)+"));}")
+        await p5.goto(BASE); await p5.wait_for_timeout(1500)
+        v=await visto(p5)
+        ok(not any(x["ing"] for x in v) and not any(x["o1"] for x in v) and await p5.is_visible("#benvenuto"), "con l'account e nome e tema: né l'ingresso né «Come vuoi chiamarmi?», nemmeno per un attimo; si va al saluto")
+        await c5.close()
         print("── errori JavaScript:", errori or "nessuno")
         ok(not errori, "zero errori in tutta la prova")
         await b.close()
