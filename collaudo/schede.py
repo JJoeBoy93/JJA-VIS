@@ -14,7 +14,7 @@ PAGINA=open(sys.argv[1],encoding="utf-8").read()
 PORTA="https://jjavis-porta.19-jjardito93.workers.dev"
 BASE="https://jjoeboy93.github.io/JJA-VIS/"
 inviati=[]
-CAL={"impegni":[],"scadenze":[],"fatti":[],"giu":False,"n":0,"ics":[]}   # il calendario della porta finta (26/10)
+CAL={"impegni":[],"scadenze":[],"fatti":[],"giu":False,"n":0,"invito":"mandato","invito_errore":None}   # il calendario della porta finta (26/10)
 conta_risposte=[]
 risposte_di={}   # quante volte ha chiesto /risposte ogni pagina: altre pagine aperte nello stesso browser chiedono per conto loro
 async def instrada(route):
@@ -39,6 +39,11 @@ async def instrada(route):
                         if x["id"]==i:
                             CAL["fatti"].remove(x); CAL["scadenze" if x["tipo"]=="scadenza" else "impegni"].append({k:v for k,v in x.items() if k not in ("tipo","quando_fatto")})
                 return await route.fulfill(status=200, body=json.dumps({"ok":True,"id":i}), content_type="application/json", headers=CORS)
+            if u.endswith("/assistente/invito"):
+                # 27/10: rimanda la mail dell'invito (la porta vera: 404 se non è suo, 429 oltre 5 al giorno)
+                CORS={"Access-Control-Allow-Origin":"https://jjoeboy93.github.io"}
+                if CAL["invito_errore"]: return await route.fulfill(status=502, body=json.dumps({"errore":CAL["invito_errore"]}), content_type="application/json", headers=CORS)
+                return await route.fulfill(status=200, body=json.dumps({"ok":True,"id":corpo["id"],"invito":"mandato"}), content_type="application/json", headers=CORS)
             if u.endswith("/assistente/aggiungi") or u.endswith("/assistente/elimina"):
                 # 26/10, il calendario vero: aggiungere a mano e eliminare (la porta vera controlla di più: qui basta il rifiuto su richiesta)
                 CORS={"Access-Control-Allow-Origin":"https://jjoeboy93.github.io"}
@@ -51,7 +56,8 @@ async def instrada(route):
                     else: riga.update(importo=corpo.get("importo"), ogni_mese=bool(corpo.get("ogni_mese")))
                     if corpo.get("nota"): riga["nota"]=corpo["nota"]
                     CAL[k].append(riga)
-                    return await route.fulfill(status=201, body=json.dumps({"ok":True,"tipo":corpo["tipo"],**riga}), content_type="application/json", headers=CORS)
+                    # 27/10: per un impegno la porta ha già mandato (o no) la mail dell'invito: `invito` = "mandato" | "niente mail" | "errore: …"
+                    return await route.fulfill(status=201, body=json.dumps({"ok":True,"tipo":corpo["tipo"],**riga,**({"invito":CAL["invito"]} if k=="impegni" else {})}), content_type="application/json", headers=CORS)
                 for k in ("impegni","scadenze"):
                     for x in list(CAL[k]):
                         if x["id"]==corpo["id"]: CAL[k].remove(x); return await route.fulfill(status=200, body=json.dumps({"ok":True,"id":corpo["id"]}), content_type="application/json", headers=CORS)
@@ -60,10 +66,6 @@ async def instrada(route):
                 sub={"id":"abc12345-n","testo":"Posso prepararti uno strumento per le interrogazioni.","azione":{"servizio":"commissione","tipo":"Strumento web","bozza":"Uno strumento per preparare le interrogazioni"},"passa":False}
                 return await route.fulfill(status=201, body=json.dumps({"ok":True,"id":"abc12345","subito":sub}), content_type="application/json", headers={"Access-Control-Allow-Origin":"https://jjoeboy93.github.io"})
             return await route.fulfill(status=201, body='{"ok":true,"id":"abc12345"}', content_type="application/json", headers={"Access-Control-Allow-Origin":"https://jjoeboy93.github.io"})
-        if "/assistente/ics?id=" in u:
-            CAL["ics"].append((u.split("id=")[1], route.request.headers.get("authorization")))
-            return await route.fulfill(body="BEGIN:VCALENDAR\r\nBEGIN:VEVENT\r\nSUMMARY:finto\r\nEND:VEVENT\r\nEND:VCALENDAR\r\n", content_type="text/calendar; charset=utf-8",
-                                       headers={"Access-Control-Allow-Origin":"https://jjoeboy93.github.io","Content-Disposition":'attachment; filename="impegno.ics"'})
         if u.endswith("/assistente/calendario"):
             CORS={"Access-Control-Allow-Origin":"https://jjoeboy93.github.io"}
             if CAL["giu"]: return await route.abort()
@@ -535,20 +537,13 @@ async def main():
         # indietro»; le righe e il «✓ Fatto» sono gli stessi, ma si cercano nell'agenda del giorno, non in un elenco di tutto il calendario. Cambiano
         # quindi: «Da fare/Rimasti indietro/Oggi/Domani nell'ordine» (ora: griglia + agenda), «tre righe con tre bottoni» (ora: le righe del giorno scelto),
         # «i giorni passati di un altro colore» (ora: la sezione «Rimasti indietro»), e il «vuoto» (che dice anche «Niente in questo giorno»).
-        from datetime import date, timedelta, datetime, timezone
-        from zoneinfo import ZoneInfo
-        from urllib.parse import urlparse, parse_qs
+        from datetime import date, timedelta
         iso=lambda d: d.isoformat()
         MESI=["gennaio","febbraio","marzo","aprile","maggio","giugno","luglio","agosto","settembre","ottobre","novembre","dicembre"]
         GIORNI=["lunedì","martedì","mercoledì","giovedì","venerdì","sabato","domenica"]
         bello=lambda d,anno=False: f"{GIORNI[d.weekday()]} {d.day} {MESI[d.month-1]}"+(f" {d.year}" if anno else "")
-        def utc(d,ora=None):
-            """le date di Google Calendar: ora di Roma → UTC (con l'ora, mezz'ora) o il giorno intero (fine = il giorno dopo)"""
-            if not ora: return d.strftime("%Y%m%d")+"/"+(d+timedelta(days=1)).strftime("%Y%m%d")
-            a=datetime(d.year,d.month,d.day,int(ora[:2]),int(ora[3:]),tzinfo=ZoneInfo("Europe/Rome")).astimezone(timezone.utc)
-            return a.strftime("%Y%m%dT%H%M%SZ")+"/"+(a+timedelta(minutes=30)).strftime("%Y%m%dT%H%M%SZ")
         oggi_=date.today(); ieri_=oggi_-timedelta(days=1); domani_=oggi_+timedelta(days=1); dopo_=oggi_+timedelta(days=2)
-        CAL.update(giu=False, rifiuta=None, n=0, ics=[], fatti=[], impegni=[
+        CAL.update(giu=False, rifiuta=None, n=0, invito="mandato", invito_errore=None, fatti=[], impegni=[
             {"id":"i-ieri","cosa":"l'oculista","giorno":iso(ieri_),"ora":"10:00"},
             {"id":"i-oggi","cosa":"chiamare il commercialista","giorno":iso(oggi_),"ora":"15:30","nota":"porta il badge\nsecondo piano"},
             {"id":"i-dopo","cosa":"la revisione","giorno":iso(dopo_),"ora":"09:00"}],
@@ -705,27 +700,55 @@ async def main():
         ok(await pg11.inner_text("#cal-giorno-titolo")==bello(dopo_) and "corso" in await pg11.inner_text("#cal-giorno-casa") and "tutto il giorno" in await pg11.inner_text("#cal-giorno-casa"), "giorno diverso: il calendario lo mostra; senza ora è «tutto il giorno»")
         ok(await pg11.evaluate("(()=>{const t=[...document.querySelectorAll('#cal-giorno-casa .cal-ora')].map(e=>e.textContent);return t[0]==='tutto il giorno' && t[t.length-1]==='09:00'})()"), "e «tutto il giorno» sta in cima, prima di quello delle 09:00")
 
+        print("── il calendario: «Salva» di un impegno manda l'invito per mail (27/10, JJ: «l'utente non deve impazzire»)")
+        stato=lambda: pg11.inner_text("#cal-stato")
+        async def salva_impegno(cosa):
+            await pg11.click("#cal-piu"); await pg11.wait_for_timeout(300)
+            await pg11.fill("#cal-f-cosa",cosa); await pg11.fill("#cal-f-giorno",iso(dopo_)); await pg11.fill("#cal-f-ora","16:00")
+            await pg11.click("#cal-f-salva"); await pg11.wait_for_timeout(900)
+        INVITO_OK="✓ Salvato. 📩 Ti ho mandato l'invito per mail: aprila e tocca «Aggiungi al calendario»."
+        await salva_impegno("invito mandato")
+        ok(await stato()==INVITO_OK, f"la porta dice invito:\"mandato\" → l'avviso «{INVITO_OK}» (e la rilettura del calendario non lo cancella)")
+        ok(await pg11.locator("#cal-stato .cal-riprova").count()==0 and not await pg11.locator("#cal-stato .cal-avviso.errore").count(), "…senza «Riprova» e senza il rosso dell'errore")
+        CAL["invito"]="niente mail"; await salva_impegno("invito niente")
+        ok(await stato()=="✓ Salvato." and await pg11.locator("#cal-stato .cal-riprova").count()==0, "invito:\"niente mail\" → solo «✓ Salvato.»")
+        CAL["invito"]="errore: Brevo 503"; CAL["invito_errore"]="la mail non è partita: Brevo 503"; prima_=len(inviati)
+        await salva_impegno("invito errore")
+        idr=await pg11.get_attribute('#cal-giorno-casa .cal-riga:has-text("invito errore")',"data-id")
+        ok(await pg11.inner_text("#cal-stato .cal-avviso p")=="✓ Salvato, ma l'invito per mail non è partito: Brevo 503" and await pg11.locator("#cal-stato .cal-avviso.errore").count()==1 and await pg11.locator("#cal-stato .cal-riprova").count()==1,
+           "invito:\"errore: Brevo 503\" → «✓ Salvato, ma l'invito per mail non è partito: Brevo 503» e «Riprova»")
+        ok("invito errore" in await pg11.inner_text("#cal-giorno-casa") and len([1 for (r,d) in inviati[prima_:] if r=="aggiungi"])==1, "l'impegno è salvato lo stesso (è nell'agenda), con UNA POST /assistente/aggiungi")
+        prima_=len(inviati); await pg11.click("#cal-stato .cal-riprova"); await pg11.wait_for_timeout(700)
+        inv_=[d for (r,d) in inviati[prima_:] if r=="invito"]
+        ok(inv_==[{"id":idr}] and "non è partito" in await stato() and "Brevo 503" in await stato() and await pg11.locator("#cal-stato .cal-riprova").count()==1, f"«Riprova» → UNA POST /assistente/invito con l'id; se la porta dice ancora no, l'errore resta e si può riprovare ({inv_})")
+        CAL["invito_errore"]=None; prima_=len(inviati); await pg11.click("#cal-stato .cal-riprova"); await pg11.wait_for_timeout(700)
+        ok(len([1 for (r,d) in inviati[prima_:] if r=="invito"])==1 and await stato()==INVITO_OK and await pg11.locator("#cal-stato .cal-riprova").count()==0, "«Riprova» con la porta tornata: UNA POST e l'avviso «Ti ho mandato l'invito per mail…»")
+        CAL["invito"]="mandato"
+        prima_=len(inviati); CAL["invito"]="niente mail"
+        await pg11.click("#cal-piu"); await pg11.wait_for_timeout(300); await pg11.click("#cal-t-scadenza"); await pg11.fill("#cal-f-cosa","acqua"); await pg11.click("#cal-f-salva"); await pg11.wait_for_timeout(900)
+        ok(not [1 for (r,d) in inviati[prima_:] if r=="invito"], "una scadenza non chiede nessun invito")
+        CAL["invito"]="mandato"
+        for x_ in list(CAL["impegni"]):
+            if x_["cosa"].startswith("invito ") or x_["cosa"]=="acqua": CAL["impegni"].remove(x_)
+        CAL["scadenze"]=[x_ for x_ in CAL["scadenze"] if x_["cosa"]!="acqua"]
+        await riapri(pg11)
+
         print("── il calendario: aprire per esteso")
         await pg11.click(cella(domani_)); await pg11.wait_for_timeout(100)
         await pg11.click(f'#cal-giorno-casa .cal-riga[data-id="{idn}"] .cal-apri'); await pg11.wait_for_timeout(300)
         t_=await pg11.inner_text("#cal-foglio")
         ok(await pg11.is_visible("#cal-velo") and "dentista" in t_ and f"{bello(domani_,True)}, alle 10:00" in t_, f"toccata la riga: il dettaglio, «dentista» e «{bello(domani_,True)}, alle 10:00»")
-        ok(all(x in t_ for x in ["✓ Fatto","📅 Metti nel calendario del telefono","oppure scarica l'invito (.ics)","🗑 Elimina","Chiudi"]), "i bottoni: «✓ Fatto», «📅 Metti nel calendario del telefono», il link .ics, «🗑 Elimina», «Chiudi»")
+        ok(all(x in t_ for x in ["✓ Fatto","📩 Mandami l'invito per mail","🗑 Elimina","Chiudi"]), "i bottoni: «✓ Fatto», «📩 Mandami l'invito per mail», «🗑 Elimina», «Chiudi»")
+        ok("Metti nel calendario del telefono" not in t_ and "scarica l'invito" not in t_ and ".ics" not in t_ and await pg11.locator("#cal-d-google, #cal-d-ics, #cal-foglio a[href]").count()==0, "…e non c'è più «Metti nel calendario del telefono» né il link .ics (né altri link)")
         ok(await pg11.locator(".cal-foglio .cal-btn").count()>=4 and (await pg11.evaluate("[...document.querySelectorAll('.cal-foglio .cal-btn')].every(b=>b.getBoundingClientRect().height>=44)")), "i tasti del foglio sono alti almeno 44 px")
-        href=await pg11.get_attribute("#cal-d-google","href"); u_=urlparse(href); q_=parse_qs(u_.query)
-        ok(u_.netloc=="calendar.google.com" and q_.get("action")==["TEMPLATE"] and q_.get("text")==["dentista"], f"il link di Google Calendar: action=TEMPLATE, text=dentista ({href})")
-        ok(q_.get("dates")==[utc(domani_,"10:00")], f"le date sono domani alle 10 di Roma, in UTC, per mezz'ora ({q_.get('dates')} ≟ {utc(domani_,'10:00')})")
-        ok(await pg11.get_attribute("#cal-d-google","target")=="_blank" and "noopener" in await pg11.get_attribute("#cal-d-google","rel"), "il link si apre fuori dalla pagina, senza portarsi dietro la finestra")
-        # 27/10, JJ: «se premo metti nel calendario non si aggiunge, apre solo il calendario» → su Android l'intent «nuovo evento»
-        ia_=await pg11.evaluate(f"calIntentAndroid({{cosa:'dentista',giorno:'{domani_}',ora:'10:00'}})")
-        ok(ia_.startswith("intent:#Intent;action=android.intent.action.INSERT;type=vnd.android.cursor.dir/event") and ";S.title=dentista;" in ia_
-           and f";l.beginTime={int(datetime.strptime(utc(domani_,'10:00').split('/')[0],'%Y%m%dT%H%M%SZ').replace(tzinfo=timezone.utc).timestamp()*1000)};" in ia_
-           and ";B.allDay=false;" in ia_ and ";S.browser_fallback_url=https%3A%2F%2Fcalendar.google.com" in ia_ and ia_.endswith(";end"),
-           f"su Android: l'intent «nuovo evento» già compilato (titolo, inizio alle 10 di Roma, fallback a Google Calendar) ({ia_[:120]}…)")
-        prima_=len(CAL["ics"])
-        async with pg11.expect_download() as dl: await pg11.click("#cal-d-ics")
-        scarico=await dl.value
-        ok(scarico.suggested_filename=="impegno.ics" and len(CAL["ics"])==prima_+1 and CAL["ics"][-1][0]==idn and CAL["ics"][-1][1]=="Bearer "+"t"*64, "«oppure scarica l'invito (.ics)»: scarica «impegno.ics» da GET /assistente/ics?id=… col token")
+        # 27/10: sparite le prove di calLinkGoogle (il link di Google Calendar) e calIntentAndroid (l'intent «nuovo evento» di Android):
+        # il tasto che apriva il calendario del telefono non c'è più, quindi non c'è più né il codice né niente da provare qui. L'ora giusta
+        # (quella di Roma, d'estate e d'inverno) la dà ora l'invito che costruisce la porta (icsImpegno) e la prova è lì: collaudo/agenda.mjs
+        prima_=len(inviati)
+        await pg11.click("#cal-d-invito"); await pg11.wait_for_timeout(500)
+        inv_=[d for (r,d) in inviati[prima_:] if r=="invito"]
+        ok(inv_==[{"id":idn}] and await pg11.inner_text("#cal-d-invito")=="📩 Mandato: guarda la tua mail", f"toccato: UNA POST /assistente/invito con l'id, e il tasto dice «📩 Mandato: guarda la tua mail» ({inv_})")
+        ok(await pg11.is_disabled("#cal-d-invito") and await pg11.inner_text("#cal-d-errore")=="", "…e non si ripete per sbaglio")
         prima_=len(inviati)
         await pg11.click("#cal-d-elimina"); await pg11.wait_for_timeout(200)
         ok(await pg11.is_visible("#cal-d-conferma") and not [1 for (r,d) in inviati[prima_:] if r=="elimina"], "«🗑 Elimina» chiede conferma, e non ha ancora eliminato niente")
@@ -737,9 +760,9 @@ async def main():
         ok(await pg11.is_hidden("#cal-velo") and "dentista" not in await pg11.inner_text(cella(domani_)) and "dentista" not in await pg11.inner_text("#cal-giorno-casa"), "il foglio si chiude e la cosa non c'è più, né in griglia né nell'agenda")
         # una scadenza, senza ora: evento di tutto il giorno; la nota; «Chiudi»; «✓ Pagata» dal dettaglio
         await pg11.click(f'#cal-giorno-casa .cal-riga[data-id="s-bollo"] .cal-apri'); await pg11.wait_for_timeout(300)
-        t_=await pg11.inner_text("#cal-foglio"); q_=parse_qs(urlparse(await pg11.get_attribute("#cal-d-google","href")).query)
+        t_=await pg11.inner_text("#cal-foglio")
         ok("bollo auto" in t_ and f"Scade {bello(domani_,True)}" in t_ and "€ 180" in t_ and "✓ Pagata" in t_, "scadenza: la cosa, «Scade …» per esteso, l'importo, «✓ Pagata»")
-        ok(q_.get("dates")==[utc(domani_)] and "bollo auto" in q_.get("text")[0], f"senza ora: evento di tutto il giorno ({q_.get('dates')} ≟ {utc(domani_)})")
+        ok(await pg11.locator("#cal-d-invito").count()==0, "una scadenza non ha il tasto dell'invito (la porta li manda solo per gli impegni)")
         await pg11.click("#cal-d-chiudi"); await pg11.wait_for_timeout(200)
         ok(await pg11.is_hidden("#cal-velo"), "«Chiudi» chiude il foglio")
         await pg11.click(cella(oggi_)); await pg11.wait_for_timeout(100); await pg11.click('#cal-giorno-casa .cal-riga[data-id="i-oggi"] .cal-apri'); await pg11.wait_for_timeout(300)
@@ -790,13 +813,10 @@ async def main():
         v=await p360.evaluate("({pagina:document.documentElement.scrollWidth<=360, foglio:(()=>{const f=document.getElementById('cal-foglio');return f.scrollWidth<=f.clientWidth+1 && [...f.querySelectorAll('input,textarea')].every(i=>i.getBoundingClientRect().right<=f.getBoundingClientRect().right)})()})")
         ok(v["pagina"] and v["foglio"], "il foglio «aggiungi» a 360 px sta dentro, senza scorrere di lato")
         await c360.close()
-        # il telefono è in Nuova Zelanda e vuole il movimento ridotto: le ore del link sono comunque ore di Roma (d'inverno +1, d'estate +2 sull'UTC)
+        # il telefono è in Nuova Zelanda e vuole il movimento ridotto (le ore di Roma non dipendono più dalla pagina: l'invito lo costruisce la porta)
         cr_,pr_=await calendario_aperto(390,844,reduced_motion="reduce",timezone_id="Pacific/Auckland")
         await pr_.click("#cal-piu"); await pr_.wait_for_timeout(100)
         ok(await pr_.evaluate("getComputedStyle(document.getElementById('cal-foglio')).animationName")=="none", "con il movimento ridotto il foglio non si anima")
-        for g_,z_ in (("2027-01-15","20270115T090000Z/20270115T093000Z"),("2027-07-15","20270715T080000Z/20270715T083000Z")):
-            d_=await pr_.evaluate("g=>new URL(calLinkGoogle({tipo:'impegno',cosa:'x',giorno:g,ora:'10:00'})).searchParams.get('dates')", g_)
-            ok(d_==z_, f"{g_} alle 10 di Roma = {z_.split('/')[0][9:13]} UTC, anche con il telefono dall'altra parte del mondo ({d_})")
         await cr_.close()
 
         print("── il calendario, CONTROPROVA: con la griglia che parte dalla domenica, la prova di novembre è rossa")

@@ -436,7 +436,6 @@ body.cal-foglio-aperto{overflow:hidden}
 .cal-btn.pericolo{border-color:var(--rosso);color:var(--rosso)}
 .cal-btn.lieve{border-color:var(--bordo);color:var(--testo)}
 .cal-btn:disabled{opacity:.5}
-.cal-link{align-self:center;min-height:44px;padding:0 8px;border:0;background:none;color:var(--accento);font:500 14px/1.3 var(--f-testo);text-decoration:underline;cursor:pointer}
 .cal-dett-quando{font-weight:600}
 .cal-dett-nota{white-space:pre-wrap;padding:10px 12px;border:1px solid var(--bordo);border-radius:10px}
 .cal-errore{margin:10px 0 0;color:var(--arancio,#e8833a);font-weight:600}
@@ -2216,7 +2215,7 @@ prossimoGiro();
 // giorno… e poter aggiungere in quel calendario l'appuntamento manualmente, e che si possa riaprire per vedere l'impegno per esteso».
 // I dati vengono dalla porta (GET /assistente/calendario, col token dell'account): impegni e scadenze aperti. Un tocco li chiude (POST
 // /assistente/fatto), «Annulla» li rimette (POST /assistente/annulla); si aggiunge a mano (POST /assistente/aggiungi), si elimina
-// (POST /assistente/elimina), si mette nel calendario del telefono (link di Google Calendar, o l'invito .ics di GET /assistente/ics).
+// (POST /assistente/elimina), e l'invito per il calendario di Google arriva per mail (POST /assistente/invito, e subito dopo «Salva» di un impegno).
 // Se la porta non risponde si dice perché: mai una scheda vuota che sembra «non hai niente».
 // Le funzioni calDisegna… (mese, giorno, dettaglio, modulo) ricevono i dati e le azioni come argomenti e non chiamano la rete: l'app
 // Android potrà dar loro anche gli eventi del calendario del telefono.
@@ -2234,48 +2233,13 @@ const calVoci=d=>[...(d.impegni||[]).map(x=>({...x,tipo:"impegno"})),...(d.scade
 // in un giorno: prima le cose senza ora (tutto il giorno, le scadenze), poi per ora
 const calChiave=x=>x.ora?"1"+x.ora:"0"+(x.tipo==="scadenza"?"1":"0");
 const calOrdina=(a,b)=>calChiave(a).localeCompare(calChiave(b));
-// le ore di Roma sono ore di Roma anche se il telefono è altrove (stessa regola della porta, daRoma)
-function calDaRoma(g,ora){
-  const [Y,M,D]=g.split("-").map(Number), [h,m]=ora.split(":").map(Number), prova=Date.UTC(Y,M-1,D,h,m);
-  const p=new Intl.DateTimeFormat("en-US",{timeZone:"Europe/Rome",hourCycle:"h23",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit"}).formatToParts(new Date(prova));
-  const v=t=>+p.find(x=>x.type===t).value;
-  return new Date(prova-Math.round((Date.UTC(v("year"),v("month")-1,v("day"),v("hour"),v("minute"))-Math.floor(prova/60000)*60000)/60000)*60000);
-}
-// il link che apre «nuovo evento» di Google Calendar già compilato (su Android apre l'app Calendar). Forma presa dalla pagina di Google
-// for Developers «Invite users to an event»: calendar.google.com/calendar/r/eventedit?action=TEMPLATE&text&dates&details. Con l'ora: 30
-// minuti (come l'invito .ics), in UTC con la Z, così l'ora giusta non dipende dal fuso del telefono; senza ora: tutto il giorno
-// (date senza ora, la fine è il giorno dopo)
-function calLinkGoogle(x){
-  const z=d=>d.toISOString().replace(/[-:]/g,"").replace(/\.\d{3}/,"");
-  const dates=x.ora ? z(calDaRoma(x.giorno,x.ora))+"/"+z(new Date(calDaRoma(x.giorno,x.ora).getTime()+30*60000))
-    : x.giorno.replace(/-/g,"")+"/"+calSomma(x.giorno,1).replace(/-/g,"");
-  const dettagli=[x.tipo==="scadenza"&&x.importo?"Importo: "+x.importo:"", x.nota||""].filter(Boolean).join("\n");
-  const q=new URLSearchParams({action:"TEMPLATE",text:x.tipo==="scadenza"&&x.importo?x.cosa+" · "+x.importo:x.cosa,dates});
-  if(dettagli) q.set("details",dettagli);
-  return "https://calendar.google.com/calendar/r/eventedit?"+q.toString();
-}
-// 27/10, JJ: «se premo metti nel calendario non si aggiunge, apre solo il calendario». Su Android il link di Google Calendar
-// lo apre l'app Calendar, che però ignora l'evento da compilare. Lì si chiede direttamente ad Android «nuovo evento» con un
-// intent di Chrome (doc Android, «Common intents» → Calendar: ACTION_INSERT, tipo vnd.android.cursor.dir/event, extra title,
-// beginTime, endTime in millisecondi, allDay, description): si apre la schermata del nuovo evento già compilata, nel
-// calendario che la persona usa. Se nessuna app risponde, Chrome va al link di Google Calendar (browser_fallback_url).
-function calIntentAndroid(x){
-  const e=v=>encodeURIComponent(v);
-  const inizio=x.ora ? calDaRoma(x.giorno,x.ora).getTime() : Date.UTC(...x.giorno.split("-").map((n,i)=>i===1?+n-1:+n));
-  const fine=x.ora ? inizio+30*60000 : inizio+24*3600000;
-  const titolo=x.tipo==="scadenza"&&x.importo?x.cosa+" · "+x.importo:x.cosa;
-  const dettagli=[x.tipo==="scadenza"&&x.importo?"Importo: "+x.importo:"", x.nota||""].filter(Boolean).join("\n");
-  return "intent:#Intent;action=android.intent.action.INSERT;type=vnd.android.cursor.dir/event"
-    +";S.title="+e(titolo)+";l.beginTime="+inizio+";l.endTime="+fine+";B.allDay="+(x.ora?"false":"true")
-    +(dettagli?";S.description="+e(dettagli):"")
-    +";S.browser_fallback_url="+e(calLinkGoogle(x))+";end";
-}
-const calSuAndroid=/Android/i.test(navigator.userAgent);
-function calAvviso(testo, errore, riprova){
-  const st=$("cal-stato"); st.textContent="";
+// `riprova`: true = rilegge il calendario, una funzione = fa quella; `tieni`: la rilettura silenziosa dopo un salvataggio non cancella l'avviso
+function calAvviso(testo, errore, riprova, tieni){
+  const st=$("cal-stato"); st.textContent=""; delete st.dataset.tieni;
   if(!testo) return;
+  if(tieni) st.dataset.tieni="1";
   const d=document.createElement("div"); d.className="cal-avviso"+(errore?" errore":""); const p=document.createElement("p"); p.style.margin="0"; p.textContent=testo; d.appendChild(p);
-  if(riprova){ const b=document.createElement("button"); b.type="button"; b.className="cal-riprova"; b.textContent="Riprova"; b.addEventListener("click",()=>caricaCalendario()); d.appendChild(b); }
+  if(riprova){ const b=document.createElement("button"); b.type="button"; b.className="cal-riprova"; b.textContent="Riprova"; b.addEventListener("click",typeof riprova==="function"?riprova:()=>caricaCalendario()); d.appendChild(b); }
   st.appendChild(d);
 }
 async function calChiama(via, metodo, corpo){
@@ -2336,7 +2300,7 @@ function calDisegnaGiorno(casa, st, az){
   if(st.vuoto){ const d=calEl("div","cal-avviso"); d.appendChild(calEl("p","",`Niente in programma. Per segnare una cosa dillo a ${st.nome||"il tuo assistente"}, o tocca ＋.`)); d.firstChild.style.margin="0";
     d.appendChild(calBtn("cal-riprova",`Parla con ${st.nome||"il tuo assistente"}`,az.allaChat,"cal-alla-chat")); casa.appendChild(d); }
 }
-// ── il dettaglio: st={voce}, az={fatto(b), google non serve: il link è un <a>, scarica(b), elimina(b), chiudi()}; gli errori vanno in #cal-d-errore
+// ── il dettaglio: st={voce}, az={fatto(b), invito(b), elimina(b), chiudi()}; gli errori vanno in #cal-d-errore
 function calDisegnaDettaglio(casa, st, az){
   const x=st.voce; casa.textContent="";
   casa.appendChild(calEl("h3","",x.cosa));
@@ -2348,13 +2312,12 @@ function calDisegnaDettaglio(casa, st, az){
   const err=calEl("p","cal-errore"); err.id="cal-d-errore"; err.setAttribute("role","alert");
   const az2=calEl("div","cal-azioni");
   const fatto=calBtn("cal-btn primario",x.tipo==="scadenza"?"✓ Pagata":"✓ Fatto",()=>az.fatto(fatto),"cal-d-fatto");
-  const g=calEl("a","cal-btn","📅 Metti nel calendario del telefono"); g.id="cal-d-google"; if(calSuAndroid){ g.href=calIntentAndroid(x); } else { g.href=calLinkGoogle(x); g.target="_blank"; g.rel="noopener noreferrer"; }
-  const ics=calBtn("cal-link","oppure scarica l'invito (.ics)",()=>az.scarica(ics),"cal-d-ics");
+  const inv=x.tipo==="impegno"?calBtn("cal-btn","📩 Mandami l'invito per mail",()=>az.invito(inv),"cal-d-invito"):null;   // la porta li manda solo per gli impegni
   const el=calBtn("cal-btn pericolo","🗑 Elimina",()=>{
     az2.hidden=true; const c=calEl("div","cal-conferma"); c.id="cal-d-conferma"; c.appendChild(calEl("p","",`Eliminare «${x.cosa}»? Non si può annullare.`));
     const si=calBtn("cal-btn pericolo","Sì, elimina",()=>az.elimina(si),"cal-d-elimina-si"), no=calBtn("cal-btn lieve","No, lascia",()=>{ c.remove(); az2.hidden=false; el.focus(); },"cal-d-elimina-no");
     c.append(si,no); az2.after(c); no.focus(); },"cal-d-elimina");
-  az2.append(fatto,g,ics,el,calBtn("cal-btn lieve","Chiudi",az.chiudi,"cal-d-chiudi")); casa.append(az2,err);
+  az2.append(fatto,...(inv?[inv]:[]),el,calBtn("cal-btn lieve","Chiudi",az.chiudi,"cal-d-chiudi")); casa.append(az2,err);
 }
 // ── il modulo «aggiungi»: st={giorno}, az={salva(corpo) → Promise<{ok}|{errore}>, chiudi()}; se la porta dice no, il foglio resta com'è
 function calDisegnaForm(casa, st, az){
@@ -2437,7 +2400,7 @@ async function caricaCalendario(silenzioso){
   const j=await calChiama("calendario","GET");
   if(n!==calCarico) return;
   if(!j.ok){ if(silenzioso) return; cal.dati=null; calNascondi(); calAvviso(j.errore,true,true); return; }
-  calAvviso("",false,false);
+  if(!(silenzioso&&$("cal-stato").dataset.tieni)) calAvviso("",false,false);   // l'avviso dell'invito (dopo «Salva») resta
   if(!cal.scelto||!silenzioso) calVaiA(calOggi());   // all'apertura: il mese di oggi, con oggi scelto
   cal.dati=j; calRidisegna();
 }
@@ -2471,8 +2434,20 @@ function calApriAggiungi(giorno){
   calApriFoglio("Aggiungi al calendario",f=>calDisegnaForm(f,{giorno},{chiudi:calChiudiFoglio,salva:async corpo=>{
     const j=await calChiama("aggiungi","POST",corpo);
     if(!j.ok) return j;
-    const {ok,tipo,...riga}=j, k=corpo.tipo==="impegno"?"impegni":"scadenze"; (cal.dati[k]=cal.dati[k]||[]).push(riga);
-    calVaiA(corpo.giorno); calRidisegna(); calChiudiFoglio(); caricaCalendario(true); return j; }}));
+    const {ok,tipo,invito,...riga}=j, k=corpo.tipo==="impegno"?"impegni":"scadenze"; (cal.dati[k]=cal.dati[k]||[]).push(riga);
+    calVaiA(corpo.giorno); calRidisegna(); calChiudiFoglio();
+    if(corpo.tipo==="impegno") calAvvisoInvito(riga.id, invito);
+    caricaCalendario(true); return j; }}));
+}
+// dopo «Salva» di un impegno la porta ha già mandato (o no) l'invito per mail: `invito` è «mandato», «niente mail» o «errore: <motivo>»
+const CAL_INVITO_OK="✓ Salvato. 📩 Ti ho mandato l'invito per mail: aprila e tocca «Aggiungi al calendario».";
+function calAvvisoInvito(id, invito){
+  if(invito==="mandato") calAvviso(CAL_INVITO_OK,false,false,true);
+  else if(typeof invito==="string" && invito.startsWith("errore")){
+    const riprova=async()=>{ const j=await calChiama("invito","POST",{id});
+      if(j.ok) calAvviso(CAL_INVITO_OK,false,false,true); else calAvvisoInvito(id,"errore: "+j.errore); };
+    calAvviso("✓ Salvato, ma l'invito per mail non è partito: "+(invito.replace(/^errore:?\s*/,"")||"riprova"),true,riprova,true);
+  } else calAvviso("✓ Salvato.",false,false,true);   // «niente mail» (o una porta che non lo dice): basta
 }
 // aprire per esteso
 function calApri(x){
@@ -2481,12 +2456,8 @@ function calApri(x){
     fatto:async b=>{ b.disabled=true; errore(""); const j=await calFatto(x); if(j.ok) calChiudiFoglio(); else { b.disabled=false; errore(`Non sono riuscito a segnarla: ${j.errore}`); } },
     elimina:async b=>{ b.disabled=true; errore(""); const j=await calChiama("elimina","POST",{id:x.id});
       if(j.ok){ calTogli(x.id); calRidisegna(); calChiudiFoglio(); caricaCalendario(true); } else { b.disabled=false; errore(`Non sono riuscito a eliminarla: ${j.errore}`); } },
-    scarica:async b=>{ b.disabled=true; errore("");
-      try{ const r=await fetch(CAL_URL("ics")+"?id="+encodeURIComponent(x.id),{headers:{Authorization:"Bearer "+contoToken()}});
-        if(!r.ok) throw new Error(r.status===401?"La tua sessione è scaduta: rientra col tuo account.":"errore "+r.status);
-        const u=URL.createObjectURL(await r.blob()), a=document.createElement("a"); a.href=u; a.download="impegno.ics"; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(u),4000);
-      }catch(e){ errore("Non sono riuscito a scaricare l'invito: "+((e&&e.message)||"riprova")+"."); }
-      b.disabled=false; }});
+    invito:async b=>{ b.disabled=true; errore(""); const j=await calChiama("invito","POST",{id:x.id});
+      if(j.ok) b.textContent="📩 Mandato: guarda la tua mail"; else { b.disabled=false; errore(`Non sono riuscito a mandare l'invito: ${j.errore}`); } }});
     return f.querySelector("#cal-d-fatto"); });
 }
 $("cal-piu").addEventListener("click",()=>calApriAggiungi(cal.scelto||calOggi()));
