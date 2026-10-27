@@ -1208,7 +1208,7 @@ function perMestiere(m){
   riempi(document.querySelector('.scelte[data-campo="tempo"]'), set.tempo);
   riempi($("progetti"), set.progetti);
   $("dettaglio").setAttribute("placeholder", set.esempio||GENERALI.esempio);
-  risposte.tempo=""; $("avanti2").disabled=true;
+  risposte.tempo=""; sbloccaAvanti2();
   if(typeof scelti!=="undefined"){ scelti.clear(); $("avanti5").disabled=!$("proposta").value.trim(); }
 }
 
@@ -1229,7 +1229,7 @@ document.querySelectorAll(".scelte[data-campo]").forEach(g=>{
       // una guida non deve aspettare l'app: Clio c'è già
       if(b.textContent.trim()==="Guida turistica"){ r.textContent="Per te c'è già una cosa pronta, che non aspetta l'app: "; const a=document.createElement("a"); a.href="#clio"; a.textContent="Clio →"; r.appendChild(a); r.appendChild(document.createTextNode(" Intanto, due domande.")); }
       apri("d2");
-    } else { $("avanti2").disabled = false; }
+    } else { sbloccaAvanti2(); }
   });
 });
 // «Cosa fai nella vita?»: chi lavora va a «Che lavoro fai?»; chi studia ha già il suo mestiere (Studio) e passa alla seconda domanda;
@@ -1241,6 +1241,10 @@ function sceltaVita(v){
   const r=$("r0"); r.hidden=false; r.textContent="Bene. Adesso la parte che mi interessa davvero.";
   apri("d2");
 }
+// 27/10, JJ: «se scrivi tu in "raccontamelo con parole tue" non puoi andare avanti finché non clicchi sopra qualcosa».
+// Basta una delle due: una scelta OPPURE qualcosa scritto con parole sue.
+function sbloccaAvanti2(){ $("avanti2").disabled = !(risposte.tempo || $("dettaglio").value.trim()); }
+$("dettaglio").addEventListener("input", sbloccaAvanti2);
 $("avanti2").addEventListener("click", ()=>{ risposte.dettaglio = $("dettaglio").value.trim(); apri("d3"); });
 $("prezzo").addEventListener("input", e=>{ risposte.prezzo = +e.target.value; $("valore").textContent = e.target.value; });
 $("avanti3").addEventListener("click", ()=> apri("d5"));
@@ -1276,8 +1280,8 @@ function riprendi(){
   const segna=(sel,val)=>document.querySelectorAll(sel).forEach(x=>x.setAttribute("aria-pressed",String(x.textContent.trim()===val)));
   document.querySelectorAll('.scelte[data-campo="vita"] .scelta').forEach(x=>x.setAttribute("aria-pressed",String(x.dataset.vita===io.vita)));
   segna('.scelte[data-campo="mestiere"] .scelta', risposte.mestiere);
-  segna('.scelte[data-campo="tempo"] .scelta', risposte.tempo); $("avanti2").disabled=!risposte.tempo;
-  $("dettaglio").value=risposte.dettaglio; $("prezzo").value=risposte.prezzo; $("valore").textContent=risposte.prezzo;
+  segna('.scelte[data-campo="tempo"] .scelta', risposte.tempo);
+  $("dettaglio").value=risposte.dettaglio; sbloccaAvanti2(); $("prezzo").value=risposte.prezzo; $("valore").textContent=risposte.prezzo;
   scelti.clear();
   (b.voti||[]).forEach(v=>{ const x=[...document.querySelectorAll("#progetti .scelta")].find(y=>y.textContent.trim()===v); if(x){ scelti.add(v); x.setAttribute("aria-pressed","true"); } });
   $("proposta").value=b.proposta||""; $("avanti5").disabled=!(scelti.size||$("proposta").value.trim());

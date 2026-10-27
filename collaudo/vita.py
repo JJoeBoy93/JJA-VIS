@@ -115,6 +115,13 @@ async def main():
               await testi(pg, "#d2 .scelta") == ["Visite e appuntamenti dal medico", "Bollette e scadenze", "Documenti da rinnovare", "Bandi e agevolazioni", "Compleanni e ricorrenze", "Messaggi e telefonate sospette"], await testi(pg, "#d2 .scelta"))
         prova("4. l'esempio nella casella", await pg.get_attribute("#dettaglio", "placeholder") == "Per esempio: mi dimentico sempre quando scade…")
         prova("4. niente liste dei mestieri", "Organizzare la giornata" not in await testi(pg, "#d2 .scelta") and "Costruire il giro del mattino" not in await testi(pg, "#d2 .scelta"))
+        # 27/10, JJ dal telefono: scrivendo con parole sue «Vai avanti» restava spento finché non toccava una scelta
+        prova("4b. senza scelta e senza testo «Vai avanti» è spento", await pg.is_disabled("#avanti2"))
+        await pg.fill("#dettaglio", "mi scordo sempre la bolletta della luce")
+        prova("4b. basta scrivere con parole sue: «Vai avanti» si accende", not await pg.is_disabled("#avanti2"))
+        await pg.fill("#dettaglio", "   ")
+        prova("4b. solo spazi non bastano", await pg.is_disabled("#avanti2"))
+        await pg.fill("#dettaglio", "")
         await pg.click('#d2 .scelta:has-text("Bollette e scadenze")'); await pg.click("#avanti2"); await pg.wait_for_timeout(400)
         prova("4. #d3 resta, con la sua domanda", await vede(pg, "#d3") and "Se lo facessi io al posto tuo, quanto varrebbe al mese?" in await pg.inner_text("#d3"))
         await pg.click("#avanti3"); await pg.wait_for_timeout(400)
