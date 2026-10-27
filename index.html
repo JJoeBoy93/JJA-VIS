@@ -647,10 +647,22 @@ html.di-casa #o1{display:none}
 
   <section class="etichetta" id="tocca">
     <h2 style="font-size:28px">Adesso imparo te</h2>
-    <p class="piccolo">Quattro domande, un minuto. Decidono cosa costruisco dopo, e chi risponde mi prova per primo.</p>
+    <p class="piccolo">Poche domande, un minuto. Decidono cosa costruisco dopo, e chi risponde mi prova per primo.</p>
   </section>
 
-  <section class="etichetta domanda aperta" id="d1" aria-labelledby="t1">
+  <!-- 27/10, JJ accanto a sua nonna: «per i pensionati manca il senso, il lavoro non lo fanno più». Prima del lavoro, la vita. -->
+  <section class="etichetta domanda aperta" id="d0" aria-labelledby="t0">
+    <h2 id="t0">Cosa fai nella vita?</h2>
+    <div class="scelte" data-campo="vita">
+      <button class="scelta" aria-pressed="false" data-vita="lavoro">Lavoro</button>
+      <button class="scelta" aria-pressed="false" data-vita="pensione">Sono in pensione</button>
+      <button class="scelta" aria-pressed="false" data-vita="studio">Studio</button>
+      <button class="scelta" aria-pressed="false" data-vita="casa">Sto a casa</button>
+    </div>
+    <p class="risposta" id="r0" hidden></p>
+  </section>
+
+  <section class="etichetta domanda" id="d1" aria-labelledby="t1">
     <h2 id="t1">Che lavoro fai?</h2>
     <div class="scelte" data-campo="mestiere">
       <button class="scelta" aria-pressed="false">Corriere o autista</button>
@@ -711,7 +723,7 @@ html.di-casa #o1{display:none}
 
   <section class="etichetta domanda" id="d4" aria-labelledby="t4">
     <h2 id="t4">Ultima cosa: vuoi che ti scriva?</h2>
-    <p class="piccolo">Ti scrivo quando c'è qualcosa da provare per il tuo lavoro e, quando serve, ti rispondo anche per mail. Domande e idee me le scrivi nella chat, che si apre appena mandi le risposte.</p>
+    <p class="piccolo">Ti scrivo quando c'è qualcosa da provare per <span id="d4-per">il tuo lavoro</span> e, quando serve, ti rispondo anche per mail. Domande e idee me le scrivi nella chat, che si apre appena mandi le risposte.</p>
     <!-- 29/9, JJ: «come ti chiami lo abbiamo già chiesto, a questo punto non
          serve più». Il nome detto all'inizio (io.tuo) va da solo con la mail. -->
     <input type="hidden" id="nome">
@@ -1110,7 +1122,7 @@ html.di-casa #o1{display:none}
 // Dove vanno le risposte. Vuoto = anteprima: non si invia niente, e si dice.
 const INVIO = "https://jjavis-porta.19-jjardito93.workers.dev/risposta";
 
-const risposte = {mestiere:"", tempo:"", dettaglio:"", prezzo:15};
+const risposte = {vita:"", mestiere:"", tempo:"", dettaglio:"", prezzo:15};
 const $ = id => document.getElementById(id);
 if (!INVIO) $("anteprima").hidden = false;
 
@@ -1121,7 +1133,7 @@ if (!INVIO) $("anteprima").hidden = false;
 // in testa al passo nuovo, come una frase di chat.
 function apri(id){ const d=$(id); if(d.classList.contains("aperta")) return;
   // ognuno col suo gruppo: i passi del benvenuto (o1-o3) e le domande (d1-d5)
-  const gruppo = /^o\d$/.test(id) ? "#o1,#o2,#o3" : /^d\d$/.test(id) ? "#d1,#d2,#d3,#d4,#d5" : "";
+  const gruppo = /^o\d$/.test(id) ? "#o1,#o2,#o3" : /^d\d$/.test(id) ? "#d0,#d1,#d2,#d3,#d4,#d5" : "";
   if(gruppo) document.querySelectorAll(gruppo).forEach(prima=>{ if(prima===d || !prima.classList.contains("aperta")) return;
     // solo la risposta di QUEL passo, non quella che si era portato dietro (JJ, 29/9:
     // «il bene, adesso la parte che mi interessa davvero… l'ha già scritto nella prima»)
@@ -1177,12 +1189,22 @@ const PER_MESTIERE={
     progetti:["Un assistente che costruisce isole Fortnite con me","Idee per i video dai trend","Calendario delle uscite sui social","Risposte a commenti e messaggi","Le statistiche dei canali in un colpo d'occhio","Titoli e descrizioni scritti da soli"],
     esempio:"Per esempio: perdo ore a montare i video…"},
 };
+// ══ LA VITA PRIMA DEL LAVORO ══ 27 ottobre, JJ accanto a sua nonna che provava JJA-VIS: «per la sua categoria, anziani
+// pensionati, manca totalmente il senso, il lavoro non lo fanno più». Chi è in pensione o sta a casa non ha un mestiere:
+// per lui la seconda domanda è cosa non vuole più ricordare, e i progetti da votare sono le cose di casa.
+const VITA_CASA={
+  tempo:["Visite e appuntamenti dal medico","Bollette e scadenze","Documenti da rinnovare","Bandi e agevolazioni","Compleanni e ricorrenze","Messaggi e telefonate sospette"],
+  progetti:["Promemoria delle visite e delle medicine","Bollette e scadenze sotto controllo","Documenti da rinnovare in tempo","Bandi e agevolazioni del mio Comune","Compleanni e ricorrenze di famiglia","Un messaggio sospetto? Chiedilo prima a me"],
+  esempio:"Per esempio: mi dimentico sempre quando scade…"};
+const senzaLavoro=v=>v==="pensione"||v==="casa";
 const GENERALI={tempo:[...document.querySelectorAll('.scelte[data-campo="tempo"] .scelta')].map(b=>b.textContent.trim()),
                 progetti:[...document.querySelectorAll('#progetti .scelta')].map(b=>b.textContent.trim()),
                 esempio:$("dettaglio").getAttribute("placeholder")};
 function riempi(contenitore, voci){ contenitore.innerHTML=""; voci.forEach(t=>{ const b=document.createElement("button"); b.className="scelta"; b.setAttribute("aria-pressed","false"); b.textContent=t; contenitore.appendChild(b); }); }
 function perMestiere(m){
-  const set=PER_MESTIERE[m]||GENERALI;
+  const set=(senzaLavoro(io.vita)?VITA_CASA:PER_MESTIERE[m])||GENERALI;
+  $("t2").textContent=senzaLavoro(io.vita)?"Cosa ti piacerebbe non dover più ricordare?":"Cosa ti fa perdere più tempo?";
+  $("d4-per").textContent=senzaLavoro(io.vita)?"te":"il tuo lavoro";
   riempi(document.querySelector('.scelte[data-campo="tempo"]'), set.tempo);
   riempi($("progetti"), set.progetti);
   $("dettaglio").setAttribute("placeholder", set.esempio||GENERALI.esempio);
@@ -1197,6 +1219,7 @@ document.querySelectorAll(".scelte[data-campo]").forEach(g=>{
     const b = e.target.closest(".scelta"); if(!b) return;
     g.querySelectorAll(".scelta").forEach(x=>x.setAttribute("aria-pressed","false"));
     b.setAttribute("aria-pressed","true");
+    if(g.dataset.campo==="vita"){ sceltaVita(b.dataset.vita); return; }
     risposte[g.dataset.campo] = b.textContent.trim();
     if(g.dataset.campo==="mestiere"||g.dataset.campo==="tempo"){ io[g.dataset.campo]=risposte[g.dataset.campo]; salva(); }
     if (g.dataset.campo === "mestiere"){
@@ -1209,6 +1232,15 @@ document.querySelectorAll(".scelte[data-campo]").forEach(g=>{
     } else { $("avanti2").disabled = false; }
   });
 });
+// «Cosa fai nella vita?»: chi lavora va a «Che lavoro fai?»; chi studia ha già il suo mestiere (Studio) e passa alla seconda domanda;
+// chi è in pensione o sta a casa salta il lavoro (mestiere vuoto) e la seconda domanda è la sua.
+function sceltaVita(v){
+  risposte.vita=io.vita=v; risposte.mestiere=io.mestiere=v==="studio"?"Studio":""; salva();
+  perMestiere(io.mestiere);
+  if(v==="lavoro"){ apri("d1"); return; }
+  const r=$("r0"); r.hidden=false; r.textContent="Bene. Adesso la parte che mi interessa davvero.";
+  apri("d2");
+}
 $("avanti2").addEventListener("click", ()=>{ risposte.dettaglio = $("dettaglio").value.trim(); apri("d3"); });
 $("prezzo").addEventListener("input", e=>{ risposte.prezzo = +e.target.value; $("valore").textContent = e.target.value; });
 $("avanti3").addEventListener("click", ()=> apri("d5"));
@@ -1226,7 +1258,7 @@ $("avanti5").addEventListener("click", ()=> apri("d4"));
 // prima di avere finito devi ripartire da capo». Il passo e le risposte date
 // restano su questo telefono (io.passo, io.bozza); tornando, si riapre la
 // domanda di adesso con le scelte già segnate.
-const ORDINE_DOMANDE=["d1","d2","d3","d5","d4"];
+const ORDINE_DOMANDE=["d0","d1","d2","d3","d5","d4"];
 function ricordaBozza(){
   io.bozza={tempo:risposte.tempo, dettaglio:$("dettaglio").value.trim(), prezzo:risposte.prezzo,
             voti:[...scelti], proposta:$("proposta").value.trim()};
@@ -1236,11 +1268,13 @@ function ricordaBozza(){
 $("prezzo").addEventListener("change", ricordaBozza);
 $("progetti").addEventListener("click", ()=>setTimeout(ricordaBozza,0));
 function riprendi(){
-  const p=io.passo; if(!p || p==="d1" || !io.mestiere || !ORDINE_DOMANDE.includes(p)) return false;
+  // d0 si riparte da capo; d1 si riprende solo se «Lavoro» era già detto; chi non lavora (pensione, casa) ha il mestiere vuoto
+  const p=io.passo; if(!p || p==="d0" || !ORDINE_DOMANDE.includes(p) || (p==="d1" ? !io.vita : !io.mestiere && !senzaLavoro(io.vita))) return false;
   const b=io.bozza||{};
   perMestiere(io.mestiere);
-  Object.assign(risposte,{mestiere:io.mestiere, tempo:b.tempo||io.tempo||"", dettaglio:b.dettaglio||"", prezzo:typeof b.prezzo==="number"?b.prezzo:15});
+  Object.assign(risposte,{vita:io.vita||"", mestiere:io.mestiere||"", tempo:b.tempo||io.tempo||"", dettaglio:b.dettaglio||"", prezzo:typeof b.prezzo==="number"?b.prezzo:15});
   const segna=(sel,val)=>document.querySelectorAll(sel).forEach(x=>x.setAttribute("aria-pressed",String(x.textContent.trim()===val)));
+  document.querySelectorAll('.scelte[data-campo="vita"] .scelta').forEach(x=>x.setAttribute("aria-pressed",String(x.dataset.vita===io.vita)));
   segna('.scelte[data-campo="mestiere"] .scelta', risposte.mestiere);
   segna('.scelte[data-campo="tempo"] .scelta', risposte.tempo); $("avanti2").disabled=!risposte.tempo;
   $("dettaglio").value=risposte.dettaglio; $("prezzo").value=risposte.prezzo; $("valore").textContent=risposte.prezzo;
@@ -1255,7 +1289,7 @@ function riprendi(){
 
 async function manda(conMail){
   const esito=$("esito"); esito.className="avviso";
-  const corpo = {...risposte, dettaglio: $("dettaglio").value.trim(), messaggio: "", voti:[...scelti], proposta: $("proposta").value.trim(), sito: $("sito").value, nome_assistente: io.nome||"", tema: io.tema||"tech", chi: io.id||""};
+  const corpo = {...risposte, vita: io.vita||risposte.vita||"", dettaglio: $("dettaglio").value.trim(), messaggio: "", voti:[...scelti], proposta: $("proposta").value.trim(), sito: $("sito").value, nome_assistente: io.nome||"", tema: io.tema||"tech", chi: io.id||""};
   if (conMail){
     const mail=$("mail").value.trim();
     if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(mail)){ esito.classList.add("errore"); esito.textContent="La mail non sembra completa: controlla la parte dopo la chiocciola."; return; }
@@ -1300,8 +1334,18 @@ const TASTI_CHAT={
   "💶 Segnami una scadenza":{risposta:"Va bene, {nome}. Cosa scade, quando, e se vuoi l'importo: te la ricordo io prima della scadenza.",
     contesto:"ha toccato «Segnami una scadenza» e gli hai chiesto cosa scade, quando e l'importo"},
   "🎒 Cosa porto quando esco":{risposta:"Dimmi le cose che ti porti sempre dietro quando esci (chiavi, portafoglio, badge…): te le ricordo io.",
-    contesto:"ha toccato «Cosa porto quando esco» e gli hai chiesto le cose che si porta sempre dietro quando esce"}
+    contesto:"ha toccato «Cosa porto quando esco» e gli hai chiesto le cose che si porta sempre dietro quando esce"},
+  // 27/10: per chi è in pensione o sta a casa (io.vita) i tre tasti sono questi (aggiornaTasti)
+  "⏰ Ricordami una visita":{risposta:"Certo, {nome}. Dimmi che visita è e per quando: il giorno e, se ce l'hai, anche l'ora. Te la ricordo io.",
+    contesto:"ha toccato «Ricordami una visita» e gli hai chiesto che visita è e per quando"},
+  "💶 Segnami una bolletta":{risposta:"Va bene, {nome}. Quale bolletta è, quando scade, e se vuoi l'importo: te la ricordo io prima della scadenza.",
+    contesto:"ha toccato «Segnami una bolletta» e gli hai chiesto quale bolletta, quando scade e l'importo"},
+  "🛡 Un messaggio sospetto?":{risposta:"Incollami qui il messaggio o raccontami la telefonata: ti dico cosa ne penso. Nel dubbio non toccare link e non dare codici a nessuno.",
+    contesto:"ha toccato «Un messaggio sospetto?» e gli hai chiesto di incollare il messaggio o raccontare la telefonata, per dirgli cosa ne pensi (nel dubbio: niente link e niente codici a nessuno)"}
 };
+const TASTI_BASE=["⏰ Ricordami una cosa","💶 Segnami una scadenza","🎒 Cosa porto quando esco"], TASTI_CASA=["⏰ Ricordami una visita","💶 Segnami una bolletta","🛡 Un messaggio sospetto?"];
+function aggiornaTasti(){ const t=senzaLavoro(io.vita)?TASTI_CASA:TASTI_BASE;
+  document.querySelectorAll("#prove-chat .prova-chat").forEach((b,i)=>{ if(t[i] && b.textContent.trim()!==t[i]) b.textContent=t[i]; }); }
 function tastoChat(t){
   const k=TASTI_CHAT[t]; if(!k) return;
   const nome=(io.tuo||"").trim(), risposta=nome?k.risposta.replace("{nome}",()=>nome):k.risposta.replace(/,\s*\{nome\}/g,"");
@@ -1374,6 +1418,7 @@ function aggiornaChat(){
   if(!$("chat-vuota")) return;
   $("chat-vuota").hidden=!!$("chat").children.length;
   $("vuoto-tuo").textContent=io.tuo?" "+io.tuo:"";
+  aggiornaTasti();
   aggiornaBarra();
   const att=rispostaInAttesa();
   [["nuova-conv","nuova-aspetto"],["conv-nuova","conv-nuova-aspetto"]].forEach(([b,t])=>{ $(b).classList.toggle("grigio",att); $(b).setAttribute("aria-disabled",String(att)); $(t).hidden=!att; });
@@ -1703,7 +1748,7 @@ async function primoIncontro(testo){
   primoInCorso=true; const e=$("esito-chat"); e.className="avviso"; e.textContent=`${io.nome||"Il tuo assistente"} sta leggendo cosa ti serve…`;
   try{
     const r=await fetch(INVIO.replace("/risposta","/assistente"),{method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+contoToken()},
-      body:JSON.stringify({primo:true,chi:io.id||"",testo:testo||"",nome_assistente:io.nome||"",tuo:io.tuo||"",mestiere:io.mestiere||"",tempo:io.tempo||""})});
+      body:JSON.stringify({primo:true,chi:io.id||"",testo:testo||"",nome_assistente:io.nome||"",tuo:io.tuo||"",vita:io.vita||"",mestiere:io.mestiere||"",tempo:io.tempo||""})});
     const d=await r.json().catch(()=>({}));
     if(d.gia){ io.primo=true; salva(); e.textContent=""; return; }
     if(!r.ok||!d.risposta) throw new Error(d.errore||("errore "+r.status));
@@ -2026,7 +2071,7 @@ setTimeout(()=>{ if(!portaDecisa) rivela(); },8000);
   fetch(INVIO.replace("/risposta","/io")+"?chi="+encodeURIComponent(chi)+"&k="+encodeURIComponent(k)).then(r=>r.ok?r.json():null).then(d=>{
     if(!d||!d.io){ fine(); return; }
     const stessa=io.id===d.io.id; io={...(stessa?io:{}), id:d.io.id};
-    for(const c of ["nome","mestiere","tema","tuo"]) if(d.io[c]) io[c]=d.io[c];
+    for(const c of ["nome","mestiere","tema","tuo","vita"]) if(d.io[c]) io[c]=d.io[c];
     salva(); location.replace(pulita);
   }).catch(fine); })();
 function applicaTema(t){
@@ -2054,14 +2099,15 @@ const LAVORO={"Corriere o autista":"guidi per lavoro","Negozio o commercio":"lav
   "Sanità":"lavori nella sanità","Ufficio":"lavori in ufficio","Studio":"studi","Guida turistica":"fai la guida turistica","Creator o gamer":"crei contenuti","Altro":"fai un lavoro tutto tuo"};
 const CONOSCERTI=[
   {k:"inizio", d:"A che ora comincia la tua giornata?", s:["Prima delle 6","Tra le 6 e le 8","Dopo le 8","Cambia ogni giorno"]},
-  {k:"telefono", d:"Mentre lavori, il telefono dov'è?", s:["In mano","In tasca","Sul cruscotto","Sul bancone o sulla scrivania","Lontano"]},
+  {k:"telefono", lavoro:true, d:"Mentre lavori, il telefono dov'è?", s:["In mano","In tasca","Sul cruscotto","Sul bancone o sulla scrivania","Lontano"]},
   {k:"parlare", d:"Come vuoi che ti parli?", s:["Breve e diretto","Con calma, spiegando","Scherzando un po'"]},
   {k:"voce", d:"Mi useresti di più a voce o scrivendo?", s:["A voce","Scrivendo","Metà e metà"]},
-  {k:"giorni", d:"Quanti giorni a settimana lavori?", s:["5 o meno","6","7","Dipende"]},
+  {k:"giorni", lavoro:true, d:"Quanti giorni a settimana lavori?", s:["5 o meno","6","7","Dipende"]},
   {k:"soldi", d:"Dove ti farebbe più comodo risparmiare soldi?", s:["Carburante e spostamenti","Tempo pagato a ore","Errori e dimenticanze","Clienti persi"]},
-  {k:"sera", d:"La sera, dopo il lavoro, cosa ti piacerebbe avere già fatto?", s:["I conti del giorno","La giornata di domani pronta","Le risposte ai clienti","Niente: voglio staccare"]},
+  {k:"sera", lavoro:true, d:"La sera, dopo il lavoro, cosa ti piacerebbe avere già fatto?", s:["I conti del giorno","La giornata di domani pronta","Le risposte ai clienti","Niente: voglio staccare"]},
 ];
-function prossimaDomanda(){ io.conosciute=io.conosciute||{}; return CONOSCERTI.find(q=>!(q.k in io.conosciute)); }
+// «lavoro:true» segna le domande che parlano di lavoro: a chi è in pensione o sta a casa non si fanno (27/10)
+function prossimaDomanda(){ io.conosciute=io.conosciute||{}; return CONOSCERTI.find(q=>!(q.k in io.conosciute) && !(q.lavoro && senzaLavoro(io.vita))); }
 function mostraDomanda(){
   const q=prossimaDomanda(); const box=$("conosci");
   // 29/9, JJ: «quando finisco le domande deve sparire la scritta oggi voglio
@@ -2084,12 +2130,12 @@ function mostraDomanda(){
   };
 }
 function mostraSondaggio(mostra){
-  ["tocca","d1","d2","d3","d5"].forEach(id=>{ const el=$(id); if(el) el.hidden=!mostra; });
+  ["tocca","d0","d1","d2","d3","d5"].forEach(id=>{ const el=$(id); if(el) el.hidden=!mostra; });
   // 26 settembre, JJ: «la prima pagina deve avere solo il parla con… così
   // fai fatica a capire dove scrivere». Chi ha già risposto scrive solo lì.
   $("d4").hidden=!mostra;
 }
-const PASSO_SALUTO = 900;   // ms fra saluto, sfera che sale, «Adesso imparo te», «Che lavoro fai?»
+const PASSO_SALUTO = 900;   // ms fra saluto, sfera che sale, «Adesso imparo te», «Cosa fai nella vita?»
 function benvenuto(tornato){
   const tu=io.tuo?`, ${io.tuo}`:"";
   if(io.inizio){ delete io.inizio; salva(); }
@@ -2108,24 +2154,26 @@ function benvenuto(tornato){
     // 29/9, JJ: saluta, «mi ricordo di te… nel Profilo» passa sopra a «cosa so
     // fare lo scopri scorrendo a destra», la sfera e il nome vanno su, e «non
     // deve comparire tutto insieme: prima adesso imparo te, dopo qualche
-    // istante compare che lavoro fai».
+    // istante compare cosa fai nella vita».
     $("scopri").hidden=false;
-    mostraSondaggio(true); $("tocca").hidden=true; $("d1").hidden=true; $("parla").hidden=true;
+    mostraSondaggio(true); $("tocca").hidden=true; $("d0").hidden=true; $("parla").hidden=true;
     document.body.classList.remove("con-nome");
     $("benvenuto").classList.add("aperta"); $("resto").hidden=false;
     setTimeout(()=>{ document.body.classList.add("con-nome"); window.scrollTo(0,0); }, PASSO_SALUTO);
     setTimeout(()=>{ $("tocca").hidden=false; $("tocca").classList.add("entra"); }, PASSO_SALUTO*2);
-    setTimeout(()=>{ $("d1").hidden=false; $("d1").classList.add("entra"); }, PASSO_SALUTO*3);
+    setTimeout(()=>{ $("d0").hidden=false; $("d0").classList.add("entra"); }, PASSO_SALUTO*3);
     return;
   } else if(!io.inviato){
     $("saluto").textContent=`Ciao${tu}.`;
-    $("saluto2").textContent = io.mestiere ? "Eravamo a metà: riprendiamo da dove ci eravamo fermati." : "L'altra volta non mi hai ancora detto che lavoro fai. Riprendiamo da lì.";
+    $("saluto2").textContent = io.mestiere||io.vita ? "Eravamo a metà: riprendiamo da dove ci eravamo fermati." : "L'altra volta non abbiamo finito di conoscerci. Riprendiamo da lì.";
     $("continua").hidden=false; mostraSondaggio(true); riprendi();
   } else {
     $("saluto").textContent=`Ciao${tu}.`;
     const l=LAVORO[io.mestiere]; const t=io.tempo?io.tempo.toLowerCase():"";
     const ancora=prossimaDomanda()?" Oggi voglio sapere una cosa in più.":"";
-    $("saluto2").textContent = l ? `So che ${l}${t?`, e che il tempo te lo mangia soprattutto questo: ${t}`:""}.${ancora}` : ancora.trim();
+    // 27/10: chi è in pensione o sta a casa non ha un lavoro: la riga dice la sua vita e la cosa che ha scelto nella seconda domanda
+    $("saluto2").textContent = senzaLavoro(io.vita) ? `So che ${io.vita==="pensione"?"sei in pensione":"stai a casa"}${t?`, e che vorresti non dover più ricordare questo: ${t}`:""}.${ancora}`
+      : l ? `So che ${l}${t?`, e che il tempo te lo mangia soprattutto questo: ${t}`:""}.${ancora}` : ancora.trim();
     mostraSondaggio(false); mostraDomanda();
   }
   $("benvenuto").classList.add("aperta"); $("resto").hidden=false;
@@ -2565,7 +2613,8 @@ function aggiornaProfilo(){
   $("mail-attuale").hidden=!io.mail; $("mail-attuale").textContent = io.mail ? "Per toglierla, svuota il campo e salva." : "";
   const ul=$("so-di-te"); ul.innerHTML="";
   const righe=[]; if(io.tuo) righe.push(["Ti chiami",io.tuo]); if(io.mestiere) righe.push([ETICHETTE_SO.mestiere,io.mestiere]);
-  if(io.tempo) righe.push([ETICHETTE_SO.tempo,io.tempo]);
+  if(senzaLavoro(io.vita)) righe.push(["Nella vita",io.vita==="pensione"?"Sei in pensione":"Stai a casa"]);
+  if(io.tempo) righe.push([senzaLavoro(io.vita)?"Vorresti non dover più ricordare":ETICHETTE_SO.tempo,io.tempo]);
   Object.entries(io.conosciute||{}).forEach(([k,v])=>righe.push([ETICHETTE_SO[k]||k, v]));
   if(io.mail) righe.push(["La tua mail", io.mail]);
   if(!righe.length) righe.push(["Per ora","niente: non mi hai ancora detto nulla"]);
