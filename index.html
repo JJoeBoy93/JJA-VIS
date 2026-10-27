@@ -2254,6 +2254,23 @@ function calLinkGoogle(x){
   if(dettagli) q.set("details",dettagli);
   return "https://calendar.google.com/calendar/r/eventedit?"+q.toString();
 }
+// 27/10, JJ: «se premo metti nel calendario non si aggiunge, apre solo il calendario». Su Android il link di Google Calendar
+// lo apre l'app Calendar, che però ignora l'evento da compilare. Lì si chiede direttamente ad Android «nuovo evento» con un
+// intent di Chrome (doc Android, «Common intents» → Calendar: ACTION_INSERT, tipo vnd.android.cursor.dir/event, extra title,
+// beginTime, endTime in millisecondi, allDay, description): si apre la schermata del nuovo evento già compilata, nel
+// calendario che la persona usa. Se nessuna app risponde, Chrome va al link di Google Calendar (browser_fallback_url).
+function calIntentAndroid(x){
+  const e=v=>encodeURIComponent(v);
+  const inizio=x.ora ? calDaRoma(x.giorno,x.ora).getTime() : Date.UTC(...x.giorno.split("-").map((n,i)=>i===1?+n-1:+n));
+  const fine=x.ora ? inizio+30*60000 : inizio+24*3600000;
+  const titolo=x.tipo==="scadenza"&&x.importo?x.cosa+" · "+x.importo:x.cosa;
+  const dettagli=[x.tipo==="scadenza"&&x.importo?"Importo: "+x.importo:"", x.nota||""].filter(Boolean).join("\n");
+  return "intent:#Intent;action=android.intent.action.INSERT;type=vnd.android.cursor.dir/event"
+    +";S.title="+e(titolo)+";l.beginTime="+inizio+";l.endTime="+fine+";B.allDay="+(x.ora?"false":"true")
+    +(dettagli?";S.description="+e(dettagli):"")
+    +";S.browser_fallback_url="+e(calLinkGoogle(x))+";end";
+}
+const calSuAndroid=/Android/i.test(navigator.userAgent);
 function calAvviso(testo, errore, riprova){
   const st=$("cal-stato"); st.textContent="";
   if(!testo) return;
@@ -2331,7 +2348,7 @@ function calDisegnaDettaglio(casa, st, az){
   const err=calEl("p","cal-errore"); err.id="cal-d-errore"; err.setAttribute("role","alert");
   const az2=calEl("div","cal-azioni");
   const fatto=calBtn("cal-btn primario",x.tipo==="scadenza"?"✓ Pagata":"✓ Fatto",()=>az.fatto(fatto),"cal-d-fatto");
-  const g=calEl("a","cal-btn","📅 Metti nel calendario del telefono"); g.id="cal-d-google"; g.href=calLinkGoogle(x); g.target="_blank"; g.rel="noopener noreferrer";
+  const g=calEl("a","cal-btn","📅 Metti nel calendario del telefono"); g.id="cal-d-google"; if(calSuAndroid){ g.href=calIntentAndroid(x); } else { g.href=calLinkGoogle(x); g.target="_blank"; g.rel="noopener noreferrer"; }
   const ics=calBtn("cal-link","oppure scarica l'invito (.ics)",()=>az.scarica(ics),"cal-d-ics");
   const el=calBtn("cal-btn pericolo","🗑 Elimina",()=>{
     az2.hidden=true; const c=calEl("div","cal-conferma"); c.id="cal-d-conferma"; c.appendChild(calEl("p","",`Eliminare «${x.cosa}»? Non si può annullare.`));

@@ -716,6 +716,12 @@ async def main():
         ok(u_.netloc=="calendar.google.com" and q_.get("action")==["TEMPLATE"] and q_.get("text")==["dentista"], f"il link di Google Calendar: action=TEMPLATE, text=dentista ({href})")
         ok(q_.get("dates")==[utc(domani_,"10:00")], f"le date sono domani alle 10 di Roma, in UTC, per mezz'ora ({q_.get('dates')} ≟ {utc(domani_,'10:00')})")
         ok(await pg11.get_attribute("#cal-d-google","target")=="_blank" and "noopener" in await pg11.get_attribute("#cal-d-google","rel"), "il link si apre fuori dalla pagina, senza portarsi dietro la finestra")
+        # 27/10, JJ: «se premo metti nel calendario non si aggiunge, apre solo il calendario» → su Android l'intent «nuovo evento»
+        ia_=await pg11.evaluate(f"calIntentAndroid({{cosa:'dentista',giorno:'{domani_}',ora:'10:00'}})")
+        ok(ia_.startswith("intent:#Intent;action=android.intent.action.INSERT;type=vnd.android.cursor.dir/event") and ";S.title=dentista;" in ia_
+           and f";l.beginTime={int(datetime.strptime(utc(domani_,'10:00').split('/')[0],'%Y%m%dT%H%M%SZ').replace(tzinfo=timezone.utc).timestamp()*1000)};" in ia_
+           and ";B.allDay=false;" in ia_ and ";S.browser_fallback_url=https%3A%2F%2Fcalendar.google.com" in ia_ and ia_.endswith(";end"),
+           f"su Android: l'intent «nuovo evento» già compilato (titolo, inizio alle 10 di Roma, fallback a Google Calendar) ({ia_[:120]}…)")
         prima_=len(CAL["ics"])
         async with pg11.expect_download() as dl: await pg11.click("#cal-d-ics")
         scarico=await dl.value
