@@ -436,6 +436,7 @@ async def main():
         vis=await pg2.evaluate("[...document.querySelectorAll('#p-inizia .domanda, #tocca')].filter(x=>x.offsetParent!==null && x.id!=='benvenuto').map(x=>x.id)")
         ok(vis==["d3"], f"ricaricato alla domanda del prezzo: si riapre lì, non da capo ({vis})")
         ok(await pg2.input_value("#prezzo")=="40" and await pg2.inner_text("#valore")=="40", "e il prezzo scelto c'è ancora")
+        ok(not await pg2.is_disabled("#avanti3"), "e, mosso prima di ricaricare, «Vai avanti» è già acceso (27/10)")
         ok(await pg2.evaluate("document.querySelector('#continua').getAttribute('href')")=="#d3", "«Continuiamo ↓» porta alla domanda di adesso")
         await pg2.click("#avanti3"); await pg2.wait_for_timeout(250)
         await pg2.click("#d5 .scelta >> nth=0"); await pg2.click("#avanti5"); await pg2.wait_for_timeout(250)

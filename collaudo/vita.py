@@ -8,7 +8,7 @@ con la porta finta (telefono 390×844):
 1. dopo «come ti chiami» compare #d0 con le quattro scelte, e #d1 non c'è ancora
 2. «Lavoro» → #d1 «Che lavoro fai?» come prima
 3. «Studio» → mestiere Studio, si salta #d1, #d2 ha le liste di Studio
-4. «Sono in pensione» → si salta #d1, #d2 «Cosa ti piacerebbe non dover più ricordare?»
+4. «Sono in pensione» → si salta #d1, #d2 «In cosa ti piacerebbe essere assistito da me?»
    con «Bollette e scadenze», i progetti di casa, e fino in fondo manda() spedisce vita
 5. ricaricando a metà, la domanda si riprende (anche senza mestiere)
 6. chat vuota: con vita pensione i tasti sono i tre nuovi e il terzo risponde subito,
@@ -110,7 +110,7 @@ async def main():
         io = await leggi_io(pg)
         prova("4. salta #d1 (mestiere vuoto)", not await vede(pg, "#d1") and await vede(pg, "#d2") and not io.get("mestiere"), io)
         prova("4. io.vita = pensione", io.get("vita") == "pensione", io)
-        prova("4. #d2 «Cosa ti piacerebbe non dover più ricordare?»", "Cosa ti piacerebbe non dover più ricordare?" in await pg.inner_text("#d2") and "Cosa ti fa perdere più tempo?" not in await pg.inner_text("#d2"))
+        prova("4. #d2 «In cosa ti piacerebbe essere assistito da me?»", "In cosa ti piacerebbe essere assistito da me?" in await pg.inner_text("#d2") and "Cosa ti fa perdere più tempo?" not in await pg.inner_text("#d2"))
         prova("4. con le sei scelte, «Bollette e scadenze» compresa",
               await testi(pg, "#d2 .scelta") == ["Visite e appuntamenti dal medico", "Bollette e scadenze", "Documenti da rinnovare", "Bandi e agevolazioni", "Compleanni e ricorrenze", "Messaggi e telefonate sospette"], await testi(pg, "#d2 .scelta"))
         prova("4. l'esempio nella casella", await pg.get_attribute("#dettaglio", "placeholder") == "Per esempio: mi dimentico sempre quando scade…")
@@ -124,6 +124,11 @@ async def main():
         await pg.fill("#dettaglio", "")
         await pg.click('#d2 .scelta:has-text("Bollette e scadenze")'); await pg.click("#avanti2"); await pg.wait_for_timeout(400)
         prova("4. #d3 resta, con la sua domanda", await vede(pg, "#d3") and "Se lo facessi io al posto tuo, quanto varrebbe al mese?" in await pg.inner_text("#d3"))
+        # 27/10, JJ: il cursore parte da 0 e «Vai avanti» si accende solo dopo averlo mosso (o toccato, per dire 0)
+        prova("4c. il cursore parte da 0", await pg.input_value("#prezzo") == "0" and await pg.inner_text("#valore") == "0")
+        prova("4c. senza toccarlo «Vai avanti» è spento", await pg.is_disabled("#avanti3"))
+        await pg.evaluate("(()=>{const r=document.querySelector('#prezzo');r.value=25;r.dispatchEvent(new Event('input'))})()")
+        prova("4c. mosso a 25: «Vai avanti» si accende e il numero segue", not await pg.is_disabled("#avanti3") and await pg.inner_text("#valore") == "25")
         await pg.click("#avanti3"); await pg.wait_for_timeout(400)
         progetti = await testi(pg, "#progetti .scelta")
         prova("4. #d5 ha i progetti di casa",
@@ -135,6 +140,12 @@ async def main():
         s = spedite[0] if spedite else {}
         prova("4. …con vita = pensione, mestiere vuoto e la cosa scelta in #d2", s.get("vita") == "pensione" and not s.get("mestiere") and s.get("tempo") == "Bollette e scadenze", s)
         prova("4. …e i voti", s.get("voti") == ["Bollette e scadenze sotto controllo"], s)
+        # 27/10, JJ: «finite le domande resta così, qui muore il giro, non sai più cosa fare»
+        await pg.wait_for_timeout(1200)
+        vis = await pg.evaluate("[...document.querySelectorAll('#prove-chat .prova-chat')].filter(b=>b.getClientRects().length).map(b=>b.textContent.trim())")
+        prova("4d. finite le domande, sotto «Ricevuto» ci sono i tre tasti (di casa)", vis == CASA_TASTI and await pg.locator("#chat > *").count() >= 1, vis)
+        await pg.click('#prove-chat .prova-chat >> text=Ricordami una visita'); await pg.wait_for_timeout(400)
+        prova("4d. toccato un tasto, i tasti se ne vanno", not await pg.is_visible("#prove-chat"))
         await ctx.close()
 
         print("── 5. ricaricando a metà, si riprende")
@@ -144,7 +155,7 @@ async def main():
         await pg.reload(); await pg.wait_for_timeout(2500)
         io = await leggi_io(pg)
         prova("5. la domanda di adesso (#d2) si riapre, non #d0", await vede(pg, "#d2") and not await vede(pg, "#d0") and not await vede(pg, "#d1"))
-        prova("5. con le liste di casa e la scelta già segnata", "Bandi e agevolazioni" in await testi(pg, "#d2 .scelta") and "Cosa ti piacerebbe non dover più ricordare?" in await pg.inner_text("#d2")
+        prova("5. con le liste di casa e la scelta già segnata", "Bandi e agevolazioni" in await testi(pg, "#d2 .scelta") and "In cosa ti piacerebbe essere assistito da me?" in await pg.inner_text("#d2")
               and await pg.evaluate("document.querySelector('#d2 .scelta[aria-pressed=true]') && document.querySelector('#d2 .scelta[aria-pressed=true]').textContent.trim()") == "Documenti da rinnovare")
         prova("5. io.vita resta pensione", io.get("vita") == "pensione", io)
         await ctx.close()

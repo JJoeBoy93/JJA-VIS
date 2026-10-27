@@ -321,6 +321,8 @@ body.chat-sola .chat-area .spiega-chat{font-size:13px;text-align:center;color:va
 body.chat-sola #chat-vuota{display:block;margin:auto;width:100%;max-width:420px;text-align:center;padding:12px 0}
 body.chat-sola #chat-vuota .saluto-vuoto{font:600 24px/1.3 var(--f-titoli);margin:0 0 20px;color:var(--testo)}
 .prove-chat{display:flex;flex-direction:column;gap:10px}
+#prove-chat{display:none}
+body.chat-sola #prove-chat:not([hidden]){display:flex;width:100%;max-width:420px;margin:16px auto 0}
 .prova-chat{display:block;width:100%;min-height:60px;padding:14px 16px;text-align:left;font:600 19px/1.25 var(--f-testo);color:var(--testo);cursor:pointer;
   background:color-mix(in srgb,var(--accento) 8%,var(--panel));border:1px solid var(--bordo)}
 .prova-chat:hover,.prova-chat:active{border-color:var(--accento);box-shadow:0 0 12px color-mix(in srgb,var(--accento) 30%,transparent) inset}
@@ -695,12 +697,12 @@ html.di-casa #o1{display:none}
 
   <section class="etichetta domanda" id="d3" aria-labelledby="t3">
     <h2 id="t3">Se lo facessi io al posto tuo, quanto varrebbe al mese?</h2>
-    <div class="cifra" aria-live="polite"><output id="valore">15</output> <span>€ al mese</span></div>
+    <div class="cifra" aria-live="polite"><output id="valore">0</output> <span>€ al mese</span></div>
     <div class="cursore">
-      <input type="range" id="prezzo" min="0" max="100" step="1" value="15" aria-describedby="estremi" aria-label="Quanto varrebbe al mese, in euro">
+      <input type="range" id="prezzo" min="0" max="100" step="1" value="0" aria-describedby="estremi" aria-label="Quanto varrebbe al mese, in euro">
       <div class="estremi" id="estremi"><span>0 · non lo userei</span><span>100 €</span></div>
     </div>
-    <button class="invia" id="avanti3">Vai avanti</button>
+    <button class="invia" id="avanti3" disabled>Vai avanti</button>
   </section>
 
   <section class="etichetta domanda" id="d5" aria-labelledby="t5">
@@ -743,13 +745,15 @@ html.di-casa #o1{display:none}
     <div class="chat-area" id="chat-area">
       <div id="chat-vuota" hidden>
         <p class="saluto-vuoto" id="saluto-vuoto">Ciao<span id="vuoto-tuo"></span>, sono <span class="chi">JJA-VIS</span>. Cosa facciamo oggi?</p>
-        <div class="prove-chat" id="prove-chat">
-          <button type="button" class="prova-chat">⏰ Ricordami una cosa</button>
-          <button type="button" class="prova-chat">💶 Segnami una scadenza</button>
-          <button type="button" class="prova-chat">🎒 Cosa porto quando esco</button>
-        </div>
       </div>
       <div id="chat" class="chat" aria-live="polite"></div>
+      <!-- 27/10, JJ, finite le domande: «resta così, qui muore il giro, non sai più cosa fare». I tre tasti non stanno più
+           solo nella chat vuota: restano sotto i messaggi finché la persona non ha scritto (o toccato) qualcosa lei. -->
+      <div class="prove-chat" id="prove-chat">
+        <button type="button" class="prova-chat">⏰ Ricordami una cosa</button>
+        <button type="button" class="prova-chat">💶 Segnami una scadenza</button>
+        <button type="button" class="prova-chat">🎒 Cosa porto quando esco</button>
+      </div>
       <button type="button" id="cancella-chat" class="cancella-chat" hidden aria-label="Cancella questa conversazione">✕ Cancella la conversazione</button>
       <p class="piccolo spiega-chat" id="spiega-chat">Ti rispondo subito. Gli impegni, le scadenze e le cose da portarti dietro te li ricordo io per mail; bollette e documenti mandameli col 📷.</p>
     </div>
@@ -1122,7 +1126,10 @@ html.di-casa #o1{display:none}
 // Dove vanno le risposte. Vuoto = anteprima: non si invia niente, e si dice.
 const INVIO = "https://jjavis-porta.19-jjardito93.workers.dev/risposta";
 
-const risposte = {vita:"", mestiere:"", tempo:"", dettaglio:"", prezzo:15};
+const risposte = {vita:"", mestiere:"", tempo:"", dettaglio:"", prezzo:0};
+// 27/10, JJ: «per togliere i dubbi del se hanno mosso o meno il cursore, mettiamolo su 0 e il pulsante vai avanti si accende
+// dopo che muovi il cursore». Toccarlo conta come muoverlo: chi vuole dire 0 lo tocca dov'è.
+let prezzoMosso=false;
 const $ = id => document.getElementById(id);
 if (!INVIO) $("anteprima").hidden = false;
 
@@ -1203,7 +1210,7 @@ const GENERALI={tempo:[...document.querySelectorAll('.scelte[data-campo="tempo"]
 function riempi(contenitore, voci){ contenitore.innerHTML=""; voci.forEach(t=>{ const b=document.createElement("button"); b.className="scelta"; b.setAttribute("aria-pressed","false"); b.textContent=t; contenitore.appendChild(b); }); }
 function perMestiere(m){
   const set=(senzaLavoro(io.vita)?VITA_CASA:PER_MESTIERE[m])||GENERALI;
-  $("t2").textContent=senzaLavoro(io.vita)?"Cosa ti piacerebbe non dover più ricordare?":"Cosa ti fa perdere più tempo?";
+  $("t2").textContent=senzaLavoro(io.vita)?"In cosa ti piacerebbe essere assistito da me?":"Cosa ti fa perdere più tempo?";
   $("d4-per").textContent=senzaLavoro(io.vita)?"te":"il tuo lavoro";
   riempi(document.querySelector('.scelte[data-campo="tempo"]'), set.tempo);
   riempi($("progetti"), set.progetti);
@@ -1246,7 +1253,9 @@ function sceltaVita(v){
 function sbloccaAvanti2(){ $("avanti2").disabled = !(risposte.tempo || $("dettaglio").value.trim()); }
 $("dettaglio").addEventListener("input", sbloccaAvanti2);
 $("avanti2").addEventListener("click", ()=>{ risposte.dettaglio = $("dettaglio").value.trim(); apri("d3"); });
-$("prezzo").addEventListener("input", e=>{ risposte.prezzo = +e.target.value; $("valore").textContent = e.target.value; });
+function prezzoScelto(){ prezzoMosso=true; risposte.prezzo=+$("prezzo").value; $("valore").textContent=$("prezzo").value; $("avanti3").disabled=false; }
+$("prezzo").addEventListener("input", prezzoScelto);
+["pointerdown","keydown"].forEach(t=>$("prezzo").addEventListener(t, prezzoScelto));
 $("avanti3").addEventListener("click", ()=> apri("d5"));
 const scelti=new Set();
 $("progetti").addEventListener("click", e=>{
@@ -1264,7 +1273,7 @@ $("avanti5").addEventListener("click", ()=> apri("d4"));
 // domanda di adesso con le scelte già segnate.
 const ORDINE_DOMANDE=["d0","d1","d2","d3","d5","d4"];
 function ricordaBozza(){
-  io.bozza={tempo:risposte.tempo, dettaglio:$("dettaglio").value.trim(), prezzo:risposte.prezzo,
+  io.bozza={tempo:risposte.tempo, dettaglio:$("dettaglio").value.trim(), prezzo:prezzoMosso?risposte.prezzo:null,
             voti:[...scelti], proposta:$("proposta").value.trim()};
   salva();
 }
@@ -1276,7 +1285,8 @@ function riprendi(){
   const p=io.passo; if(!p || p==="d0" || !ORDINE_DOMANDE.includes(p) || (p==="d1" ? !io.vita : !io.mestiere && !senzaLavoro(io.vita))) return false;
   const b=io.bozza||{};
   perMestiere(io.mestiere);
-  Object.assign(risposte,{vita:io.vita||"", mestiere:io.mestiere||"", tempo:b.tempo||io.tempo||"", dettaglio:b.dettaglio||"", prezzo:typeof b.prezzo==="number"?b.prezzo:15});
+  Object.assign(risposte,{vita:io.vita||"", mestiere:io.mestiere||"", tempo:b.tempo||io.tempo||"", dettaglio:b.dettaglio||"", prezzo:typeof b.prezzo==="number"?b.prezzo:0});
+  prezzoMosso=typeof b.prezzo==="number"; $("avanti3").disabled=!prezzoMosso;
   const segna=(sel,val)=>document.querySelectorAll(sel).forEach(x=>x.setAttribute("aria-pressed",String(x.textContent.trim()===val)));
   document.querySelectorAll('.scelte[data-campo="vita"] .scelta').forEach(x=>x.setAttribute("aria-pressed",String(x.dataset.vita===io.vita)));
   segna('.scelte[data-campo="mestiere"] .scelta', risposte.mestiere);
@@ -1421,6 +1431,7 @@ const rispostaInAttesa=()=>parlando || invio!==null || (io.chat||[]).some(m=>m.a
 function aggiornaChat(){
   if(!$("chat-vuota")) return;
   $("chat-vuota").hidden=!!$("chat").children.length;
+  $("prove-chat").hidden=(io.chat||[]).some(m=>m.ruolo==="tu") || rispostaInAttesa();
   $("vuoto-tuo").textContent=io.tuo?" "+io.tuo:"";
   aggiornaTasti();
   aggiornaBarra();
@@ -2176,7 +2187,7 @@ function benvenuto(tornato){
     const l=LAVORO[io.mestiere]; const t=io.tempo?io.tempo.toLowerCase():"";
     const ancora=prossimaDomanda()?" Oggi voglio sapere una cosa in più.":"";
     // 27/10: chi è in pensione o sta a casa non ha un lavoro: la riga dice la sua vita e la cosa che ha scelto nella seconda domanda
-    $("saluto2").textContent = senzaLavoro(io.vita) ? `So che ${io.vita==="pensione"?"sei in pensione":"stai a casa"}${t?`, e che vorresti non dover più ricordare questo: ${t}`:""}.${ancora}`
+    $("saluto2").textContent = senzaLavoro(io.vita) ? `So che ${io.vita==="pensione"?"sei in pensione":"stai a casa"}${t?`, e che ti piacerebbe essere assistito in questo: ${t}`:""}.${ancora}`
       : l ? `So che ${l}${t?`, e che il tempo te lo mangia soprattutto questo: ${t}`:""}.${ancora}` : ancora.trim();
     mostraSondaggio(false); mostraDomanda();
   }
@@ -2618,7 +2629,7 @@ function aggiornaProfilo(){
   const ul=$("so-di-te"); ul.innerHTML="";
   const righe=[]; if(io.tuo) righe.push(["Ti chiami",io.tuo]); if(io.mestiere) righe.push([ETICHETTE_SO.mestiere,io.mestiere]);
   if(senzaLavoro(io.vita)) righe.push(["Nella vita",io.vita==="pensione"?"Sei in pensione":"Stai a casa"]);
-  if(io.tempo) righe.push([senzaLavoro(io.vita)?"Vorresti non dover più ricordare":ETICHETTE_SO.tempo,io.tempo]);
+  if(io.tempo) righe.push([senzaLavoro(io.vita)?"Vorresti essere assistito in":ETICHETTE_SO.tempo,io.tempo]);
   Object.entries(io.conosciute||{}).forEach(([k,v])=>righe.push([ETICHETTE_SO[k]||k, v]));
   if(io.mail) righe.push(["La tua mail", io.mail]);
   if(!righe.length) righe.push(["Per ora","niente: non mi hai ancora detto nulla"]);
