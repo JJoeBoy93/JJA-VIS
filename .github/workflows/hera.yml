@@ -58,18 +58,19 @@ jobs:
             echo "::error::Hera: l'account è ROSSO — ${NO:-nessuna prova rossa: è caduto. Ultime righe: $(tail -6 conto.log | tr '\n' '|' | cut -c1-900)}"; exit 1; fi
           echo "::notice::Hera: account $(tail -2 conto.log | head -1)"
 
-      - name: la pagina (primo, nato, conversazioni, schede)
+      - name: la pagina (primo, nato, conversazioni, schede, vita)
         run: |
           # 23/10, JJ: «Hera deve collaudare tutto»: queste quattro esistevano ma giravano solo a mano. ~3 minuti.
           ROSSE=""
-          for f in primo nato conversazioni schede; do
+          # 28/10: anche vita.py (la vita prima del lavoro, 27/10): girava solo a mano, e le prove del 28/10 nessuno le aveva viste girare
+          for f in primo nato conversazioni schede vita; do
             ESCE=0; python -u collaudo/$f.py index.html > $f.log 2>&1 || ESCE=$?   # bash -e: senza «||» il primo rosso chiude il passo muto
             echo "── $f (esce $ESCE)"; cat $f.log
             if [ $ESCE -ne 0 ] || ! tail -1 $f.log | grep -qx VERDE; then
               ROSSE="$ROSSE $f: $(grep -E '^  NO' $f.log | head -2 | tr '\n' '|' | cut -c1-300)(esce $ESCE)|"; fi
           done
           if [ -n "$ROSSE" ]; then echo "::error::Hera: la pagina è ROSSA —$ROSSE"; exit 1; fi
-          echo "::notice::Hera: pagina VERDE (primo, nato, conversazioni, schede)"
+          echo "::notice::Hera: pagina VERDE (primo, nato, conversazioni, schede, vita)"
 
       - name: la città (collaudo/citta.py)
         run: |
