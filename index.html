@@ -267,6 +267,7 @@ body:not(.con-nome) #o1 .invia,body:not(.con-nome) #o2 .invia,body:not(.con-nome
 .anteprima-foto{position:relative;display:inline-block;margin:6px 0}.anteprima-foto img{max-height:120px;max-width:60vw;border-radius:8px;display:block}
 .anteprima-foto button{position:absolute;top:-8px;right:-8px;width:28px;height:28px;border-radius:50%;border:0;background:#000c;color:#fff;font-size:15px;cursor:pointer}
 .bolla img.foto-bolla{display:block;max-width:220px;max-height:220px;border-radius:8px;margin-bottom:6px}
+.nota-cancella{margin:0 0 8px auto;text-align:right;color:var(--tenue,#9a9a9a)}
 .cancella-chat{display:block;margin:4px 0 8px auto;background:transparent;border:0;color:var(--tenue,#9a9a9a);font:inherit;font-size:13px;cursor:pointer}
 .doc-chat{display:block;margin:4px 0 10px auto;padding:8px 12px;border:1px solid var(--accento,#00B4D8);background:transparent;color:inherit;font:inherit;cursor:pointer;border-radius:8px}
 /* la barra come quella di WhatsApp (JJ, 26/10): una casella tonda con dentro il testo e, a destra, la foto; accanto UN bottone
@@ -785,6 +786,7 @@ html.di-casa #o1{display:none}
         <button type="button" class="prova-chat">🎒 Cosa porto quando esco</button>
       </div>
       <button type="button" id="cancella-chat" class="cancella-chat" hidden aria-label="Cancella questa conversazione">✕ Cancella la conversazione</button>
+      <p class="piccolo nota-cancella" id="cancella-nota" role="status" hidden>Sul telefono è cancellata; all'assistente lo dico appena riesco</p>
       <p class="piccolo spiega-chat" id="spiega-chat">Ti rispondo subito. Gli impegni, le scadenze e le cose da portarti dietro te li ricordo io per mail; bollette e documenti mandameli col 📷.</p>
     </div>
     <div id="anteprima-foto" class="anteprima-foto" hidden><img id="anteprima-img" alt="La foto che stai per mandare"><button type="button" id="anteprima-via" aria-label="Togli la foto">✕</button></div>
@@ -1730,8 +1732,30 @@ async function mandaFoto(file, testoDato){
 $("foto-chat").addEventListener("click",()=>$("foto-file").click());
 $("foto-file").addEventListener("change",ev=>preparaFoto(ev.target.files&&ev.target.files[0]));
 $("anteprima-via").addEventListener("click",togliFoto);
+// ══ «CANCELLA LA CONVERSAZIONE» VALE ANCHE PER L'ASSISTENTE ══ 28/10, JJ: ha cancellato la conversazione e ha scritto «Come ti chiami?»;
+// l'assistente ha risposto e ha aggiunto «Una correzione alla mia risposta di prima…», su una cosa cancellata: «se avvio una conversazione nuova o
+// cancellata mi aspetto che non mi risponda a una cosa cancellata». Prima il tasto svuotava solo il telefono. Ora, per chi ha l'account, dice anche alla
+// porta (POST /assistente/cancella): da lì l'assistente non vede più le battute di prima. Se la porta non risponde la conversazione sul telefono si
+// cancella lo stesso, compare una riga, e si riprova al prossimo ingresso (e prima del prossimo messaggio). Senza account non cambia niente.
+// Il «da dire» sta in una chiave sua, per telefono: nel profilo seguirebbe l'account su un altro telefono, che lo direbbe a un'ora sbagliata.
+const CANCELLA_CHIAVE="jjavis-cancella-da-dire";
+const cancellaDaDire=()=>{ try{ return localStorage.getItem(CANCELLA_CHIAVE)==="1"; }catch(_){ return false; } };
+const segnaCancella=v=>{ try{ if(v) localStorage.setItem(CANCELLA_CHIAVE,"1"); else localStorage.removeItem(CANCELLA_CHIAVE); }catch(_){} };
+let cancellaInCorso=null;
+function dilloCancellata(){
+  if(cancellaInCorso) return cancellaInCorso;
+  if(!contoToken()){ segnaCancella(false); $("cancella-nota").hidden=true; return Promise.resolve(false); }   // senza account non c'è nessuno a cui dirlo
+  return cancellaInCorso=(async()=>{
+    let dato=false;
+    try{ const r=await fetch(INVIO.replace("/risposta","/assistente/cancella"),{method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+contoToken()},body:"{}",
+      ...(typeof AbortSignal!=="undefined"&&AbortSignal.timeout?{signal:AbortSignal.timeout(8000)}:{})});
+      dato=r.ok; }catch(_){ dato=false; }
+    segnaCancella(!dato); $("cancella-nota").hidden=dato; return dato;
+  })().finally(()=>{ cancellaInCorso=null; });
+}
 $("cancella-chat").addEventListener("click",()=>{ if(!confirm("Cancello questa conversazione? Gli impegni, le scadenze e i documenti restano.")) return;
-  io.viste=[...new Set([...(io.viste||[]), ...(io.chat||[]).filter(m=>m.id).map(m=>m.id)])].slice(-300); io.chat=[]; delete io.chatDa; salva(); ridisegnaChat(); potaVoci(); });
+  io.viste=[...new Set([...(io.viste||[]), ...(io.chat||[]).filter(m=>m.id).map(m=>m.id)])].slice(-300); io.chat=[]; delete io.chatDa; salva(); ridisegnaChat(); potaVoci();
+  if(contoToken()){ segnaCancella(true); dilloCancellata(); } });
 async function apriDocumento(id,b){
   const prima=b.textContent; b.textContent="📎 apro…";
   try{ const r=await fetch(INVIO.replace("/risposta","/doc")+"?id="+encodeURIComponent(id),{headers:{Authorization:"Bearer "+contoToken()}});
@@ -1745,6 +1769,7 @@ async function parlaAssistente(testo, daVoce){
   const e=$("esito-chat"); e.className="avviso"; e.textContent="Ci penso…";
   parlando=true; $("manda-chat").disabled=true; invio=testo; invioVoce=daVoce||null; ridisegnaChat();
   try{
+    if(cancellaDaDire()) await dilloCancellata();   // 28/10: la cancellazione che non era arrivata, prima del messaggio nuovo (se non arriva, il messaggio parte lo stesso)
     const r=await fetch(INVIO.replace("/risposta","/assistente"),{method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+contoToken()},
       body:JSON.stringify({testo:conContesto(testo,daVoce),nome_assistente:io.nome||"",tuo:io.tuo||"",chi:io.id||"",profilo:{vita:io.vita||"",tempo:io.tempo||""}})});
     const d=await r.json().catch(()=>({}));
@@ -2452,6 +2477,7 @@ $("salta-o3").addEventListener("click", ()=>{ io.tuo=""; salva(); benvenuto(fals
 if(!contoToken()) $("spiega-chat").innerHTML='Chiedimi quello che vuoi, sul tuo lavoro o su di me. Non rispondo in automatico: ogni risposta la scelgo con chi mi costruisce, e compare qui da sola. Se mi lasci la mail nel <a href="#profilo-mail">Profilo</a>, quando serve arriva anche lì.';
 apertura();
 ridisegnaChat();
+if(cancellaDaDire()) dilloCancellata();   // 28/10: all'ingresso si riprova a dire all'assistente la cancellazione che non era arrivata
 // chi aveva già finito il sondaggio prima del 22/10 e non ha mai avuto la proposta: la riceve alla prima apertura
 if(io.inviato && !io.primo && contoToken()) setTimeout(()=>primoIncontro(""), 2500);
 // nome e tema fatti ma la nascita non è arrivata (porta giù, o chi c'era già prima del 22/10): riprova all'apertura
