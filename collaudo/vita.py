@@ -20,11 +20,11 @@ con la porta finta (telefono 390×844):
 10. (28/10) #ricordo: con l'account «su ogni telefono da cui entri col tuo account», senza
    «solo su questo telefono»; e cambia quando l'account arriva o se ne va, senza ricaricare
 11. (28/10) parlaAssistente() e parla() mandano la vita alla porta (profilo.vita)
-12. (28/10) il lavoro di una vita e le passioni, nelle domande del ritorno (dopo «parlare»):
-   «Che lavoro hai fatto nella vita?» solo con vita pensione, «C'è un lavoro che hai fatto, o che ti sarebbe
-   piaciuto fare?» con casa, mai con lavoro o studio; «Cosa ti appassiona?» per tutti, a scelta multipla, con la
-   casella libera («per esempio: il burraco, le bocce, il coro»); la risposta è UN testo solo ≤120 caratteri, arriva
-   a /conoscenza e a /parla in profilo.conosciute
+12. (28/10) «Imparo te», nel Profilo (JJ: «tutto ciò che riguarda le domande personali e l'imparo te va nel Profilo»;
+   «bisogna poter modificare le voci senza dimentica tutto»): la domanda di oggi, il lavoro di una vita (solo pensione/casa)
+   e le passioni (per tutti, scelta multipla, casella libera, un testo ≤120) SI VEDONO nel Profilo, non nella chat né nel
+   benvenuto; «Cambia» riapre una voce già segnata, «Togli» chiede conferma e toglie solo quella; cambiare la vita cambia
+   le domande; il pallino sul ☰ e sulla voce Profilo del menù c'è finché c'è una domanda
 """
 import asyncio, json, os, sys
 from playwright.async_api import async_playwright
@@ -77,6 +77,7 @@ async def apri(b, io, attesa=4500, conto=True):
 
 vede = lambda pg, sel: pg.evaluate("s => { const e = document.querySelector(s); return !!e && e.offsetParent !== null }", sel)
 leggi_io = lambda pg: pg.evaluate("JSON.parse(localStorage.getItem('jjavis-io'))")
+vl = lambda pg, sel: pg.locator(sel).first.is_visible()   # selettori di Playwright («>> text=…»): visibile davvero, antenati compresi
 testi = lambda pg, sel: pg.evaluate("s => [...document.querySelectorAll(s)].map(x => x.textContent.trim())", sel)
 
 async def dopo_nome(b):
@@ -276,7 +277,7 @@ async def main():
         prova("11. parla manda profilo.vita", bool(pa) and pa[-1].get("profilo", {}).get("vita") == "pensione", corpi)
         await ctx.close()
 
-        print("── 12. il lavoro di una vita e le passioni")
+        print("── 12. «Imparo te», nel Profilo")
         SEQ = "() => { const k = []; io.conosciute = {}; for (let i = 0; i < 20; i++) { const q = prossimaDomanda(); if (!q) break; k.push(q.k); io.conosciute[q.k] = 'x'; } return k; }"
         for vita, extra in (("pensione", {}), ("casa", {}), ("lavoro", {"mestiere": "Negozio o commercio"}), ("studio", {"mestiere": "Studio"})):
             ctx, pg = await apri(b, {**DI_CASA, "vita": vita, **extra}, 2500)
@@ -289,60 +290,126 @@ async def main():
             await ctx.close()
         PRIMA = {"inizio": "Dopo le 8", "parlare": "Breve e diretto"}
         MESTIERI = ["Corriere o autista", "Negozio o commercio", "Artigiano o tecnico", "Sanità", "Ufficio", "Guida turistica", "Creator o gamer", "Altro"]
+        NOVE = ["Orto e giardino", "Cucina", "Nipoti e famiglia", "Lettura", "Viaggi e gite", "Musica e ballo", "Sport", "Volontariato", "Fai da te"]
+        punto = lambda pg, sel: pg.evaluate("s => { const e = document.querySelector(s); return !!e && getComputedStyle(e, '::after').content !== 'none' }", sel)
+        async def profilo(pg):
+            await pg.click("#apri-conv"); await pg.wait_for_timeout(450)
+            await pg.click('#menu-schede .menu-scheda[data-vai="profilo"]'); await pg.wait_for_timeout(500)
+
+        # la domanda di oggi sta nel Profilo, non più nel benvenuto né nella chat; si VEDE
         ctx, pg = await apri(b, {**DI_CASA, "vita": "pensione", "conosciute": PRIMA}, 3000)
-        # chi è di casa (sondaggio fatto) vede la chat a tutto schermo e il benvenuto è dietro ☰: la domanda deve stare NELLA chat e vedersi
-        prova("12. la domanda sta nella chat, sotto i messaggi, e si VEDE (non solo il testo)", await vede(pg, "#conosci") and await vede(pg, "#conosci-domanda")
-              and await pg.evaluate("document.querySelector('#conosci').parentElement.id") == "chat-area" and not await vede(pg, "#benvenuto"))
-        prova("12. pensione: «Che lavoro hai fatto nella vita?»", await pg.inner_text("#conosci-domanda") == "Che lavoro hai fatto nella vita?", await pg.inner_text("#conosci-domanda"))
+        prova("12. nella chat e nel benvenuto la domanda non c'è più", await pg.evaluate("!document.querySelector('#chat-area #conosci, #benvenuto #conosci')"))
+        prova("12. «Il benvenuto» nel menù (non più «…e le domande del giorno»)", await pg.evaluate("document.querySelector('#conv-resto').textContent.trim()") == "Il benvenuto")
+        prova("12. pallino sul ☰ (c'è una domanda per oggi)", await punto(pg, "#apri-conv") and await vede(pg, "#apri-conv"))
+        await pg.click("#apri-conv"); await pg.wait_for_timeout(450)
+        prova("12. e sulla voce Profilo del menù", await punto(pg, '#menu-schede .menu-scheda[data-vai="profilo"]'))
+        await pg.click('#menu-schede .menu-scheda[data-vai="profilo"]'); await pg.wait_for_timeout(500)
+        prova("12. Profilo: la sezione «Imparo te» si vede, sotto nome e colore", await vede(pg, "#imparo-te") and await pg.evaluate("document.querySelector('#imparo-te').getBoundingClientRect().top > document.querySelector('#temi-profilo').getBoundingClientRect().top"))
+        prova("12. pensione: «Che lavoro hai fatto nella vita?» si vede", await vede(pg, "#conosci") and await pg.inner_text("#conosci-domanda") == "Che lavoro hai fatto nella vita?", await pg.inner_text("#conosci-domanda"))
         prova("12. con i mestieri di #d1, senza «Studio»", await testi(pg, "#conosci-scelte .scelta") == MESTIERI, await testi(pg, "#conosci-scelte .scelta"))
-        prova("12. e la casella libera, che si vede", await vede(pg, "#conosci-testo") and await vede(pg, "#conosci-ok"))
+        prova("12. la casella libera e «Segna» si vedono", await vede(pg, "#conosci-testo") and await vede(pg, "#conosci-ok"))
         await pg.fill("#conosci-testo", "il falegname"); await pg.click("#conosci-ok"); await pg.wait_for_timeout(300)
         io = await leggi_io(pg)
         prova("12. scritto con parole sue: salvato com'è", io["conosciute"].get("mestiere_di_una_vita") == "il falegname", io["conosciute"])
         prova("12. e arrivato a /conoscenza", any(c.get("chiave") == "mestiere_di_una_vita" and c.get("risposta") == "il falegname" and c.get("chi") == CHI for c in conoscenze), conoscenze)
+        prova("12. e compare subito nell'elenco «Cosa so di te»", await vede(pg, '#so-di-te li[data-voce="c:mestiere_di_una_vita"]') and "il falegname" in await pg.inner_text('#so-di-te li[data-voce="c:mestiere_di_una_vita"]'))
         await pg.wait_for_timeout(1200)
-        prova("12. nella chat una domanda per volta: risposto, la prossima non parte da sola", not await vede(pg, "#conosci"))
-        # aperto il benvenuto da ☰ (conv-resto) le domande tornano in fila, come prima
-        await pg.click("#apri-conv"); await pg.wait_for_timeout(450); await pg.click("#conv-resto"); await pg.wait_for_timeout(500)
-        prova("12. da ☰ → «Il benvenuto e le domande del giorno»: la domanda è lì, «Cosa ti appassiona?»", await vede(pg, "#benvenuto #conosci") and await pg.inner_text("#conosci-domanda") == "Cosa ti appassiona?", await pg.inner_text("#conosci-domanda"))
-        await pg.click("#torna-chat"); await pg.wait_for_timeout(400)
-        prova("12. tornato alla chat, la domanda è di nuovo nella chat", await vede(pg, "#chat-area #conosci"))
+        prova("12. poi viene «Cosa ti appassiona?»", await pg.inner_text("#conosci-domanda") == "Cosa ti appassiona?", await pg.inner_text("#conosci-domanda"))
+        # passioni: scelta multipla, casella libera, un testo solo
+        prova("12. passioni: le nove scelte, e la casella dice «per esempio: il burraco, le bocce, il coro»", await testi(pg, "#conosci-scelte .scelta") == NOVE and "per esempio: il burraco, le bocce, il coro" in (await pg.get_attribute("#conosci-testo", "placeholder")))
+        prova("12. senza scelte né testo «Segna» è spento", await pg.is_disabled("#conosci-ok"))
+        await pg.click('#conosci-scelte .scelta:has-text("Orto e giardino")'); await pg.click('#conosci-scelte .scelta:has-text("Cucina")')
+        prova("12. due scelte restano accese insieme", await pg.evaluate("document.querySelectorAll('#conosci-scelte .scelta[aria-pressed=true]').length") == 2 and not await pg.is_disabled("#conosci-ok"))
+        await pg.fill("#conosci-testo", "il burraco"); await pg.click("#conosci-ok"); await pg.wait_for_timeout(300)
+        p = (await leggi_io(pg))["conosciute"].get("passioni")
+        prova("12. salvato UN testo, separato da virgole", p == "Orto e giardino, Cucina, il burraco", p)
+        prova("12. e arrivato a /conoscenza", any(c.get("chiave") == "passioni" and c.get("risposta") == p for c in conoscenze), conoscenze)
         await ctx.close()
+
+        # casa: la versione per casa
         ctx, pg = await apri(b, {**DI_CASA, "vita": "casa", "conosciute": PRIMA}, 3000)
-        prova("12. casa: «C'è un lavoro che hai fatto, o che ti sarebbe piaciuto fare?»", await pg.inner_text("#conosci-domanda") == "C'è un lavoro che hai fatto, o che ti sarebbe piaciuto fare?", await pg.inner_text("#conosci-domanda"))
+        await profilo(pg)
+        prova("12. casa: «C'è un lavoro che hai fatto, o che ti sarebbe piaciuto fare?»", await vede(pg, "#conosci") and await pg.inner_text("#conosci-domanda") == "C'è un lavoro che hai fatto, o che ti sarebbe piaciuto fare?", await pg.inner_text("#conosci-domanda"))
         await pg.click('#conosci-scelte .scelta:has-text("Ufficio")'); await pg.wait_for_timeout(300)
         prova("12. una scelta sola risponde subito", (await leggi_io(pg))["conosciute"].get("mestiere_di_una_vita") == "Ufficio")
         await ctx.close()
-        # passioni: per tutti, scelta multipla + testo libero, un testo solo ≤120
-        for vita, extra in (("pensione", {}), ("lavoro", {"mestiere": "Negozio o commercio"})):
-            conosc = {**PRIMA, "mestiere_di_una_vita": "x", "telefono": "x", "giorni": "x"} if vita == "pensione" else {**PRIMA, "telefono": "x"}
-            conoscenze.clear()
-            ctx, pg = await apri(b, {**DI_CASA, "vita": vita, **extra, "conosciute": conosc}, 3000)
-            prova(f"12. vita {vita}: «Cosa ti appassiona?» con le nove scelte",
-                  await pg.inner_text("#conosci-domanda") == "Cosa ti appassiona?" and await testi(pg, "#conosci-scelte .scelta") ==
-                  ["Orto e giardino", "Cucina", "Nipoti e famiglia", "Lettura", "Viaggi e gite", "Musica e ballo", "Sport", "Volontariato", "Fai da te"], await testi(pg, "#conosci-scelte .scelta"))
-            prova(f"12. vita {vita}: domanda e casella si vedono nella chat", await vede(pg, "#chat-area #conosci") and await vede(pg, "#conosci-testo"))
-            prova(f"12. vita {vita}: la casella libera dice «per esempio: il burraco, le bocce, il coro»", "per esempio: il burraco, le bocce, il coro" in (await pg.get_attribute("#conosci-testo", "placeholder")))
-            prova(f"12. vita {vita}: senza scelte né testo «Segna» è spento", await pg.is_disabled("#conosci-ok"))
-            await pg.click('#conosci-scelte .scelta:has-text("Orto e giardino")'); await pg.click('#conosci-scelte .scelta:has-text("Cucina")')
-            prova(f"12. vita {vita}: due scelte restano accese insieme", await pg.evaluate("document.querySelectorAll('#conosci-scelte .scelta[aria-pressed=true]').length") == 2 and not await pg.is_disabled("#conosci-ok"))
-            await pg.fill("#conosci-testo", "il burraco"); await pg.click("#conosci-ok"); await pg.wait_for_timeout(300)
-            p = (await leggi_io(pg))["conosciute"].get("passioni")
-            prova(f"12. vita {vita}: salvato UN testo, separato da virgole", p == "Orto e giardino, Cucina, il burraco", p)
-            prova(f"12. vita {vita}: e arrivato a /conoscenza", any(c.get("chiave") == "passioni" and c.get("risposta") == p for c in conoscenze), conoscenze)
-            await ctx.close()
-        # tutte e nove le scelte più un testo lungo: il testo salvato resta ≤120
+
+        # passioni per chi lavora; tutte le scelte + testo lungo ≤120; arriva alla porta
+        conoscenze.clear()
         ctx, pg = await apri(b, {**DI_CASA, "vita": "lavoro", "mestiere": "Negozio o commercio", "conosciute": {**PRIMA, "telefono": "x"}}, 3000)
-        for t in await testi(pg, "#conosci-scelte .scelta"): await pg.click(f'#conosci-scelte .scelta:text-is("{t}")')
+        await profilo(pg)
+        prova("12. lavoro: «Cosa ti appassiona?» si vede, e non il lavoro di una vita", await vede(pg, "#conosci") and await pg.inner_text("#conosci-domanda") == "Cosa ti appassiona?")
+        for t in NOVE: await pg.click(f'#conosci-scelte .scelta:text-is("{t}")')
         await pg.fill("#conosci-testo", "y" * 60); await pg.click("#conosci-ok"); await pg.wait_for_timeout(300)
         p = (await leggi_io(pg))["conosciute"].get("passioni")
         prova("12. tutte le scelte e un testo lungo: un testo solo di al massimo 120 caratteri", isinstance(p, str) and 0 < len(p) <= 120 and p.startswith("Orto e giardino, Cucina"), p)
-        # e arriva alla porta in profilo.conosciute
         corpi.clear()
         await pg.evaluate("() => { localStorage.removeItem('jjavis-conto'); }")
         await pg.evaluate("() => parla('Ciao')")
         pa = [c for u, c in corpi if u.endswith("/parla")]
         prova("12. parla manda profilo.conosciute.passioni (e la porta la taglia a 120)", bool(pa) and pa[-1].get("profilo", {}).get("conosciute", {}).get("passioni") == p, corpi)
+        await ctx.close()
+
+        # «Cambia»: si riapre segnata, si cambia, l'elenco e la porta hanno il valore nuovo
+        conoscenze.clear()
+        PROF = {**PRIMA, "mestiere_di_una_vita": "Ufficio", "passioni": "Orto e giardino, Cucina, il burraco", "voce": "A voce"}
+        ctx, pg = await apri(b, {**DI_CASA, "vita": "pensione", "conosciute": PROF}, 3000)
+        await profilo(pg)
+        riga = lambda k: f'#so-di-te li[data-voce="{k}"]'
+        prova("12. nell'elenco ogni voce ha «Cambia» e «Togli»", await vl(pg, riga("c:passioni") + " >> text=Cambia") and await vl(pg, riga("c:passioni") + " >> text=Togli") and await vl(pg, riga("vita") + " >> text=Cambia"))
+        prova("12. e le etichette sono quelle di sempre", "Le tue passioni" in await pg.inner_text(riga("c:passioni")) and "Il lavoro che hai fatto" in await pg.inner_text(riga("c:mestiere_di_una_vita")))
+        await pg.click(riga("c:passioni") + " >> text=Cambia"); await pg.wait_for_timeout(200)
+        accese = await pg.evaluate("s => [...document.querySelectorAll(s + ' .editor .scelta[aria-pressed=true]')].map(x => x.textContent)", riga("c:passioni"))
+        prova("12. «Cambia» passioni: si riapre già segnata (le scelte e la casella)", accese == ["Orto e giardino", "Cucina"] and await pg.input_value(riga("c:passioni") + " .editor input") == "il burraco" and await vl(pg, riga("c:passioni") + " .editor input"), accese)
+        await pg.click(riga("c:passioni") + ' .editor .scelta:has-text("Cucina")'); await pg.click(riga("c:passioni") + ' .editor .scelta:has-text("Lettura")')
+        await pg.click(riga("c:passioni") + " .editor >> text=Segna"); await pg.wait_for_timeout(300)
+        io = await leggi_io(pg)
+        prova("12. l'elenco mostra il valore nuovo", "Orto e giardino, Lettura, il burraco" in await pg.inner_text(riga("c:passioni")), await pg.inner_text(riga("c:passioni")))
+        prova("12. salvato nel telefono e arrivato alla porta", io["conosciute"]["passioni"] == "Orto e giardino, Lettura, il burraco" and any(c.get("chiave") == "passioni" and c.get("risposta") == "Orto e giardino, Lettura, il burraco" for c in conoscenze), conoscenze)
+        await pg.click(riga("c:voce") + " >> text=Cambia"); await pg.wait_for_timeout(200)
+        prova("12. una voce a scelta singola: si riapre con la scelta segnata", await pg.evaluate("s => [...document.querySelectorAll(s + ' .editor .scelta[aria-pressed=true]')].map(x => x.textContent)", riga("c:voce")) == ["A voce"])
+        await pg.click(riga("c:voce") + ' .editor .scelta:has-text("Scrivendo")'); await pg.click(riga("c:voce") + " .editor >> text=Segna"); await pg.wait_for_timeout(300)
+        prova("12. e «Segna» la cambia", "Scrivendo" in await pg.inner_text(riga("c:voce")) and (await leggi_io(pg))["conosciute"]["voce"] == "Scrivendo")
+
+        # «Togli»: una conferma di una riga, poi sparisce solo quella voce
+        await pg.click(riga("c:passioni") + " >> text=Togli"); await pg.wait_for_timeout(200)
+        prova("12. «Togli» chiede conferma: «Tolgo “Le tue passioni”?»", await vl(pg, riga("c:passioni") + " >> text=Tolgo “Le tue passioni”?"))
+        await pg.click(riga("c:passioni") + " button:text-is(\"No\")"); await pg.wait_for_timeout(200)
+        prova("12. «No»: la voce resta", "passioni" in (await leggi_io(pg))["conosciute"] and await vl(pg, riga("c:passioni") + " >> text=Togli"))
+        conoscenze.clear()
+        await pg.click(riga("c:passioni") + " >> text=Togli"); await pg.click(riga("c:passioni") + " >> text=Sì, togli"); await pg.wait_for_timeout(300)
+        io = await leggi_io(pg)
+        prova("12. «Sì, togli»: sparisce solo quella voce, le altre restano",
+              "passioni" not in io["conosciute"] and io["conosciute"].get("mestiere_di_una_vita") == "Ufficio" and io["conosciute"].get("voce") == "Scrivendo" and io["conosciute"].get("inizio") == "Dopo le 8", io["conosciute"])
+        prova("12. e dall'elenco", await pg.locator(riga("c:passioni")).count() == 0 and await pg.locator(riga("c:mestiere_di_una_vita")).count() == 1 and await pg.locator(riga("c:voce")).count() == 1)
+        prova("12. la porta riceve la voce tolta come risposta vuota", any(c.get("chiave") == "passioni" and c.get("risposta") == "" for c in conoscenze), conoscenze)
+        prova("12. la domanda tolta può tornare: oggi si chiede di nuovo «Cosa ti appassiona?»", await vede(pg, "#conosci") and await pg.inner_text("#conosci-domanda") == "Cosa ti appassiona?", await pg.inner_text("#conosci-domanda"))
+        await ctx.close()
+
+        # cambiare la vita cambia cosa chiedo dopo
+        ctx, pg = await apri(b, {**DI_CASA, "vita": "lavoro", "mestiere": "Negozio o commercio", "tempo": "Scorte da controllare", "conosciute": PRIMA}, 3000)
+        await profilo(pg)
+        prova("12. vita lavoro: oggi si chiede una domanda da lavoro («Mentre lavori, il telefono dov'è?»)", await pg.inner_text("#conosci-domanda") == "Mentre lavori, il telefono dov'è?", await pg.inner_text("#conosci-domanda"))
+        prova("12. e nell'elenco ci sono la vita e il lavoro", await vede(pg, riga("vita")) and await vede(pg, riga("mestiere")))
+        await pg.click(riga("vita") + " >> text=Cambia"); await pg.wait_for_timeout(200)
+        prova("12. «Cambia» la vita: si riapre con «Lavoro» segnata", await pg.evaluate("s => [...document.querySelectorAll(s + ' .editor .scelta[aria-pressed=true]')].map(x => x.textContent)", riga("vita")) == ["Lavoro"])
+        await pg.click(riga("vita") + ' .editor .scelta:has-text("Sono in pensione")'); await pg.click(riga("vita") + " >> text=Segna"); await pg.wait_for_timeout(400)
+        io = await leggi_io(pg)
+        prova("12. io.vita = pensione, e l'elenco lo dice", io.get("vita") == "pensione" and "Sono in pensione" in await pg.inner_text(riga("vita")), io.get("vita"))
+        prova("12. spariscono le domande da lavoro e compare «Che lavoro hai fatto nella vita?»", await vede(pg, "#conosci") and await pg.inner_text("#conosci-domanda") == "Che lavoro hai fatto nella vita?", await pg.inner_text("#conosci-domanda"))
+        seq = await pg.evaluate(SEQ)
+        prova("12. da pensione non si chiede più niente di lavoro", not any(k in seq for k in ("telefono", "giorni", "soldi", "sera")) and "spese" in seq, seq)
+        prova("12. il lavoro non è più nell'elenco e il tempo cambia parola", await pg.locator(riga("mestiere")).count() == 0 and "Vorresti essere assistito in" in await pg.inner_text(riga("tempo")), await pg.inner_text("#so-di-te"))
+        await ctx.close()
+
+        # il pallino: c'è finché c'è una domanda, poi se ne va (senza ricaricare)
+        ctx, pg = await apri(b, {**DI_CASA, "vita": "lavoro", "mestiere": "Negozio o commercio", "conosciute": {k: "x" for k in ("inizio", "telefono", "parlare", "passioni", "voce", "giorni", "soldi")}}, 3000)
+        prova("12. pallino sul ☰: manca solo «sera»", await punto(pg, "#apri-conv") and await pg.evaluate("prossimaDomanda().k") == "sera")
+        await profilo(pg)
+        await pg.click('#conosci-scelte .scelta >> nth=0'); await pg.wait_for_timeout(1300)
+        prova("12. risposta l'ultima: il pallino se ne va, «Di te so già parecchio» si vede", not await punto(pg, "#apri-conv") and await vede(pg, "#conosci-fine") and not await vede(pg, "#conosci"), await pg.inner_text("#imparo-te"))
+        await pg.click(riga("c:sera") + " >> text=Togli"); await pg.click(riga("c:sera") + " >> text=Sì, togli"); await pg.wait_for_timeout(300)
+        prova("12. toltane una, il pallino torna (la domanda può tornare)", await punto(pg, "#apri-conv") and await vede(pg, "#conosci"))
         await ctx.close()
         await b.close()
     print(f"\n{sum(prove)}/{len(prove)} verdi"); print("VERDE" if all(prove) else "ROSSO"); sys.exit(0 if all(prove) else 1)   # VERDE/ROSSO: è l'ultima riga che legge Hera

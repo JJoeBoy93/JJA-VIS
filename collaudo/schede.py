@@ -203,7 +203,8 @@ async def main():
         pg3=await ctx.new_page(); pg3.on("pageerror", lambda e: errori.append(str(e)))
         await pg3.add_init_script("localStorage.setItem('jjavis-io', JSON.stringify({id:'a1b2c3d4e5f60718',nome:'Nova',tema:'deciso',tuo:'Jacopo',inviato:true,mestiere:'Corriere o autista',tempo:'Preventivi, conti, fatture'}))")
         await pg3.goto(BASE); await pg3.wait_for_timeout(300)
-        await apri_resto(pg3)   # 26/10: chi è di casa apre sulla chat; le domande del giorno stanno nel benvenuto, dietro ☰
+        await vai_a(pg3, "profilo")   # 28/10: chi è di casa apre sulla chat; le domande del giorno stanno nel Profilo, «Imparo te» (dal ☰)
+        ok(await pg3.is_visible("#conosci") and await pg3.is_visible("#conosci-scelte .scelta >> nth=0"), "le domande del ritorno si vedono nel Profilo")
         d1=await pg3.evaluate("document.getElementById('conosci-domanda').textContent"); ok("ora comincia" in d1, "prima domanda: "+d1)
         await pg3.click('#conosci-scelte .scelta:has-text("Cambia ogni giorno")'); await pg3.wait_for_timeout(1200)
         d2=await pg3.evaluate("document.getElementById('conosci-domanda').textContent"); ok(d2!=d1 and d2, "dopo un secondo, senza ricaricare: "+d2)
@@ -391,10 +392,10 @@ async def main():
         print("── finite le domande del giorno, la frase se ne va (29 settembre)")
         await pg2.evaluate("(()=>{const c={};CONOSCERTI.slice(0,-1).forEach(q=>c[q.k]='x');localStorage.setItem(CHIAVE, JSON.stringify({nome:'Nova',tema:'tech',id:'x1',inviato:true,mestiere:'Creator o gamer',tempo:'Trovare idee per i contenuti',conosciute:c}))})()")
         await pg2.goto(BASE+"#inizia"); await pg2.reload(); await pg2.wait_for_timeout(600)
-        await apri_resto(pg2)   # 26/10: le domande del giorno stanno nel benvenuto, dietro ☰
-        ok("Oggi voglio sapere una cosa in più" in await pg2.inner_text("#saluto2"), "con una domanda ancora da fare, Nova dice «Oggi voglio sapere una cosa in più»")
+        ok(await pg2.evaluate("$('apri-conv').classList.contains('domanda')"), "con una domanda ancora da fare, il ☰ ha il pallino")
+        await vai_a(pg2, "profilo")   # 28/10: le domande del giorno stanno nel Profilo
         await pg2.click("#conosci-scelte .scelta >> nth=0"); await pg2.wait_for_timeout(1300)
-        ok("Oggi voglio sapere" not in await pg2.inner_text("#saluto2") and await vede_("#conosci-fine"), "risposta l'ultima, la frase sparisce subito, senza ricaricare")
+        ok(not await pg2.evaluate("$('apri-conv').classList.contains('domanda')") and await vede_("#conosci-fine"), "risposta l'ultima: «Di te so già parecchio» e il pallino se ne va, senza ricaricare")
         print("── i passi fatti se ne vanno (29 settembre)")
         await pg2.evaluate("localStorage.clear()"); await pg2.goto(BASE+"#inizia"); await pg2.reload(); await pg2.wait_for_timeout(400)
         vede=lambda sel: pg2.is_visible(sel)

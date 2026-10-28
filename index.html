@@ -240,7 +240,6 @@ body:not(.con-nome) #o1 .invia,body:not(.con-nome) #o2 .invia,body:not(.con-nome
 [data-scheda="inizia"] #benvenuto::before,[data-scheda="inizia"] #benvenuto::after{display:none}
 [data-scheda="inizia"] #benvenuto .dice{font-size:17px;line-height:1.4}
 [data-scheda="inizia"] #salto-parla{display:none}
-body.con-nome[data-scheda="inizia"] #conosci-domanda{font-size:20px!important;margin:10px 0!important}
 .anteprima-foto{position:relative;display:inline-block;margin:6px 0}.anteprima-foto img{max-height:120px;max-width:60vw;border-radius:8px;display:block}
 .anteprima-foto button{position:absolute;top:-8px;right:-8px;width:28px;height:28px;border-radius:50%;border:0;background:#000c;color:#fff;font-size:15px;cursor:pointer}
 .bolla img.foto-bolla{display:block;max-width:220px;max-height:220px;border-radius:8px;margin-bottom:6px}
@@ -287,7 +286,7 @@ body.con-nome[data-scheda="inizia"] #conosci-domanda{font-size:20px!important;ma
 /* ══ LA CHAT È LA PAGINA — 26 ottobre ══ JJ: «quando apro, non c'è il papiro sopra; se voglio vedere una sessione vecchia ho la
    scheda con le chat». Chi è di casa (body.chat-sola) apre sulla chat a tutto schermo, sotto la testata di sempre (globo e nome a
    sinistra; a destra «＋» e «☰»): la conversazione e, in basso, la casella. La barra delle schede non c'è più: il «☰» apre il
-   menù di tutto (conversazioni, Città, le schede). Il benvenuto e le domande del giorno si aprono dal menù (body.resto-aperto).
+   menù di tutto (conversazioni, Città, le schede). Il benvenuto si apre dal menù (body.resto-aperto); le domande del giorno stanno nel Profilo, «Imparo te».
    L'altezza segue la tastiera: lo script mette in --vv-top e --vv-h quello che si vede davvero (visualViewport) e in
    --alto-testa quanto è alta la testata, così la casella non finisce mai sotto; senza, vale 100dvh. */
 #torna-chat,#chat-vuota,.testa-tasti{display:none}
@@ -322,8 +321,6 @@ body.chat-sola #chat-vuota{display:block;margin:auto;width:100%;max-width:420px;
 body.chat-sola #chat-vuota .saluto-vuoto{font:600 24px/1.3 var(--f-titoli);margin:0 0 20px;color:var(--testo)}
 .prove-chat{display:flex;flex-direction:column;gap:10px}
 #prove-chat{display:none}
-body.chat-sola:not(.resto-aperto) #chat-area #conosci{width:100%;max-width:420px;margin:16px auto 0;padding:14px;border:1px solid var(--bordo);background:color-mix(in srgb,var(--accento) 5%,transparent)}
-#conosci-libera{margin-top:12px}
 body.chat-sola #prove-chat:not([hidden]){display:flex;width:100%;max-width:420px;margin:16px auto 0}
 .prova-chat{display:block;width:100%;min-height:60px;padding:14px 16px;text-align:left;font:600 19px/1.25 var(--f-testo);color:var(--testo);cursor:pointer;
   background:color-mix(in srgb,var(--accento) 8%,var(--panel));border:1px solid var(--bordo)}
@@ -462,9 +459,18 @@ body.cal-foglio-aperto{overflow:hidden}
 .fasi li.ora::before{border-color:var(--accento);color:var(--testo);box-shadow:0 0 10px color-mix(in srgb,var(--accento) 40%,transparent)}
 .fasi small{display:block;color:var(--tenue);font-size:14px}
 .so-di-te{list-style:none;margin:10px 0 0;padding:0}
-.so-di-te li{display:flex;justify-content:space-between;gap:12px;border-top:1px solid var(--bordo);padding:8px 0;font-size:16px}
-.so-di-te li span:first-child{color:var(--tenue)}
-.so-di-te li span:last-child{text-align:right}
+.so-di-te li{border-top:1px solid var(--bordo);padding:8px 0;font-size:16px}
+.so-di-te .riga{display:flex;justify-content:space-between;gap:12px}
+.so-di-te .riga span:first-child{color:var(--tenue)}
+.so-di-te .riga span:last-child{text-align:right}
+.so-di-te .azioni{display:flex;flex-wrap:wrap;align-items:center;gap:6px 20px;margin-top:6px;font-size:15px}
+.so-di-te .editor{margin-top:10px}
+.so-di-te .editor .invia{margin-top:12px;padding:12px;font-size:17px}
+.sotto{font:700 18px/1.3 var(--f-titoli);margin:18px 0 6px}
+.domanda-oggi{font:600 22px/1.3 var(--f-titoli);margin:8px 0 12px}
+#conosci-libera,.editor .libera{margin-top:12px}
+.schede button.domanda::after{content:"";position:absolute;top:6px;left:calc(50% + 8px);width:9px;height:9px;border-radius:50%;background:var(--oro);box-shadow:0 0 8px var(--oro)}
+.chat-tasto.domanda::after,.menu-scheda.domanda::after{content:"";position:absolute;top:6px;right:6px;width:9px;height:9px;border-radius:50%;background:var(--oro);box-shadow:0 0 8px var(--oro)}
 .bolla.errore{border-color:var(--rosso);color:var(--rosso)}
 :root[data-tema="calmo"] .bolla,:root[data-tema="naturale"] .bolla{border-radius:14px}
 </style>
@@ -562,7 +568,7 @@ html.di-casa #o1{display:none}
     <button type="button" class="menu-voce" id="menu-calendario"><span aria-hidden="true">📅</span> Calendario</button>
     <a class="menu-voce" id="menu-citta" href="citta.html"><span aria-hidden="true">🏙</span> Città</a>
     <div id="menu-schede"></div>
-    <a class="menu-piede" id="conv-resto" href="#benvenuto">Il benvenuto e le domande del giorno</a>
+    <a class="menu-piede" id="conv-resto" href="#benvenuto">Il benvenuto</a>
   </div>
 </aside>
 <nav class="schede" role="tablist" aria-label="Sezioni">
@@ -637,16 +643,6 @@ html.di-casa #o1{display:none}
     <p class="dice" id="scopri" hidden>Chi sono e cosa so già fare li scopri scorrendo a destra.</p>
     <a class="salto" id="salto-cosa" href="#sa-fare" style="margin:0 0 14px">Cosa so fare →</a>
     <p class="dice" id="saluto2"></p>
-    <div id="conosci" hidden>
-      <h2 id="conosci-domanda" style="font-size:26px;margin:12px 0 12px"></h2>
-      <div class="scelte" id="conosci-scelte"></div>
-      <div id="conosci-libera" hidden>
-        <input type="text" id="conosci-testo" maxlength="60" autocomplete="off" aria-label="Scrivilo con parole tue">
-        <button class="invia" id="conosci-ok" disabled>Segna</button>
-      </div>
-      <p class="risposta" id="conosci-grazie" hidden></p>
-    </div>
-    <p class="dice" id="conosci-fine" hidden>Di te so già parecchio. Se vuoi dirmi altro, parlami.</p>
     <a class="salto" id="continua" href="#tocca" hidden>Continuiamo ↓</a>
     <a class="salto" id="salto-parla" href="#parla" style="margin-left:14px">Parlami ↓</a>
   </section>
@@ -996,11 +992,26 @@ html.di-casa #o1{display:none}
     <p class="avviso" id="esito-profilo" role="status"></p>
   </section>
 
-  <section class="etichetta" aria-labelledby="tsd">
-    <h2 id="tsd" style="font-size:26px;margin:0 0 6px">Cosa so di te</h2>
-    <p class="piccolo">Tutto quello che mi hai detto, niente di più. Sta in questo telefono; quello che mi hai mandato sta anche nell'archivio di chi mi costruisce.</p>
+  <!-- 28/10, JJ: «tutto ciò che riguarda le domande personali e quello che riguarda l'imparo te va nel Profilo, così che ci sia un posto
+       fisso dedicato allo sviluppo dell'assistente» e «bisogna poter anche modificare le voci nel profilo senza dover fare per forza
+       dimentica tutto». -->
+  <section class="etichetta" id="imparo-te" aria-labelledby="tsd">
+    <h2 id="tsd" style="font-size:26px;margin:0 0 6px">Imparo te</h2>
+    <h3 class="sotto" id="oggi-titolo">La domanda di oggi</h3>
+    <div id="conosci" hidden>
+      <h4 id="conosci-domanda" class="domanda-oggi"></h4>
+      <div class="scelte" id="conosci-scelte"></div>
+      <div id="conosci-libera" hidden>
+        <input type="text" id="conosci-testo" maxlength="60" autocomplete="off" aria-label="Scrivilo con parole tue">
+      </div>
+      <button class="invia" id="conosci-ok" hidden disabled>Segna</button>
+      <p class="risposta" id="conosci-grazie" hidden></p>
+    </div>
+    <p class="dice" id="conosci-fine" hidden>Di te so già parecchio. Se vuoi dirmi altro, parlami.</p>
+    <h3 class="sotto">Cosa so di te</h3>
+    <p class="piccolo">Tutto quello che mi hai detto, niente di più. Sta in questo telefono; quello che mi hai mandato sta anche nell'archivio di chi mi costruisce. Ogni voce la cambi o la togli da qui.</p>
     <ul class="so-di-te" id="so-di-te"></ul>
-    <p class="piccolo" style="margin-top:14px"><button class="collegamento" id="ricomincia-profilo">Dimentica tutto e ricomincia da capo</button></p>
+    <p class="piccolo" style="margin:26px 0 0;padding-top:14px;border-top:1px solid var(--bordo)"><button class="collegamento" id="ricomincia-profilo">Dimentica tutto e ricomincia da capo</button></p>
   </section>
 
   <footer id="dati">
@@ -1324,7 +1335,7 @@ async function manda(conMail){
     esito.textContent = conMail ? "Ricevuto. Quando serve, ti rispondo anche per mail." : "Ricevuto. Grazie: il tuo numero entra nel conto.";
     // mandate le risposte, il sondaggio se ne va: resta la chat, e Nova dice «ricevuto»
     setTimeout(()=>{ mostraSondaggio(false); if($("tocca")) $("tocca").hidden=true; benvenuto(true); $("parla").hidden=false; bolla("io", esito.textContent); }, 1200);
-    io.inviato=true; delete io.passo; delete io.bozza; io.mestiere=risposte.mestiere||io.mestiere||""; io.tempo=risposte.tempo||io.tempo||"";
+    io.inviato=true; delete io.passo; delete io.bozza; if(corpo.dettaglio) io.dettaglio=corpo.dettaglio; io.mestiere=risposte.mestiere||io.mestiere||""; io.tempo=risposte.tempo||io.tempo||"";
     if(conMail){ io.mail=corpo.mail; if(corpo.nome) io.tuo=io.tuo||corpo.nome; } salva();
     const libero=[corpo.proposta, corpo.dettaglio].filter(Boolean).join("\n");
     // 22/10, JJ: «quando viene usato per la prima volta è proprio quando deve colpire per la sua utilità». Con l'account
@@ -1428,19 +1439,10 @@ function apertura(){
 }
 // ══ LA CHAT È LA PAGINA ══ 26/10, JJ: «quando apro, non c'è il papiro sopra; se voglio vedere una sessione vecchia ho la
 // scheda con le chat; ed è così che deve apparire». Chi è di casa (nome dato, tre domande fatte, sondaggio mandato) apre sulla
-// chat a tutto schermo; il benvenuto e le domande del giorno stanno dietro un collegamento nel pannello ☰ (resto-aperto).
+// chat a tutto schermo; il benvenuto sta dietro un collegamento nel pannello ☰ (resto-aperto).
 // Si separa la vista, non la memoria: all'assistente arriva tutto come prima.
 const diCasa=()=>!!(io.nome && io.inviato && !io.inizio);
-function modoChat(){ document.body.classList.toggle("chat-sola", diCasa()); postaDomanda(); aggiornaChat(); }
-// 28/10: chi è di casa vede la chat a tutto schermo e il benvenuto è dietro ☰: le domande del ritorno non le vedeva nessuno (le
-// passioni e il lavoro di una vita non li avrebbe imparati nessuno). Per lui la domanda sta nella chat, sotto i messaggi, UNA
-// per volta quando torna; aperto il benvenuto da ☰ torna al suo posto, con le domande in fila come prima.
-function postaDomanda(){
-  const c=$("conosci"); if(!c) return;
-  const inChat=document.body.classList.contains("chat-sola") && !document.body.classList.contains("resto-aperto");
-  if(inChat){ if(c.parentElement!==$("chat-area")) $("chat").after(c); }
-  else if(c.parentElement!==$("benvenuto")) $("benvenuto").insertBefore(c, $("conosci-fine"));
-}
+function modoChat(){ document.body.classList.toggle("chat-sola", diCasa()); aggiornaChat(); }
 // una risposta in attesa: dalla porta (attesa), o una richiesta che sta ancora andando (parlando, invio)
 const rispostaInAttesa=()=>parlando || invio!==null || (io.chat||[]).some(m=>m.attesa);
 function aggiornaChat(){
@@ -1492,6 +1494,7 @@ function disegnaSchede(){
     const et=document.createElement("span"); et.textContent=k==="inizia"?"Chat":t.querySelector(".et").textContent; b.appendChild(et);
     if(k===schedaAttiva) b.setAttribute("aria-current","true");
     if(k==="inizia" && $("s-inizia").classList.contains("nuovo")) b.classList.add("nuovo");
+    if(k==="profilo" && $("s-profilo").classList.contains("domanda")) b.classList.add("domanda");
     casa.appendChild(b); });
 }
 // il menù di tutto
@@ -1536,9 +1539,9 @@ $("menu-citta").addEventListener("click", chiudiConv);
 document.addEventListener("keydown", e=>{ if(e.key!=="Escape") return;
   if(!$("cal-velo").hidden){ calChiudiFoglio(); return; }
   if($("conversazioni").classList.contains("aperta")) chiudiConv(); });
-// il benvenuto e le domande del giorno: dietro un collegamento, non sopra la chat
-function apriResto(){ if(!document.body.classList.contains("chat-sola")) return; chiudiConv(); document.body.classList.add("resto-aperto"); postaDomanda(); mostraDomanda(); window.scrollTo(0,0); }
-function chiudiResto(){ if(!document.body.classList.contains("resto-aperto")) return; document.body.classList.remove("resto-aperto"); postaDomanda(); window.scrollTo(0,0); requestAnimationFrame(()=>{ scorriChat(); segnaLette(); }); }
+// il benvenuto: dietro un collegamento, non sopra la chat
+function apriResto(){ if(!document.body.classList.contains("chat-sola")) return; chiudiConv(); document.body.classList.add("resto-aperto"); window.scrollTo(0,0); }
+function chiudiResto(){ if(!document.body.classList.contains("resto-aperto")) return; document.body.classList.remove("resto-aperto"); window.scrollTo(0,0); requestAnimationFrame(()=>{ scorriChat(); segnaLette(); }); }
 $("torna-chat").addEventListener("click", chiudiResto);
 // la tastiera: la chat occupa quello che si vede davvero, e la casella non finisce mai sotto
 (function(){
@@ -2155,42 +2158,68 @@ const CONOSCERTI=[
 // «libera»: sotto le scelte c'è la casella libera (il testo è il suggerimento). «max»: caratteri massimi della risposta.
 // 28/10, JJ: «anche se in pensione ha fatto la sua vita dedicandosi a un lavoro e a delle passioni, bisogna imparare anche quelle»
 function prossimaDomanda(){ io.conosciute=io.conosciute||{}; return CONOSCERTI.find(q=>!(q.k in io.conosciute) && !(q.lavoro && senzaLavoro(io.vita)) && !(q.casa && !senzaLavoro(io.vita))); }
-function mostraDomanda(){
-  const q=prossimaDomanda(); const box=$("conosci");
-  // 29/9, JJ: «quando finisco le domande deve sparire la scritta oggi voglio
-  // sapere una cosa in più, anche senza ricaricare»
-  if(!q){ box.hidden=true; $("conosci-fine").hidden=false;
-    $("saluto2").textContent=$("saluto2").textContent.replace(/\s*Oggi voglio sapere una cosa in più\./,"").trim(); return; }
-  $("conosci-fine").hidden=true;
-  $("conosci-domanda").textContent=q.d; const sc=$("conosci-scelte"); sc.innerHTML="";
-  q.s.forEach(t=>{ const b=document.createElement("button"); b.className="scelta"; b.setAttribute("aria-pressed","false"); b.textContent=t; sc.appendChild(b); });
-  $("conosci-grazie").hidden=true; box.hidden=false;
-  if(q.dCasa && io.vita==="casa") $("conosci-domanda").textContent=q.dCasa;
-  const lib=$("conosci-libera"), testoLibero=$("conosci-testo"), ok=$("conosci-ok");
-  lib.hidden=!(q.libera||q.multi); testoLibero.value=""; testoLibero.disabled=false; ok.disabled=true;
-  testoLibero.placeholder=q.libera||""; testoLibero.setAttribute("aria-label", q.libera||"Scrivilo con parole tue");
+// ══ IMPARO TE ══ 28/10, JJ: «tutto ciò che riguarda le domande personali e quello che riguarda l'imparo te va nel Profilo, così che ci
+// sia un posto fisso dedicato allo sviluppo dell'assistente» e «bisogna poter anche modificare le voci nel profilo senza dover fare per
+// forza dimentica tutto». La domanda di oggi sta nella sezione «Imparo te» del Profilo (non più nel benvenuto né nella chat), l'elenco
+// di quello che so ha «Cambia» e «Togli» per ogni voce, e un pallino sulla linguetta Profilo (e sul ☰ e nel menù) dice che c'è una domanda.
+const domandaDiOggi=()=>io.inviato ? prossimaDomanda() : undefined;   // prima del sondaggio non si fanno domande del ritorno
+const testoDomanda=q=>q.dCasa && io.vita==="casa" ? q.dCasa : q.d;
+function aggiornaPallino(){ const c=!!domandaDiOggi();
+  [$("s-profilo"),$("apri-conv")].forEach(x=>x.classList.toggle("domanda",c));
+  const m=document.querySelector('.menu-scheda[data-vai="profilo"]'); if(m) m.classList.toggle("domanda",c); }
+// una domanda con le sue scelte: el={sc,lib,testo,ok}. «corrente» è la risposta già data (le scelte si segnano da sole, il resto va nella
+// casella libera); con conSegna la risposta parte solo da «Segna», altrimenti una scelta singola risponde subito (la domanda di oggi).
+// La risposta è sempre UN testo solo: le scelte, poi quello che ha scritto, separati da virgole, al massimo q.max caratteri.
+function legaDomanda(el,q,corrente,conSegna,alSegna){
+  const {sc,lib,testo,ok}=el; sc.innerHTML="";
+  q.s.forEach(t=>{ const b=document.createElement("button"); b.type="button"; b.className="scelta"; b.setAttribute("aria-pressed","false"); b.textContent=t; sc.appendChild(b); });
+  const cor=String(corrente||"").trim(), parti=cor.split(",").map(x=>x.trim()).filter(Boolean);
+  const giuste=q.multi ? q.s.filter(t=>parti.includes(t)) : q.s.filter(t=>t===cor);
+  [...sc.children].forEach(b=>{ if(giuste.includes(b.textContent)) b.setAttribute("aria-pressed","true"); });
+  testo.value = q.multi ? parti.filter(x=>!q.s.includes(x)).join(", ") : (giuste.length?"":cor);
+  lib.hidden=!(q.libera||q.multi); ok.hidden=!(conSegna||q.libera||q.multi);
+  testo.placeholder=q.libera||""; testo.setAttribute("aria-label", q.libera||"Scrivilo con parole tue");
   const scelte=()=>[...sc.querySelectorAll('.scelta[aria-pressed="true"]')].map(x=>x.textContent);
-  // la risposta è sempre UN testo solo: le scelte, poi quello che ha scritto, separati da virgole, al massimo q.max caratteri
-  const testoRisposta=()=>[...scelte(), testoLibero.value.trim()].filter(Boolean).join(", ").slice(0,q.max||200).trim();
-  const rispondi=testo=>{
-    sc.querySelectorAll(".scelta").forEach(x=>x.disabled=true); testoLibero.disabled=true; ok.disabled=true;
-    io.conosciute[q.k]=testo; salva();
+  const risposta=()=>(q.multi ? [...scelte(), testo.value.trim()].filter(Boolean).join(", ") : (scelte()[0]||testo.value.trim())).slice(0,q.max||200).trim();
+  const aggiorna=()=>{ ok.disabled=!risposta(); };
+  sc.onclick=e=>{ const b=e.target.closest(".scelta"); if(!b || b.disabled) return;
+    if(q.multi){ b.setAttribute("aria-pressed", String(b.getAttribute("aria-pressed")!=="true")); aggiorna(); return; }
+    sc.querySelectorAll(".scelta").forEach(x=>x.setAttribute("aria-pressed", String(x===b))); testo.value="";
+    if(conSegna){ aggiorna(); return; }
+    alSegna(b.textContent);
+  };
+  testo.oninput=()=>{ if(!q.multi) sc.querySelectorAll(".scelta").forEach(x=>x.setAttribute("aria-pressed","false")); aggiorna(); };
+  testo.onkeydown=e=>{ if(e.key==="Enter" && !q.lungo && !ok.disabled){ e.preventDefault(); ok.click(); } };
+  ok.onclick=()=>{ const t=risposta(); if(t) alSegna(t); };
+  aggiorna();
+}
+const bloccaDomanda=el=>{ el.sc.querySelectorAll(".scelta").forEach(x=>x.disabled=true); el.testo.disabled=true; el.ok.disabled=true; };
+// una risposta del ritorno (o la sua tolta: risposta vuota) va in io, nel conto (salva) e alla porta (/conoscenza)
+function salvaConosciuta(q,testo){
+  io.conosciute=io.conosciute||{};
+  if(testo) io.conosciute[q.k]=testo; else delete io.conosciute[q.k];
+  salva();
+  if(INVIO) fetch(INVIO.replace("/risposta","/conoscenza"),{method:"POST",headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({chi:io.id, chiave:q.k, domanda:q.d, risposta:testo, nome_assistente:io.nome||"", tema:io.tema||"tech"})}).catch(()=>{});
+}
+function mostraDomanda(){
+  const q=domandaDiOggi(); const box=$("conosci");
+  box.dataset.k = q ? q.k : "";
+  aggiornaPallino();
+  if(!q){ box.hidden=true; $("conosci-fine").hidden=!io.inviato; return; }
+  $("conosci-fine").hidden=true;
+  $("conosci-domanda").textContent=testoDomanda(q);
+  const el={sc:$("conosci-scelte"), lib:$("conosci-libera"), testo:$("conosci-testo"), ok:$("conosci-ok")};
+  el.testo.disabled=false;
+  legaDomanda(el,q,"",false,testo=>{
+    bloccaDomanda(el); salvaConosciuta(q,testo);
     const g=$("conosci-grazie"); g.hidden=false; g.textContent="Segnato.";
+    disegnaVoci();
     // JJ, 26 settembre: «se rispondo che l'ora cambia ogni giorno quella
     // domanda deve cambiare subito, non devo ricaricare la pagina».
-    // nella chat una domanda per volta: la prossima la fa quando la persona torna
-    setTimeout(()=>{ if($("conosci").parentElement===$("chat-area")) $("conosci").hidden=true; else mostraDomanda(); }, 900);
-    if(INVIO) fetch(INVIO.replace("/risposta","/conoscenza"),{method:"POST",headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({chi:io.id, chiave:q.k, domanda:q.d, risposta:testo, nome_assistente:io.nome||"", tema:io.tema||"tech"})}).catch(()=>{});
-  };
-  sc.onclick=e=>{ const b=e.target.closest(".scelta"); if(!b || b.disabled) return;
-    if(q.multi){ b.setAttribute("aria-pressed", String(b.getAttribute("aria-pressed")!=="true")); ok.disabled=!testoRisposta(); return; }
-    sc.querySelectorAll(".scelta").forEach(x=>x.setAttribute("aria-pressed", String(x===b)));
-    rispondi(b.textContent);
-  };
-  testoLibero.oninput=()=>{ ok.disabled=!testoRisposta(); };
-  testoLibero.onkeydown=e=>{ if(e.key==="Enter" && !ok.disabled){ e.preventDefault(); ok.click(); } };
-  ok.onclick=()=>{ const t=testoRisposta(); if(t) rispondi(t); };
+    setTimeout(mostraDomanda, 900);
+  });
+  $("conosci-grazie").hidden=true; box.hidden=false;
 }
 function mostraSondaggio(mostra){
   ["tocca","d0","d1","d2","d3","d5"].forEach(id=>{ const el=$(id); if(el) el.hidden=!mostra; });
@@ -2211,7 +2240,7 @@ function benvenuto(tornato){
   ["o2","o3"].forEach(k=>{ const x=$(k); if(x && x.classList.contains("aperta")){ x.classList.remove("aperta"); x.classList.add("fatta"); } });
   if(io.tuo && !$("nome").value) $("nome").value=io.tuo;
   if(io.mail && !$("mail").value) $("mail").value=io.mail;
-  $("continua").hidden=true; $("conosci").hidden=true; $("conosci-fine").hidden=true; $("saluto2").textContent=""; $("scopri").hidden=true;
+  $("continua").hidden=true; $("saluto2").textContent=""; $("scopri").hidden=true;
   if(!tornato){
     $("saluto").textContent = io.tuo ? `Piacere${tu}. Da adesso sono ${io.nome}, solo per te.` : `Da adesso sono ${io.nome}, solo per te.`;
     // 29/9, JJ: saluta, «mi ricordo di te… nel Profilo» passa sopra a «cosa so
@@ -2233,11 +2262,10 @@ function benvenuto(tornato){
   } else {
     $("saluto").textContent=`Ciao${tu}.`;
     const l=LAVORO[io.mestiere]; const t=io.tempo?io.tempo.toLowerCase():"";
-    const ancora=prossimaDomanda()?" Oggi voglio sapere una cosa in più.":"";
     // 27/10: chi è in pensione o sta a casa non ha un lavoro: la riga dice la sua vita e la cosa che ha scelto nella seconda domanda
-    $("saluto2").textContent = senzaLavoro(io.vita) ? `So che ${io.vita==="pensione"?"sei in pensione":"stai a casa"}${t?`, e che ti piacerebbe essere assistito in questo: ${t}`:""}.${ancora}`
-      : l ? `So che ${l}${t?`, e che il tempo te lo mangia soprattutto questo: ${t}`:""}.${ancora}` : ancora.trim();
-    mostraSondaggio(false); mostraDomanda();
+    $("saluto2").textContent = senzaLavoro(io.vita) ? `So che ${io.vita==="pensione"?"sei in pensione":"stai a casa"}${t?`, e che ti piacerebbe essere assistito in questo: ${t}`:""}.`
+      : l ? `So che ${l}${t?`, e che il tempo te lo mangia soprattutto questo: ${t}`:""}.` : "";
+    mostraSondaggio(false); mostraDomanda();   // la domanda di oggi sta nel Profilo: qui serve il pallino
   }
   $("benvenuto").classList.add("aperta"); $("resto").hidden=false;
 }
@@ -2674,18 +2702,61 @@ function aggiornaProfilo(){
   if(document.activeElement!==$("profilo-tuo")) $("profilo-tuo").value=io.tuo||"";
   if(document.activeElement!==$("profilo-mail")) $("profilo-mail").value=io.mail||"";
   $("mail-attuale").hidden=!io.mail; $("mail-attuale").textContent = io.mail ? "Per toglierla, svuota il campo e salva." : "";
-  const ul=$("so-di-te"); ul.innerHTML="";
-  const righe=[]; if(io.tuo) righe.push(["Ti chiami",io.tuo]); if(io.mestiere) righe.push([ETICHETTE_SO.mestiere,io.mestiere]);
-  if(senzaLavoro(io.vita)) righe.push(["Nella vita",io.vita==="pensione"?"Sei in pensione":"Stai a casa"]);
-  if(io.tempo) righe.push([senzaLavoro(io.vita)?"Vorresti essere assistito in":ETICHETTE_SO.tempo,io.tempo]);
-  Object.entries(io.conosciute||{}).forEach(([k,v])=>righe.push([ETICHETTE_SO[k]||k, v]));
-  if(io.mail) righe.push(["La tua mail", io.mail]);
-  if(!righe.length) righe.push(["Per ora","niente: non mi hai ancora detto nulla"]);
-  righe.forEach(([a,b])=>{ const li=document.createElement("li"); const x=document.createElement("span"), y=document.createElement("span");
-    x.textContent=a; y.textContent=b; li.append(x,y); ul.appendChild(li); });
+  disegnaVoci();
+  const q=domandaDiOggi(); if($("conosci").dataset.k!==(q?q.k:"")) mostraDomanda();
   $("prova-testo").textContent = ha ? `Sono ${io.nome}. Dimmi cosa ti serve, o rispondi alle mie domande: decidono cosa costruisco dopo.` : "Dammi un nome e scegli come vedermi: un minuto, e comincio a imparare te.";
   $("prova").textContent = ha ? `Parla con ${io.nome}` : "Comincia";
   $("prova").setAttribute("href", ha ? "#parla" : "#inizia");
+}
+// ── cosa so di te: una riga per voce, con «Cambia» e «Togli». Ogni voce ha la sua domanda (q), il valore che ha adesso e come si toglie.
+const ETICHETTE_VITA={lavoro:"Lavoro", pensione:"Sono in pensione", studio:"Studio", casa:"Sto a casa"};
+const scelteDi=sel=>[...document.querySelectorAll(sel)].map(b=>b.textContent.trim());
+function vociProfilo(){
+  const v=[], sl=senzaLavoro(io.vita);
+  if(io.tuo) v.push({et:"Ti chiami", val:io.tuo, nota:"lo cambi qui sopra"});
+  if(io.vita) v.push({k:"vita", et:"Cosa fai nella vita", val:ETICHETTE_VITA[io.vita]||io.vita,
+    q:{s:Object.values(ETICHETTE_VITA)}, corrente:ETICHETTE_VITA[io.vita]||"",
+    applica:t=>{ const nuova=Object.keys(ETICHETTE_VITA).find(x=>ETICHETTE_VITA[x]===t); if(!nuova) return;
+      io.vita=nuova; if(nuova==="studio") io.mestiere="Studio"; else if(io.mestiere==="Studio") io.mestiere=""; },
+    togli:()=>{ delete io.vita; if(io.mestiere==="Studio") io.mestiere=""; } });
+  if(io.mestiere && !sl && io.vita!=="studio") v.push({k:"mestiere", et:ETICHETTE_SO.mestiere, val:io.mestiere,
+    q:{s:scelteDi('.scelte[data-campo="mestiere"] .scelta').filter(t=>t!=="Studio")}, corrente:io.mestiere, applica:t=>{ io.mestiere=t; }, togli:()=>{ delete io.mestiere; } });
+  if(io.tempo) v.push({k:"tempo", et:sl?"Vorresti essere assistito in":ETICHETTE_SO.tempo, val:io.tempo,
+    q:{s:(sl?VITA_CASA:PER_MESTIERE[io.mestiere]||GENERALI).tempo}, corrente:io.tempo, applica:t=>{ io.tempo=t; }, togli:()=>{ delete io.tempo; } });
+  if(io.dettaglio) v.push({k:"dettaglio", et:"Quello che mi hai scritto", val:io.dettaglio,
+    q:{s:[], libera:"Scrivilo con parole tue", max:800, lungo:true}, corrente:io.dettaglio, applica:t=>{ io.dettaglio=t; }, togli:()=>{ delete io.dettaglio; } });
+  Object.entries(io.conosciute||{}).forEach(([k,val])=>{ const q=CONOSCERTI.find(x=>x.k===k);
+    v.push({k:"c:"+k, et:ETICHETTE_SO[k]||k, val, q:q||null, corrente:val, applica:t=>salvaConosciuta(q,t), togli:()=>salvaConosciuta(q||{k,d:k},"")}); });
+  if(io.mail) v.push({et:"La tua mail", val:io.mail, nota:"la cambi qui sopra"});
+  return v;
+}
+// dopo ogni cambio: il telefono e il conto (salva), poi tutto quello che dipende dalla vita si rifà
+function dopoCambio(){ salva(); aggiornaTasti(); disegnaVoci(); mostraDomanda(); }
+function disegnaVoci(){
+  const ul=$("so-di-te"); ul.innerHTML=""; const voci=vociProfilo();
+  if(!voci.length){ const li=document.createElement("li"); li.innerHTML='<div class="riga"><span>Per ora</span><span>niente: non mi hai ancora detto nulla</span></div>'; ul.appendChild(li); return; }
+  const btn=(t,f)=>{ const b=document.createElement("button"); b.type="button"; b.className="collegamento"; b.textContent=t; b.addEventListener("click",f); return b; };
+  voci.forEach(vo=>{ const li=document.createElement("li"); if(vo.k) li.dataset.voce=vo.k;
+    const r=document.createElement("div"); r.className="riga"; const x=document.createElement("span"), y=document.createElement("span"); x.textContent=vo.et; y.textContent=vo.val; r.append(x,y); li.appendChild(r);
+    if(!vo.k){ if(vo.nota){ const n=document.createElement("div"); n.className="azioni"; n.textContent=vo.nota; li.appendChild(n); } ul.appendChild(li); return; }
+    const az=document.createElement("div"); az.className="azioni"; const ed=document.createElement("div"); ed.className="editor"; ed.hidden=true;
+    const chiudi=()=>{ ed.hidden=true; ed.innerHTML=""; az.hidden=false; };
+    if(vo.q){ az.appendChild(btn("Cambia",()=>{
+      ed.innerHTML=""; ed.hidden=false; az.hidden=true;
+      const sc=document.createElement("div"); sc.className="scelte";
+      const lib=document.createElement("div"); lib.className="libera";
+      const testo=document.createElement(vo.q.lungo?"textarea":"input"); if(!vo.q.lungo) testo.type="text"; testo.maxLength=vo.q.max&&vo.q.lungo?vo.q.max:60; testo.autocomplete="off"; lib.appendChild(testo);
+      const ok=document.createElement("button"); ok.type="button"; ok.className="invia"; ok.textContent="Segna";
+      const no=btn("Annulla",chiudi); no.style.marginTop="10px";
+      ed.append(sc,lib,ok,no);
+      legaDomanda({sc,lib,testo,ok}, vo.q, vo.corrente, true, t=>{ vo.applica(t); dopoCambio(); });
+    })); }
+    az.appendChild(btn("Togli",()=>{
+      ed.hidden=true; az.hidden=true; const c=document.createElement("div"); c.className="azioni";
+      const dom=document.createElement("span"); dom.textContent=`Tolgo “${vo.et}”?`;
+      c.append(dom, btn("Sì, togli",()=>{ vo.togli(); dopoCambio(); }), btn("No",()=>{ c.remove(); az.hidden=false; })); li.insertBefore(c,ed);
+    }));
+    li.append(az,ed); ul.appendChild(li); });
 }
 $("nuova-sigla").addEventListener("input", e=>{ const v=e.target.value.trim().replace(/\s+/g," "); $("cambia-nome").disabled=!v||v===io.nome; });
 $("cambia-nome").addEventListener("click", ()=>{
