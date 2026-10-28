@@ -1,6 +1,6 @@
 {
   "pronto": true,
-  "aggiornato": "25 settembre 2026",
+  "aggiornato": "29 ottobre 2026",
   "gruppi": [
     {
       "titolo": "Tenermi acceso",
@@ -23,9 +23,8 @@
         },
         {
           "nome": "Ragionamento (Claude, a consumo)",
-          "euro": null,
-          "nota": "centesimi al giorno: il numero vero dopo il primo mese",
-          "breve": "Claude a consumo"
+          "euro": 3.97,
+          "nota": "misurato: 4,56 $ negli ultimi 30 giorni (29/9–28/10), circa 3,97 € al cambio di 1,15"
         }
       ]
     },
