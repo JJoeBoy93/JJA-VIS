@@ -15,6 +15,7 @@ on:
 permissions:
   contents: write
   pages: write
+  actions: write   # 28/10: cancellare la copia del sito (DELETE actions/artifacts) vuole «Actions» in scrittura
 
 concurrency:
   group: hera
@@ -98,6 +99,14 @@ jobs:
           R=$(curl -s -o /dev/null -w '%{http_code}' -X POST -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json" \
               "https://api.github.com/repos/${{ github.repository }}/pages/builds")
           [ "$R" = "201" ] && echo "::notice::Hera: pubblicazione chiesta a GitHub Pages" || echo "::warning::Hera: GitHub Pages ha risposto $R alla richiesta di pubblicare: se la pagina non cambia, un push qualunque su main la ripubblica"
+
+      - name: cancella la copia del sito
+        # 28/10: lo spazio delle Actions era al 91% (338,77 GB-ora su circa 372); ogni pubblicazione lascia un «github-pages» da ~35 MB per un giorno.
+        # Aspetta «built» per questo commit (max 5 min) e poi lo cancella; se non arriva o una chiamata cade lo scrive e va avanti: mai una mail rossa per questo.
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 collaudo/cancella_copia.py "$(git rev-parse HEAD)"
 
       - name: i registri
         if: always()
