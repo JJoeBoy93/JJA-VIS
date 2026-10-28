@@ -25,6 +25,10 @@ con la porta finta (telefono 390×844):
    e le passioni (per tutti, scelta multipla, casella libera, un testo ≤120) SI VEDONO nel Profilo, non nella chat né nel
    benvenuto; «Cambia» riapre una voce già segnata, «Togli» chiede conferma e toglie solo quella; cambiare la vita cambia
    le domande; il pallino sul ☰ e sulla voce Profilo del menù c'è finché c'è una domanda
+13. (28/10) quello che si cambia nel Profilo arriva alla porta (JJ: «arriva davvero all'assistente»): «Cambia» e «Togli» di OGNI voce (vita,
+   mestiere, tempo, dettaglio, le risposte del ritorno) chiamano POST /profilo {chi, voce, valore} (vuoto = togli) con l'account, e non più
+   /conoscenza. Con la porta che risponde 500 la voce resta cambiata sul telefono, compare «Non sono riuscito a dirlo all'assistente: riprovo
+   quando torni» e al ricaricamento si riprova; vale l'ultima per voce; senza account non si chiama niente
 """
 import asyncio, json, os, sys
 from playwright.async_api import async_playwright
@@ -42,6 +46,8 @@ CASA_TASTI = ["⏰ Ricordami una visita", "💶 Segnami una bolletta", "🛡 Un 
 FISSA = "Incollami qui il messaggio o raccontami la telefonata: ti dico cosa ne penso. Nel dubbio non toccare link e non dare codici a nessuno."
 spedite = []      # i sondaggi arrivati alla porta finta
 conoscenze = []   # le risposte del ritorno arrivate a /conoscenza
+profili = []      # le voci del Profilo arrivate a /profilo: {corpo, auth}
+esito_profilo = {"stato": 200}   # cosa risponde la porta a /profilo (500 = giù)
 chiamate = []     # le chiamate all'assistente e a /parla
 corpi = []        # e cosa mandano: (url, corpo)
 
@@ -54,6 +60,9 @@ async def instrada(route):
     if u.startswith(BASE): return await route.fulfill(body=PAGINA if u.split("?")[0] in (BASE, BASE + "index.html") else "{}", content_type="text/html")
     if "workers.dev" in u:
         if r.method == "OPTIONS": return await route.fulfill(status=204, headers={**CORS, "Access-Control-Allow-Methods": "POST, GET"})
+        if u.endswith("/profilo"):
+            profili.append({"corpo": json.loads(r.post_data or "{}"), "auth": r.headers.get("authorization", "")})
+            return await route.fulfill(status=esito_profilo["stato"], body=json.dumps({"ok": esito_profilo["stato"] < 300}), content_type="application/json", headers=CORS)
         if u.endswith("/conoscenza"):
             conoscenze.append(json.loads(r.post_data or "{}"))
             return await route.fulfill(status=201, body=json.dumps({"ok": True}), content_type="application/json", headers=CORS)
@@ -352,7 +361,7 @@ async def main():
         await ctx.close()
 
         # «Cambia»: si riapre segnata, si cambia, l'elenco e la porta hanno il valore nuovo
-        conoscenze.clear()
+        conoscenze.clear(); profili.clear()
         PROF = {**PRIMA, "mestiere_di_una_vita": "Ufficio", "passioni": "Orto e giardino, Cucina, il burraco", "voce": "A voce"}
         ctx, pg = await apri(b, {**DI_CASA, "vita": "pensione", "conosciute": PROF}, 3000)
         await profilo(pg)
@@ -366,7 +375,9 @@ async def main():
         await pg.click(riga("c:passioni") + " .editor >> text=Segna"); await pg.wait_for_timeout(300)
         io = await leggi_io(pg)
         prova("12. l'elenco mostra il valore nuovo", "Orto e giardino, Lettura, il burraco" in await pg.inner_text(riga("c:passioni")), await pg.inner_text(riga("c:passioni")))
-        prova("12. salvato nel telefono e arrivato alla porta", io["conosciute"]["passioni"] == "Orto e giardino, Lettura, il burraco" and any(c.get("chiave") == "passioni" and c.get("risposta") == "Orto e giardino, Lettura, il burraco" for c in conoscenze), conoscenze)
+        prova("12. salvato nel telefono e arrivato alla porta con /profilo (voce e valore)", io["conosciute"]["passioni"] == "Orto e giardino, Lettura, il burraco"
+              and [p["corpo"] for p in profili] == [{"chi": CHI, "voce": "passioni", "valore": "Orto e giardino, Lettura, il burraco"}], profili)
+        prova("12. e non a /conoscenza (che fa il merge e non toglie niente)", not any(c.get("chiave") == "passioni" for c in conoscenze), conoscenze)
         await pg.click(riga("c:voce") + " >> text=Cambia"); await pg.wait_for_timeout(200)
         prova("12. una voce a scelta singola: si riapre con la scelta segnata", await pg.evaluate("s => [...document.querySelectorAll(s + ' .editor .scelta[aria-pressed=true]')].map(x => x.textContent)", riga("c:voce")) == ["A voce"])
         await pg.click(riga("c:voce") + ' .editor .scelta:has-text("Scrivendo")'); await pg.click(riga("c:voce") + " .editor >> text=Segna"); await pg.wait_for_timeout(300)
@@ -377,13 +388,14 @@ async def main():
         prova("12. «Togli» chiede conferma: «Tolgo “Le tue passioni”?»", await vl(pg, riga("c:passioni") + " >> text=Tolgo “Le tue passioni”?"))
         await pg.click(riga("c:passioni") + " button:text-is(\"No\")"); await pg.wait_for_timeout(200)
         prova("12. «No»: la voce resta", "passioni" in (await leggi_io(pg))["conosciute"] and await vl(pg, riga("c:passioni") + " >> text=Togli"))
-        conoscenze.clear()
+        conoscenze.clear(); profili.clear()
         await pg.click(riga("c:passioni") + " >> text=Togli"); await pg.click(riga("c:passioni") + " >> text=Sì, togli"); await pg.wait_for_timeout(300)
         io = await leggi_io(pg)
         prova("12. «Sì, togli»: sparisce solo quella voce, le altre restano",
               "passioni" not in io["conosciute"] and io["conosciute"].get("mestiere_di_una_vita") == "Ufficio" and io["conosciute"].get("voce") == "Scrivendo" and io["conosciute"].get("inizio") == "Dopo le 8", io["conosciute"])
         prova("12. e dall'elenco", await pg.locator(riga("c:passioni")).count() == 0 and await pg.locator(riga("c:mestiere_di_una_vita")).count() == 1 and await pg.locator(riga("c:voce")).count() == 1)
-        prova("12. la porta riceve la voce tolta come risposta vuota", any(c.get("chiave") == "passioni" and c.get("risposta") == "" for c in conoscenze), conoscenze)
+        prova("12. la porta riceve la voce tolta con /profilo, valore vuoto", [p["corpo"] for p in profili] == [{"chi": CHI, "voce": "passioni", "valore": ""}], profili)
+        prova("12. e non come risposta vuota a /conoscenza", not any(c.get("chiave") == "passioni" for c in conoscenze), conoscenze)
         prova("12. la domanda tolta può tornare: oggi si chiede di nuovo «Cosa ti appassiona?»", await vede(pg, "#conosci") and await pg.inner_text("#conosci-domanda") == "Cosa ti appassiona?", await pg.inner_text("#conosci-domanda"))
         await ctx.close()
 
@@ -411,6 +423,122 @@ async def main():
         prova("12. risposta l'ultima: il pallino se ne va, «Di te so già parecchio» si vede", not await punto(pg, "#apri-conv") and await vede(pg, "#conosci-fine") and not await vede(pg, "#conosci"), await pg.inner_text("#imparo-te"))
         await pg.click(riga("c:sera") + " >> text=Togli"); await pg.click(riga("c:sera") + " >> text=Sì, togli"); await pg.wait_for_timeout(300)
         prova("12. toltane una, il pallino torna (la domanda può tornare)", await punto(pg, "#apri-conv") and await vede(pg, "#conosci"))
+        await ctx.close()
+
+        print("── 13. il Profilo arriva alla porta: /profilo per ogni voce")
+        TUTTO = {**DI_CASA, "vita": "lavoro", "mestiere": "Negozio o commercio", "tempo": "Scorte da controllare", "dettaglio": "Perdo un'ora a contare le scorte",
+                 "conosciute": {"inizio": "Dopo le 8", "passioni": "Cucina"}}
+        NOTA = "Non sono riuscito a dirlo all'assistente: riprovo quando torni"
+        DA_DIRE = "() => JSON.parse(localStorage.getItem('jjavis-profilo-da-dire') || 'null')"
+        arrivati = lambda: [p["corpo"] for p in profili]
+        async def con_profilo(io=TUTTO, **k):
+            ctx, pg = await apri(b, io, 3000, **k); await profilo(pg); profili.clear()
+            return ctx, pg
+        async def cambia(pg, voce, scelta=None, testo=None):
+            await pg.click(riga(voce) + " >> text=Cambia"); await pg.wait_for_timeout(150)
+            if scelta: await pg.click(riga(voce) + f' .editor .scelta:text-is("{scelta}")')
+            if testo is not None: await pg.fill(riga(voce) + " .editor textarea", testo)
+            await pg.click(riga(voce) + " .editor >> text=Segna"); await pg.wait_for_timeout(500)
+        async def togli(pg, voce):
+            await pg.click(riga(voce) + " >> text=Togli"); await pg.click(riga(voce) + " >> text=Sì, togli"); await pg.wait_for_timeout(500)
+
+        esito_profilo["stato"] = 200
+        ctx, pg = await con_profilo()
+        await cambia(pg, "vita", "Sono in pensione")
+        prova("13. «Cambia» la vita: /profilo {chi, voce vita, valore pensione}", arrivati() == [{"chi": CHI, "voce": "vita", "valore": "pensione"}], profili)
+        prova("13. con l'account (Authorization: Bearer <token>)", len(profili) == 1 and profili[0]["auth"] == "Bearer " + "t" * 64, profili)
+        prova("13. e il resto del Profilo non parte: solo la voce cambiata", len(profili) == 1, profili)
+        prova("13. la porta ha risposto: niente riga, niente da dire", not await vl(pg, "#profilo-nota") and await pg.evaluate(DA_DIRE) is None)
+        await ctx.close()
+
+        ctx, pg = await con_profilo()
+        await cambia(pg, "vita", "Studio")
+        prova("13. «Cambia» la vita in Studio: vita e anche mestiere (diventa Studio), una chiamata per ognuna",
+              sorted(arrivati(), key=lambda c: c["voce"]) == [{"chi": CHI, "voce": "mestiere", "valore": "Studio"}, {"chi": CHI, "voce": "vita", "valore": "studio"}], profili)
+        await ctx.close()
+
+        ctx, pg = await con_profilo()
+        await cambia(pg, "mestiere", "Ufficio")
+        prova("13. «Cambia» il mestiere: /profilo voce mestiere", arrivati() == [{"chi": CHI, "voce": "mestiere", "valore": "Ufficio"}], profili)
+        await ctx.close()
+
+        ctx, pg = await con_profilo()
+        await pg.click(riga("tempo") + " >> text=Cambia"); await pg.wait_for_timeout(150)
+        attuale = (await pg.inner_text(riga("tempo") + " .riga span:last-child")).strip()
+        nuovo = next((t for t in await testi(pg, riga("tempo") + " .editor .scelta") if t != attuale), "")
+        await pg.click(riga("tempo") + f' .editor .scelta:text-is("{nuovo}")'); await pg.click(riga("tempo") + " .editor >> text=Segna"); await pg.wait_for_timeout(500)
+        prova("13. «Cambia» il tempo: /profilo voce tempo, con la scelta fatta", bool(nuovo) and arrivati() == [{"chi": CHI, "voce": "tempo", "valore": nuovo}], [nuovo, profili])
+        await ctx.close()
+
+        ctx, pg = await con_profilo()
+        await cambia(pg, "dettaglio", testo="Ogni mattina perdo un'ora a mettere in ordine le bolle")
+        prova("13. «Cambia» il dettaglio (la casella lunga): /profilo voce dettaglio", arrivati() == [{"chi": CHI, "voce": "dettaglio", "valore": "Ogni mattina perdo un'ora a mettere in ordine le bolle"}], profili)
+        await ctx.close()
+
+        ctx, pg = await con_profilo()
+        await cambia(pg, "c:passioni", "Lettura")
+        prova("13. «Cambia» una risposta del ritorno: /profilo con la chiave (senza «c:»)", arrivati() == [{"chi": CHI, "voce": "passioni", "valore": "Cucina, Lettura"}] and not any(c.get("chiave") == "passioni" for c in conoscenze), [profili, conoscenze])
+        await ctx.close()
+
+        for voce, campo in (("vita", "vita"), ("mestiere", "mestiere"), ("tempo", "tempo"), ("dettaglio", "dettaglio"), ("c:inizio", "inizio")):
+            ctx, pg = await con_profilo()
+            await togli(pg, voce)
+            prova(f"13. «Togli» {campo}: /profilo voce {campo}, valore vuoto", arrivati() == [{"chi": CHI, "voce": campo, "valore": ""}], profili)
+            await ctx.close()
+
+        print("── 13. la porta giù: la voce resta, compare la riga, al prossimo ingresso si riprova")
+        esito_profilo["stato"] = 500
+        ctx, pg = await con_profilo()
+        await cambia(pg, "dettaglio", testo="Adesso lavoro meno")
+        io = await leggi_io(pg)
+        prova("13. porta 500: la voce è cambiata sul telefono e nell'elenco", io.get("dettaglio") == "Adesso lavoro meno" and "Adesso lavoro meno" in await pg.inner_text(riga("dettaglio")), io.get("dettaglio"))
+        prova("13. compare la riga «Non sono riuscito a dirlo all'assistente: riprovo quando torni»", await vl(pg, "#profilo-nota") and (await pg.inner_text("#profilo-nota")).strip() == NOTA, await pg.inner_text("#profilo-nota"))
+        prova("13. e si ricorda cosa dire, col codice", await pg.evaluate(DA_DIRE) == {"dettaglio": {"valore": "Adesso lavoro meno", "chi": CHI}}, await pg.evaluate(DA_DIRE))
+        await togli(pg, "tempo"); await cambia(pg, "dettaglio", testo="Adesso lavoro poco")
+        prova("13. un'altra modifica della stessa voce sostituisce la prima: ne vale una, l'ultima",
+              await pg.evaluate(DA_DIRE) == {"dettaglio": {"valore": "Adesso lavoro poco", "chi": CHI}, "tempo": {"valore": "", "chi": CHI}}, await pg.evaluate(DA_DIRE))
+        profili.clear()
+        await pg.reload(); await pg.wait_for_timeout(3500); await profilo(pg)
+        prova("13. ricaricando (porta ancora giù): riprova, e la riga c'è ancora", len(profili) >= 2 and await vl(pg, "#profilo-nota"), profili)
+        esito_profilo["stato"] = 200; profili.clear()
+        await pg.reload(); await pg.wait_for_timeout(3500); await profilo(pg)
+        prova("13. ricaricando (porta su): arrivano le due voci, l'ultima di ognuna", sorted(arrivati(), key=lambda c: c["voce"]) == [{"chi": CHI, "voce": "dettaglio", "valore": "Adesso lavoro poco"}, {"chi": CHI, "voce": "tempo", "valore": ""}], profili)
+        prova("13. e la riga se ne va, e non resta niente da dire", not await vl(pg, "#profilo-nota") and await pg.evaluate(DA_DIRE) is None)
+        profili.clear(); await pg.reload(); await pg.wait_for_timeout(3000)
+        prova("13. il giro dopo non rimanda niente", profili == [], profili)
+        await ctx.close()
+
+        # la porta che non risponde nemmeno (la richiesta cade): stessa cosa
+        esito_profilo["stato"] = 200
+        ctx, pg = await con_profilo()
+        await pg.route("**/profilo", lambda route: route.abort())
+        await cambia(pg, "mestiere", "Ufficio")
+        prova("13. richiesta caduta: la voce resta, la riga c'è, si ricorda", (await leggi_io(pg)).get("mestiere") == "Ufficio" and await vl(pg, "#profilo-nota")
+              and await pg.evaluate(DA_DIRE) == {"mestiere": {"valore": "Ufficio", "chi": CHI}}, await pg.evaluate(DA_DIRE))
+        await ctx.close()
+
+        # chi ha risposto «Cosa ti appassiona?» dopo aver tolto la voce con la porta giù: vale la risposta nuova
+        esito_profilo["stato"] = 500
+        ctx, pg = await con_profilo()
+        await togli(pg, "c:passioni")
+        await pg.evaluate("() => salvaConosciuta(CONOSCERTI.find(x => x.k === 'passioni'), 'Orto e giardino')"); await pg.wait_for_timeout(500)
+        prova("13. la risposta del ritorno dopo una «Togli» ancora da dire sostituisce la «Togli»", await pg.evaluate(DA_DIRE) == {"passioni": {"valore": "Orto e giardino", "chi": CHI}}, await pg.evaluate(DA_DIRE))
+        esito_profilo["stato"] = 200; profili.clear()
+        await pg.reload(); await pg.wait_for_timeout(3500)
+        prova("13. e al ritorno arriva quella (non la «Togli» vecchia)", arrivati() == [{"chi": CHI, "voce": "passioni", "valore": "Orto e giardino"}], profili)
+        await ctx.close()
+
+        # le cose da dire di un altro profilo non si mandano
+        ctx, pg = await apri(b, TUTTO, 2500)
+        await pg.evaluate("() => localStorage.setItem('jjavis-profilo-da-dire', JSON.stringify({vita: {valore: 'casa', chi: 'ffffffffffffffff'}}))")
+        profili.clear(); await pg.reload(); await pg.wait_for_timeout(3000)
+        prova("13. una voce da dire di un altro codice non parte e si butta", profili == [] and await pg.evaluate(DA_DIRE) is None, [profili, await pg.evaluate(DA_DIRE)])
+        await ctx.close()
+
+        # senza account non c'è nessuno a cui dirlo
+        ctx, pg = await apri(b, TUTTO, 3000, conto=False); await profilo(pg); profili.clear()
+        await cambia(pg, "mestiere", "Ufficio")
+        prova("13. senza account: il telefono cambia, la porta non si chiama, niente riga", (await leggi_io(pg)).get("mestiere") == "Ufficio" and profili == [] and not await vl(pg, "#profilo-nota") and await pg.evaluate(DA_DIRE) is None, profili)
         await ctx.close()
         await b.close()
     print(f"\n{sum(prove)}/{len(prove)} verdi"); print("VERDE" if all(prove) else "ROSSO"); sys.exit(0 if all(prove) else 1)   # VERDE/ROSSO: è l'ultima riga che legge Hera

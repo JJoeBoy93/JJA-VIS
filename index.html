@@ -1066,6 +1066,7 @@ html.di-casa #o1{display:none}
     <h3 class="sotto">Cosa so di te</h3>
     <p class="piccolo">Tutto quello che mi hai detto, niente di più. Sta in questo telefono; quello che mi hai mandato sta anche nell'archivio di chi mi costruisce. Ogni voce la cambi o la togli da qui.</p>
     <ul class="so-di-te" id="so-di-te"></ul>
+    <p class="avviso errore" id="profilo-nota" role="status" hidden>Non sono riuscito a dirlo all'assistente: riprovo quando torni</p>
     <p class="piccolo" style="margin:26px 0 0;padding-top:14px;border-top:1px solid var(--bordo)"><button class="collegamento" id="ricomincia-profilo">Dimentica tutto e ricomincia da capo</button></p>
   </div>
   </details>
@@ -2367,6 +2368,43 @@ function salvaConosciuta(q,testo){
   salva();
   if(INVIO) fetch(INVIO.replace("/risposta","/conoscenza"),{method:"POST",headers:{"Content-Type":"application/json"},
     body:JSON.stringify({chi:io.id, chiave:q.k, domanda:q.d, risposta:testo, nome_assistente:io.nome||"", tema:io.tema||"tech"})}).catch(()=>{});
+  // se di questa voce c'è una «Togli»/«Cambia» ancora da dire, vale la risposta nuova (altrimenti il rinvio la toglierebbe all'archivio)
+  const da=profiloDaDire(); if(da[q.k]){ da[q.k]={valore:testo||"",chi:io.id}; segnaProfilo(da); dilloProfilo(); }
+}
+// ══ IL PROFILO ARRIVA ALL'ASSISTENTE ══ 28/10, JJ: «quello che si cambia nel Profilo arriva davvero all'assistente». «Cambia» e «Togli» di OGNI voce
+// di «Imparo te» (vita, mestiere, tempo, dettaglio, le risposte del ritorno) chiamano la porta (POST /profilo {chi, voce, valore}; valore vuoto = togli):
+// prima restavano sul telefono e nell'account, e /conoscenza (un merge) non toglieva niente dall'archivio, dove la vita salvata vince.
+// Con l'account (la porta lo vuole). Se la porta non risponde la voce resta cambiata sul telefono e nell'account, compare una riga e al prossimo
+// ingresso si riprova. Il «da dire» sta in una chiave sua, per telefono (come per «Cancella la conversazione»): una voce per chiave, vale l'ultima,
+// col codice (chi) di chi l'ha cambiata: se il profilo è un altro, non si manda. La domanda di oggi resta su /conoscenza.
+const PROFILO_CHIAVE="jjavis-profilo-da-dire";
+const profiloDaDire=()=>{ try{ const x=JSON.parse(localStorage.getItem(PROFILO_CHIAVE)||"{}"); return x&&typeof x==="object"&&!Array.isArray(x)?x:{}; }catch(_){ return {}; } };
+const segnaProfilo=x=>{ try{ if(Object.keys(x).length) localStorage.setItem(PROFILO_CHIAVE,JSON.stringify(x)); else localStorage.removeItem(PROFILO_CHIAVE); }catch(_){} };
+const notaProfilo=()=>{ $("profilo-nota").hidden=!(contoToken() && Object.keys(profiloDaDire()).length); };
+function profiloCambiato(voci){
+  if(!contoToken()||!INVIO||!io.id) return Promise.resolve(false);   // senza account non c'è nessuno a cui dirlo
+  const da=profiloDaDire(); voci.forEach(([voce,valore])=>{ da[voce]={valore,chi:io.id}; }); segnaProfilo(da);
+  return dilloProfilo();
+}
+let profiloInCorso=null, profiloDiNuovo=false;
+function dilloProfilo(){
+  if(profiloInCorso){ profiloDiNuovo=true; return profiloInCorso; }
+  if(!contoToken()||!INVIO){ notaProfilo(); return Promise.resolve(false); }
+  return profiloInCorso=(async()=>{
+    let tutto=true;
+    do{ profiloDiNuovo=false; tutto=true;
+      const da=profiloDaDire(); Object.keys(da).forEach(voce=>{ if(da[voce].chi!==io.id) delete da[voce]; }); segnaProfilo(da);   // quelle di un altro profilo non sono più da dire
+      for(const voce of Object.keys(da)){
+        const {valore}=da[voce]; let dato=false;
+        try{ const r=await fetch(INVIO.replace("/risposta","/profilo"),{method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+contoToken()},body:JSON.stringify({chi:io.id,voce,valore}),
+          ...(typeof AbortSignal!=="undefined"&&AbortSignal.timeout?{signal:AbortSignal.timeout(8000)}:{})});
+          dato=r.ok; }catch(_){ dato=false; }
+        if(!dato){ tutto=false; continue; }
+        const ora=profiloDaDire(); if(ora[voce]&&ora[voce].valore===valore){ delete ora[voce]; segnaProfilo(ora); }   // se nel frattempo è cambiata ancora, resta e si rimanda
+      }
+    }while(profiloDiNuovo);
+    notaProfilo(); return tutto;
+  })().finally(()=>{ profiloInCorso=null; });
 }
 function mostraDomanda(){
   const q=domandaDiOggi(); const box=$("conosci");
@@ -2485,6 +2523,7 @@ if(!contoToken()) $("spiega-chat").innerHTML='Chiedimi quello che vuoi, sul tuo 
 apertura();
 ridisegnaChat();
 if(cancellaDaDire()) dilloCancellata();   // 28/10: all'ingresso si riprova a dire all'assistente la cancellazione che non era arrivata
+notaProfilo(); if(Object.keys(profiloDaDire()).length) dilloProfilo();   // 28/10: e le voci del Profilo cambiate (o tolte) che la porta non aveva saputo
 // chi aveva già finito il sondaggio prima del 22/10 e non ha mai avuto la proposta: la riceve alla prima apertura
 if(io.inviato && !io.primo && contoToken()) setTimeout(()=>primoIncontro(""), 2500);
 // nome e tema fatti ma la nascita non è arrivata (porta giù, o chi c'era già prima del 22/10): riprova all'apertura
@@ -2916,12 +2955,20 @@ function vociProfilo(){
   if(io.dettaglio) v.push({k:"dettaglio", et:"Quello che mi hai scritto", val:io.dettaglio,
     q:{s:[], libera:"Scrivilo con parole tue", max:800, lungo:true}, corrente:io.dettaglio, applica:t=>{ io.dettaglio=t; }, togli:()=>{ delete io.dettaglio; } });
   Object.entries(io.conosciute||{}).forEach(([k,val])=>{ const q=CONOSCERTI.find(x=>x.k===k);
-    v.push({k:"c:"+k, et:ETICHETTE_SO[k]||k, val, q:q||null, corrente:val, applica:t=>salvaConosciuta(q,t), togli:()=>salvaConosciuta(q||{k,d:k},"")}); });
+    v.push({k:"c:"+k, et:ETICHETTE_SO[k]||k, val, q:q||null, corrente:val, applica:t=>{ io.conosciute[k]=t; }, togli:()=>{ delete io.conosciute[k]; }}); });
   if(io.mail) v.push({et:"La tua mail", val:io.mail, nota:"la cambi qui sopra"});
   return v;
 }
 // dopo ogni cambio: il telefono e il conto (salva), poi tutto quello che dipende dalla vita si rifà
 function dopoCambio(){ salva(); aggiornaTasti(); disegnaVoci(); mostraDomanda(); }
+// «Cambia» e «Togli» di una voce: cambia io (telefono e conto), poi la porta lo sa (POST /profilo, una chiamata per OGNI voce che è cambiata:
+// cambiando la vita può cambiare anche il mestiere, «Studio»). Vedi «IL PROFILO ARRIVA ALL'ASSISTENTE» sopra.
+const fotoProfilo=()=>{ const f={}; ["vita","mestiere","tempo","dettaglio"].forEach(k=>{ f[k]=io[k]||""; }); Object.entries(io.conosciute||{}).forEach(([k,v])=>{ f["c:"+k]=v||""; }); return f; };
+function cambiaVoce(cambia){
+  const prima=fotoProfilo(); cambia(); const dopo=fotoProfilo(); dopoCambio();
+  const cambiate=Object.keys({...prima,...dopo}).filter(k=>(prima[k]||"")!==(dopo[k]||""));
+  if(cambiate.length) profiloCambiato(cambiate.map(k=>[k.replace(/^c:/,""), dopo[k]||""]));
+}
 function disegnaVoci(){
   const ul=$("so-di-te"); ul.innerHTML=""; const voci=vociProfilo(); rigaImparo();
   if(!voci.length){ const li=document.createElement("li"); li.innerHTML='<div class="riga"><span>Per ora</span><span>niente: non mi hai ancora detto nulla</span></div>'; ul.appendChild(li); return; }
@@ -2939,12 +2986,12 @@ function disegnaVoci(){
       const ok=document.createElement("button"); ok.type="button"; ok.className="invia"; ok.textContent="Segna";
       const no=btn("Annulla",chiudi); no.style.marginTop="10px";
       ed.append(sc,lib,ok,no);
-      legaDomanda({sc,lib,testo,ok}, vo.q, vo.corrente, true, t=>{ vo.applica(t); dopoCambio(); });
+      legaDomanda({sc,lib,testo,ok}, vo.q, vo.corrente, true, t=>cambiaVoce(()=>vo.applica(t)));
     })); }
     az.appendChild(btn("Togli",()=>{
       ed.hidden=true; az.hidden=true; const c=document.createElement("div"); c.className="azioni";
       const dom=document.createElement("span"); dom.textContent=`Tolgo “${vo.et}”?`;
-      c.append(dom, btn("Sì, togli",()=>{ vo.togli(); dopoCambio(); }), btn("No",()=>{ c.remove(); az.hidden=false; })); li.insertBefore(c,ed);
+      c.append(dom, btn("Sì, togli",()=>cambiaVoce(()=>vo.togli())), btn("No",()=>{ c.remove(); az.hidden=false; })); li.insertBefore(c,ed);
     }));
     li.append(az,ed); ul.appendChild(li); });
 }
