@@ -290,15 +290,23 @@ async def main():
         PRIMA = {"inizio": "Dopo le 8", "parlare": "Breve e diretto"}
         MESTIERI = ["Corriere o autista", "Negozio o commercio", "Artigiano o tecnico", "Sanità", "Ufficio", "Guida turistica", "Creator o gamer", "Altro"]
         ctx, pg = await apri(b, {**DI_CASA, "vita": "pensione", "conosciute": PRIMA}, 3000)
+        # chi è di casa (sondaggio fatto) vede la chat a tutto schermo e il benvenuto è dietro ☰: la domanda deve stare NELLA chat e vedersi
+        prova("12. la domanda sta nella chat, sotto i messaggi, e si VEDE (non solo il testo)", await vede(pg, "#conosci") and await vede(pg, "#conosci-domanda")
+              and await pg.evaluate("document.querySelector('#conosci').parentElement.id") == "chat-area" and not await vede(pg, "#benvenuto"))
         prova("12. pensione: «Che lavoro hai fatto nella vita?»", await pg.inner_text("#conosci-domanda") == "Che lavoro hai fatto nella vita?", await pg.inner_text("#conosci-domanda"))
         prova("12. con i mestieri di #d1, senza «Studio»", await testi(pg, "#conosci-scelte .scelta") == MESTIERI, await testi(pg, "#conosci-scelte .scelta"))
-        prova("12. e la casella libera", await vede(pg, "#conosci-testo"))
+        prova("12. e la casella libera, che si vede", await vede(pg, "#conosci-testo") and await vede(pg, "#conosci-ok"))
         await pg.fill("#conosci-testo", "il falegname"); await pg.click("#conosci-ok"); await pg.wait_for_timeout(300)
         io = await leggi_io(pg)
         prova("12. scritto con parole sue: salvato com'è", io["conosciute"].get("mestiere_di_una_vita") == "il falegname", io["conosciute"])
         prova("12. e arrivato a /conoscenza", any(c.get("chiave") == "mestiere_di_una_vita" and c.get("risposta") == "il falegname" and c.get("chi") == CHI for c in conoscenze), conoscenze)
         await pg.wait_for_timeout(1200)
-        prova("12. poi viene «Cosa ti appassiona?»", await pg.inner_text("#conosci-domanda") == "Cosa ti appassiona?", await pg.inner_text("#conosci-domanda"))
+        prova("12. nella chat una domanda per volta: risposto, la prossima non parte da sola", not await vede(pg, "#conosci"))
+        # aperto il benvenuto da ☰ (conv-resto) le domande tornano in fila, come prima
+        await pg.click("#apri-conv"); await pg.wait_for_timeout(450); await pg.click("#conv-resto"); await pg.wait_for_timeout(500)
+        prova("12. da ☰ → «Il benvenuto e le domande del giorno»: la domanda è lì, «Cosa ti appassiona?»", await vede(pg, "#benvenuto #conosci") and await pg.inner_text("#conosci-domanda") == "Cosa ti appassiona?", await pg.inner_text("#conosci-domanda"))
+        await pg.click("#torna-chat"); await pg.wait_for_timeout(400)
+        prova("12. tornato alla chat, la domanda è di nuovo nella chat", await vede(pg, "#chat-area #conosci"))
         await ctx.close()
         ctx, pg = await apri(b, {**DI_CASA, "vita": "casa", "conosciute": PRIMA}, 3000)
         prova("12. casa: «C'è un lavoro che hai fatto, o che ti sarebbe piaciuto fare?»", await pg.inner_text("#conosci-domanda") == "C'è un lavoro che hai fatto, o che ti sarebbe piaciuto fare?", await pg.inner_text("#conosci-domanda"))
@@ -313,6 +321,7 @@ async def main():
             prova(f"12. vita {vita}: «Cosa ti appassiona?» con le nove scelte",
                   await pg.inner_text("#conosci-domanda") == "Cosa ti appassiona?" and await testi(pg, "#conosci-scelte .scelta") ==
                   ["Orto e giardino", "Cucina", "Nipoti e famiglia", "Lettura", "Viaggi e gite", "Musica e ballo", "Sport", "Volontariato", "Fai da te"], await testi(pg, "#conosci-scelte .scelta"))
+            prova(f"12. vita {vita}: domanda e casella si vedono nella chat", await vede(pg, "#chat-area #conosci") and await vede(pg, "#conosci-testo"))
             prova(f"12. vita {vita}: la casella libera dice «per esempio: il burraco, le bocce, il coro»", "per esempio: il burraco, le bocce, il coro" in (await pg.get_attribute("#conosci-testo", "placeholder")))
             prova(f"12. vita {vita}: senza scelte né testo «Segna» è spento", await pg.is_disabled("#conosci-ok"))
             await pg.click('#conosci-scelte .scelta:has-text("Orto e giardino")'); await pg.click('#conosci-scelte .scelta:has-text("Cucina")')

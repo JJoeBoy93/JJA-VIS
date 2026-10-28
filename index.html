@@ -322,6 +322,8 @@ body.chat-sola #chat-vuota{display:block;margin:auto;width:100%;max-width:420px;
 body.chat-sola #chat-vuota .saluto-vuoto{font:600 24px/1.3 var(--f-titoli);margin:0 0 20px;color:var(--testo)}
 .prove-chat{display:flex;flex-direction:column;gap:10px}
 #prove-chat{display:none}
+body.chat-sola:not(.resto-aperto) #chat-area #conosci{width:100%;max-width:420px;margin:16px auto 0;padding:14px;border:1px solid var(--bordo);background:color-mix(in srgb,var(--accento) 5%,transparent)}
+#conosci-libera{margin-top:12px}
 body.chat-sola #prove-chat:not([hidden]){display:flex;width:100%;max-width:420px;margin:16px auto 0}
 .prova-chat{display:block;width:100%;min-height:60px;padding:14px 16px;text-align:left;font:600 19px/1.25 var(--f-testo);color:var(--testo);cursor:pointer;
   background:color-mix(in srgb,var(--accento) 8%,var(--panel));border:1px solid var(--bordo)}
@@ -1429,7 +1431,16 @@ function apertura(){
 // chat a tutto schermo; il benvenuto e le domande del giorno stanno dietro un collegamento nel pannello ☰ (resto-aperto).
 // Si separa la vista, non la memoria: all'assistente arriva tutto come prima.
 const diCasa=()=>!!(io.nome && io.inviato && !io.inizio);
-function modoChat(){ document.body.classList.toggle("chat-sola", diCasa()); aggiornaChat(); }
+function modoChat(){ document.body.classList.toggle("chat-sola", diCasa()); postaDomanda(); aggiornaChat(); }
+// 28/10: chi è di casa vede la chat a tutto schermo e il benvenuto è dietro ☰: le domande del ritorno non le vedeva nessuno (le
+// passioni e il lavoro di una vita non li avrebbe imparati nessuno). Per lui la domanda sta nella chat, sotto i messaggi, UNA
+// per volta quando torna; aperto il benvenuto da ☰ torna al suo posto, con le domande in fila come prima.
+function postaDomanda(){
+  const c=$("conosci"); if(!c) return;
+  const inChat=document.body.classList.contains("chat-sola") && !document.body.classList.contains("resto-aperto");
+  if(inChat){ if(c.parentElement!==$("chat-area")) $("chat").after(c); }
+  else if(c.parentElement!==$("benvenuto")) $("benvenuto").insertBefore(c, $("conosci-fine"));
+}
 // una risposta in attesa: dalla porta (attesa), o una richiesta che sta ancora andando (parlando, invio)
 const rispostaInAttesa=()=>parlando || invio!==null || (io.chat||[]).some(m=>m.attesa);
 function aggiornaChat(){
@@ -1526,8 +1537,8 @@ document.addEventListener("keydown", e=>{ if(e.key!=="Escape") return;
   if(!$("cal-velo").hidden){ calChiudiFoglio(); return; }
   if($("conversazioni").classList.contains("aperta")) chiudiConv(); });
 // il benvenuto e le domande del giorno: dietro un collegamento, non sopra la chat
-function apriResto(){ if(!document.body.classList.contains("chat-sola")) return; chiudiConv(); document.body.classList.add("resto-aperto"); window.scrollTo(0,0); }
-function chiudiResto(){ if(!document.body.classList.contains("resto-aperto")) return; document.body.classList.remove("resto-aperto"); window.scrollTo(0,0); requestAnimationFrame(()=>{ scorriChat(); segnaLette(); }); }
+function apriResto(){ if(!document.body.classList.contains("chat-sola")) return; chiudiConv(); document.body.classList.add("resto-aperto"); postaDomanda(); mostraDomanda(); window.scrollTo(0,0); }
+function chiudiResto(){ if(!document.body.classList.contains("resto-aperto")) return; document.body.classList.remove("resto-aperto"); postaDomanda(); window.scrollTo(0,0); requestAnimationFrame(()=>{ scorriChat(); segnaLette(); }); }
 $("torna-chat").addEventListener("click", chiudiResto);
 // la tastiera: la chat occupa quello che si vede davvero, e la casella non finisce mai sotto
 (function(){
@@ -1890,7 +1901,7 @@ fetch("https://api.github.com/repos/JJoeBoy93/JJA-VIS/contents/video").then(r=>r
 // novita' le mette JJ dal bot, quando c'e' davvero qualcosa di nuovo.
 if(INVIO){
   fetch(INVIO.replace("/risposta","/vetrina")).then(r=>r.ok?r.json():{}).then(v=>{
-    if(Number.isInteger(v.canzoni)) $("n-canzoni").textContent=v.canzoni.toLocaleString("it-IT");
+    if(Number.isInteger(v.canzoni)) $("n-canzoni").textContent=String(v.canzoni).replace(/\B(?=(\d{3})+(?!\d))/g,".");   // 28/10: toLocaleString("it-IT") non mette il punto ai numeri a quattro cifre (5747), e il numero di partenza è «4.639»
     if(Number.isInteger(v.attrezzi)) $("n-attrezzi").textContent=String(v.attrezzi);
   }).catch(()=>{});
   fetch(INVIO.replace("/risposta","/novita")).then(r=>r.ok?r.json():[]).then(el=>{
@@ -2167,7 +2178,8 @@ function mostraDomanda(){
     const g=$("conosci-grazie"); g.hidden=false; g.textContent="Segnato.";
     // JJ, 26 settembre: «se rispondo che l'ora cambia ogni giorno quella
     // domanda deve cambiare subito, non devo ricaricare la pagina».
-    setTimeout(mostraDomanda, 900);
+    // nella chat una domanda per volta: la prossima la fa quando la persona torna
+    setTimeout(()=>{ if($("conosci").parentElement===$("chat-area")) $("conosci").hidden=true; else mostraDomanda(); }, 900);
     if(INVIO) fetch(INVIO.replace("/risposta","/conoscenza"),{method:"POST",headers:{"Content-Type":"application/json"},
       body:JSON.stringify({chi:io.id, chiave:q.k, domanda:q.d, risposta:testo, nome_assistente:io.nome||"", tema:io.tema||"tech"})}).catch(()=>{});
   };

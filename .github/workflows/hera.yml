@@ -45,7 +45,7 @@ jobs:
           python -u collaudo/insieme.py citta.html > insieme.log 2>&1 || true   # mai fermarsi qui: l'annotazione sotto deve dire PERCHÉ
           cat insieme.log
           if ! tail -1 insieme.log | grep -qx VERDE; then
-            NO=$(grep -E '^  NO' insieme.log | head -3 | tr '\n' '|')
+            NO=$(grep -E '^  (NO|❌)' insieme.log | head -3 | tr '\n' '|')
             echo "::error::Hera: la città insieme è ROSSA — ${NO:-nessuna prova rossa: è caduto. Ultime righe: $(tail -6 insieme.log | tr '\n' '|' | cut -c1-900)}"; exit 1; fi
           echo "::notice::Hera: città insieme $(tail -2 insieme.log | head -1)"
 
@@ -54,7 +54,7 @@ jobs:
           python -u collaudo/conto.py citta.html > conto.log 2>&1 || true   # mai fermarsi qui: l'annotazione sotto deve dire PERCHÉ
           cat conto.log
           if ! tail -1 conto.log | grep -qx VERDE; then
-            NO=$(grep -E '^  NO' conto.log | head -3 | tr '\n' '|')
+            NO=$(grep -E '^  (NO|❌)' conto.log | head -3 | tr '\n' '|')
             echo "::error::Hera: l'account è ROSSO — ${NO:-nessuna prova rossa: è caduto. Ultime righe: $(tail -6 conto.log | tr '\n' '|' | cut -c1-900)}"; exit 1; fi
           echo "::notice::Hera: account $(tail -2 conto.log | head -1)"
 
@@ -67,7 +67,7 @@ jobs:
             ESCE=0; python -u collaudo/$f.py index.html > $f.log 2>&1 || ESCE=$?   # bash -e: senza «||» il primo rosso chiude il passo muto
             echo "── $f (esce $ESCE)"; cat $f.log
             if [ $ESCE -ne 0 ] || ! tail -1 $f.log | grep -qx VERDE; then
-              ROSSE="$ROSSE $f: $(grep -E '^  NO' $f.log | head -2 | tr '\n' '|' | cut -c1-300)(esce $ESCE)|"; fi
+              ROSSE="$ROSSE $f: $(grep -E '^  (NO|❌)' $f.log | head -2 | tr '\n' '|' | cut -c1-300)(esce $ESCE)|"; fi
           done
           if [ -n "$ROSSE" ]; then echo "::error::Hera: la pagina è ROSSA —$ROSSE"; exit 1; fi
           echo "::notice::Hera: pagina VERDE (primo, nato, conversazioni, schede, vita)"
@@ -78,7 +78,7 @@ jobs:
           python -u collaudo/citta.py citta.html > citta.log 2>&1 || true   # mai fermarsi qui: l'annotazione sotto deve dire PERCHÉ
           cat citta.log
           if ! tail -1 citta.log | grep -qx VERDE; then
-            NO=$(grep -E '^  NO' citta.log | head -3 | tr '\n' '|')
+            NO=$(grep -E '^  (NO|❌)' citta.log | head -3 | tr '\n' '|')
             # 19/10: «è caduto» con le sole righe di playwright non dice DOVE; il registro intero non si scarica da qui
             DOVE=$(grep -o 'collaudo/citta.py", line [0-9]*' citta.log | tail -1)
             PRIMA=$(grep -B1 -m1 '^Traceback' citta.log | head -1 | cut -c1-200)

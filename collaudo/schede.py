@@ -72,7 +72,8 @@ async def instrada(route):
             ordina=lambda l: sorted(l,key=lambda x:(x["giorno"],x.get("ora") or ""))
             return await route.fulfill(body=json.dumps({"impegni":ordina(CAL["impegni"]),"scadenze":ordina(CAL["scadenze"]),"fatti":CAL["fatti"]}), content_type="application/json", headers=CORS)
         if u.endswith("/nova"): return await route.fulfill(body=json.dumps({"acceso":NOVA["acceso"]}), content_type="application/json")
-        if u.endswith("/vetrina"): return await route.fulfill(body='{"canzoni":5747,"attrezzi":41}', content_type="application/json")
+        # 28/10: senza l'intestazione CORS il browser buttava la risposta e «i numeri della vetrina arrivano» era rossa da prima
+        if u.endswith("/vetrina"): return await route.fulfill(body='{"canzoni":5747,"attrezzi":41}', content_type="application/json", headers={"Access-Control-Allow-Origin":"https://jjoeboy93.github.io"})
         if "/risposte" in u:
             conta_risposte.append(1); risposte_di[route.request.frame.page]=risposte_di.get(route.request.frame.page,0)+1
             return await route.fulfill(body=json.dumps({"risposte":RISPOSTE}), content_type="application/json")
@@ -206,9 +207,11 @@ async def main():
         d1=await pg3.evaluate("document.getElementById('conosci-domanda').textContent"); ok("ora comincia" in d1, "prima domanda: "+d1)
         await pg3.click('#conosci-scelte .scelta:has-text("Cambia ogni giorno")'); await pg3.wait_for_timeout(1200)
         d2=await pg3.evaluate("document.getElementById('conosci-domanda').textContent"); ok(d2!=d1 and d2, "dopo un secondo, senza ricaricare: "+d2)
-        for _ in range(8):
+        for _ in range(10):
             if not await pg3.is_visible("#conosci-scelte .scelta:not([disabled])"): break
-            await pg3.click("#conosci-scelte .scelta:not([disabled]) >> nth=0"); await pg3.wait_for_timeout(1100)
+            await pg3.click("#conosci-scelte .scelta:not([disabled]) >> nth=0")
+            if await pg3.is_visible("#conosci-ok") and not await pg3.is_disabled("#conosci-ok"): await pg3.click("#conosci-ok")   # 28/10: a scelta multipla si manda con «Segna»
+            await pg3.wait_for_timeout(1100)
         ok(await pg3.is_visible("#conosci-fine") and not await pg3.is_visible("#conosci"), "finite le domande: «di te so già parecchio»")
         await pg3.close()
         print("── le risposte arrivano da sole")
