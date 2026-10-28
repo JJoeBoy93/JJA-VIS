@@ -8,14 +8,15 @@ serviti da qui. Verde = 0 errori JavaScript e tutte le prove passate.
 Nato il 26 settembre 2026 (Athena): era rosso sull'errore d'avvio che
 avrebbe fermato la pagina a chi torna.
 """
-import json, asyncio, sys, os
+import json, asyncio, sys, os, re
+from datetime import datetime as _dt, timezone as _tz, timedelta as _td
 from playwright.async_api import async_playwright
 import aiuti; aiuti.sezioni_aperte()   # 28/10: le sezioni dei pannelli sono chiuse finché non si toccano; qui si aprono tutte (collaudo/sezioni.py prova le chiuse)
 PAGINA=open(sys.argv[1],encoding="utf-8").read()
 PORTA="https://jjavis-porta.19-jjardito93.workers.dev"
 BASE="https://jjoeboy93.github.io/JJA-VIS/"
 inviati=[]
-CAL={"impegni":[],"scadenze":[],"fatti":[],"giu":False,"n":0,"invito":"mandato","invito_errore":None}   # il calendario della porta finta (26/10)
+CAL={"impegni":[],"scadenze":[],"giu":False,"n":0,"invito":"mandato","invito_errore":None}   # il calendario della porta finta (26/10)
 conta_risposte=[]
 risposte_di={}   # quante volte ha chiesto /risposte ogni pagina: altre pagine aperte nello stesso browser chiedono per conto loro
 async def instrada(route):
@@ -28,18 +29,22 @@ async def instrada(route):
         if route.request.method=="POST":
             corpo=json.loads(route.request.post_data); inviati.append((u.split("/")[-1], corpo))
             if u.endswith("/assistente/fatto") or u.endswith("/assistente/annulla"):
+                # 28/10, la porta vera: «fatto» SEGNA la voce (fatto: <ISO>) e la lascia dov'è; «annulla» toglie il segno; già fatto / non fatto → 409
                 CORS={"Access-Control-Allow-Origin":"https://jjoeboy93.github.io"}
                 if CAL["giu"]: return await route.fulfill(status=502, body='{"errore":"non riesco a salvare: riprova tra poco"}', content_type="application/json", headers=CORS)
-                i=corpo["id"]
-                if u.endswith("/fatto"):
+                i=corpo["id"]; voce=next((x for k in ("impegni","scadenze") for x in CAL[k] if x["id"]==i), None)
+                if voce is None: return await route.fulfill(status=404, body='{"errore":"non è tuo, o non esiste"}', content_type="application/json", headers=CORS)
+                if u.endswith("/fatto") and CAL.get("cancella"):   # CONTROPROVA: la porta di prima del 28/10, dove «fatto» toglieva la voce
                     for k in ("impegni","scadenze"):
-                        for x in list(CAL[k]):
-                            if x["id"]==i: CAL[k].remove(x); CAL["fatti"].append({**x,"id":i,"tipo":"impegno" if k=="impegni" else "scadenza","quando_fatto":"2026-10-26T10:00:00Z"})
+                        if voce in CAL[k]: CAL[k].remove(voce)
+                    return await route.fulfill(status=200, body=json.dumps({"ok":True,"id":i}), content_type="application/json", headers=CORS)
+                if u.endswith("/fatto"):
+                    if voce.get("fatto"): return await route.fulfill(status=409, body='{"errore":"già fatto"}', content_type="application/json", headers=CORS)
+                    voce["fatto"]=_dt.now(_tz.utc).isoformat()
                 else:
-                    for x in list(CAL["fatti"]):
-                        if x["id"]==i:
-                            CAL["fatti"].remove(x); CAL["scadenze" if x["tipo"]=="scadenza" else "impegni"].append({k:v for k,v in x.items() if k not in ("tipo","quando_fatto")})
-                return await route.fulfill(status=200, body=json.dumps({"ok":True,"id":i}), content_type="application/json", headers=CORS)
+                    if not voce.get("fatto"): return await route.fulfill(status=409, body='{"errore":"non è fatto: niente da annullare"}', content_type="application/json", headers=CORS)
+                    del voce["fatto"]
+                return await route.fulfill(status=200, body=json.dumps({"ok":True,"id":i,**({"fatto":voce["fatto"]} if voce.get("fatto") else {})}), content_type="application/json", headers=CORS)
             if u.endswith("/assistente/invito"):
                 # 27/10: rimanda la mail dell'invito (la porta vera: 404 se non è suo, 429 oltre 5 al giorno)
                 CORS={"Access-Control-Allow-Origin":"https://jjoeboy93.github.io"}
@@ -71,7 +76,7 @@ async def instrada(route):
             CORS={"Access-Control-Allow-Origin":"https://jjoeboy93.github.io"}
             if CAL["giu"]: return await route.abort()
             ordina=lambda l: sorted(l,key=lambda x:(x["giorno"],x.get("ora") or ""))
-            return await route.fulfill(body=json.dumps({"impegni":ordina(CAL["impegni"]),"scadenze":ordina(CAL["scadenze"]),"fatti":CAL["fatti"]}), content_type="application/json", headers=CORS)
+            return await route.fulfill(body=json.dumps({"impegni":ordina(CAL["impegni"]),"scadenze":ordina(CAL["scadenze"])}), content_type="application/json", headers=CORS)   # 28/10: niente più «fatti» a parte: le fatte hanno `fatto`
         if u.endswith("/nova"): return await route.fulfill(body=json.dumps({"acceso":NOVA["acceso"]}), content_type="application/json")
         # 28/10: senza l'intestazione CORS il browser buttava la risposta e «i numeri della vetrina arrivano» era rossa da prima
         if u.endswith("/vetrina"): return await route.fulfill(body='{"canzoni":5747,"attrezzi":41}', content_type="application/json", headers={"Access-Control-Allow-Origin":"https://jjoeboy93.github.io"})
@@ -553,8 +558,9 @@ async def main():
         GIORNI=["lunedì","martedì","mercoledì","giovedì","venerdì","sabato","domenica"]
         bello=lambda d,anno=False: f"{GIORNI[d.weekday()]} {d.day} {MESI[d.month-1]}"+(f" {d.year}" if anno else "")
         oggi_=date.today(); ieri_=oggi_-timedelta(days=1); domani_=oggi_+timedelta(days=1); dopo_=oggi_+timedelta(days=2)
-        CAL.update(giu=False, rifiuta=None, n=0, invito="mandato", invito_errore=None, fatti=[], impegni=[
+        CAL.update(giu=False, rifiuta=None, n=0, invito="mandato", invito_errore=None, impegni=[
             {"id":"i-ieri","cosa":"l'oculista","giorno":iso(ieri_),"ora":"10:00"},
+            {"id":"i-ieri-fatto","cosa":"il fabbro","giorno":iso(ieri_),"ora":"11:00","fatto":(_dt.now(_tz.utc)-_td(days=1)).isoformat()},   # 28/10: già fatto, e di ieri: NON è «rimasto indietro»
             {"id":"i-oggi","cosa":"chiamare il commercialista","giorno":iso(oggi_),"ora":"15:30","nota":"porta il badge\nsecondo piano"},
             {"id":"i-dopo","cosa":"la revisione","giorno":iso(dopo_),"ora":"09:00"}],
           scadenze=[{"id":"s-bollo","cosa":"bollo auto","giorno":iso(domani_),"importo":"€ 180","ogni_mese":False}])
@@ -632,32 +638,76 @@ async def main():
         await r_.locator(".cal-fatto").click(); await pg11.wait_for_timeout(900)
         fatti_=[d for (r,d) in inviati[prima_:] if r=="fatto"]
         ok(len(fatti_)==1 and fatti_[0]=={"id":"i-dopo"} and len([1 for (r,d) in inviati[prima_:] if r in ("fatto","annulla")])==1, "UNA POST /assistente/fatto, con il suo id")
-        ok("la revisione" not in await pg11.inner_text(cella(dopo_)) and "Niente in questo giorno" in await pg11.inner_text("#cal-giorno-casa"), "l'etichetta sparisce dalla griglia e il giorno è vuoto: «Niente in questo giorno»")
+        # 28/10, JJ: «non deve sparire dal calendario, deve restare come fatto»: la voce RESTA, segnata
+        oggi_it=oggi_.strftime("%d/%m")
+        rf_=pg11.locator('#cal-giorno-casa .cal-riga.fatta[data-id="i-dopo"]')
+        ok(await rf_.count()==1 and "Niente in questo giorno" not in await pg11.inner_text("#cal-giorno-casa"), "dopo «Fatto» la riga RESTA nell'agenda del giorno, segnata (non sparisce: il giorno non è vuoto)")
+        t_=await rf_.inner_text()
+        ok("✓" in t_ and "la revisione" in t_ and f"fatto il {oggi_it}" in t_, f"…con ✓ e «fatto il {oggi_it}» ({t_!r})")
+        ok(await pg11.evaluate("getComputedStyle(document.querySelector('#cal-giorno-casa .cal-riga.fatta .cal-barrata')).textDecorationLine")=="line-through" and not await pg11.evaluate("getComputedStyle(document.querySelector('#cal-giorno-casa .cal-riga.fatta small')).textDecorationLine.includes('line-through')"), "il testo è barrato (e «fatto il …» no)")
+        ok(await pg11.evaluate("""(()=>{const c=s=>{const e=document.createElement('i');e.style.color='var(--'+s+')';document.body.appendChild(e);const v=getComputedStyle(e).color;e.remove();return v};
+          return getComputedStyle(document.querySelector('#cal-giorno-casa .cal-riga.fatta .cal-cosa')).color===c('tenue') && c('tenue')!==c('testo')})()"""), "…e smorzato (colore «tenue», diverso dal testo normale)")
+        ok(await rf_.locator(".cal-fatto").count()==0 and "Non ancora fatto" in await rf_.locator(".cal-disfa").inner_text() and (await rf_.locator(".cal-disfa").evaluate("e=>e.getBoundingClientRect().height"))>=44, "il tasto «✓ Fatto» non c'è più: c'è «Non ancora fatto» (grande)")
+        ok(await pg11.locator(cella(dopo_)+" .cal-et.fatta").count()==1 and "✓ la revisione" in await pg11.inner_text(cella(dopo_)+" .cal-et.fatta") and await pg11.locator(cella(dopo_)+" .cal-et.imp").count()==0, "nel mese l'etichetta RESTA, spenta («✓ la revisione»), non più quella viva")
+        ok(await pg11.evaluate("getComputedStyle(document.querySelector('%s .cal-et.fatta')).textDecorationLine"%cella(dopo_))=="line-through" and await pg11.evaluate("getComputedStyle(document.querySelector('%s .cal-et.fatta')).backgroundColor"%cella(dopo_))=="rgba(0, 0, 0, 0)", "…barrata e senza il colore pieno")
+        ok(await pg11.get_attribute(cella(dopo_),"class") and "fatte" in await pg11.get_attribute(cella(dopo_),"class") and "tutte fatte" in await pg11.get_attribute(cella(dopo_),"aria-label"), "la casella del giorno, con tutte le voci fatte, è «fatte» (e lo dice a chi non vede)")
         ok(await pg11.is_visible("#cal-annulla") and "la revisione" in await pg11.inner_text("#cal-annulla"), "in basso compare «Annulla»")
-        ok(await pg11.is_visible("#cal-fatti") and not await pg11.evaluate("document.getElementById('cal-fatti').open") and "Fatti negli ultimi 30 giorni" in await pg11.inner_text("#cal-fatti summary"), "«✓ Fatti negli ultimi 30 giorni» c'è, ma chiusa")
+        ok(await pg11.locator("#cal-fatti").count()==0, "la vecchia sezione «Fatti negli ultimi 30 giorni» non c'è più: le fatte stanno nei loro giorni")
         await pg11.click("#cal-annulla-btn"); await pg11.wait_for_timeout(700)
         ann_=[d for (r,d) in inviati[prima_:] if r=="annulla"]
-        ok(len(ann_)==1 and ann_[0]=={"id":"i-dopo"} and "la revisione" in await pg11.inner_text(cella(dopo_)) and await pg11.is_hidden("#cal-annulla"), "«Annulla»: UNA POST /assistente/annulla, l'etichetta torna, la barra se ne va")
+        ok(len(ann_)==1 and ann_[0]=={"id":"i-dopo"} and await pg11.locator(cella(dopo_)+" .cal-et.imp").count()==1 and await pg11.locator(cella(dopo_)+" .cal-et.fatta").count()==0 and await pg11.is_hidden("#cal-annulla"), "«Annulla»: UNA POST /assistente/annulla, l'etichetta torna viva, la barra se ne va")
+        ok(await pg11.locator('#cal-giorno-casa .cal-riga[data-id="i-dopo"]:not(.fatta) .cal-fatto').count()==1 and "fatto il" not in await pg11.inner_text('#cal-giorno-casa .cal-riga[data-id="i-dopo"]'), "e la riga è di nuovo normale: «✓ Fatto», senza «fatto il …»")
         await pg11.click(cella(domani_)); await pg11.wait_for_timeout(100)
         ok("✓ Pagata" in await pg11.inner_text('#cal-giorno-casa .cal-riga[data-id="s-bollo"]') and "€ 180" in await pg11.inner_text('#cal-giorno-casa .cal-riga[data-id="s-bollo"]') and "€ bollo" in await pg11.inner_text(cella(domani_)), "una scadenza: «✓ Pagata», l'importo, e un'etichetta con «€» in griglia")
         await pg11.click('#cal-giorno-casa .cal-riga[data-id="s-bollo"] .cal-fatto'); await pg11.wait_for_timeout(900)
         ok(await pg11.is_visible("#cal-annulla"), "dopo «Pagata» la barra «Annulla» è lì")
         await pg11.wait_for_timeout(5300)
         ok(await pg11.is_hidden("#cal-annulla"), "e dopo 5 secondi se ne va")
-        await pg11.click("#cal-fatti summary"); await pg11.wait_for_timeout(200)
-        ok("bollo auto" in await pg11.inner_text("#cal-fatti-elenco"), "fra i fatti c'è la scadenza pagata")
-        await pg11.click("#cal-fatti-elenco button"); await pg11.wait_for_timeout(700)
-        ok(await pg11.locator('#cal-giorno-casa .cal-riga[data-id="s-bollo"]').count()==1, "…e da lì si può annullare")
+        rs_=pg11.locator('#cal-giorno-casa .cal-riga.fatta[data-id="s-bollo"]'); ts_=await rs_.inner_text()
+        ok(await rs_.count()==1 and "bollo auto" in ts_ and "€ 180" in ts_ and f"fatta il {oggi_it}" in ts_, f"la scadenza pagata RESTA nell'agenda: ✓, barrata, «€ 180», «fatta il {oggi_it}» ({ts_!r})")
+        ok(await pg11.locator(cella(domani_)+" .cal-et.fatta").count()==1 and "✓ € bollo auto" in await pg11.inner_text(cella(domani_)+" .cal-et.fatta") and "tutte fatte" in await pg11.get_attribute(cella(domani_),"aria-label"), "…e nel mese c'è l'etichetta spenta «✓ € bollo auto» (il giorno non è vuoto, è «fatto»)")
+        prima_=len(inviati)
+        await rs_.locator(".cal-disfa").click(); await pg11.wait_for_timeout(700)
+        ann_=[d for (r,d) in inviati[prima_:] if r=="annulla"]
+        ok(len(ann_)==1 and ann_[0]=={"id":"s-bollo"}, "«Non ancora fatto»: UNA POST /assistente/annulla con il suo id")
+        ok(await pg11.locator('#cal-giorno-casa .cal-riga[data-id="s-bollo"]:not(.fatta) .cal-fatto').count()==1 and "✓ Pagata" in await pg11.inner_text('#cal-giorno-casa .cal-riga[data-id="s-bollo"]') and "fatta il" not in await pg11.inner_text('#cal-giorno-casa .cal-riga[data-id="s-bollo"]'), "la riga torna normale: «✓ Pagata», senza «fatta il …»")
+        ok(await pg11.locator(cella(domani_)+" .cal-et.sca").count()==1 and await pg11.locator(cella(domani_)+" .cal-et.fatta").count()==0 and "fatte" not in (await pg11.get_attribute(cella(domani_),"class")).split(), "e nel mese l'etichetta torna viva (colore delle scadenze)")
         # rimasti indietro
         ok(await pg11.is_visible("#cal-indietro") and await pg11.inner_text("#cal-indietro-titolo")=="⚠️ Rimasti indietro (1)" and await pg11.evaluate("document.getElementById('cal-indietro').open"), "«⚠️ Rimasti indietro (1)»: c'è, aperta")
         ok("l'oculista" in await pg11.inner_text("#cal-indietro-elenco") and "✓ Fatto" in await pg11.inner_text("#cal-indietro-elenco"), "dentro c'è l'impegno di ieri, col suo «✓ Fatto»")
-        ok(await pg11.is_hidden("#cal-fatti"), "e senza fatti la sezione «✓ Fatti negli ultimi 30 giorni» non c'è")
+        ok("il fabbro" not in await pg11.inner_text("#cal-indietro-elenco"), "l'impegno di ieri già FATTO (il fabbro) non è «rimasto indietro»: non è nell'elenco e non è nel conto")
         await pg11.click("#cal-indietro summary"); await pg11.wait_for_timeout(1000)
         ok(not await pg11.evaluate("document.getElementById('cal-indietro').open"), "si può chiudere…")
         await pg11.click(cella(dopo_)); await pg11.wait_for_timeout(100)
         ok(not await pg11.evaluate("document.getElementById('cal-indietro').open"), "…e restare chiusa quando si cambia giorno")
         await pg11.click("#cal-indietro summary"); await pg11.wait_for_timeout(100)
         ok(await pg11.locator("#cal-indietro .cal-fatto").count()==1 and (await pg11.evaluate("document.querySelector('#cal-indietro summary').getBoundingClientRect().height"))>=44, "riaperta; il suo tasto è grande")
+
+        print("── il calendario: «Fatto» segna, non cancella (28/10, JJ: la bolletta della luce da 87,40 € era sparita)")
+        fa6_=oggi_-timedelta(days=6); fatto_fa5_=_dt.now(_tz.utc)-_td(days=5); quando_it=fatto_fa5_.astimezone().strftime("%d/%m")
+        CAL["scadenze"].append({"id":"s-luce","cosa":"bolletta della luce","giorno":iso(fa6_),"importo":"€ 87,40","ogni_mese":False,"fatto":fatto_fa5_.isoformat()})
+        CAL["impegni"].append({"id":"i-dopo-fatto","cosa":"il notaio","giorno":iso(dopo_),"ora":"08:00","fatto":_dt.now(_tz.utc).isoformat()})
+        await riapri(pg11)
+        # un giorno con una cosa fatta (08:00) e una ancora da fare (09:00): in griglia prima quella da fare, e il giorno NON è «tutto fatto»
+        chip_=await pg11.evaluate("g=>[...document.querySelector('.cal-cella[data-giorno=\"'+g+'\"]').querySelectorAll('.cal-et')].map(e=>e.className+'|'+e.textContent)", iso(dopo_))
+        ok(chip_==["cal-et imp|la revisione","cal-et fatta|✓ il notaio"], f"giorno misto: prima l'etichetta viva («la revisione»), poi quella spenta («✓ il notaio») anche se è più presto ({chip_})")
+        cl_=await pg11.get_attribute(cella(dopo_),"class"); al_=await pg11.get_attribute(cella(dopo_),"aria-label")
+        ok("fatte" not in cl_.split() and "tutte fatte" not in al_ and "2 cose" in al_, f"…e la casella non è «fatte» finché c'è qualcosa da fare ({al_!r})")
+        await pg11.click(cella(dopo_)); await pg11.wait_for_timeout(100)
+        ok(await pg11.locator("#cal-giorno-casa .cal-riga").count()==2 and await pg11.locator("#cal-giorno-casa .cal-riga.fatta").count()==1, "l'agenda del giorno mostra tutte e due: una normale e una segnata")
+        # la bolletta di qualche giorno fa, già segnata: nel suo giorno, spenta; non fra i «rimasti indietro»
+        ok(await pg11.inner_text("#cal-indietro-titolo")=="⚠️ Rimasti indietro (1)" and "bolletta" not in await pg11.inner_text("#cal-indietro-elenco"), "la bolletta fatta (di 6 giorni fa) NON è fra i «Rimasti indietro»")
+        await a_mese(pg11, fa6_.year, fa6_.month); await pg11.click(cella(fa6_)); await pg11.wait_for_timeout(150)
+        rl_=pg11.locator('#cal-giorno-casa .cal-riga.fatta[data-id="s-luce"]'); tl_=await rl_.inner_text()
+        ok(await rl_.count()==1 and "✓" in tl_ and "bolletta della luce" in tl_ and "€ 87,40" in tl_ and f"fatta il {quando_it}" in tl_, f"nel suo giorno: ✓, «bolletta della luce», «€ 87,40», «fatta il {quando_it}» ({tl_!r})")
+        ok("✓ € bolletta della luce" in await pg11.inner_text(cella(fa6_)+" .cal-et.fatta") and "tutte fatte" in await pg11.get_attribute(cella(fa6_),"aria-label"), "e nel mese il giorno ha la sua etichetta, spenta («tutte fatte» per chi non vede)")
+        # «Non ancora fatto» la rimette fra le cose da fare: adesso è in ritardo
+        await rl_.locator(".cal-disfa").click(); await pg11.wait_for_timeout(700)
+        ok(await pg11.locator('#cal-giorno-casa .cal-riga[data-id="s-luce"]:not(.fatta) .cal-fatto').count()==1 and "tutte fatte" not in await pg11.get_attribute(cella(fa6_),"aria-label") and await pg11.inner_text("#cal-indietro-titolo")=="⚠️ Rimasti indietro (2)", "«Non ancora fatto»: torna normale e, essendo di 6 giorni fa, rientra fra i «Rimasti indietro (2)»")
+        await pg11.click('#cal-giorno-casa .cal-riga[data-id="s-luce"] .cal-fatto'); await pg11.wait_for_timeout(900)
+        ok(await pg11.locator('#cal-giorno-casa .cal-riga.fatta[data-id="s-luce"]').count()==1 and await pg11.inner_text("#cal-indietro-titolo")=="⚠️ Rimasti indietro (1)", "di nuovo «✓ Pagata»: la riga resta, segnata, e non è più arretrata")
+        CAL["scadenze"]=[x_ for x_ in CAL["scadenze"] if x_["id"]!="s-luce"]; CAL["impegni"]=[x_ for x_ in CAL["impegni"] if x_["id"]!="i-dopo-fatto"]
+        await riapri(pg11)
 
         print("── il calendario: aggiungere a mano")
         ok(await pg11.is_visible("#cal-piu") and (await pg11.evaluate("(()=>{const r=document.getElementById('cal-piu').getBoundingClientRect();return [r.width,r.height,innerWidth-r.right,innerHeight-r.bottom]})()"))[0]>=44, "il «＋» tondo c'è, in basso a destra")
@@ -778,8 +828,13 @@ async def main():
         await pg11.click(cella(oggi_)); await pg11.wait_for_timeout(100); await pg11.click('#cal-giorno-casa .cal-riga[data-id="i-oggi"] .cal-apri'); await pg11.wait_for_timeout(300)
         ok("porta il badge" in await pg11.inner_text("#cal-foglio") and await pg11.evaluate("document.querySelector('.cal-dett-nota').innerText.includes('\\n')"), "la nota c'è per intero, anche a capo")
         prima_=len(inviati); await pg11.click("#cal-d-fatto"); await pg11.wait_for_timeout(900)
-        ok(len([1 for (r,d) in inviati[prima_:] if r=="fatto"])==1 and await pg11.is_hidden("#cal-velo") and await pg11.locator('#cal-giorno-casa .cal-riga[data-id="i-oggi"]').count()==0, "«✓ Fatto» dal dettaglio: UNA POST /assistente/fatto, il foglio si chiude, la riga non c'è più")
-        await pg11.click("#cal-annulla-btn"); await pg11.wait_for_timeout(700)
+        ok(len([1 for (r,d) in inviati[prima_:] if r=="fatto"])==1 and await pg11.is_hidden("#cal-velo") and await pg11.locator('#cal-giorno-casa .cal-riga.fatta[data-id="i-oggi"]').count()==1, "«✓ Fatto» dal dettaglio: UNA POST /assistente/fatto, il foglio si chiude, la riga resta (segnata)")
+        # il dettaglio di una voce fatta: «✓ Fatto il …», «Non ancora fatto», niente invito
+        await pg11.click('#cal-giorno-casa .cal-riga[data-id="i-oggi"] .cal-apri'); await pg11.wait_for_timeout(300)
+        t_=await pg11.inner_text("#cal-foglio")
+        ok(f"Fatto il {oggi_it}" in t_ and "↩ Non ancora fatto" in t_ and await pg11.locator("#cal-d-invito").count()==0 and await pg11.locator("#cal-d-fatto").count()==0 and "🗑 Elimina" in t_, "il dettaglio di una fatta: «✓ Fatto il …», «↩ Non ancora fatto», niente «Mandami l'invito»; «🗑 Elimina» c'è ancora (è «Togli»)")
+        prima_=len(inviati); await pg11.click("#cal-d-disfa"); await pg11.wait_for_timeout(700)
+        ok([d for (r,d) in inviati[prima_:] if r=="annulla"]==[{"id":"i-oggi"}] and await pg11.is_hidden("#cal-velo") and await pg11.locator('#cal-giorno-casa .cal-riga[data-id="i-oggi"]:not(.fatta) .cal-fatto').count()==1, "«Non ancora fatto» dal dettaglio: UNA POST /assistente/annulla, il foglio si chiude, la riga è normale")
 
         print("── il calendario: testi lunghi")
         lungo="Lunghissimo"+"a"*109
@@ -838,6 +893,23 @@ async def main():
         ok(not (await pd_.inner_text("#cal-mese-titolo")=="novembre 2026" and idx_d==6), f"da domenica l'1 novembre finisce in prima colonna (casella n. {idx_d+1}): «ultima colonna» non regge, la prova è rossa")
         await cd_.close(); PAGINA=buona
 
+        print("── il calendario, CONTROPROVA: se «Fatto» cancellasse ancora, la prova «la riga resta» è rossa")
+        CAL["cancella"]=True; CAL["impegni"].append({"id":"i-cp","cosa":"prova cancellata","giorno":iso(dopo_),"ora":"23:00"})
+        cc_,pc_=await calendario_aperto()
+        await pc_.click(cella(dopo_)); await pc_.wait_for_timeout(100)
+        await pc_.click('#cal-giorno-casa .cal-riga[data-id="i-cp"] .cal-fatto'); await pc_.wait_for_timeout(900)
+        ok(await pc_.locator('#cal-giorno-casa .cal-riga.fatta[data-id="i-cp"]').count()==0 and await pc_.locator('#cal-giorno-casa .cal-riga[data-id="i-cp"]').count()==0,
+           "con una porta che cancella, la riga sparisce e non c'è nessuna riga «fatta»: la prova «la riga RESTA, segnata» è rossa")
+        await cc_.close(); CAL.pop("cancella"); CAL["impegni"]=[x_ for x_ in CAL["impegni"] if x_["id"]!="i-cp"]
+        print("── il calendario, CONTROPROVA: se la fatta fosse disegnata come una viva, la prova «versione spenta» è rossa")
+        buona=PAGINA; riga_viva='(x.fatto?"fatta":x.tipo==="scadenza"?"sca":"imp")'
+        ok(riga_viva in buona, "(la riga dell'etichetta è dove la controprova se l'aspetta)")
+        CAL["impegni"].append({"id":"i-cp2","cosa":"prova viva","giorno":iso(dopo_),"ora":"23:30","fatto":_dt.now(_tz.utc).isoformat()})
+        PAGINA=buona.replace(riga_viva,'(x.tipo==="scadenza"?"sca":"imp")')
+        cs_,ps_=await calendario_aperto()
+        ok(await ps_.locator(cella(dopo_)+" .cal-et.fatta").count()==0 and await ps_.locator(cella(dopo_)+" .cal-et").count()>=1, "con la fatta disegnata come le altre, in griglia non c'è nessuna etichetta spenta: la prova «versione spenta» è rossa")
+        await cs_.close(); PAGINA=buona; CAL["impegni"]=[x_ for x_ in CAL["impegni"] if x_["id"]!="i-cp2"]
+
         print("── il calendario, porta giù")
         CAL["giu"]=True
         await pg11.click("#apri-conv"); await pg11.wait_for_timeout(450); await pg11.click("#menu-calendario"); await pg11.wait_for_timeout(700)
@@ -846,11 +918,11 @@ async def main():
         CAL["giu"]=False; await pg11.click(".cal-riprova"); await pg11.wait_for_timeout(700)
         ok(await pg11.locator(".cal-cella").count()==42 and await pg11.locator(".cal-avviso").count()==0 and await pg11.is_visible("#cal-piu"), "«Riprova» con la porta tornata: il calendario è di nuovo lì")
         print("── il calendario, vuoto")
-        CAL.update(impegni=[], scadenze=[], fatti=[])
+        CAL.update(impegni=[], scadenze=[])
         await pg11.click("#apri-conv"); await pg11.wait_for_timeout(450); await pg11.click("#menu-calendario"); await pg11.wait_for_timeout(700)
         t_=await pg11.inner_text("#cal-giorno-casa")
         ok(await pg11.locator(".cal-cella").count()==42 and "Niente in questo giorno" in t_ and "Niente in programma. Per segnare una cosa dillo a Nova" in t_, "vuoto: la griglia c'è, «Niente in questo giorno» e «Niente in programma. Per segnare una cosa dillo a Nova»")
-        ok(await pg11.is_hidden("#cal-indietro") and await pg11.is_hidden("#cal-fatti"), "senza arretrati né fatti: le due sezioni non ci sono")
+        ok(await pg11.is_hidden("#cal-indietro"), "senza arretrati: la sezione «Rimasti indietro» non c'è")
         await pg11.click("#cal-alla-chat"); await pg11.wait_for_timeout(500)
         ok(await pg11.evaluate("document.body.dataset.scheda")=="inizia", "il tasto porta alla chat")
         await c11.close()
