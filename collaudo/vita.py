@@ -28,6 +28,7 @@ con la porta finta (telefono 390×844):
 """
 import asyncio, json, os, sys
 from playwright.async_api import async_playwright
+import aiuti; aiuti.sezioni_aperte()   # 28/10: le sezioni dei pannelli sono chiuse finché non si toccano; qui si aprono tutte (collaudo/sezioni.py prova le chiuse)
 
 PAGINA = open(sys.argv[1], encoding="utf-8").read()
 BASE = "https://jjoeboy93.github.io/JJA-VIS/"

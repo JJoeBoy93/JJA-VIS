@@ -83,8 +83,32 @@ input[type=range]{width:100%;accent-color:var(--accento);height:32px}
 .avviso{margin-top:12px;font-size:16px;color:var(--tenue)}
 .avviso.errore{color:var(--rosso)}
 
-footer{color:var(--tenue);font-size:15px;line-height:1.5;border-top:1px solid var(--bordo);padding-top:14px}
-footer b{color:var(--testo)}
+/* ══ LE SEZIONI ══ 28/10, JJ: «le varie pagine non sono molto pratiche... devi scorrere per vedere tutto». Ogni sezione dei pannelli
+   (la chat e il Calendario no) è un <details>: chiusa mostra titolo, una riga e la freccia; toccata si apre intera. Stesso riquadro
+   di sempre (angoli arancio nel tecnologico e nel deciso, morbido nel calmo e nel naturale): i colori vengono tutti dall'aspetto. */
+details.sezione{padding:0}
+/* dentro un <details> il «box-sizing:inherit» di tutta la pagina si rompe (lo spazio interno del <details> è content-box): lo si rimette a mano */
+details.sezione>summary,.sez-corpo{box-sizing:border-box}
+details.sezione>summary{display:grid;grid-template-columns:1fr auto;column-gap:14px;align-items:center;padding:18px;cursor:pointer;list-style:none;border-radius:inherit;-webkit-tap-highlight-color:transparent}
+details.sezione>summary::-webkit-details-marker{display:none}
+details.sezione>summary:hover{background:color-mix(in srgb,var(--accento) 6%,transparent)}
+details.sezione>summary:focus-visible{outline-offset:-4px}
+details.sezione[open]>summary{padding-bottom:10px}
+details.sezione>summary>*{grid-column:1}
+.sezione summary h2{font-size:28px;line-height:1.1;margin:0}
+.sezione summary .sopra{margin:0 0 4px;font:400 13px/1.3 var(--f-mono);letter-spacing:.1em;color:var(--accento)}
+.sez-riga{margin-top:6px;color:var(--tenue);font-size:16px;line-height:1.35;font-weight:500}
+.sezione summary .sez-freccia{grid-column:2;grid-row:1 / span 3;width:11px;height:11px;border-right:2px solid var(--accento);border-bottom:2px solid var(--accento);transform:rotate(45deg);margin:-4px 4px 0 0;transition:transform .2s ease-out}
+details.sezione[open]>summary .sez-freccia{transform:rotate(-135deg);margin-top:4px}
+.sez-corpo{padding:0 18px 20px}
+details.sezione[open]>.sez-corpo{animation:entra .3s ease-out}
+@media (prefers-reduced-motion:reduce){details.sezione[open]>.sez-corpo{animation:none}.sezione summary .sez-freccia{transition:none}}
+.dati-corpo{color:var(--tenue);font-size:15px;line-height:1.5}
+.dati-corpo b{color:var(--testo)}
+.dati-corpo p{margin:10px 0}
+.dati-ia{margin:6px 0 10px;padding-left:18px}
+.dati-ia li{margin:8px 0}
+.dati-ia li::marker{color:var(--accento)}
 .anteprima{border:1px solid var(--oro);color:var(--oro);padding:8px 12px;font:400 13px/1.4 var(--f-mono);margin-bottom:10px}
 .gruppo{border-top:1px solid var(--bordo);padding-top:12px;margin-top:14px}
 .gruppo h3{font:600 14px/1.3 var(--f-mono);letter-spacing:.1em;color:var(--accento);margin:0 0 6px}
@@ -787,43 +811,56 @@ html.di-casa #o1{display:none}
      una scheda a parte». Dal blueprint solo quello che si può dire in pubblico:
      cos'è, il principio, la missione, da dove nasce. -->
 <div class="pannello" id="p-chi-sono" role="tabpanel" aria-labelledby="s-chi-sono">
-  <section class="etichetta" aria-labelledby="tcs">
-    <h2 id="tcs" style="font-size:30px;margin:0 0 8px">Chi sono</h2>
+  <details class="etichetta sezione" id="sez-chi-sono" aria-labelledby="tcs">
+    <summary><h2 id="tcs">Chi sono</h2><span class="sez-riga">Un sistema personale intelligente: non rispondo, anticipo</span><span class="sez-freccia" aria-hidden="true"></span></summary>
+    <div class="sez-corpo">
     <p class="dice">Sono JJA-VIS, un sistema personale intelligente.</p>
     <p class="dice">Non rispondo: anticipo. Non archivio: imparo. Non servo il settore: servo la persona.</p>
     <p class="piccolo">Un assistente vocale risponde quando gli chiedi qualcosa. Io preparo le cose prima che servano: la giornata, il lavoro, quello che ti sei dimenticato.</p>
-  </section>
-  <section class="etichetta" aria-labelledby="tcs2">
-    <h2 id="tcs2" style="font-size:26px;margin:0 0 8px">Imparo te</h2>
+  </div>
+  </details>
+  <details class="etichetta sezione" id="sez-chi-imparo" aria-labelledby="tcs2">
+    <summary><h2 id="tcs2">Imparo te</h2><span class="sez-riga">Chi sei, non solo che lavoro fai</span><span class="sez-freccia" aria-hidden="true"></span></summary>
+    <div class="sez-corpo">
     <p class="piccolo">Un assistente professionale conosce un lavoro. Io imparo chi sei: le tue abitudini, le tue giornate, quello che ti preoccupa e quello che vuoi. Il lavoro è solo una parte di te.</p>
     <p class="piccolo">Più mi usi, più divento tuo. Uguale per tutti, diverso per ognuno.</p>
-  </section>
-  <section class="etichetta" aria-labelledby="tcs3">
-    <h2 id="tcs3" style="font-size:26px;margin:0 0 8px">Da dove nasco</h2>
+  </div>
+  </details>
+  <details class="etichetta sezione" id="sez-nasco" aria-labelledby="tcs3">
+    <summary><h2 id="tcs3">Da dove nasco</h2><span class="sez-riga">Una ditta di trasporti, il furgone, il codice di notte</span><span class="sez-freccia" aria-hidden="true"></span></summary>
+    <div class="sez-corpo">
     <p class="piccolo">Chi mi costruisce ha molte vite insieme: una ditta di trasporti, il furgone da corriere ogni mattina, il codice la notte, le isole di Fortnite di cui è creatore ufficiale. Cercava qualcosa che lo aiutasse in tutte, che imparasse e anticipasse. Non l'ha trovato da nessuna parte, e ha deciso di costruirlo.</p>
     <p class="piccolo">Il lavoro di strada è la prima cosa che ho imparato bene.</p>
-  </section>
-  <section class="etichetta" aria-labelledby="tcs4">
-    <h2 id="tcs4" style="font-size:26px;margin:0 0 8px">Per chiunque</h2>
+  </div>
+  </details>
+  <details class="etichetta sezione" id="sez-chiunque" aria-labelledby="tcs4">
+    <summary><h2 id="tcs4">Per chiunque</h2><span class="sez-riga">Ogni persona ha diritto al suo assistente</span><span class="sez-freccia" aria-hidden="true"></span></summary>
+    <div class="sez-corpo">
     <p class="piccolo">Chiunque, ovunque nasca, qualunque lingua parli e qualunque lavoro faccia, ha diritto al suo assistente personale. Non solo chi se lo può permettere, non solo chi mastica tecnologia.</p>
     <p class="piccolo">Il corriere di Milano, il farmacista di Tokyo, l'agricoltore del Brasile, il meccanico del Cairo. Parto dal lavoro che conosco meglio, la consegna, e da lì vado verso tutti.</p>
     <p class="piccolo">Cosa so già fare oggi è in <a href="#sa-fare">Cosa so fare</a>; quello che puoi avere subito sta nella <a href="#bottega">Bottega</a>.</p>
-  </section>
-  <section class="etichetta">
-    <h2 style="font-size:26px;margin:0 0 6px">Provami</h2>
+  </div>
+  </details>
+  <details class="etichetta sezione" id="sez-provami" aria-labelledby="tpv">
+    <summary><h2 id="tpv">Provami</h2><span class="sez-riga">Un nome, un aspetto, un minuto: comincio a imparare te</span><span class="sez-freccia" aria-hidden="true"></span></summary>
+    <div class="sez-corpo">
     <p class="piccolo" id="prova-testo">Dammi un nome e scegli come vedermi: un minuto, e comincio a imparare te.</p>
     <a class="invia" id="prova" href="#inizia" style="text-align:center;text-decoration:none">Comincia</a>
-  </section>
+  </div>
+  </details>
 </div>
 
 <div class="pannello" id="p-sa-fare" role="tabpanel" aria-labelledby="s-sa-fare">
-  <section class="etichetta" id="novita" aria-labelledby="tn" hidden>
-    <h2 id="tn" style="font-size:28px">Novità</h2>
+  <details class="etichetta sezione" id="novita" aria-labelledby="tn" hidden>
+    <summary><h2 id="tn">Novità</h2><span class="sez-riga" id="rg-novita">Cosa c'è di nuovo</span><span class="sez-freccia" aria-hidden="true"></span></summary>
+    <div class="sez-corpo">
     <div id="novita-elenco"></div>
-  </section>
+  </div>
+  </details>
 
-  <section class="etichetta" aria-labelledby="tf">
-    <h2 id="tf" style="font-size:28px">Cosa so già fare</h2>
+  <details class="etichetta sezione" id="cosa-so-fare" aria-labelledby="tf">
+    <summary><h2 id="tf">Cosa so già fare</h2><span class="sez-riga" id="rg-cosa">Più di quaranta attrezzi: in macchina, al lavoro, nella giornata</span><span class="sez-freccia" aria-hidden="true"></span></summary>
+    <div class="sez-corpo">
     <p class="piccolo">Oggi lo faccio su un telefono solo: quello di chi mi costruisce, ogni giorno sul furgone. Ho <span id="n-attrezzi">più di quaranta</span> attrezzi: questi sono quelli che si vedono di più. <b style="color:var(--testo)">Per te arriva con l'app</b>: per ora, qui, posso conoscerti e risponderti.</p>
 
     <div class="gruppo">
@@ -858,25 +895,30 @@ html.di-casa #o1{display:none}
     </div>
 
     <p class="piccolo" style="margin-top:14px">Come sono fatto dentro non lo racconto: sono mesi di lavoro, notte dopo notte. Cosa so fare sì.</p>
-  </section>
+  </div>
+  </details>
 
-  <section class="etichetta" id="video" aria-labelledby="tv" hidden>
-    <h2 id="tv" style="font-size:28px">Guardami al lavoro</h2>
+  <details class="etichetta sezione" id="video" aria-labelledby="tv" hidden>
+    <summary><h2 id="tv">Guardami al lavoro</h2><span class="sez-riga" id="rg-video">Video veri, dal telefono e dal furgone</span><span class="sez-freccia" aria-hidden="true"></span></summary>
+    <div class="sez-corpo">
     <p class="piccolo">Video veri, dal telefono e dal furgone di chi mi costruisce. Nessun montaggio che non sia mio.</p>
     <div id="video-elenco" class="video-elenco"></div>
-  </section>
+  </div>
+  </details>
 </div>
 
 <div class="pannello" id="p-bottega" role="tabpanel" aria-labelledby="s-bottega">
-  <section class="etichetta" aria-labelledby="tbo">
-    <h2 id="tbo" style="font-size:30px;margin:0 0 8px">Bottega</h2>
+  <details class="etichetta sezione" id="sez-bottega" aria-labelledby="tbo">
+    <summary><h2 id="tbo">Bottega</h2><span class="sez-riga">Quello che puoi avere già adesso, senza aspettare l'app</span><span class="sez-freccia" aria-hidden="true"></span></summary>
+    <div class="sez-corpo">
     <p class="dice">Quello che puoi avere già adesso, senza aspettare l'app.</p>
     <p class="piccolo">Un prodotto pronto per un mestiere, un sopralluogo gratis, e i lavori su misura. Man mano che le mie funzioni diventano pronte per tutti, arrivano qui.</p>
     <p class="piccolo"><a href="citta.html">🏙 Entra nella città</a>: ogni prodotto ha la sua stanza, raccontata per intero.</p>
-  </section>
-  <section class="etichetta" id="clio" aria-labelledby="tcl">
-    <p class="piccolo" style="margin:0;font-family:var(--f-mono);letter-spacing:.1em;color:var(--accento)">GIÀ PRONTO · PER LE GUIDE TURISTICHE</p>
-    <h2 id="tcl" style="font-size:30px;margin:4px 0 8px">Clio</h2>
+  </div>
+  </details>
+  <details class="etichetta sezione" id="clio" aria-labelledby="tcl">
+    <summary><span class="sopra">GIÀ PRONTO · PER LE GUIDE TURISTICHE</span><h2 id="tcl">Clio</h2><span class="sez-riga">Parli una volta, ogni visitatore ti legge nella sua lingua</span><span class="sez-freccia" aria-hidden="true"></span></summary>
+    <div class="sez-corpo">
     <p class="dice">Parli una volta sola, nella tua lingua. Ogni visitatore ti legge nella sua, sul suo telefono, mentre parli.</p>
     <div class="gruppo">
       <ul>
@@ -898,11 +940,12 @@ html.di-casa #o1{display:none}
     <label class="consenso"><input type="checkbox" id="cl-ok"> <span>Potete conservare questi dati e mandarmi l'invito a questa mail. Non vanno a nessun altro. <a href="#dati">Come tratto i dati</a></span></label>
     <button class="invia" id="cl-manda" disabled>Voglio provare Clio</button>
     <p class="avviso" id="cl-esito" role="status"></p>
-  </section>
+  </div>
+  </details>
 
-  <section class="etichetta" id="sopralluogo" aria-labelledby="tso2">
-    <p class="piccolo" style="margin:0;font-family:var(--f-mono);letter-spacing:.1em;color:var(--accento)">GRATIS · PER CHI HA UN'ATTIVITÀ</p>
-    <h2 id="tso2" style="font-size:30px;margin:4px 0 8px">Sopralluogo</h2>
+  <details class="etichetta sezione" id="sopralluogo" aria-labelledby="tso2">
+    <summary><span class="sopra">GRATIS · PER CHI HA UN'ATTIVITÀ</span><h2 id="tso2">Sopralluogo</h2><span class="sez-riga">Mi lasci un link: ti scrivo cosa funziona, cosa no e da dove partirei</span><span class="sez-freccia" aria-hidden="true"></span></summary>
+    <div class="sez-corpo">
     <p class="dice">Prima di un lavoro si va a vedere. Lasciami il link e ci faccio un sopralluogo.</p>
     <p class="piccolo">Il sito della tua attività, il tuo profilo, o un concorrente che vuoi capire meglio. Ti scrivo per mail cosa funziona, cosa no e da dove partirei. Li faccio uno per uno, e ognuno lo guarda anche chi mi costruisce prima che parta.</p>
     <label>Cosa guardo</label>
@@ -923,10 +966,12 @@ html.di-casa #o1{display:none}
     <label class="consenso"><input type="checkbox" id="so-ok"> <span>Potete guardare il link, anche con un'intelligenza artificiale, e scrivermi a questa mail. Nome e mail non vanno a nessun altro. <a href="#dati">Come tratto i dati</a></span></label>
     <button class="invia" id="so-manda" disabled>Fammi il sopralluogo</button>
     <p class="avviso" id="so-esito" role="status"></p>
-  </section>
+  </div>
+  </details>
 
-  <section class="etichetta" id="costruisci" aria-labelledby="tcm">
-    <h2 id="tcm" style="font-size:28px;margin:0 0 6px">Costruiscimi qualcosa</h2>
+  <details class="etichetta sezione" id="costruisci" aria-labelledby="tcm">
+    <summary><h2 id="tcm">Costruiscimi qualcosa</h2><span class="sez-riga">Siti, strumenti web, bot Telegram, isole Fortnite: su commissione</span><span class="sez-freccia" aria-hidden="true"></span></summary>
+    <div class="sez-corpo">
     <p class="piccolo">Queste non aspettano l'app: chi mi costruisce le realizza su commissione, adesso.</p>
     <div class="gruppo">
       <ul>
@@ -961,13 +1006,15 @@ html.di-casa #o1{display:none}
     <label class="consenso"><input type="checkbox" id="cm-ok"> <span>Potete conservare questi dati e scrivermi a questa mail per il preventivo. Non vanno a nessun altro. <a href="#dati">Come tratto i dati</a></span></label>
     <button class="invia" id="cm-manda" disabled>Chiedi un preventivo</button>
     <p class="avviso" id="cm-esito" role="status"></p>
-  </section>
+  </div>
+  </details>
 
 </div>
 
 <div class="pannello" id="p-profilo" role="tabpanel" aria-labelledby="s-profilo">
-  <section class="etichetta" aria-labelledby="tpr">
-    <h2 id="tpr" style="font-size:30px;margin:0 0 8px">Il tuo <span class="chi">JJA-VIS</span></h2>
+  <details class="etichetta sezione" id="il-tuo-assistente" aria-labelledby="tpr">
+    <summary><h2 id="tpr">Il tuo <span class="chi">JJA-VIS</span></h2><span class="sez-riga" id="rg-atlas">Il nome, l'aspetto, come ti chiami tu</span><span class="sez-freccia" aria-hidden="true"></span></summary>
+    <div class="sez-corpo">
     <p class="piccolo" id="profilo-vuoto" hidden>Non mi hai ancora dato un nome. <a href="#inizia">Comincia da qui</a>, poi puoi cambiarlo quando vuoi.</p>
     <div id="profilo-nome">
       <label for="nuova-sigla">Come mi chiami</label>
@@ -990,13 +1037,15 @@ html.di-casa #o1{display:none}
     <button class="invia secondario" id="salva-mail">Salva la mail</button>
     <p class="piccolo" style="margin-top:8px" id="mail-attuale" hidden></p>
     <p class="avviso" id="esito-profilo" role="status"></p>
-  </section>
+  </div>
+  </details>
 
   <!-- 28/10, JJ: «tutto ciò che riguarda le domande personali e quello che riguarda l'imparo te va nel Profilo, così che ci sia un posto
        fisso dedicato allo sviluppo dell'assistente» e «bisogna poter anche modificare le voci nel profilo senza dover fare per forza
        dimentica tutto». -->
-  <section class="etichetta" id="imparo-te" aria-labelledby="tsd">
-    <h2 id="tsd" style="font-size:26px;margin:0 0 6px">Imparo te</h2>
+  <details class="etichetta sezione" id="imparo-te" aria-labelledby="tsd">
+    <summary><h2 id="tsd">Imparo te</h2><span class="sez-riga" id="rg-imparo">Quello che so di te, e la domanda di oggi</span><span class="sez-freccia" aria-hidden="true"></span></summary>
+    <div class="sez-corpo">
     <h3 class="sotto" id="oggi-titolo">La domanda di oggi</h3>
     <div id="conosci" hidden>
       <h4 id="conosci-domanda" class="domanda-oggi"></h4>
@@ -1012,31 +1061,47 @@ html.di-casa #o1{display:none}
     <p class="piccolo">Tutto quello che mi hai detto, niente di più. Sta in questo telefono; quello che mi hai mandato sta anche nell'archivio di chi mi costruisce. Ogni voce la cambi o la togli da qui.</p>
     <ul class="so-di-te" id="so-di-te"></ul>
     <p class="piccolo" style="margin:26px 0 0;padding-top:14px;border-top:1px solid var(--bordo)"><button class="collegamento" id="ricomincia-profilo">Dimentica tutto e ricomincia da capo</button></p>
-  </section>
+  </div>
+  </details>
 
-  <footer id="dati">
-    <p><b>I tuoi dati.</b> Questo sito non usa cookie e non traccia nessuno. Quello che mandi (mestiere, risposte, e se li lasci nome e mail) serve solo a capire cosa costruire e a risponderti. Non va a nessun altro. Per cancellarti basta rispondere a una mia mail.</p>
-    <p>Titolare: Jacopo Joe Ardito. Le risposte sono conservate in un archivio privato su GitHub (servizio di Microsoft, server negli Stati Uniti), leggibile solo dal titolare. Niente indirizzo IP, niente posizione: solo quello che scrivi, più un codice a caso nato nel tuo telefono che collega le risposte che mandi in giorni diversi. Il tuo nome, se me lo dici all'inizio, resta nel telefono; se mi parli nella chat, lo uso per risponderti. Quello che scrivi nella chat arriva a chi mi costruisce e resta nell'archivio. Se decide di risponderti con l'aiuto di un'intelligenza artificiale (Anthropic, OpenAI o Google), quella vede solo il tuo messaggio e il tuo mestiere, mai il tuo nome né la tua mail; quella risposta la approva sempre una persona. Quando Nova ti risponde subito nella chat, lo fa con un modello di intelligenza artificiale che gira su Cloudflare (Workers AI): anche lui vede solo il messaggio e il mestiere, e Cloudflare non usa i messaggi per addestrare modelli. Quello che Nova non sa lo passa a chi mi costruisce. I video presi da Instagram, YouTube o TikTok si caricano solo se li tocchi: da quel momento valgono le regole e i cookie di quella piattaforma. Se scrivi dalla sezione Investitori, chiedi un preventivo, l'invito a Clio o un sopralluogo, nome, azienda e mail si conservano solo con la tua spunta e servono solo a risponderti; non arrivano mai a un'intelligenza artificiale. Il link di un sopralluogo invece sì: la pagina pubblica che indichi la legge anche un'intelligenza artificiale, per scriverti cosa ne pensa. Le risposte per mail partono tramite Brevo (servizio di invio, Unione Europea); la bozza la scrive un'intelligenza artificiale di Anthropic che vede solo il tuo messaggio, e prima di partire la legge e la approva una persona.</p>
+  <details class="etichetta sezione" id="dati" aria-labelledby="tdati">
+    <summary><h2 id="tdati">I tuoi dati</h2><span class="sez-riga">Niente cookie. Chi vede cosa, e dove sta</span><span class="sez-freccia" aria-hidden="true"></span></summary>
+    <div class="sez-corpo dati-corpo">
+    <p><b>Niente cookie.</b> Questo sito non usa cookie e non traccia nessuno. Quello che mandi (mestiere, risposte, e se li lasci nome e mail) serve solo a capire cosa costruire e a risponderti. Non va a nessun altro. Per cancellarti basta rispondere a una mia mail.</p>
+    <p><b>Dove sta.</b> Titolare: Jacopo Joe Ardito. Le risposte sono conservate in un archivio privato su GitHub (servizio di Microsoft, server negli Stati Uniti), leggibile solo dal titolare. Niente indirizzo IP, niente posizione: solo quello che scrivi, più un codice a caso nato nel tuo telefono che collega le risposte che mandi in giorni diversi. Il tuo nome, se me lo dici all'inizio, resta nel telefono; se mi parli nella chat, lo uso per risponderti. Quello che scrivi nella chat arriva a chi mi costruisce e resta nell'archivio.</p>
+    <p><b>Cosa vede un'intelligenza artificiale.</b> Mai la tua mail. Il tuo nome nemmeno, salvo in un caso: quando parli col tuo assistente dopo aver fatto l'account, che ti chiama per nome. Dipende da chi ti risponde:</p>
+    <ul class="dati-ia">
+      <li><b>La bozza di una risposta.</b> La scrive un'intelligenza artificiale di Anthropic, e prima di partire la legge e la approva una persona. Vede il tuo messaggio; il mestiere, oppure cosa fai nella vita (studio, pensione, casa); in cosa vorresti essere aiutato, o cosa ti fa perdere tempo; il lavoro che hai fatto e le tue passioni; le altre cose che mi hai detto nelle domande del giorno; il nome che hai dato al tuo assistente. Tutto questo solo se me l'hai detto.</li>
+      <li><b>Quando Nova ti risponde subito nella chat.</b> Lo fa un modello di intelligenza artificiale che gira su Cloudflare (Workers AI), e Cloudflare non usa i messaggi per addestrare modelli. Vede il tuo messaggio; il mestiere, oppure cosa fai nella vita se sei in pensione o stai a casa; in cosa vorresti essere aiutato, o cosa ti fa perdere tempo; il nome che hai dato al tuo assistente. Il resto no.</li>
+      <li><b>Il tuo assistente, se hai fatto l'account.</b> È un'intelligenza artificiale di Anthropic, che può anche cercare sul web. Vede il tuo messaggio e la conversazione fin lì, il tuo nome, il lavoro che hai fatto e le tue passioni; se sei in pensione o stai a casa, anche cosa fai nella vita e in cosa vorresti essere aiutato; i titoli dei documenti che hai archiviato, le tue scadenze e i tuoi impegni, le cose che ti porti dietro quando esci. Alla prima proposta anche il mestiere, cosa ti fa perdere tempo, quello che hai votato di costruire e la proposta che hai scritto.</li>
+    </ul>
+    <p><b>Il resto.</b> Se scrivi dalla sezione Investitori, chiedi un preventivo, l'invito a Clio o un sopralluogo, nome, azienda e mail si conservano solo con la tua spunta e servono solo a risponderti; non arrivano mai a un'intelligenza artificiale. Del sopralluogo un'intelligenza artificiale legge il link che indichi: la pagina pubblica, per scriverti cosa ne pensa. Quello che Nova non sa lo passa a chi mi costruisce. I video presi da Instagram, YouTube o TikTok si caricano solo se li tocchi: da quel momento valgono le regole e i cookie di quella piattaforma. Le risposte per mail partono tramite Brevo (servizio di invio, Unione Europea).</p>
     <p>Chi costruisce JJA-VIS: <a href="chi-sono.html">la mia storia</a>. La storia va avanti su Instagram: <a href="https://www.instagram.com/jjoe_boy93">@jjoe_boy93</a></p>
-  </footer>
+    </div>
+  </details>
 </div>
 
 <div class="pannello" id="p-numeri" role="tabpanel" aria-labelledby="s-numeri">
-  <section class="etichetta" aria-labelledby="tnu">
-    <h2 id="tnu" style="font-size:30px;margin:0 0 8px">Numeri</h2>
+  <details class="etichetta sezione" id="sez-numeri" aria-labelledby="tnu">
+    <summary><h2 id="tnu">Numeri</h2><span class="sez-riga">Misurati o stimati, ognuno detto per quello che è</span><span class="sez-freccia" aria-hidden="true"></span></summary>
+    <div class="sez-corpo">
     <p class="dice">Tutti i miei numeri, in un posto solo.</p>
     <p class="piccolo">Quelli misurati e quelli stimati, ognuno detto per quello che è. Un numero stimato non deve poter sembrare misurato.</p>
-  </section>
-  <section class="etichetta" id="conto" aria-labelledby="tc" hidden>
-    <h2 id="tc" style="font-size:28px">Quanto costo</h2>
+  </div>
+  </details>
+  <details class="etichetta sezione" id="conto" aria-labelledby="tc" hidden>
+    <summary><h2 id="tc">Quanto costo</h2><span class="sez-riga" id="rg-conto">Tenermi acceso e costruirmi, voce per voce</span><span class="sez-freccia" aria-hidden="true"></span></summary>
+    <div class="sez-corpo">
     <p class="piccolo">Quello che si spende davvero, voce per voce. Due conti diversi: tenermi acceso, e costruirmi.</p>
     <div id="conto-gruppi"></div>
     <p class="piccolo" id="conto-quando"></p>
     <p class="piccolo" style="margin-top:12px">Il costo si legge insieme a quello che faccio risparmiare: tempo e soldi. Li sto misurando sul furgone, e compaiono qui quando sono misurati, non prima.</p>
-  </section>
+  </div>
+  </details>
 
-  <section class="etichetta" id="numeri-problema" aria-labelledby="tnp">
-    <h2 id="tnp" style="font-size:28px;margin:0 0 6px">Il problema, in numeri</h2>
+  <details class="etichetta sezione" id="numeri-problema" aria-labelledby="tnp">
+    <summary><h2 id="tnp">Il problema, in numeri</h2><span class="sez-riga">2 ore al giorno per corriere</span><span class="sez-freccia" aria-hidden="true"></span></summary>
+    <div class="sez-corpo">
     <p class="piccolo">Il tempo che un corriere perde ogni mattina a costruire il giro a mano, e quanto vale.</p>
     <div class="numeri">
       <div><b>2 ore</b><span>perse al giorno da un corriere su un giro nuovo</span></div>
@@ -1045,46 +1110,58 @@ html.di-casa #o1{display:none}
       <div><b>36 mln €</b><span>l'anno su una rete di 200 filiali</span></div>
     </div>
     <p class="piccolo" style="margin-top:10px">Stime di chi fa questo lavoro, non ancora misure: quanto tempo faccio risparmiare lo sto misurando sul furgone, e i numeri misurati sostituiranno questi.</p>
-  </section>
+  </div>
+  </details>
 </div>
 
 <div class="pannello" id="p-investitori" role="tabpanel" aria-labelledby="s-investitori">
-  <section class="etichetta" aria-labelledby="tin">
-    <h2 id="tin" style="font-size:30px;margin:0 0 8px">Per chi vuole investire</h2>
+  <details class="etichetta sezione" id="sez-investire" aria-labelledby="tin">
+    <summary><h2 id="tin">Per chi vuole investire</h2><span class="sez-riga">Il cosa; il piano completo dopo un primo contatto</span><span class="sez-freccia" aria-hidden="true"></span></summary>
+    <div class="sez-corpo">
     <p class="dice">Un assistente personale che impara la persona. Parte dal lavoro che conosco meglio: la consegna dell'ultimo miglio.</p>
     <p class="piccolo">Qui c'è il <i>cosa</i>. Il piano completo — architettura, tempi, conti — lo mando dopo un primo contatto, con un accordo di riservatezza.</p>
-  </section>
+  </div>
+  </details>
 
-  <section class="etichetta" aria-labelledby="tpb">
-    <h2 id="tpb" style="font-size:26px;margin:0 0 6px">Il problema</h2>
+  <details class="etichetta sezione" id="sez-problema" aria-labelledby="tpb">
+    <summary><h2 id="tpb">Il problema</h2><span class="sez-riga">Un'ora o due ogni mattina a costruire il giro a mano</span><span class="sez-freccia" aria-hidden="true"></span></summary>
+    <div class="sez-corpo">
     <p class="piccolo">Ogni mattina, in ogni deposito, il corriere riceve i pacchi in ordine sparso e costruisce il giro a mano: legge l'indirizzo, lo cerca sul telefono, torna al pacco. Un'ora se il giro lo conosce, due o più se è nuovo. Ogni giorno.</p>
     <p class="piccolo" style="margin-top:10px">Quanto costa, a un corriere, a una filiale, a una rete: <a href="#numeri-problema">i numeri</a>.</p>
-  </section>
+  </div>
+  </details>
 
-  <section class="etichetta" aria-labelledby="tso">
-    <h2 id="tso" style="font-size:26px;margin:0 0 6px">La soluzione, in tre livelli</h2>
+  <details class="etichetta sezione" id="sez-livelli" aria-labelledby="tso">
+    <summary><h2 id="tso">La soluzione, in tre livelli</h2><span class="sez-riga">Free per chiunque, Pro per i corrieri, Enterprise per le filiali</span><span class="sez-freccia" aria-hidden="true"></span></summary>
+    <div class="sez-corpo">
     <div class="livello"><b>JJA-VIS Free</b><em>CHIUNQUE</em><p>L'assistente personale a voce, per qualsiasi mestiere e in qualsiasi lingua. Gratis: è la porta d'ingresso.</p></div>
     <div class="livello"><b>JJA-VIS Pro</b><em>CORRIERI E PICCOLI TRASPORTATORI</em><p>Legge le lettere di vettura con la fotocamera e costruisce il giro più corto, fino a 150 fermate. Trova i carichi di ritorno nelle borse carichi e porta solo quelli che convengono. Abbonamento mensile.</p></div>
     <div class="livello"><b>Enterprise</b><em>FILIALI E AZIENDE</em><p>I bancali si costruiscono già in ordine di consegna, prima che arrivino al corriere: l'ordine non si recupera a valle, si costruisce a monte. Contratto annuale legato al risparmio documentato.</p></div>
-  </section>
+  </div>
+  </details>
 
-  <section class="etichetta" aria-labelledby="tpc">
-    <h2 id="tpc" style="font-size:26px;margin:0 0 6px">Perché io</h2>
+  <details class="etichetta sezione" id="sez-perche" aria-labelledby="tpc">
+    <summary><h2 id="tpc">Perché io</h2><span class="sez-riga">Chi mi costruisce vive il problema ogni mattina</span><span class="sez-freccia" aria-hidden="true"></span></summary>
+    <div class="sez-corpo">
     <p class="piccolo">Chi mi costruisce è titolare di una ditta di trasporti e corriere attivo, con licenza internazionale superiore. Il problema lo vive ogni mattina. Le grandi aziende di tecnologia non lo conoscono da dentro; chi arriva dopo, deve ancora cominciare a imparare le persone.</p>
-  </section>
+  </div>
+  </details>
 
-  <section class="etichetta" aria-labelledby="tfa">
-    <h2 id="tfa" style="font-size:26px;margin:0 0 6px">A che punto siamo</h2>
+  <details class="etichetta sezione" id="sez-punto" aria-labelledby="tfa">
+    <summary><h2 id="tfa">A che punto siamo</h2><span class="sez-riga">Ora la validazione sul campo; poi Free, Pro, Enterprise</span><span class="sez-freccia" aria-hidden="true"></span></summary>
+    <div class="sez-corpo">
     <ol class="fasi">
       <li class="ora">Validazione sul campo <small>in corso: l'app è in uso ogni giorno sul furgone del fondatore; questa pagina raccoglie mestieri e quanto varrebbe per chi risponde</small></li>
       <li>JJA-VIS Free <small>l'app pubblica gratuita</small></li>
       <li>JJA-VIS Pro <small>l'abbonamento per i corrieri; i ricavi finanziano il livello dopo</small></li>
       <li>Enterprise <small>un progetto pilota con una filiale, poi la rete</small></li>
     </ol>
-  </section>
+  </div>
+  </details>
 
-  <section class="etichetta" aria-labelledby="tsc">
-    <h2 id="tsc" style="font-size:26px;margin:0 0 6px">Scrivimi</h2>
+  <details class="etichetta sezione" id="sez-scrivimi" aria-labelledby="tsc">
+    <summary><h2 id="tsc">Scrivimi</h2><span class="sez-riga">Ti risponde di persona chi mi costruisce</span><span class="sez-freccia" aria-hidden="true"></span></summary>
+    <div class="sez-corpo">
     <p class="piccolo">Ti risponde di persona chi mi costruisce, alla mail che lasci.</p>
     <label>Cosa ti interessa</label>
     <div class="scelte" id="inv-interesse">
@@ -1104,7 +1181,8 @@ html.di-casa #o1{display:none}
     <label class="consenso"><input type="checkbox" id="inv-ok"> <span>Potete conservare questi dati e scrivermi a questa mail. Non vanno a nessun altro. <a href="#dati">Come tratto i dati</a></span></label>
     <button class="invia" id="inv-manda" disabled>Manda</button>
     <p class="avviso" id="inv-esito" role="status"></p>
-  </section>
+  </div>
+  </details>
 </div>
 
 <div class="pannello" id="p-calendario" role="tabpanel" aria-labelledby="s-calendario">
@@ -1119,20 +1197,24 @@ html.di-casa #o1{display:none}
 </div>
 <div id="cal-annulla" role="status" hidden><span id="cal-annulla-testo"></span><button type="button" class="cal-annulla-btn" id="cal-annulla-btn">Annulla</button></div>
 <div class="pannello" id="p-sostieni" role="tabpanel" aria-labelledby="s-sostieni">
-  <section class="etichetta" aria-labelledby="tsos">
-    <h2 id="tsos" style="font-size:30px;margin:0 0 8px">Sostienimi</h2>
+  <details class="etichetta sezione" id="sez-sostienimi" aria-labelledby="tsos">
+    <summary><h2 id="tsos">Sostienimi</h2><span class="sez-riga">Mi costruisce una persona sola, di notte, dopo il furgone</span><span class="sez-freccia" aria-hidden="true"></span></summary>
+    <div class="sez-corpo">
     <p class="dice">Mi costruisce una persona sola, di notte, dopo il furgone.</p>
     <p class="piccolo">Il sostegno paga quello che serve per costruirmi: strumenti, calcolo, telefono. Quanto costa, voce per voce, lo trovi in <a href="#conto">Quanto costo</a>. Non è un acquisto e non è un investimento: per investire c'è la sezione <a href="#investitori">Investitori</a>.</p>
     <div id="sostieni-modi"></div>
     <p class="piccolo" id="sostieni-presto" style="margin-top:14px">Il modo per sostenermi con un contributo sta arrivando. Intanto mi aiuti così:</p>
-  </section>
-  <section class="etichetta">
-    <h2 style="font-size:24px;margin:0 0 6px">Anche senza soldi</h2>
+  </div>
+  </details>
+  <details class="etichetta sezione" id="sez-senza-soldi" aria-labelledby="tsenza">
+    <summary><h2 id="tsenza">Anche senza soldi</h2><span class="sez-riga">Rispondi alle domande, condividi la pagina, seguimi su Instagram</span><span class="sez-freccia" aria-hidden="true"></span></summary>
+    <div class="sez-corpo">
     <p class="piccolo">Rispondi alle mie domande: decidono cosa costruisco dopo. Fai vedere questa pagina a chi fa un lavoro come il tuo. Segui la storia su Instagram.</p>
     <button class="invia" id="condividi">Condividi la pagina</button>
     <a class="invia secondario" href="https://www.instagram.com/jjoe_boy93" target="_blank" rel="noopener" style="text-align:center;text-decoration:none">Seguimi su Instagram</a>
     <p class="avviso" id="esito-condividi" role="status"></p>
-  </section>
+  </div>
+  </details>
 </div>
 
 </main>
@@ -1149,6 +1231,47 @@ const risposte = {vita:"", mestiere:"", tempo:"", dettaglio:"", prezzo:0};
 let prezzoMosso=false;
 const $ = id => document.getElementById(id);
 if (!INVIO) $("anteprima").hidden = false;
+
+// ══ LE SEZIONI ══ 28/10, JJ: «le varie pagine non sono molto pratiche... devi scorrere per vedere tutto. Se clicchi ad esempio su I tuoi dati
+// si apre espanso tutto intero, altrimenti resta chiuso in forma contratta». Ogni sezione dei pannelli (la chat e il Calendario no) è un
+// <details class="sezione">: chiusa mostra titolo e una riga di riassunto, toccata si apre. Aprendo un pannello sono tutte chiuse, tranne:
+// quella che un link o il pallino del Profilo ti porta a vedere, quelle che avevi aperto tu in questa visita (sessionStorage: sopravvive
+// al ricaricamento, non alla chiusura della scheda) e il pannello che mostra UNA sezione sola, che non ha niente da scegliere.
+const CHIAVE_SEZIONI="jjavis-sezioni";
+function sezioni(){ return [...document.querySelectorAll("details.sezione")]; }
+function salvaAperte(){ try{ sessionStorage.setItem(CHIAVE_SEZIONI, JSON.stringify(sezioni().filter(d=>d.open && !d.dataset.auto).map(d=>d.id))); }catch(_){} }
+(function(){ let aperte=[]; try{ const a=JSON.parse(sessionStorage.getItem(CHIAVE_SEZIONI)||"[]"); if(Array.isArray(a)) aperte=a; }catch(_){}
+  sezioni().forEach(d=>{ d.open=aperte.includes(d.id); d.addEventListener("toggle", salvaAperte); }); })();
+// un tocco della persona su una sezione la fa sua: la regola della sezione sola non la riapre né la richiude più
+document.addEventListener("click", e=>{ const s=e.target.closest&&e.target.closest("summary"), d=s&&s.parentElement;
+  if(d&&d.matches("details.sezione")){ delete d.dataset.auto; d.dataset.mia="1"; } });
+// «Novità», «Guardami al lavoro» e «Quanto costo» compaiono solo quando hanno qualcosa: finché in un pannello se ne vede una sola, quella sta aperta
+// (senza ricordarsela: non è una scelta della persona); se poi ne arriva un'altra, si richiude e il pannello torna a sezioni chiuse
+function sezioniSole(){
+  document.querySelectorAll(".pannello").forEach(pn=>{ const viste=[...pn.querySelectorAll("details.sezione")].filter(d=>!d.hidden);
+    viste.forEach(d=>{
+      if(viste.length===1){ if(!d.open && !d.dataset.mia){ d.dataset.auto="1"; d.open=true; } }
+      else if(d.dataset.auto){ delete d.dataset.auto; d.open=false; } }); }); }
+sezioniSole();
+// apre la sezione che contiene el (o el stessa, se è una sezione); dice se ha dovuto aprirne una
+function apriSezioneDi(el){ let aperta=false;
+  for(let d=el&&el.closest("details"); d; d=d.parentElement&&d.parentElement.closest("details")) if(!d.open){ d.open=true; aperta=true; }
+  return aperta; }
+// i link che portano a un pannello intero ma parlano di una cosa sola ne aprono quella sezione (JJ: «Cosa so fare →», «nel Profilo»)
+const SEZIONE_DEL_LINK={"profilo":"il-tuo-assistente", "sa-fare":"cosa-so-fare"};
+let sezioneLink=null;
+// il pallino sulla linguetta Profilo (e nel menù) dice «c'è una domanda»: toccato, porta alla domanda di oggi, con «Imparo te» aperta
+function sezioneDelPallino(k){ if(k!=="profilo" || !$("s-profilo").classList.contains("domanda")) return undefined;
+  const s=$("imparo-te"); apriSezioneDi(s); return s; }
+// la riga sotto il titolo di ogni sezione: quelle che dipendono dai dati si rifanno quando i dati cambiano
+function riga(id,testo){ const e=$(id); if(e) e.textContent=testo; }
+const maiusc=s=>s.charAt(0).toUpperCase()+s.slice(1);
+function rigaAtlas(){ const T={tech:"Tecnologico", calmo:"Calmo", deciso:"Deciso", naturale:"Naturale"};
+  riga("rg-atlas", [io.nome||"Senza nome", T[io.tema||"tech"]||"Tecnologico", io.tuo].filter(Boolean).join(" · ")); }
+function rigaImparo(){ let n; try{ n=vociProfilo().length; }catch(_){ return; }   // all'avvio il Profilo non è ancora pronto: poi lo rifà aggiornaProfilo
+  const so=n ? `so ${n} ${n===1?"cosa":"cose"} di te` : "non so ancora niente di te";
+  riga("rg-imparo", domandaDiOggi() ? `1 domanda per oggi · ${so}` : so); }
+function rigaCosa(){ riga("rg-cosa", `${maiusc($("n-attrezzi").textContent)} attrezzi: in macchina, al lavoro, nella giornata`); }
 
 // 29 settembre, JJ: «quando scelgo colore e nome e dico il mio poi devono
 // sparire dalla prima pagina così come tutte le altre cose, senó poi la chat è
@@ -1533,7 +1656,7 @@ $("conv-nuova").addEventListener("click", nuovaConv);
 // una voce per scheda: il menù si chiude e si apre quella scheda
 $("menu-schede").addEventListener("click", e=>{ const b=e.target.closest(".menu-scheda"); if(!b) return;
   const k=b.dataset.vai; chiudiConv(); if(k==="inizia"){ allaChat(); return; }
-  if(location.hash!=="#"+k) history.pushState(null,"","#"+k); vaiA(k); });
+  if(location.hash!=="#"+k) history.pushState(null,"","#"+k); vaiA(k, 0, sezioneDelPallino(k)); });
 $("menu-calendario").addEventListener("click", ()=>{ chiudiConv(); if(location.hash!=="#calendario") history.pushState(null,"","#calendario"); if(schedaAttiva==="calendario") caricaCalendario(); else vaiA("calendario"); });
 $("menu-citta").addEventListener("click", chiudiConv);
 document.addEventListener("keydown", e=>{ if(e.key!=="Escape") return;
@@ -1880,7 +2003,8 @@ function riquadroSocial(v){
   a.textContent=`Guardalo su ${NOMI_PIATTAFORMA[v.piattaforma]||v.piattaforma} ↗`; cap.appendChild(a);
   fig.append(b,cap); return fig;
 }
-function mostraVideo(){ $("video").hidden=false; }
+function mostraVideo(){ $("video").hidden=false; sezioniSole();
+  const n=$("video-elenco").children.length; riga("rg-video", n===1 ? "Un video vero, dal telefono e dal furgone" : `${n} video veri, dal telefono e dal furgone`); }
 if(INVIO) fetch(INVIO.replace("/risposta","/video")).then(r=>r.ok?r.json():{video:[]}).then(d=>{
   const vid=(d.video||[]).filter(v=>INCORPORA[v.piattaforma]); if(!vid.length) return;
   const casa=$("video-elenco"); vid.forEach(v=>casa.appendChild(riquadroSocial(v))); mostraVideo();
@@ -1905,7 +2029,7 @@ fetch("https://api.github.com/repos/JJoeBoy93/JJA-VIS/contents/video").then(r=>r
 if(INVIO){
   fetch(INVIO.replace("/risposta","/vetrina")).then(r=>r.ok?r.json():{}).then(v=>{
     if(Number.isInteger(v.canzoni)) $("n-canzoni").textContent=String(v.canzoni).replace(/\B(?=(\d{3})+(?!\d))/g,".");   // 28/10: toLocaleString("it-IT") non mette il punto ai numeri a quattro cifre (5747), e il numero di partenza è «4.639»
-    if(Number.isInteger(v.attrezzi)) $("n-attrezzi").textContent=String(v.attrezzi);
+    if(Number.isInteger(v.attrezzi)){ $("n-attrezzi").textContent=String(v.attrezzi); rigaCosa(); }
   }).catch(()=>{});
   fetch(INVIO.replace("/risposta","/novita")).then(r=>r.ok?r.json():[]).then(el=>{
     if(!Array.isArray(el)||!el.length) return;
@@ -1919,7 +2043,9 @@ if(INVIO){
       if(n.testo){ const p=document.createElement("p"); p.textContent=n.testo; d.appendChild(p); }
       casa.appendChild(d);
     });
-    $("novita").hidden=false;
+    const nov=el.slice(0,5), ultima=[...nov].sort((a,b)=>(Date.parse(b.quando)||0)-(Date.parse(a.quando)||0))[0];
+    riga("rg-novita", `${nov.length===1 ? "Una novità" : nov.length+" novità"}${ultima&&ultima.titolo ? " · ultima: "+(ultima.titolo.length>50 ? ultima.titolo.slice(0,49)+"…" : ultima.titolo) : ""}`);
+    $("novita").hidden=false; sezioniSole();
   }).catch(()=>{});
 }
 
@@ -1944,7 +2070,11 @@ fetch("conto.json", {cache:"no-store"}).then(r=>r.ok?r.json():null).then(c=>{
     casa.appendChild(ul);
   });
   $("conto-quando").textContent = c.aggiornato ? "Aggiornato il "+c.aggiornato+"." : "";
-  $("conto").hidden=false;
+  // la riga: il totale di ogni gruppo come lo scrive il gruppo («Acceso 0 € · costruirmi 72 € al mese»), la stessa somma che si legge sotto
+  const unita=[...new Set(c.gruppi.map(g=>g.unita).filter(Boolean))], breve=n=>n.toLocaleString("it-IT",{maximumFractionDigits:2})+" €";
+  riga("rg-conto", c.gruppi.map((g,i)=>{ const nome=String(g.titolo||"").replace(/^Tenermi\s+/i,"").toLowerCase();
+    return `${i ? nome : maiusc(nome)} ${breve((g.voci||[]).reduce((s,v)=>s+(typeof v.euro==="number"?v.euro:0),0))}${unita.length>1&&g.unita ? " "+g.unita : ""}`; }).join(" · ")+(unita.length===1 ? " "+unita[0] : ""));
+  $("conto").hidden=false; sezioniSole();
 }).catch(()=>{});
 
 // il globo: una sfera a maglia che gira piano e respira, nei colori dell'aspetto scelto
@@ -2114,12 +2244,13 @@ setTimeout(()=>{ if(!portaDecisa) rivela(); },8000);
     salva(); location.replace(pulita);
   }).catch(fine); })();
 function applicaTema(t){
+  rigaAtlas();
   if(t==="tech") document.documentElement.removeAttribute("data-tema"); else document.documentElement.setAttribute("data-tema",t);
   document.querySelectorAll(".tema").forEach(b=>b.setAttribute("aria-pressed", String(b.dataset.tema===t)));
   globo.ricolora();
 }
 function applicaNome(n){
-  const nome=n||"JJA-VIS";
+  const nome=n||"JJA-VIS"; rigaAtlas();
   $("nome-testata").textContent=nome;
   $("sotto-testata").textContent = n ? "il tuo JJA-VIS" : "il tuo nuovo assistente personale";
   document.querySelectorAll(".chi").forEach(x=>x.textContent=nome);
@@ -2205,7 +2336,7 @@ function salvaConosciuta(q,testo){
 function mostraDomanda(){
   const q=domandaDiOggi(); const box=$("conosci");
   box.dataset.k = q ? q.k : "";
-  aggiornaPallino();
+  aggiornaPallino(); rigaImparo();
   if(!q){ box.hidden=true; $("conosci-fine").hidden=!io.inviato; return; }
   $("conosci-fine").hidden=true;
   $("conosci-domanda").textContent=testoDomanda(q);
@@ -2657,14 +2788,15 @@ function daIndirizzo(){
   const h=decodeURIComponent(location.hash.slice(1));
   chiudiConv();
   if(!h){ if(document.body.classList.contains("chat-sola")){ chiudiResto(); vaiA("inizia"); } else vaiA(schedaAttiva||"inizia"); return; }
-  if(SCHEDE.includes(h)){ if(h==="inizia") chiudiResto(); vaiA(h); return; }
+  if(SCHEDE.includes(h)){ const s=sezioneLink; sezioneLink=null; if(h==="inizia") chiudiResto(); vaiA(h, 0, s||undefined); return; }
   const el=document.getElementById(h); const pn=el&&el.closest(".pannello");
+  if(pn) apriSezioneDi(el);   // un link dentro una sezione la apre: «#clio», «#dati», «#numeri-problema»…
   // nella scheda Inizia, per chi è di casa, la chat è la pagina: #parla la mostra, il resto (benvenuto, domande) si apre da qui
   if(pn && pn.id==="p-inizia" && document.body.classList.contains("chat-sola")){ if(el.closest("#parla")) chiudiResto(); else apriResto(); }
   if(pn) vaiA(pn.id.slice(2), 0, el); else vaiA(schedaAttiva||"inizia");
 }
 document.querySelectorAll(".schede button").forEach(b=>b.addEventListener("click", ()=>{
-  const k=b.dataset.scheda; if(location.hash!=="#"+k) history.pushState(null,"","#"+k); if(k==="inizia") chiudiResto(); vaiA(k); }));
+  const k=b.dataset.scheda; if(location.hash!=="#"+k) history.pushState(null,"","#"+k); if(k==="inizia") chiudiResto(); vaiA(k, 0, sezioneDelPallino(k)); }));
 document.querySelector(".schede").addEventListener("keydown", e=>{
   if(e.key!=="ArrowRight"&&e.key!=="ArrowLeft") return;
   const i=SCHEDE.indexOf(schedaAttiva)+(e.key==="ArrowRight"?1:-1); if(i<0||i>=SCHEDE.length || SCHEDE[i]==="calendario") return;
@@ -2674,6 +2806,7 @@ window.addEventListener("hashchange", daIndirizzo);
 // non fa scattare hashchange: lo si gestisce qui, sempre.
 document.addEventListener("click", e=>{ const a=e.target.closest('a[href^="#"]'); if(!a) return;
   const h=a.getAttribute("href"); if(h.length<2) return; e.preventDefault();
+  const sl=SEZIONE_DEL_LINK[h.slice(1)]; if(sl){ sezioneLink=$(sl); apriSezioneDi(sezioneLink); }
   if(location.hash!==h) history.pushState(null,"",h); daIndirizzo(); });
 window.addEventListener("popstate", daIndirizzo);
 // il dito: scorrere di lato cambia scheda. Non dentro i campi, il cursore del
@@ -2696,7 +2829,7 @@ window.addEventListener("popstate", daIndirizzo);
 const ETICHETTE_SO={mestiere:"Lavoro", tempo:"Il tempo te lo mangia", inizio:"La giornata comincia", telefono:"Il telefono mentre lavori",
   parlare:"Come vuoi che ti parli", mestiere_di_una_vita:"Il lavoro che hai fatto", passioni:"Le tue passioni", voce:"Voce o scrittura", giorni:"Giorni di lavoro", soldi:"Dove risparmiare", sera:"La sera vorresti"};
 function aggiornaProfilo(){
-  const ha=!!io.nome;
+  const ha=!!io.nome; rigaAtlas();
   $("profilo-vuoto").hidden=ha; $("profilo-nome").hidden=!ha;
   if(ha && document.activeElement!==$("nuova-sigla")){ $("nuova-sigla").value=io.nome; $("cambia-nome").disabled=true; }
   if(document.activeElement!==$("profilo-tuo")) $("profilo-tuo").value=io.tuo||"";
@@ -2733,7 +2866,7 @@ function vociProfilo(){
 // dopo ogni cambio: il telefono e il conto (salva), poi tutto quello che dipende dalla vita si rifà
 function dopoCambio(){ salva(); aggiornaTasti(); disegnaVoci(); mostraDomanda(); }
 function disegnaVoci(){
-  const ul=$("so-di-te"); ul.innerHTML=""; const voci=vociProfilo();
+  const ul=$("so-di-te"); ul.innerHTML=""; const voci=vociProfilo(); rigaImparo();
   if(!voci.length){ const li=document.createElement("li"); li.innerHTML='<div class="riga"><span>Per ora</span><span>niente: non mi hai ancora detto nulla</span></div>'; ul.appendChild(li); return; }
   const btn=(t,f)=>{ const b=document.createElement("button"); b.type="button"; b.className="collegamento"; b.textContent=t; b.addEventListener("click",f); return b; };
   voci.forEach(vo=>{ const li=document.createElement("li"); if(vo.k) li.dataset.voce=vo.k;

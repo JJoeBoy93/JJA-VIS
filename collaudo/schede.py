@@ -10,6 +10,7 @@ avrebbe fermato la pagina a chi torna.
 """
 import json, asyncio, sys, os
 from playwright.async_api import async_playwright
+import aiuti; aiuti.sezioni_aperte()   # 28/10: le sezioni dei pannelli sono chiuse finché non si toccano; qui si aprono tutte (collaudo/sezioni.py prova le chiuse)
 PAGINA=open(sys.argv[1],encoding="utf-8").read()
 PORTA="https://jjavis-porta.19-jjardito93.workers.dev"
 BASE="https://jjoeboy93.github.io/JJA-VIS/"

@@ -33,6 +33,7 @@ della scena 11 diventa rossa.
 """
 import asyncio, base64, json, os, re, struct, sys, zlib
 from playwright.async_api import async_playwright
+import aiuti; aiuti.sezioni_aperte()   # 28/10: le sezioni dei pannelli sono chiuse finché non si toccano; qui si aprono tutte (collaudo/sezioni.py prova le chiuse)
 
 PAGINA = open(sys.argv[1], encoding="utf-8").read()
 BASE = "https://jjoeboy93.github.io/JJA-VIS/"
