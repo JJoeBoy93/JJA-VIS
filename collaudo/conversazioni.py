@@ -36,6 +36,12 @@ La scena 12 è del 28/10, JJ: «se avvio una conversazione nuova o cancellata mi
 che risponde 500 (o non risponde) la conversazione sul telefono si cancella lo stesso, compare «Sul telefono è cancellata; all'assistente
 lo dico appena riesco», e al ricaricamento (e prima del messaggio dopo) si riprova; riuscito, la riga se ne va. Senza account non cambia
 niente: nessuna richiesta, nessuna riga. La CONTROPROVA: tolta la chiamata dal tasto, la prima prova della scena 12 diventa rossa.
+
+La scena 13 è dello stesso giorno: anche «＋» (nuova conversazione) e l'archiviazione all'apertura chiudono la conversazione per l'assistente,
+da archiviaChat, con lo stesso comportamento di «Cancella»: con l'account chiamano POST /assistente/cancella; con la porta a 500 la chat
+passa alle precedenti lo stesso, compare «…all'assistente lo dico appena riesco» e al ricaricamento si riprova; senza account niente.
+Riprendere una conversazione dalle precedenti non chiama la porta. La CONTROPROVA: tolta la chiamata da archiviaChat, le prove di «＋» e
+dell'apertura diventano rosse.
 """
 import asyncio, base64, json, os, re, struct, sys, zlib
 from playwright.async_api import async_playwright
@@ -700,12 +706,99 @@ async def main():
         prova("12. un «da dire» rimasto da prima, senza più l'account: non chiama la porta e si azzera", INVIATI == [] and await da_dire() is None and not await nota_vista(), (INVIATI, await da_dire()))
 
         # CONTROPROVA: tolta la chiamata dal tasto, la prima prova della scena 12 diventa rossa
-        vera = PAGINA; segno = 'if(contoToken()){ segnaCancella(true); dilloCancellata(); } });'
+        vera = PAGINA; segno = 'if(contoToken()){ segnaCancella("1"); dilloCancellata(); } });'
         prova("12. (controprova) il punto da spegnere c'è nella pagina", segno in PAGINA)
         PAGINA = PAGINA.replace(segno, '});')
         await rientra({"chat": json.loads(json.dumps(MESSAGGI)), "thread": []}); INVIATI.clear(); URL_POST.clear(); PORTA.clear(); PORTA["cancella"] = (200, {"ok": True})
         await premi_cancella()
         prova("12. CONTROPROVA: se il tasto non chiama la porta, la prova «Cancella chiama /assistente/cancella» diventa rossa", not (len(cancella_url()) == 1 and ("cancella", "Bearer " + TOKEN) in AUTORIZZATI), URL_POST)
+        PAGINA = vera
+        await entra()
+
+        # 13. anche «＋» e l'archiviazione all'apertura lo dicono all'assistente (28/10)
+        print("── 13. «＋» e l'apertura: stessa rotta, da archiviaChat")
+        NOTA_CHIUSA = "Sul telefono la conversazione è chiusa; all'assistente lo dico appena riesco"
+        LETTI = [{"ruolo": "tu", "testo": "Ho pagato la bolletta della luce?", "id": "m0", "attesa": False},
+                 {"ruolo": "io", "testo": "Non lo so: l'hai segnata tu?", "id": "m0-r"}]       # tutto letto: all'apertura va nelle precedenti
+        copia_ = lambda x: json.loads(json.dumps(x))
+        async def col_piu(menu=False):
+            if menu: await p.click("#apri-conv"); await p.wait_for_timeout(450); await p.click("#conv-nuova")
+            else: await p.click("#nuova-conv")
+            await p.wait_for_timeout(700)
+        def porta(stato=200):
+            PORTA.clear(); PORTA["cancella"] = (stato, {"ok": True} if stato == 200 else {"errore": "giù"})
+        def vuoto(): INVIATI.clear(); URL_POST.clear(); AUTORIZZATI.clear()
+
+        # (a) «＋» con l'account: dal pulsante in testata e dal menù
+        for menu in (False, True):
+            porta(); vuoto()
+            await rientra({"chat": copia_(MESSAGGI), "thread": []}); vuoto()
+            await col_piu(menu); s = await stato()
+            dove = "dal menù (＋ Nuova conversazione)" if menu else "dalla testata"
+            prova(f"13. «＋» {dove}, con l'account: chiama POST /assistente/cancella, una volta, col token", len(cancella_url()) == 1 and ("cancella", "Bearer " + TOKEN) in AUTORIZZATI, (URL_POST, AUTORIZZATI))
+            prova(f"13. «＋» {dove}: la conversazione è nelle precedenti, la chat è vuota, nessuna riga, niente da dire", await bolle() == [] and not s.get("chat") and len(s.get("thread", [])) == 1
+                  and not await nota_vista() and await da_dire() is None, (await bolle(), s, await da_dire()))
+
+        # (b) l'archiviazione all'apertura
+        porta(); vuoto()
+        await rientra({"chat": copia_(LETTI), "thread": []}); s = await stato()
+        prova("13. aprendo con la conversazione tutta letta: va nelle precedenti e chiama POST /assistente/cancella col token", len(s.get("thread", [])) == 1 and not s.get("chat")
+              and len(cancella_url()) == 1 and ("cancella", "Bearer " + TOKEN) in AUTORIZZATI, (URL_POST, s))
+        prova("13. e riuscita la chiamata non c'è riga né da dire", not await nota_vista() and await da_dire() is None, await da_dire())
+        vuoto(); await entra()
+        prova("13. riaprendo con la chat già vuota non si richiama (niente da archiviare)", cancella_url() == [], URL_POST)
+
+        # (c) porta a 500: «＋» va avanti lo stesso, la riga, e al ricaricamento si riprova
+        porta(500); vuoto()
+        await rientra({"chat": copia_(MESSAGGI), "thread": []}); vuoto()
+        await col_piu(); s = await stato()
+        prova("13. «＋» con la porta a 500: la conversazione passa alle precedenti lo stesso e la chat è vuota", await bolle() == [] and not s.get("chat") and len(s.get("thread", [])) == 1, (await bolle(), s))
+        prova("13. e compare la riga «…all'assistente lo dico appena riesco», con il «da dire» segnato", await nota_vista() and (await p.inner_text("#cancella-nota")).strip() == NOTA_CHIUSA and await da_dire() == "2",
+              (await p.inner_text("#cancella-nota"), await da_dire()))
+        vuoto(); await entra()
+        prova("13. al ricaricamento si riprova (ancora 500: la riga resta, il «da dire» resta)", len(cancella_url()) == 1 and await nota_vista() and await da_dire() == "2", (URL_POST, await da_dire()))
+        porta(); vuoto(); await entra()
+        prova("13. quando la porta risponde: la richiesta riesce, la riga se ne va, non resta niente da dire", len(cancella_url()) == 1 and not await nota_vista() and await da_dire() is None, (URL_POST, await da_dire()))
+
+        # (d) porta a 500 all'apertura: stessa cosa
+        porta(500); vuoto()
+        await rientra({"chat": copia_(LETTI), "thread": []}); s = await stato()
+        prova("13. apertura con la porta a 500: la chat è nelle precedenti lo stesso, con la riga e il «da dire»", len(s.get("thread", [])) == 1 and not s.get("chat") and await nota_vista() and await da_dire() == "2", (s, await da_dire()))
+        porta(); vuoto(); await entra()
+        prova("13. e al ricaricamento si riprova e riesce", len(cancella_url()) == 1 and not await nota_vista() and await da_dire() is None, (URL_POST, await da_dire()))
+
+        # (e) se prima era stata cancellata («Cancella», porta giù) e poi arriva «＋»: la riga resta quella della cancellazione
+        porta(500); vuoto()
+        await rientra({"chat": copia_(MESSAGGI), "thread": []}); await premi_cancella()
+        prova("13. (controllo) dopo «Cancella» con la porta giù il «da dire» è 1", await da_dire() == "1" and await nota_vista(), await da_dire())
+        await rientra({"chat": copia_(MESSAGGI), "thread": []}, token=True); await p.evaluate(f"localStorage.setItem('{CHIAVE_DA_DIRE}','1')"); await p.reload(); await p.wait_for_timeout(1500)
+        await col_piu()
+        prova("13. «＋» dopo una cancellazione non ancora detta: il «da dire» resta 1 (la riga dice «cancellata»)", await da_dire() == "1" and (await p.inner_text("#cancella-nota")).strip() == NOTA, (await da_dire(), await p.inner_text("#cancella-nota")))
+        await p.evaluate(f"localStorage.removeItem('{CHIAVE_DA_DIRE}')")
+
+        # (f) riprendere una conversazione dalle precedenti non chiama la porta
+        porta(); vuoto()
+        await rientra({"chat": [], "thread": [{"quando": 1761600000000, "messaggi": copia_(LETTI)}]}); vuoto()
+        await p.click("#apri-conv"); await p.wait_for_timeout(450); await p.click("#conv-elenco .riga-conv >> nth=0 >> .riga-apri"); await p.wait_for_timeout(600)
+        prova("13. riprendere una conversazione dalle precedenti NON chiama /assistente/cancella (la ripresa è una scelta della persona)", len(await bolle()) == 2 and cancella_url() == [], (await bolle(), URL_POST))
+
+        # (g) senza account non cambia niente
+        porta(); vuoto(); await p.evaluate(f"localStorage.removeItem('{CHIAVE_DA_DIRE}')")
+        await rientra({"chat": copia_(MESSAGGI), "thread": []}, token=False); vuoto()
+        await col_piu(); s = await stato()
+        prova("13. senza account: «＋» archivia come sempre, nessuna richiesta, nessuna riga, niente da dire", await bolle() == [] and len(s.get("thread", [])) == 1 and INVIATI == [] and not await nota_vista() and await da_dire() is None, (INVIATI, await da_dire()))
+        vuoto(); await rientra({"chat": copia_(LETTI), "thread": []}, token=False); s = await stato()
+        prova("13. senza account: l'archiviazione all'apertura c'è, e non chiama la porta", len(s.get("thread", [])) == 1 and not s.get("chat") and INVIATI == [] and not await nota_vista() and await da_dire() is None, (INVIATI, s))
+
+        # CONTROPROVA: tolta la chiamata da archiviaChat, le prove di «＋» e dell'apertura diventano rosse
+        vera = PAGINA; segno = 'if(contoToken()){ segnaCancella("2"); dilloCancellata(); }'
+        prova("13. (controprova) il punto da spegnere c'è nella pagina", PAGINA.count(segno) == 1)
+        PAGINA = PAGINA.replace(segno, "")
+        porta(); vuoto()
+        await rientra({"chat": copia_(MESSAGGI), "thread": []}); vuoto(); await col_piu(); r_piu = len(cancella_url())
+        vuoto(); await rientra({"chat": copia_(LETTI), "thread": []}); r_apertura = len(cancella_url())
+        prova("13. CONTROPROVA: senza la chiamata in archiviaChat, la prova di «＋» diventa rossa", not (r_piu == 1), r_piu)
+        prova("13. CONTROPROVA: senza la chiamata in archiviaChat, la prova dell'apertura diventa rossa", not (r_apertura == 1), r_apertura)
         PAGINA = vera
         await entra()
 

@@ -1558,6 +1558,7 @@ function archiviaChat(){
   io.thread=io.thread||[];
   io.thread.unshift({quando:io.chatDa||Date.now(), messaggi:io.chat}); io.thread=io.thread.slice(0,20);
   io.chat=[]; delete io.chatDa; salva(); potaVoci();
+  if(contoToken()){ segnaCancella("2"); dilloCancellata(); }   // 28/10: anche «＋» e l'archiviazione all'apertura chiudono la conversazione per l'assistente (come «Cancella»)
 }
 // All'apertura: se non resta niente da leggere, la conversazione va nelle precedenti e la chat riparte pulita.
 function apertura(){
@@ -1737,10 +1738,15 @@ $("anteprima-via").addEventListener("click",togliFoto);
 // cancellata mi aspetto che non mi risponda a una cosa cancellata». Prima il tasto svuotava solo il telefono. Ora, per chi ha l'account, dice anche alla
 // porta (POST /assistente/cancella): da lì l'assistente non vede più le battute di prima. Se la porta non risponde la conversazione sul telefono si
 // cancella lo stesso, compare una riga, e si riprova al prossimo ingresso (e prima del prossimo messaggio). Senza account non cambia niente.
+// Stesso comportamento per «＋» (nuova conversazione) e per l'archiviazione all'apertura (archiviaChat): la conversazione che passa alle precedenti
+// è chiusa anche per l'assistente (JJ, 28/10: «nuova o cancellata»). Riprenderne una dalle precedenti, invece, non chiama la porta.
 // Il «da dire» sta in una chiave sua, per telefono: nel profilo seguirebbe l'account su un altro telefono, che lo direbbe a un'ora sbagliata.
 const CANCELLA_CHIAVE="jjavis-cancella-da-dire";
-const cancellaDaDire=()=>{ try{ return localStorage.getItem(CANCELLA_CHIAVE)==="1"; }catch(_){ return false; } };
-const segnaCancella=v=>{ try{ if(v) localStorage.setItem(CANCELLA_CHIAVE,"1"); else localStorage.removeItem(CANCELLA_CHIAVE); }catch(_){} };
+// il valore dice cosa è successo sul telefono, per la riga: "1" cancellata, "2" archiviata («＋», apertura). Una cancellazione non si declassa ad archiviazione.
+const cancellaDaDire=()=>{ try{ return !!localStorage.getItem(CANCELLA_CHIAVE); }catch(_){ return false; } };
+const segnaCancella=v=>{ try{ if(!v) localStorage.removeItem(CANCELLA_CHIAVE); else if(localStorage.getItem(CANCELLA_CHIAVE)!=="1") localStorage.setItem(CANCELLA_CHIAVE,String(v)); }catch(_){} };
+const NOTA_CANCELLATA="Sul telefono è cancellata; all'assistente lo dico appena riesco", NOTA_ARCHIVIATA="Sul telefono la conversazione è chiusa; all'assistente lo dico appena riesco";
+function mostraNota(){ let v=""; try{ v=localStorage.getItem(CANCELLA_CHIAVE)||""; }catch(_){} $("cancella-nota").textContent=v==="1"?NOTA_CANCELLATA:NOTA_ARCHIVIATA; $("cancella-nota").hidden=false; }
 let cancellaInCorso=null;
 function dilloCancellata(){
   if(cancellaInCorso) return cancellaInCorso;
@@ -1750,12 +1756,13 @@ function dilloCancellata(){
     try{ const r=await fetch(INVIO.replace("/risposta","/assistente/cancella"),{method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+contoToken()},body:"{}",
       ...(typeof AbortSignal!=="undefined"&&AbortSignal.timeout?{signal:AbortSignal.timeout(8000)}:{})});
       dato=r.ok; }catch(_){ dato=false; }
-    segnaCancella(!dato); $("cancella-nota").hidden=dato; return dato;
+    if(dato){ segnaCancella(false); $("cancella-nota").hidden=true; } else mostraNota();
+    return dato;
   })().finally(()=>{ cancellaInCorso=null; });
 }
 $("cancella-chat").addEventListener("click",()=>{ if(!confirm("Cancello questa conversazione? Gli impegni, le scadenze e i documenti restano.")) return;
   io.viste=[...new Set([...(io.viste||[]), ...(io.chat||[]).filter(m=>m.id).map(m=>m.id)])].slice(-300); io.chat=[]; delete io.chatDa; salva(); ridisegnaChat(); potaVoci();
-  if(contoToken()){ segnaCancella(true); dilloCancellata(); } });
+  if(contoToken()){ segnaCancella("1"); dilloCancellata(); } });
 async function apriDocumento(id,b){
   const prima=b.textContent; b.textContent="📎 apro…";
   try{ const r=await fetch(INVIO.replace("/risposta","/doc")+"?id="+encodeURIComponent(id),{headers:{Authorization:"Bearer "+contoToken()}});
