@@ -1602,7 +1602,7 @@ async function parlaAssistente(testo, daVoce){
   parlando=true; $("manda-chat").disabled=true; invio=testo; invioVoce=daVoce||null; ridisegnaChat();
   try{
     const r=await fetch(INVIO.replace("/risposta","/assistente"),{method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+contoToken()},
-      body:JSON.stringify({testo:conContesto(testo,daVoce),nome_assistente:io.nome||"",tuo:io.tuo||""})});
+      body:JSON.stringify({testo:conContesto(testo,daVoce),nome_assistente:io.nome||"",tuo:io.tuo||"",chi:io.id||"",profilo:{vita:io.vita||"",tempo:io.tempo||""}})});
     const d=await r.json().catch(()=>({}));
     if(!r.ok||!d.risposta) throw new Error(d.errore||("errore "+r.status));
     invio=null; invioVoce=null; io.chat=io.chat||[]; if(daVoce) daVoce.voce.mandato=true; else io.chat.push({ruolo:"tu",testo}); io.chat.push({ruolo:"io",testo:d.risposta,...(d.documenti&&d.documenti.length?{documenti:d.documenti}:{})});
@@ -1784,7 +1784,7 @@ async function parla(testo, daDove){
   try{
     const r=await fetch(INVIO.replace("/risposta","/parla"),{method:"POST",headers:{"Content-Type":"application/json"},
       body:JSON.stringify({chi:io.id, nome_assistente:io.nome||"", tema:io.tema||"tech", tuo:io.tuo||"", da_dove:daDove||"chat",
-        profilo:{mestiere:io.mestiere||"", tempo:io.tempo||"", conosciute:io.conosciute||{}}, testo:conContesto(testo),
+        profilo:{vita:io.vita||"", mestiere:io.mestiere||"", tempo:io.tempo||"", conosciute:io.conosciute||{}}, testo:conContesto(testo),
         // io.mail c'e' solo se l'ha data con la spunta: la risposta va anche li'
         ...(io.mail ? {contatto:{nome:io.tuo||"", societa:"", mail:io.mail, consenso:true}} : {})})});
     const d=await r.json().catch(()=>({}));
@@ -1978,6 +1978,12 @@ let io={};
 try{ io=JSON.parse(localStorage.getItem(CHIAVE)||"{}")||{}; }catch(_){ io={}; }
 const CONTO_CHIAVE="jjavis-conto";
 const contoToken=()=>{ try{ return localStorage.getItem(CONTO_CHIAVE)||""; }catch(_){ return ""; } };
+// 28/10: «solo su questo telefono» è falso per chi ha l'account. Si rifà quando l'account arriva o se ne va, senza ricaricare
+const RICORDO_PROFILO='Nome e colore li cambi nel <a href="#profilo">Profilo</a>.';
+function aggiornaRicordo(){ const e=document.getElementById("ricordo"); if(!e) return;
+  e.innerHTML=(contoToken()?"Mi ricordo di te su ogni telefono da cui entri col tuo account. ":"Mi ricordo di te solo su questo telefono. ")+RICORDO_PROFILO; }
+aggiornaRicordo();
+window.addEventListener("storage",e=>{ if(e.key===CONTO_CHIAVE||e.key===null) aggiornaRicordo(); });
 let serverConti=null;
 async function contoSrv(){ if(serverConti!==null) return serverConti;
   try{ const d=await (await fetch("insieme.json",{cache:"no-store"})).json(); serverConti=(typeof d.indirizzo==="string"&&/^wss:\/\//.test(d.indirizzo))?d.indirizzo.replace(/^wss:/,"https:").replace(/\/entra$/,""):""; }catch(_){ serverConti=""; }
@@ -2034,7 +2040,7 @@ setTimeout(()=>{ if(!portaDecisa) rivela(); },8000);
       if(JSON.stringify(u)!==JSON.stringify(io)){ io=u; try{ localStorage.setItem(CHIAVE, JSON.stringify(io)); }catch(_){} await conto_("/conto/io",{io}); location.reload(); return; }
       if(Object.keys(io).length && JSON.stringify(r.conto.io)!==JSON.stringify(io)) conto_("/conto/io",{io}); return; }
     if(r.stato!==401) return;   // il server non risponde: si entra lo stesso, col profilo del telefono (un guasto non chiude la porta)
-    try{ localStorage.removeItem(CONTO_CHIAVE); }catch(_){} }
+    try{ localStorage.removeItem(CONTO_CHIAVE); }catch(_){} aggiornaRicordo(); }
   // la porta si chiude solo se il server dei conti risponde: senza, non si potrebbe più entrare (un guasto non chiude la porta)
   const srv=await contoSrv(); if(!srv) return;
   try{ const p=await fetch(srv+"/conto/classifica?gioco=acchiappa",{cache:"no-store"}); if(!p.ok) return; }catch(_){ return; }
@@ -2047,7 +2053,7 @@ setTimeout(()=>{ if(!portaDecisa) rivela(); },8000);
     credenziali:"Mail, nome utente o password sbagliati.",codice:"Codice sbagliato.",scaduto:"Il codice è scaduto: rifai la richiesta.",bloccato:"Questo account è bloccato.",
     presto:"Un codice al minuto: riprova fra poco.",troppi:"Per oggi i codici sono finiti: riprova domani."};
   const dimmi=r=>esito(r.no==="attendi"?`Troppi tentativi: riprova fra ${r.fra} minuti.`:MSG[r.no]||"Qualcosa non ha funzionato: riprova.");
-  const dentro=async r=>{ try{ localStorage.setItem(CONTO_CHIAVE, r.token); sessionStorage.setItem("jjavis-io-preso","1"); }catch(_){}
+  const dentro=async r=>{ try{ localStorage.setItem(CONTO_CHIAVE, r.token); sessionStorage.setItem("jjavis-io-preso","1"); }catch(_){} aggiornaRicordo();
     io=unisciIo(unisciIo(r.conto&&r.conto.io,io,r.conto&&r.conto.mail),await ponte(),r.conto&&r.conto.mail); try{ localStorage.setItem(CHIAVE, JSON.stringify(io)); }catch(_){}
     if(Object.keys(io).length) await conto_("/conto/io",{io});
     // chi è nuovo resta su questa pagina: l'ingresso sfuma e appare «Come vuoi chiamarmi?». Chi porta con sé un profilo
@@ -2118,11 +2124,13 @@ const CONOSCERTI=[
   {k:"parlare", d:"Come vuoi che ti parli?", s:["Breve e diretto","Con calma, spiegando","Scherzando un po'"]},
   {k:"voce", d:"Mi useresti di più a voce o scrivendo?", s:["A voce","Scrivendo","Metà e metà"]},
   {k:"giorni", lavoro:true, d:"Quanti giorni a settimana lavori?", s:["5 o meno","6","7","Dipende"]},
-  {k:"soldi", d:"Dove ti farebbe più comodo risparmiare soldi?", s:["Carburante e spostamenti","Tempo pagato a ore","Errori e dimenticanze","Clienti persi"]},
+  {k:"soldi", lavoro:true, d:"Dove ti farebbe più comodo risparmiare soldi?", s:["Carburante e spostamenti","Tempo pagato a ore","Errori e dimenticanze","Clienti persi"]},
+  {k:"spese", casa:true, d:"Dove ti farebbe più comodo risparmiare?", s:["Bollette di luce e gas","La spesa","Medicine e visite","Abbonamenti che non uso"]},
   {k:"sera", lavoro:true, d:"La sera, dopo il lavoro, cosa ti piacerebbe avere già fatto?", s:["I conti del giorno","La giornata di domani pronta","Le risposte ai clienti","Niente: voglio staccare"]},
 ];
 // «lavoro:true» segna le domande che parlano di lavoro: a chi è in pensione o sta a casa non si fanno (27/10)
-function prossimaDomanda(){ io.conosciute=io.conosciute||{}; return CONOSCERTI.find(q=>!(q.k in io.conosciute) && !(q.lavoro && senzaLavoro(io.vita))); }
+// «casa:true» le sorelle per pensione e casa (28/10): le fa SOLO chi è senza lavoro, chi lavora non le vede mai
+function prossimaDomanda(){ io.conosciute=io.conosciute||{}; return CONOSCERTI.find(q=>!(q.k in io.conosciute) && !(q.lavoro && senzaLavoro(io.vita)) && !(q.casa && !senzaLavoro(io.vita))); }
 function mostraDomanda(){
   const q=prossimaDomanda(); const box=$("conosci");
   // 29/9, JJ: «quando finisco le domande deve sparire la scritta oggi voglio

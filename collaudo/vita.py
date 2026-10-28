@@ -15,6 +15,11 @@ con la porta finta (telefono 390×844):
    senza chiamare la porta; con vita lavoro (o niente) sono i tre di sempre
 7. il saluto di chi torna e le domande del ritorno: niente lavoro per pensione e casa
 8. chi ha già mandato il sondaggio prima di oggi (inviato, senza vita): niente #d0
+9. (28/10) le domande del ritorno: con vita pensione o casa mai «soldi» e prima o poi «spese»
+   («Dove ti farebbe più comodo risparmiare?»); con vita lavoro mai «spese», e «soldi» c'è
+10. (28/10) #ricordo: con l'account «su ogni telefono da cui entri col tuo account», senza
+   «solo su questo telefono»; e cambia quando l'account arriva o se ne va, senza ricaricare
+11. (28/10) parlaAssistente() e parla() mandano la vita alla porta (profilo.vita)
 """
 import asyncio, json, os, sys
 from playwright.async_api import async_playwright
@@ -31,6 +36,7 @@ CASA_TASTI = ["⏰ Ricordami una visita", "💶 Segnami una bolletta", "🛡 Un 
 FISSA = "Incollami qui il messaggio o raccontami la telefonata: ti dico cosa ne penso. Nel dubbio non toccare link e non dare codici a nessuno."
 spedite = []      # i sondaggi arrivati alla porta finta
 chiamate = []     # le chiamate all'assistente e a /parla
+corpi = []        # e cosa mandano: (url, corpo)
 
 prove = []
 def prova(nome, ok, info=""):
@@ -45,18 +51,18 @@ async def instrada(route):
             spedite.append(json.loads(r.post_data or "{}"))
             return await route.fulfill(status=201, body=json.dumps({"ok": True}), content_type="application/json", headers=CORS)
         if u.endswith("/assistente") or u.endswith("/parla"):
-            chiamate.append(u)
+            chiamate.append(u); corpi.append((u, json.loads(r.post_data or "{}")))
             return await route.fulfill(status=502, body="{}", content_type="application/json", headers=CORS)
         if "/risposte" in u: return await route.fulfill(body=json.dumps({"risposte": []}), content_type="application/json", headers=CORS)
         return await route.fulfill(body="{}", content_type="application/json", headers=CORS)
     return await route.fulfill(status=404, body="")
 
-async def apri(b, io, attesa=4500):
+async def apri(b, io, attesa=4500, conto=True):
     ctx = await b.new_context(viewport={"width": 390, "height": 844})
     await ctx.route("**/*", instrada)
     pg = await ctx.new_page()
     await pg.goto(BASE + "index.html")
-    await pg.evaluate("([io]) => { localStorage.setItem('jjavis-io', JSON.stringify(io)); localStorage.setItem('jjavis-conto', 't'.repeat(64)); }", [io])
+    await pg.evaluate("([io, conto]) => { localStorage.setItem('jjavis-io', JSON.stringify(io)); if (conto) localStorage.setItem('jjavis-conto', 't'.repeat(64)); }", [io, conto])
     await pg.reload(); await pg.wait_for_timeout(attesa)
     return ctx, pg
 
@@ -214,6 +220,51 @@ async def main():
         prova("8. inviato senza vita: niente #d0, niente #tocca", not await vede(pg, "#d0") and not await vede(pg, "#tocca") and not await vede(pg, "#d1"))
         prova("8. apre direttamente la chat, coi tasti di sempre", await vede(pg, "#chat-area") and await testi(pg, "#prove-chat .prova-chat") == BASE_TASTI)
         prova("8. nessuna domanda nuova: non gli si chiede la vita", "vita" not in (await leggi_io(pg)))
+        await ctx.close()
+
+        print("── 9. le domande del ritorno: «soldi» a chi lavora, «spese» a chi no")
+        SEQ = "() => { const k = []; io.conosciute = {}; for (let i = 0; i < 20; i++) { const q = prossimaDomanda(); if (!q) break; k.push(q.k); io.conosciute[q.k] = 'x'; } return k; }"
+        for vita, extra in (("pensione", {}), ("casa", {}), ("lavoro", {"mestiere": "Negozio o commercio"})):
+            ctx, pg = await apri(b, {**DI_CASA, "vita": vita, **extra}, 2500)
+            seq = await pg.evaluate(SEQ)
+            if vita == "lavoro":
+                prova(f"9. vita {vita}: «soldi» c'è e «spese» non c'è mai", "soldi" in seq and "spese" not in seq, seq)
+            else:
+                prova(f"9. vita {vita}: mai «soldi», e prima o poi «spese»", "soldi" not in seq and "spese" in seq, seq)
+            await ctx.close()
+        ctx, pg = await apri(b, {**DI_CASA, "vita": "pensione"}, 2500)
+        d = await pg.evaluate("() => { io.conosciute = {inizio: 'x', parlare: 'x', voce: 'x'}; mostraDomanda(); return [document.querySelector('#conosci-domanda').textContent, [...document.querySelectorAll('#conosci-scelte .scelta')].map(x => x.textContent)]; }")
+        prova("9. pensione: la domanda mostrata è «Dove ti farebbe più comodo risparmiare?» con le quattro scelte",
+              d[0] == "Dove ti farebbe più comodo risparmiare?" and d[1] == ["Bollette di luce e gas", "La spesa", "Medicine e visite", "Abbonamenti che non uso"], d)
+        await ctx.close()
+
+        print("── 10. #ricordo: dipende dall'account")
+        ctx, pg = await apri(b, {**DI_CASA, "vita": "pensione"}, 2500)
+        t = await pg.evaluate("document.querySelector('#ricordo').textContent")
+        prova("10. con l'account: «su ogni telefono da cui entri col tuo account»", "su ogni telefono da cui entri col tuo account" in t and "solo su questo telefono" not in t, t)
+        prova("10. e il Profilo si cambia ancora da lì", "Nome e colore li cambi nel Profilo." in t and await pg.evaluate("!!document.querySelector('#ricordo a[href=\"#profilo\"]')"), t)
+        await pg.evaluate("() => { localStorage.removeItem('jjavis-conto'); window.dispatchEvent(new StorageEvent('storage', {key: 'jjavis-conto'})); }")
+        t = await pg.evaluate("document.querySelector('#ricordo').textContent")
+        prova("10. l'account se ne va (senza ricaricare): «solo su questo telefono»", "solo su questo telefono" in t and "ogni telefono" not in t, t)
+        await pg.evaluate("() => { localStorage.setItem('jjavis-conto', 't'.repeat(64)); window.dispatchEvent(new StorageEvent('storage', {key: 'jjavis-conto'})); }")
+        t = await pg.evaluate("document.querySelector('#ricordo').textContent")
+        prova("10. l'account arriva (senza ricaricare): di nuovo «su ogni telefono»", "su ogni telefono da cui entri col tuo account" in t, t)
+        await ctx.close()
+        ctx, pg = await apri(b, {**DI_CASA, "vita": "pensione"}, 2500, conto=False)
+        t = await pg.evaluate("document.querySelector('#ricordo').textContent")
+        prova("10. senza account: «solo su questo telefono», come prima", "Mi ricordo di te solo su questo telefono." in t and "ogni telefono" not in t, t)
+        await ctx.close()
+
+        print("── 11. la vita arriva alla porta")
+        corpi.clear()
+        ctx, pg = await apri(b, {**DI_CASA, "vita": "pensione"}, 2500)
+        await pg.evaluate("() => parlaAssistente('Ciao')")
+        ass = [c for u, c in corpi if u.endswith("/assistente")]
+        prova("11. parlaAssistente manda profilo.vita e chi", bool(ass) and ass[-1].get("profilo", {}).get("vita") == "pensione" and ass[-1].get("chi") == CHI, corpi)
+        await pg.evaluate("() => { localStorage.removeItem('jjavis-conto'); }")
+        await pg.evaluate("() => parla('Ciao')")
+        pa = [c for u, c in corpi if u.endswith("/parla")]
+        prova("11. parla manda profilo.vita", bool(pa) and pa[-1].get("profilo", {}).get("vita") == "pensione", corpi)
         await ctx.close()
         await b.close()
     print(f"\n{sum(prove)}/{len(prove)} verdi"); print("VERDE" if all(prove) else "ROSSO"); sys.exit(0 if all(prove) else 1)   # VERDE/ROSSO: è l'ultima riga che legge Hera
