@@ -20,6 +20,11 @@ con la porta finta (telefono 390×844):
 10. (28/10) #ricordo: con l'account «su ogni telefono da cui entri col tuo account», senza
    «solo su questo telefono»; e cambia quando l'account arriva o se ne va, senza ricaricare
 11. (28/10) parlaAssistente() e parla() mandano la vita alla porta (profilo.vita)
+12. (28/10) il lavoro di una vita e le passioni, nelle domande del ritorno (dopo «parlare»):
+   «Che lavoro hai fatto nella vita?» solo con vita pensione, «C'è un lavoro che hai fatto, o che ti sarebbe
+   piaciuto fare?» con casa, mai con lavoro o studio; «Cosa ti appassiona?» per tutti, a scelta multipla, con la
+   casella libera («per esempio: il burraco, le bocce, il coro»); la risposta è UN testo solo ≤120 caratteri, arriva
+   a /conoscenza e a /parla in profilo.conosciute
 """
 import asyncio, json, os, sys
 from playwright.async_api import async_playwright
@@ -35,6 +40,7 @@ BASE_TASTI = ["⏰ Ricordami una cosa", "💶 Segnami una scadenza", "🎒 Cosa 
 CASA_TASTI = ["⏰ Ricordami una visita", "💶 Segnami una bolletta", "🛡 Un messaggio sospetto?"]
 FISSA = "Incollami qui il messaggio o raccontami la telefonata: ti dico cosa ne penso. Nel dubbio non toccare link e non dare codici a nessuno."
 spedite = []      # i sondaggi arrivati alla porta finta
+conoscenze = []   # le risposte del ritorno arrivate a /conoscenza
 chiamate = []     # le chiamate all'assistente e a /parla
 corpi = []        # e cosa mandano: (url, corpo)
 
@@ -47,6 +53,9 @@ async def instrada(route):
     if u.startswith(BASE): return await route.fulfill(body=PAGINA if u.split("?")[0] in (BASE, BASE + "index.html") else "{}", content_type="text/html")
     if "workers.dev" in u:
         if r.method == "OPTIONS": return await route.fulfill(status=204, headers={**CORS, "Access-Control-Allow-Methods": "POST, GET"})
+        if u.endswith("/conoscenza"):
+            conoscenze.append(json.loads(r.post_data or "{}"))
+            return await route.fulfill(status=201, body=json.dumps({"ok": True}), content_type="application/json", headers=CORS)
         if u.endswith("/risposta"):
             spedite.append(json.loads(r.post_data or "{}"))
             return await route.fulfill(status=201, body=json.dumps({"ok": True}), content_type="application/json", headers=CORS)
@@ -233,7 +242,7 @@ async def main():
                 prova(f"9. vita {vita}: mai «soldi», e prima o poi «spese»", "soldi" not in seq and "spese" in seq, seq)
             await ctx.close()
         ctx, pg = await apri(b, {**DI_CASA, "vita": "pensione"}, 2500)
-        d = await pg.evaluate("() => { io.conosciute = {inizio: 'x', parlare: 'x', voce: 'x'}; mostraDomanda(); return [document.querySelector('#conosci-domanda').textContent, [...document.querySelectorAll('#conosci-scelte .scelta')].map(x => x.textContent)]; }")
+        d = await pg.evaluate("() => { io.conosciute = {inizio: 'x', parlare: 'x', mestiere_di_una_vita: 'x', passioni: 'x', voce: 'x'}; mostraDomanda(); return [document.querySelector('#conosci-domanda').textContent, [...document.querySelectorAll('#conosci-scelte .scelta')].map(x => x.textContent)]; }")
         prova("9. pensione: la domanda mostrata è «Dove ti farebbe più comodo risparmiare?» con le quattro scelte",
               d[0] == "Dove ti farebbe più comodo risparmiare?" and d[1] == ["Bollette di luce e gas", "La spesa", "Medicine e visite", "Abbonamenti che non uso"], d)
         await ctx.close()
@@ -265,6 +274,66 @@ async def main():
         await pg.evaluate("() => parla('Ciao')")
         pa = [c for u, c in corpi if u.endswith("/parla")]
         prova("11. parla manda profilo.vita", bool(pa) and pa[-1].get("profilo", {}).get("vita") == "pensione", corpi)
+        await ctx.close()
+
+        print("── 12. il lavoro di una vita e le passioni")
+        SEQ = "() => { const k = []; io.conosciute = {}; for (let i = 0; i < 20; i++) { const q = prossimaDomanda(); if (!q) break; k.push(q.k); io.conosciute[q.k] = 'x'; } return k; }"
+        for vita, extra in (("pensione", {}), ("casa", {}), ("lavoro", {"mestiere": "Negozio o commercio"}), ("studio", {"mestiere": "Studio"})):
+            ctx, pg = await apri(b, {**DI_CASA, "vita": vita, **extra}, 2500)
+            seq = await pg.evaluate(SEQ)
+            if vita in ("pensione", "casa"):
+                prova(f"12. vita {vita}: «mestiere_di_una_vita» c'è, dopo «parlare» e prima di «passioni»", "mestiere_di_una_vita" in seq and seq.index("parlare") < seq.index("mestiere_di_una_vita") < seq.index("passioni"), seq)
+            else:
+                prova(f"12. vita {vita}: «mestiere_di_una_vita» non compare mai", "mestiere_di_una_vita" not in seq, seq)
+            prova(f"12. vita {vita}: «passioni» compare (per tutti)", "passioni" in seq, seq)
+            await ctx.close()
+        PRIMA = {"inizio": "Dopo le 8", "parlare": "Breve e diretto"}
+        MESTIERI = ["Corriere o autista", "Negozio o commercio", "Artigiano o tecnico", "Sanità", "Ufficio", "Guida turistica", "Creator o gamer", "Altro"]
+        ctx, pg = await apri(b, {**DI_CASA, "vita": "pensione", "conosciute": PRIMA}, 3000)
+        prova("12. pensione: «Che lavoro hai fatto nella vita?»", await pg.inner_text("#conosci-domanda") == "Che lavoro hai fatto nella vita?", await pg.inner_text("#conosci-domanda"))
+        prova("12. con i mestieri di #d1, senza «Studio»", await testi(pg, "#conosci-scelte .scelta") == MESTIERI, await testi(pg, "#conosci-scelte .scelta"))
+        prova("12. e la casella libera", await vede(pg, "#conosci-testo"))
+        await pg.fill("#conosci-testo", "il falegname"); await pg.click("#conosci-ok"); await pg.wait_for_timeout(300)
+        io = await leggi_io(pg)
+        prova("12. scritto con parole sue: salvato com'è", io["conosciute"].get("mestiere_di_una_vita") == "il falegname", io["conosciute"])
+        prova("12. e arrivato a /conoscenza", any(c.get("chiave") == "mestiere_di_una_vita" and c.get("risposta") == "il falegname" and c.get("chi") == CHI for c in conoscenze), conoscenze)
+        await pg.wait_for_timeout(1200)
+        prova("12. poi viene «Cosa ti appassiona?»", await pg.inner_text("#conosci-domanda") == "Cosa ti appassiona?", await pg.inner_text("#conosci-domanda"))
+        await ctx.close()
+        ctx, pg = await apri(b, {**DI_CASA, "vita": "casa", "conosciute": PRIMA}, 3000)
+        prova("12. casa: «C'è un lavoro che hai fatto, o che ti sarebbe piaciuto fare?»", await pg.inner_text("#conosci-domanda") == "C'è un lavoro che hai fatto, o che ti sarebbe piaciuto fare?", await pg.inner_text("#conosci-domanda"))
+        await pg.click('#conosci-scelte .scelta:has-text("Ufficio")'); await pg.wait_for_timeout(300)
+        prova("12. una scelta sola risponde subito", (await leggi_io(pg))["conosciute"].get("mestiere_di_una_vita") == "Ufficio")
+        await ctx.close()
+        # passioni: per tutti, scelta multipla + testo libero, un testo solo ≤120
+        for vita, extra in (("pensione", {}), ("lavoro", {"mestiere": "Negozio o commercio"})):
+            conosc = {**PRIMA, "mestiere_di_una_vita": "x", "telefono": "x", "giorni": "x"} if vita == "pensione" else {**PRIMA, "telefono": "x"}
+            conoscenze.clear()
+            ctx, pg = await apri(b, {**DI_CASA, "vita": vita, **extra, "conosciute": conosc}, 3000)
+            prova(f"12. vita {vita}: «Cosa ti appassiona?» con le nove scelte",
+                  await pg.inner_text("#conosci-domanda") == "Cosa ti appassiona?" and await testi(pg, "#conosci-scelte .scelta") ==
+                  ["Orto e giardino", "Cucina", "Nipoti e famiglia", "Lettura", "Viaggi e gite", "Musica e ballo", "Sport", "Volontariato", "Fai da te"], await testi(pg, "#conosci-scelte .scelta"))
+            prova(f"12. vita {vita}: la casella libera dice «per esempio: il burraco, le bocce, il coro»", "per esempio: il burraco, le bocce, il coro" in (await pg.get_attribute("#conosci-testo", "placeholder")))
+            prova(f"12. vita {vita}: senza scelte né testo «Segna» è spento", await pg.is_disabled("#conosci-ok"))
+            await pg.click('#conosci-scelte .scelta:has-text("Orto e giardino")'); await pg.click('#conosci-scelte .scelta:has-text("Cucina")')
+            prova(f"12. vita {vita}: due scelte restano accese insieme", await pg.evaluate("document.querySelectorAll('#conosci-scelte .scelta[aria-pressed=true]').length") == 2 and not await pg.is_disabled("#conosci-ok"))
+            await pg.fill("#conosci-testo", "il burraco"); await pg.click("#conosci-ok"); await pg.wait_for_timeout(300)
+            p = (await leggi_io(pg))["conosciute"].get("passioni")
+            prova(f"12. vita {vita}: salvato UN testo, separato da virgole", p == "Orto e giardino, Cucina, il burraco", p)
+            prova(f"12. vita {vita}: e arrivato a /conoscenza", any(c.get("chiave") == "passioni" and c.get("risposta") == p for c in conoscenze), conoscenze)
+            await ctx.close()
+        # tutte e nove le scelte più un testo lungo: il testo salvato resta ≤120
+        ctx, pg = await apri(b, {**DI_CASA, "vita": "lavoro", "mestiere": "Negozio o commercio", "conosciute": {**PRIMA, "telefono": "x"}}, 3000)
+        for t in await testi(pg, "#conosci-scelte .scelta"): await pg.click(f'#conosci-scelte .scelta:text-is("{t}")')
+        await pg.fill("#conosci-testo", "y" * 60); await pg.click("#conosci-ok"); await pg.wait_for_timeout(300)
+        p = (await leggi_io(pg))["conosciute"].get("passioni")
+        prova("12. tutte le scelte e un testo lungo: un testo solo di al massimo 120 caratteri", isinstance(p, str) and 0 < len(p) <= 120 and p.startswith("Orto e giardino, Cucina"), p)
+        # e arriva alla porta in profilo.conosciute
+        corpi.clear()
+        await pg.evaluate("() => { localStorage.removeItem('jjavis-conto'); }")
+        await pg.evaluate("() => parla('Ciao')")
+        pa = [c for u, c in corpi if u.endswith("/parla")]
+        prova("12. parla manda profilo.conosciute.passioni (e la porta la taglia a 120)", bool(pa) and pa[-1].get("profilo", {}).get("conosciute", {}).get("passioni") == p, corpi)
         await ctx.close()
         await b.close()
     print(f"\n{sum(prove)}/{len(prove)} verdi"); print("VERDE" if all(prove) else "ROSSO"); sys.exit(0 if all(prove) else 1)   # VERDE/ROSSO: è l'ultima riga che legge Hera

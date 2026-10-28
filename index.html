@@ -638,6 +638,10 @@ html.di-casa #o1{display:none}
     <div id="conosci" hidden>
       <h2 id="conosci-domanda" style="font-size:26px;margin:12px 0 12px"></h2>
       <div class="scelte" id="conosci-scelte"></div>
+      <div id="conosci-libera" hidden>
+        <input type="text" id="conosci-testo" maxlength="60" autocomplete="off" aria-label="Scrivilo con parole tue">
+        <button class="invia" id="conosci-ok" disabled>Segna</button>
+      </div>
       <p class="risposta" id="conosci-grazie" hidden></p>
     </div>
     <p class="dice" id="conosci-fine" hidden>Di te so già parecchio. Se vuoi dirmi altro, parlami.</p>
@@ -2122,6 +2126,12 @@ const CONOSCERTI=[
   {k:"inizio", d:"A che ora comincia la tua giornata?", s:["Prima delle 6","Tra le 6 e le 8","Dopo le 8","Cambia ogni giorno"]},
   {k:"telefono", lavoro:true, d:"Mentre lavori, il telefono dov'è?", s:["In mano","In tasca","Sul cruscotto","Sul bancone o sulla scrivania","Lontano"]},
   {k:"parlare", d:"Come vuoi che ti parli?", s:["Breve e diretto","Con calma, spiegando","Scherzando un po'"]},
+  {k:"mestiere_di_una_vita", casa:true, d:"Che lavoro hai fatto nella vita?", dCasa:"C'è un lavoro che hai fatto, o che ti sarebbe piaciuto fare?", max:120,
+   s:[...document.querySelectorAll('.scelte[data-campo="mestiere"] .scelta')].map(b=>b.textContent.trim()).filter(t=>t!=="Studio"),
+   libera:"Oppure scrivilo con parole tue, per esempio: il falegname, la maestra, la sarta"},
+  {k:"passioni", d:"Cosa ti appassiona?", multi:true, max:120,
+   s:["Orto e giardino","Cucina","Nipoti e famiglia","Lettura","Viaggi e gite","Musica e ballo","Sport","Volontariato","Fai da te"],
+   libera:"Altro, per esempio: il burraco, le bocce, il coro"},
   {k:"voce", d:"Mi useresti di più a voce o scrivendo?", s:["A voce","Scrivendo","Metà e metà"]},
   {k:"giorni", lavoro:true, d:"Quanti giorni a settimana lavori?", s:["5 o meno","6","7","Dipende"]},
   {k:"soldi", lavoro:true, d:"Dove ti farebbe più comodo risparmiare soldi?", s:["Carburante e spostamenti","Tempo pagato a ore","Errori e dimenticanze","Clienti persi"]},
@@ -2130,6 +2140,9 @@ const CONOSCERTI=[
 ];
 // «lavoro:true» segna le domande che parlano di lavoro: a chi è in pensione o sta a casa non si fanno (27/10)
 // «casa:true» le sorelle per pensione e casa (28/10): le fa SOLO chi è senza lavoro, chi lavora non le vede mai
+// «dCasa»: il testo della domanda per chi sta a casa (pensione usa «d»). «multi:true»: più scelte, si manda con «Segna».
+// «libera»: sotto le scelte c'è la casella libera (il testo è il suggerimento). «max»: caratteri massimi della risposta.
+// 28/10, JJ: «anche se in pensione ha fatto la sua vita dedicandosi a un lavoro e a delle passioni, bisogna imparare anche quelle»
 function prossimaDomanda(){ io.conosciute=io.conosciute||{}; return CONOSCERTI.find(q=>!(q.k in io.conosciute) && !(q.lavoro && senzaLavoro(io.vita)) && !(q.casa && !senzaLavoro(io.vita))); }
 function mostraDomanda(){
   const q=prossimaDomanda(); const box=$("conosci");
@@ -2141,16 +2154,31 @@ function mostraDomanda(){
   $("conosci-domanda").textContent=q.d; const sc=$("conosci-scelte"); sc.innerHTML="";
   q.s.forEach(t=>{ const b=document.createElement("button"); b.className="scelta"; b.setAttribute("aria-pressed","false"); b.textContent=t; sc.appendChild(b); });
   $("conosci-grazie").hidden=true; box.hidden=false;
-  sc.onclick=e=>{ const b=e.target.closest(".scelta"); if(!b) return;
-    sc.querySelectorAll(".scelta").forEach(x=>{ x.setAttribute("aria-pressed", String(x===b)); x.disabled=true; });
-    io.conosciute[q.k]=b.textContent; salva();
+  if(q.dCasa && io.vita==="casa") $("conosci-domanda").textContent=q.dCasa;
+  const lib=$("conosci-libera"), testoLibero=$("conosci-testo"), ok=$("conosci-ok");
+  lib.hidden=!(q.libera||q.multi); testoLibero.value=""; testoLibero.disabled=false; ok.disabled=true;
+  testoLibero.placeholder=q.libera||""; testoLibero.setAttribute("aria-label", q.libera||"Scrivilo con parole tue");
+  const scelte=()=>[...sc.querySelectorAll('.scelta[aria-pressed="true"]')].map(x=>x.textContent);
+  // la risposta è sempre UN testo solo: le scelte, poi quello che ha scritto, separati da virgole, al massimo q.max caratteri
+  const testoRisposta=()=>[...scelte(), testoLibero.value.trim()].filter(Boolean).join(", ").slice(0,q.max||200).trim();
+  const rispondi=testo=>{
+    sc.querySelectorAll(".scelta").forEach(x=>x.disabled=true); testoLibero.disabled=true; ok.disabled=true;
+    io.conosciute[q.k]=testo; salva();
     const g=$("conosci-grazie"); g.hidden=false; g.textContent="Segnato.";
     // JJ, 26 settembre: «se rispondo che l'ora cambia ogni giorno quella
     // domanda deve cambiare subito, non devo ricaricare la pagina».
     setTimeout(mostraDomanda, 900);
     if(INVIO) fetch(INVIO.replace("/risposta","/conoscenza"),{method:"POST",headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({chi:io.id, chiave:q.k, domanda:q.d, risposta:b.textContent, nome_assistente:io.nome||"", tema:io.tema||"tech"})}).catch(()=>{});
+      body:JSON.stringify({chi:io.id, chiave:q.k, domanda:q.d, risposta:testo, nome_assistente:io.nome||"", tema:io.tema||"tech"})}).catch(()=>{});
   };
+  sc.onclick=e=>{ const b=e.target.closest(".scelta"); if(!b || b.disabled) return;
+    if(q.multi){ b.setAttribute("aria-pressed", String(b.getAttribute("aria-pressed")!=="true")); ok.disabled=!testoRisposta(); return; }
+    sc.querySelectorAll(".scelta").forEach(x=>x.setAttribute("aria-pressed", String(x===b)));
+    rispondi(b.textContent);
+  };
+  testoLibero.oninput=()=>{ ok.disabled=!testoRisposta(); };
+  testoLibero.onkeydown=e=>{ if(e.key==="Enter" && !ok.disabled){ e.preventDefault(); ok.click(); } };
+  ok.onclick=()=>{ const t=testoRisposta(); if(t) rispondi(t); };
 }
 function mostraSondaggio(mostra){
   ["tocca","d0","d1","d2","d3","d5"].forEach(id=>{ const el=$(id); if(el) el.hidden=!mostra; });
@@ -2626,7 +2654,7 @@ window.addEventListener("popstate", daIndirizzo);
 // ══ IL PROFILO ══ nome dell'assistente, aspetto, nome di chi legge, e
 // quello che JJA-VIS sa di lui — detto intero, niente di nascosto.
 const ETICHETTE_SO={mestiere:"Lavoro", tempo:"Il tempo te lo mangia", inizio:"La giornata comincia", telefono:"Il telefono mentre lavori",
-  parlare:"Come vuoi che ti parli", voce:"Voce o scrittura", giorni:"Giorni di lavoro", soldi:"Dove risparmiare", sera:"La sera vorresti"};
+  parlare:"Come vuoi che ti parli", mestiere_di_una_vita:"Il lavoro che hai fatto", passioni:"Le tue passioni", voce:"Voce o scrittura", giorni:"Giorni di lavoro", soldi:"Dove risparmiare", sera:"La sera vorresti"};
 function aggiornaProfilo(){
   const ha=!!io.nome;
   $("profilo-vuoto").hidden=ha; $("profilo-nome").hidden=!ha;
