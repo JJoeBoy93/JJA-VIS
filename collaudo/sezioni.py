@@ -150,7 +150,13 @@ async def main():
         prova("3. non so niente: lo dice, senza numeri finti", await riga(pg, "#imparo-te") == "1 domanda per oggi · non so ancora niente di te", await riga(pg, "#imparo-te"))
         await vai_dal_menu(pg, "numeri")
         prova("3. «Il problema, in numeri»: 2 ore al giorno per corriere", await riga(pg, "#numeri-problema") == "2 ore al giorno per corriere", await riga(pg, "#numeri-problema"))
-        prova("3. «Quanto costo»: Acceso 0 € · costruirmi 72 € al mese (la somma delle voci di conto.json)", await vede(pg, "#conto") and await riga(pg, "#conto") == "Acceso 0 € · costruirmi 72 € al mese", await riga(pg, "#conto"))
+        # 29/10: la somma si legge da conto.json, non si scrive a mano (con «Claude a consumo» misurato era diventata 3,97 €)
+        _c = json.load(open(os.path.join(os.path.dirname(os.path.abspath(sys.argv[1])), "conto.json")))
+        _eur = lambda x: (f"{x:.2f}".replace(".", ",").removesuffix(",00")) + " €"
+        _att = _eur(sum(v["euro"] for v in _c["gruppi"][0]["voci"] if isinstance(v.get("euro"), (int, float))))
+        _cos = _eur(sum(v["euro"] for v in _c["gruppi"][1]["voci"] if isinstance(v.get("euro"), (int, float))))
+        _atteso = f"Acceso {_att} · costruirmi {_cos} al mese"
+        prova(f"3. «Quanto costo»: {_atteso} (la somma delle voci di conto.json)", await vede(pg, "#conto") and await riga(pg, "#conto") == _atteso, await riga(pg, "#conto"))
         await vai_dal_menu(pg, "sa-fare")
         prova("3. «Cosa so già fare»: i suoi attrezzi", "attrezzi" in await riga(pg, "#cosa-so-fare"), await riga(pg, "#cosa-so-fare"))
         prova("3. zero errori JavaScript", not errori, errori)
